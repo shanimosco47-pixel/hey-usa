@@ -45,7 +45,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/hey-usa">
       <AuthProvider>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
