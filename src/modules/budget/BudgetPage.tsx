@@ -2,8 +2,6 @@ import { useState, useMemo } from 'react'
 import {
   DollarSign,
   Plus,
-  TrendingUp,
-  TrendingDown,
   Plane,
   Bed,
   UtensilsCrossed,
@@ -63,11 +61,17 @@ export default function BudgetPage() {
   const [expenses, setExpenses] = useState<Expense[]>(SAMPLE_EXPENSES)
   const [settings] = useState<BudgetSettings>(SAMPLE_BUDGET_SETTINGS)
   const [showAddForm, setShowAddForm] = useState(false)
-  const [newExpense, setNewExpense] = useState({
+  const [newExpense, setNewExpense] = useState<{
+    title: string
+    amount: string
+    category: string
+    paid_by: 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3'
+    notes: string
+  }>({
     title: '',
     amount: '',
     category: 'food',
-    paid_by: 'aba' as const,
+    paid_by: 'aba',
     notes: '',
   })
 
@@ -257,7 +261,7 @@ export default function BudgetPage() {
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number) => `${settings.currency}${value.toLocaleString()}`}
+                formatter={(value) => `${settings.currency}${Number(value).toLocaleString()}`}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -279,7 +283,7 @@ export default function BudgetPage() {
               <XAxis type="number" hide />
               <YAxis type="category" dataKey="name" width={60} tick={{ fontSize: 11 }} />
               <Tooltip
-                formatter={(value: number) => `${settings.currency}${value.toLocaleString()}`}
+                formatter={(value) => `${settings.currency}${Number(value).toLocaleString()}`}
               />
               <Bar dataKey="budget" fill="#e8d5b8" radius={[0, 4, 4, 0]} barSize={12} />
               <Bar dataKey="spent" fill="#c44d34" radius={[0, 4, 4, 0]} barSize={12} />
