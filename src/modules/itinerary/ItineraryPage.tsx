@@ -176,10 +176,7 @@ export default function ItineraryPage() {
             <div key={stop.id}>
               <StopCard stop={stop} index={index} />
               {index < currentDay.stops.length - 1 && (
-                <DriveSegment
-                  fromTitle={stop.title}
-                  toTitle={currentDay.stops[index + 1].title}
-                />
+                <DriveSegment />
               )}
             </div>
           ))}

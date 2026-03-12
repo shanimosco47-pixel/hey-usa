@@ -1,14 +1,6 @@
-import { Car, ChevronDown } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 
-interface DriveSegmentProps {
-  fromTitle: string
-  toTitle: string
-}
-
-export function DriveSegment({ fromTitle, toTitle }: DriveSegmentProps) {
-  // Abbreviate long titles for the connector display
-  const abbreviate = (text: string) =>
-    text.length > 20 ? text.slice(0, 18) + '...' : text
+export function DriveSegment() {
 
   return (
     <div className="flex items-center justify-center py-1">
