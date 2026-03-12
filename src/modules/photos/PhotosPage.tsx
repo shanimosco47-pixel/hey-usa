@@ -1,16 +1,161 @@
-import { Camera } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import {
+  Camera,
+  Heart,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Calendar,
+  Filter,
+  Grid3X3,
+  LayoutList,
+} from 'lucide-react'
+import { cn } from '@/lib/cn'
+import { getFamilyMember, FAMILY_MEMBERS } from '@/lib/constants'
+import { SAMPLE_PHOTOS } from './data/samplePhotos'
+import type { Photo, FamilyMemberId } from '@/lib/types'
 
 export default function PhotosPage() {
+  const [photos, setPhotos] = useState<Photo[]>(SAMPLE_PHOTOS)
+  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
+  const [filterFavorites, setFilterFavorites] = useState(false)
+  const [filterMember, setFilterMember] = useState<FamilyMemberId | 'all'>('all')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+
+  const filtered = useMemo(() => {
+    let result = photos
+    if (filterFavorites) result = result.filter((p) => p.is_favorite)
+    if (filterMember !== 'all') result = result.filter((p) => p.taken_by === filterMember)
+    return result
+  }, [photos, filterFavorites, filterMember])
+
+  function toggleFavorite(id: string) {
+    setPhotos((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, is_favorite: !p.is_favorite } : p)),
+    )
+    if (selectedPhoto?.id === id) {
+      setSelectedPhoto((prev) => prev ? { ...prev, is_favorite: !prev.is_favorite } : null)
+    }
+  }
+
+  function navigatePhoto(direction: 'prev' | 'next') {
+    if (!selectedPhoto) return
+    const idx = filtered.findIndex((p) => p.id === selectedPhoto.id)
+    const newIdx = direction === 'next'
+      ? (idx + 1) % filtered.length
+      : (idx - 1 + filtered.length) % filtered.length
+    setSelectedPhoto(filtered[newIdx])
+  }
+
+  function formatDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString('he-IL', { day: 'numeric', month: 'short', year: 'numeric' })
+  }
+
+  // Lightbox
+  if (selectedPhoto) {
+    const photographer = selectedPhoto.taken_by ? getFamilyMember(selectedPhoto.taken_by) : null
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col bg-black/95">
+        <div className="flex items-center justify-between p-4">
+          <button onClick={() => setSelectedPhoto(null)} className="rounded-full bg-white/10 p-2 text-white">
+            <X className="h-5 w-5" />
+          </button>
+          <button onClick={() => toggleFavorite(selectedPhoto.id)} className={cn('rounded-full p-2', selectedPhoto.is_favorite ? 'text-red-400' : 'text-white/50')}>
+            <Heart className={cn('h-5 w-5', selectedPhoto.is_favorite && 'fill-current')} />
+          </button>
+        </div>
+        <div className="flex flex-1 items-center justify-center px-4 relative">
+          <button onClick={() => navigatePhoto('next')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white">
+            <ChevronRight className="h-6 w-6" />
+          </button>
+          <img src={selectedPhoto.url} alt={selectedPhoto.caption || ''} className="max-h-[70vh] max-w-full rounded-lg object-contain" />
+          <button onClick={() => navigatePhoto('prev')} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white">
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+        </div>
+        <div className="p-4 text-center text-white">
+          {selectedPhoto.caption && <p className="text-base font-medium">{selectedPhoto.caption}</p>}
+          <div className="mt-2 flex items-center justify-center gap-4 text-sm text-white/60">
+            {photographer && <span>{photographer.avatar_emoji} {photographer.name}</span>}
+            {selectedPhoto.location && <span><MapPin className="ml-0.5 inline h-3.5 w-3.5" />{selectedPhoto.location}</span>}
+            {selectedPhoto.taken_at && <span><Calendar className="ml-0.5 inline h-3.5 w-3.5" />{formatDate(selectedPhoto.taken_at)}</span>}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-12">
-      <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#e8735e]/10">
-        <Camera className="h-10 w-10 text-[#e8735e]" />
+    <div className="space-y-4 p-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-brown"><Camera className="ml-2 inline h-6 w-6" />תמונות</h1>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="rounded-xl bg-white/60 p-2 text-brown-light">
+            {viewMode === 'grid' ? <LayoutList className="h-4 w-4" /> : <Grid3X3 className="h-4 w-4" />}
+          </button>
+          <button onClick={() => setFilterFavorites(!filterFavorites)} className={cn('rounded-xl p-2', filterFavorites ? 'bg-red-50 text-red-400' : 'bg-white/60 text-brown-light')}>
+            <Heart className={cn('h-4 w-4', filterFavorites && 'fill-current')} />
+          </button>
+        </div>
       </div>
-      <h1 className="mt-6 text-2xl font-bold text-brown">תמונות</h1>
-      <p className="mt-1 text-sm text-brown-light">Photos</p>
-      <div className="mt-6 rounded-xl bg-[#e8735e]/5 px-6 py-3">
-        <p className="text-sm font-medium text-[#e8735e]">...בקרוב</p>
+
+      <div className="flex gap-3">
+        <div className="rounded-xl bg-white/80 px-3 py-2 text-center shadow-sm">
+          <p className="text-lg font-bold text-brown">{photos.length}</p>
+          <p className="text-xs text-brown-light">תמונות</p>
+        </div>
+        <div className="rounded-xl bg-white/80 px-3 py-2 text-center shadow-sm">
+          <p className="text-lg font-bold text-terracotta">{photos.filter((p) => p.is_favorite).length}</p>
+          <p className="text-xs text-brown-light">מועדפות</p>
+        </div>
       </div>
+
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <Filter className="h-4 w-4 shrink-0 text-brown-light" />
+        <button onClick={() => setFilterMember('all')} className={cn('shrink-0 rounded-full px-3 py-1.5 text-xs font-medium', filterMember === 'all' ? 'bg-brown text-white' : 'bg-white/60 text-brown-light')}>כולם</button>
+        {FAMILY_MEMBERS.map((m) => (
+          <button key={m.id} onClick={() => setFilterMember(m.id)} className={cn('shrink-0 rounded-full px-3 py-1.5 text-xs font-medium', filterMember === m.id ? 'bg-brown text-white' : 'bg-white/60 text-brown-light')}>
+            {m.avatar_emoji} {m.name}
+          </button>
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl bg-white/80 p-12 text-center shadow-sm">
+          <Camera className="h-12 w-12 text-brown-light/30" />
+          <p className="mt-4 text-brown-light">אין תמונות להצגה</p>
+        </div>
+      ) : viewMode === 'grid' ? (
+        <div className="grid grid-cols-3 gap-1.5">
+          {filtered.map((photo) => (
+            <button key={photo.id} onClick={() => setSelectedPhoto(photo)} className="group relative aspect-square overflow-hidden rounded-xl bg-sand-dark">
+              <img src={photo.thumbnail_url || photo.url} alt={photo.caption || ''} className="h-full w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
+              {photo.is_favorite && <Heart className="absolute top-1.5 left-1.5 h-4 w-4 fill-red-400 text-red-400 drop-shadow" />}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {filtered.map((photo) => {
+            const photographer = photo.taken_by ? getFamilyMember(photo.taken_by) : null
+            return (
+              <button key={photo.id} onClick={() => setSelectedPhoto(photo)} className="flex w-full items-center gap-3 rounded-2xl bg-white/80 p-2 text-right shadow-sm">
+                <img src={photo.thumbnail_url || photo.url} alt={photo.caption || ''} className="h-16 w-16 shrink-0 rounded-xl object-cover" loading="lazy" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-brown truncate">{photo.caption || 'ללא כיתוב'}</p>
+                  <p className="text-xs text-brown-light">
+                    {photographer && <span>{photographer.avatar_emoji} </span>}
+                    {photo.location && <span>{photo.location} · </span>}
+                    {photo.taken_at && formatDate(photo.taken_at)}
+                  </p>
+                </div>
+                {photo.is_favorite && <Heart className="h-4 w-4 shrink-0 fill-red-400 text-red-400" />}
+              </button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
