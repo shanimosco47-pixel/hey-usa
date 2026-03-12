@@ -1,0 +1,224 @@
+import { useState, useMemo } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { format, parseISO, isWithinInterval } from 'date-fns'
+import { Calendar, MapPin, StickyNote, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ITINERARY_DAYS } from '@/data/itinerary'
+import { DaySelector } from './components/DaySelector'
+import { StopCard } from './components/StopCard'
+import { DriveSegment } from './components/DriveSegment'
+import { cn } from '@/lib/cn'
+
+/** Determine the default day index: during the trip show the current day, otherwise show day 1 */
+function getDefaultDayIndex(): number {
+  const today = new Date()
+  const tripStart = parseISO('2026-09-11')
+  const tripEnd = parseISO('2026-09-30')
+
+  if (isWithinInterval(today, { start: tripStart, end: tripEnd })) {
+    const diff = Math.floor(
+      (today.getTime() - tripStart.getTime()) / (1000 * 60 * 60 * 24)
+    )
+    return Math.min(Math.max(diff, 0), ITINERARY_DAYS.length - 1)
+  }
+  return 0
+}
+
+export default function ItineraryPage() {
+  const { day: dayParam } = useParams<{ day?: string }>()
+  const navigate = useNavigate()
+
+  // Parse route param or use smart default
+  const initialIndex = useMemo(() => {
+    if (dayParam) {
+      const parsed = parseInt(dayParam, 10)
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= ITINERARY_DAYS.length) {
+        return parsed - 1
+      }
+    }
+    return getDefaultDayIndex()
+  }, [dayParam])
+
+  const [activeDayIndex, setActiveDayIndex] = useState(initialIndex)
+
+  const currentDay = ITINERARY_DAYS[activeDayIndex]
+  const date = parseISO(currentDay.date)
+
+  const handleDayChange = (index: number) => {
+    setActiveDayIndex(index)
+    navigate(`/itinerary/${index + 1}`, { replace: true })
+  }
+
+  const handlePrevDay = () => {
+    if (activeDayIndex > 0) {
+      handleDayChange(activeDayIndex - 1)
+    }
+  }
+
+  const handleNextDay = () => {
+    if (activeDayIndex < ITINERARY_DAYS.length - 1) {
+      handleDayChange(activeDayIndex + 1)
+    }
+  }
+
+  // Calculate total estimated cost for the day
+  const dayCost = currentDay.stops.reduce(
+    (sum, stop) => sum + (stop.cost_estimate ?? 0),
+    0
+  )
+
+  // Format Hebrew day of week
+  const hebrewDay = new Intl.DateTimeFormat('he-IL', {
+    weekday: 'long',
+  }).format(date)
+
+  return (
+    <div className="mx-auto max-w-2xl pb-24">
+      {/* Page header */}
+      <div className="px-4 pt-4 pb-2">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/10">
+            <Calendar className="h-5 w-5 text-gold-dark" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-brown">לוח זמנים</h1>
+            <p className="text-xs text-brown-light">
+              20 ימים במערב ארה"ב | ספטמבר 2026
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Day selector strip */}
+      <DaySelector
+        days={ITINERARY_DAYS}
+        activeDay={activeDayIndex}
+        onDayChange={handleDayChange}
+      />
+
+      {/* Day header with navigation arrows */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handleNextDay}
+            disabled={activeDayIndex >= ITINERARY_DAYS.length - 1}
+            className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+              activeDayIndex >= ITINERARY_DAYS.length - 1
+                ? 'text-sand-dark'
+                : 'bg-white/60 text-brown hover:bg-white'
+            )}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2">
+              <span className="rounded-lg bg-terracotta/10 px-2 py-0.5 text-xs font-bold text-terracotta">
+                יום {activeDayIndex + 1}
+              </span>
+              <span className="text-xs text-brown-light">
+                {hebrewDay}, {format(date, 'd.M.yyyy')}
+              </span>
+            </div>
+            <h2 className="mt-1 text-base font-bold text-brown">
+              {currentDay.title}
+            </h2>
+          </div>
+
+          <button
+            onClick={handlePrevDay}
+            disabled={activeDayIndex <= 0}
+            className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
+              activeDayIndex <= 0
+                ? 'text-sand-dark'
+                : 'bg-white/60 text-brown hover:bg-white'
+            )}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Day description */}
+        {currentDay.description && (
+          <p className="mt-2 text-center text-xs leading-relaxed text-brown-light">
+            {currentDay.description}
+          </p>
+        )}
+
+        {/* Day meta: city, cost */}
+        <div className="mt-3 flex items-center justify-center gap-4">
+          {currentDay.city && (
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5 text-terracotta" />
+              <span className="text-xs font-medium text-brown" dir="ltr">
+                {currentDay.city}
+              </span>
+            </div>
+          )}
+          {dayCost > 0 && (
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-brown-light">
+                עלות משוערת:
+              </span>
+              <span className="text-xs font-bold text-gold-dark" dir="ltr">
+                ~${dayCost}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Stops list */}
+      <div className="px-4 pt-2">
+        <div className="flex flex-col">
+          {currentDay.stops.map((stop, index) => (
+            <div key={stop.id}>
+              <StopCard stop={stop} index={index} />
+              {index < currentDay.stops.length - 1 && (
+                <DriveSegment
+                  fromTitle={stop.title}
+                  toTitle={currentDay.stops[index + 1].title}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Day notes */}
+      {currentDay.notes && (
+        <div className="mx-4 mt-4 rounded-xl border border-gold/30 bg-gold/5 p-3">
+          <div className="flex gap-2">
+            <StickyNote className="mt-0.5 h-4 w-4 flex-shrink-0 text-gold-dark" />
+            <div>
+              <h4 className="text-xs font-bold text-gold-dark">הערות ליום</h4>
+              <p className="mt-1 text-xs leading-relaxed text-brown-light">
+                {currentDay.notes}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Day progress indicator */}
+      <div className="mt-6 flex justify-center">
+        <div className="flex items-center gap-1">
+          {ITINERARY_DAYS.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => handleDayChange(i)}
+              className={cn(
+                'h-1.5 rounded-full transition-all',
+                i === activeDayIndex
+                  ? 'w-6 bg-terracotta'
+                  : 'w-1.5 bg-sand-dark hover:bg-brown-light'
+              )}
+              aria-label={`יום ${i + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
