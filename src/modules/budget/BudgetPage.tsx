@@ -18,7 +18,7 @@ import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { EXPENSE_CATEGORIES } from '@/lib/constants'
 import { FAMILY_MEMBERS, getFamilyMember } from '@/lib/constants'
-import { useTripData } from '@/contexts/TripDataContext'
+import { useAppData } from '@/contexts/AppDataContext'
 import type { Expense } from '@/lib/types'
 import {
   PieChart,
@@ -64,7 +64,7 @@ const PIE_COLORS = [
 ]
 
 export default function BudgetPage() {
-  const { budgetSettings: settings, expenses, addExpense, deleteExpense } = useTripData()
+  const { budgetSettings: settings, expenses, addExpense, deleteExpense } = useAppData()
   const [showAddForm, setShowAddForm] = useState(false)
   const [newExpense, setNewExpense] = useState<{
     title: string

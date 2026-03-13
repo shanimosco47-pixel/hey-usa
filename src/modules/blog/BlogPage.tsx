@@ -12,13 +12,13 @@ import {
 } from 'lucide-react'
 import { getFamilyMember } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
-import { SAMPLE_BLOG_POSTS } from './data/samplePosts'
+import { useAppData } from '@/contexts/AppDataContext'
 import type { BlogPost, FamilyMemberId } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function BlogPage() {
   const { currentMember } = useAuth()
-  const [posts, setPosts] = useState<BlogPost[]>(SAMPLE_BLOG_POSTS)
+  const { blogPosts, addBlogPost, updateBlogPost, deleteBlogPost } = useAppData()
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState('')
@@ -50,38 +50,26 @@ export default function BlogPage() {
       .join('\n')
 
     if (selectedPost) {
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === selectedPost.id
-            ? {
-                ...p,
-                title: editTitle,
-                content: htmlContent,
-                tags: editTags.split(',').map((t) => t.trim()).filter(Boolean),
-                updated_at: new Date().toISOString(),
-              }
-            : p,
-        ),
-      )
+      updateBlogPost(selectedPost.id, {
+        title: editTitle,
+        content: htmlContent,
+        tags: editTags.split(',').map((t) => t.trim()).filter(Boolean),
+      })
     } else {
-      const newPost: BlogPost = {
-        id: `post-${Date.now()}`,
+      addBlogPost({
         title: editTitle,
         content: htmlContent,
         author_id: (currentMember || 'aba') as FamilyMemberId,
         tags: editTags.split(',').map((t) => t.trim()).filter(Boolean),
         is_published: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }
-      setPosts((prev) => [newPost, ...prev])
+      })
     }
     setIsEditing(false)
     setSelectedPost(null)
   }
 
   function deletePost(id: string) {
-    setPosts((prev) => prev.filter((p) => p.id !== id))
+    deleteBlogPost(id)
     if (selectedPost?.id === id) {
       setSelectedPost(null)
       setIsEditing(false)
@@ -196,7 +184,7 @@ export default function BlogPage() {
         </Button>
       </motion.div>
 
-      {posts.length === 0 ? (
+      {blogPosts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
           <BookOpen className="h-12 w-12 text-apple-tertiary/30" />
           <p className="mt-4 text-apple-secondary">אין פוסטים עדיין</p>
@@ -209,7 +197,7 @@ export default function BlogPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.3 }}
         >
-          {posts.map((post) => {
+          {blogPosts.map((post) => {
             const author = getFamilyMember(post.author_id)
             const excerpt = post.content.replace(/<[^>]*>/g, '').slice(0, 120)
             return (

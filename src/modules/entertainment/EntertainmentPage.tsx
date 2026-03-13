@@ -13,20 +13,20 @@ import {
 import { cn } from '@/lib/cn'
 import { getFamilyMember } from '@/lib/constants'
 import {
-  SAMPLE_PLAYLIST,
   ROAD_TRIP_GAMES,
   USA_TRIVIA,
 } from './data/sampleEntertainment'
-import type { PlaylistItem, FamilyMemberId } from '@/lib/types'
+import type { FamilyMemberId } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
+import { useAppData } from '@/contexts/AppDataContext'
 
 type Tab = 'playlist' | 'games' | 'trivia'
 
 export default function EntertainmentPage() {
   const { currentMember } = useAuth()
+  const { playlistItems, addPlaylistItem, updatePlaylistItem, deletePlaylistItem } = useAppData()
   const memberId = (currentMember || 'aba') as FamilyMemberId
   const [activeTab, setActiveTab] = useState<Tab>('playlist')
-  const [playlist, setPlaylist] = useState<PlaylistItem[]>(SAMPLE_PLAYLIST)
   const [showAddSong, setShowAddSong] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newArtist, setNewArtist] = useState('')
@@ -34,43 +34,37 @@ export default function EntertainmentPage() {
   const [showAnswer, setShowAnswer] = useState(false)
 
   const sortedPlaylist = useMemo(() => {
-    return [...playlist].sort((a, b) => {
+    return [...playlistItems].sort((a, b) => {
       const scoreA = a.votes.reduce((s, v) => s + (v.vote === 'up' ? 1 : -1), 0)
       const scoreB = b.votes.reduce((s, v) => s + (v.vote === 'up' ? 1 : -1), 0)
       return scoreB - scoreA
     })
-  }, [playlist])
+  }, [playlistItems])
 
   function addSong() {
     if (!newTitle.trim()) return
-    const song: PlaylistItem = {
-      id: `song-${Date.now()}`,
+    addPlaylistItem({
       title: newTitle,
       artist: newArtist || undefined,
       added_by: memberId,
       votes: [{ member_id: memberId, vote: 'up' }],
-      created_at: new Date().toISOString(),
-    }
-    setPlaylist((prev) => [...prev, song])
+    })
     setNewTitle('')
     setNewArtist('')
     setShowAddSong(false)
   }
 
   function vote(songId: string, voteType: 'up' | 'down') {
-    setPlaylist((prev) =>
-      prev.map((song) => {
-        if (song.id !== songId) return song
-        const filtered = song.votes.filter((v) => v.member_id !== memberId)
-        const existing = song.votes.find((v) => v.member_id === memberId)
-        if (existing?.vote === voteType) return { ...song, votes: filtered }
-        return { ...song, votes: [...filtered, { member_id: memberId, vote: voteType }] }
-      }),
-    )
+    const song = playlistItems.find((s) => s.id === songId)
+    if (!song) return
+    const filtered = song.votes.filter((v) => v.member_id !== memberId)
+    const existing = song.votes.find((v) => v.member_id === memberId)
+    const newVotes = existing?.vote === voteType ? filtered : [...filtered, { member_id: memberId, vote: voteType }]
+    updatePlaylistItem(songId, { votes: newVotes })
   }
 
   function deleteSong(id: string) {
-    setPlaylist((prev) => prev.filter((s) => s.id !== id))
+    deletePlaylistItem(id)
   }
 
   function nextTrivia() {
@@ -117,7 +111,7 @@ export default function EntertainmentPage() {
       {activeTab === 'playlist' && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-apple-secondary">{playlist.length} שירים</p>
+            <p className="text-sm text-apple-secondary">{playlistItems.length} שירים</p>
             <button onClick={() => setShowAddSong(!showAddSong)} className="flex items-center gap-1.5 rounded-xl bg-ios-indigo px-3 py-1.5 text-xs font-medium text-white">
               <Plus className="h-3.5 w-3.5" />הוסף שיר
             </button>

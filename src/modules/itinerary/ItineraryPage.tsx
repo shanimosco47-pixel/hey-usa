@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
 import { format, parseISO, isWithinInterval } from 'date-fns'
 import { Calendar, MapPin, StickyNote, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useTripData } from '@/contexts/TripDataContext'
+import { useAppData } from '@/contexts/AppDataContext'
 import { DaySelector } from './components/DaySelector'
 import { StopCard } from './components/StopCard'
 import { DriveSegment } from './components/DriveSegment'
@@ -27,7 +27,7 @@ function getDefaultDayIndex(totalDays: number): number {
 export default function ItineraryPage() {
   const { day: dayParam } = useParams<{ day?: string }>()
   const navigate = useNavigate()
-  const { itineraryDays: ITINERARY_DAYS } = useTripData()
+  const { itineraryDays: ITINERARY_DAYS } = useAppData()
 
   // Parse route param or use smart default
   const initialIndex = useMemo(() => {

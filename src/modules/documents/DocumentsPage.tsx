@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import * as Tabs from '@radix-ui/react-tabs'
 import { FileText, Plus, Search, LayoutGrid, List, FolderOpen } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { DOCUMENT_CATEGORIES } from '@/lib/constants'
-import { useDocuments } from './hooks/useDocuments'
+import { useAppData } from '@/contexts/AppDataContext'
 import { DocumentCard } from './components/DocumentCard'
 import { UploadDialog } from './components/UploadDialog'
 import { DocumentViewer } from './components/DocumentViewer'
@@ -20,15 +20,29 @@ const CATEGORY_TABS: { value: string; label: string }[] = [
 ]
 
 export default function DocumentsPage() {
-  const {
-    documents,
-    allDocuments,
-    activeCategory,
-    setActiveCategory,
-    searchQuery,
-    setSearchQuery,
-    addDocument,
-  } = useDocuments()
+  const { documents: allDocuments, addDocument } = useAppData()
+  const [activeCategory, setActiveCategory] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const documents = useMemo(() => {
+    let result = allDocuments
+
+    if (activeCategory !== 'all') {
+      result = result.filter((d) => d.category === activeCategory)
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      result = result.filter(
+        (d) =>
+          d.title.toLowerCase().includes(q) ||
+          (d.notes && d.notes.toLowerCase().includes(q)) ||
+          d.category.toLowerCase().includes(q),
+      )
+    }
+
+    return result
+  }, [allDocuments, activeCategory, searchQuery])
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [uploadOpen, setUploadOpen] = useState(false)
