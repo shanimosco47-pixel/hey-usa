@@ -33,6 +33,20 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
+function GlassTooltip({ active, payload, label, currency }: { active?: boolean; payload?: Array<{ name: string; value: number }>; label?: string; currency: string }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="glass rounded-apple px-3 py-2 shadow-glass-hover border border-black/[0.06]">
+      {label && <p className="text-xs text-apple-secondary mb-1">{label}</p>}
+      {payload.map((entry, i) => (
+        <p key={i} className="text-sm font-medium text-apple-primary">
+          {entry.name}: {currency}{Number(entry.value).toLocaleString()}
+        </p>
+      ))}
+    </div>
+  )
+}
+
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
   flights: Plane,
   accommodation: Bed,
@@ -189,19 +203,19 @@ export default function BudgetPage() {
             placeholder="שם ההוצאה"
             value={newExpense.title}
             onChange={(e) => setNewExpense((p) => ({ ...p, title: e.target.value }))}
-            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
+            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors"
           />
           <input
             type="number"
             placeholder="סכום"
             value={newExpense.amount}
             onChange={(e) => setNewExpense((p) => ({ ...p, amount: e.target.value }))}
-            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
+            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors"
           />
           <select
             value={newExpense.category}
             onChange={(e) => setNewExpense((p) => ({ ...p, category: e.target.value }))}
-            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
+            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors"
           >
             {Object.entries(EXPENSE_CATEGORIES).map(([key, { label }]) => (
               <option key={key} value={key}>{label}</option>
@@ -210,7 +224,7 @@ export default function BudgetPage() {
           <select
             value={newExpense.paid_by}
             onChange={(e) => setNewExpense((p) => ({ ...p, paid_by: e.target.value as 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3' }))}
-            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
+            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors"
           >
             {FAMILY_MEMBERS.map((m) => (
               <option key={m.id} value={m.id}>{m.avatar_emoji} {m.name}</option>
@@ -253,9 +267,7 @@ export default function BudgetPage() {
                   <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip
-                formatter={(value) => `${settings.currency}${Number(value).toLocaleString()}`}
-              />
+              <Tooltip content={<GlassTooltip currency={settings.currency} />} />
             </PieChart>
           </ResponsiveContainer>
           <div className="mt-2 flex flex-wrap gap-2 justify-center">
@@ -275,9 +287,7 @@ export default function BudgetPage() {
             <BarChart data={barData} layout="vertical">
               <XAxis type="number" hide />
               <YAxis type="category" dataKey="name" width={60} tick={{ fontSize: 11 }} />
-              <Tooltip
-                formatter={(value) => `${settings.currency}${Number(value).toLocaleString()}`}
-              />
+              <Tooltip content={<GlassTooltip currency={settings.currency} />} />
               <Bar dataKey="budget" fill="#d1d1d6" radius={[0, 4, 4, 0]} barSize={12} />
               <Bar dataKey="spent" fill="#007AFF" radius={[0, 4, 4, 0]} barSize={12} />
             </BarChart>
