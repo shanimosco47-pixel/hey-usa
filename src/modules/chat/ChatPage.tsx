@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Bot, ArrowRight, Sparkles, WifiOff, Zap } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Send, Bot, ArrowRight, Sparkles, WifiOff, Zap, History } from 'lucide-react'
 import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, resetConversation } from './botEngine'
 import { useTripData } from '@/contexts/TripDataContext'
 
@@ -90,7 +91,8 @@ function AIBadge() {
 }
 
 export default function ChatPage() {
-  const { executeMotiAction } = useTripData()
+  const { executeMotiAction, changeLog } = useTripData()
+  const navigate = useNavigate()
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -184,6 +186,18 @@ export default function ChatPage() {
           </div>
           <p className="text-[12px] text-apple-secondary">{BOT_SUBTITLE}</p>
         </div>
+        <button
+          onClick={() => navigate('/chat/log')}
+          className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-500 hover:bg-purple-100 transition-colors"
+          title="יומן שינויים"
+        >
+          <History className="h-4 w-4" />
+          {changeLog.length > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-purple-500 px-1 text-[10px] font-bold text-white">
+              {changeLog.length}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Messages */}

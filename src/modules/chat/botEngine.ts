@@ -208,6 +208,122 @@ export function resetConversation() {
   conversationHistory = []
 }
 
+// ─── AI Action Parser ───────────────────────────────────────────────
+
+const VALID_ACTION_TYPES = new Set([
+  'UPDATE_BUDGET_CATEGORY',
+  'UPDATE_TOTAL_BUDGET',
+  'UPDATE_DAILY_BUDGET',
+  'ADD_EXPENSE',
+  'ADD_ITINERARY_STOP',
+  'UPDATE_ITINERARY_DAY_NOTES',
+])
+
+const VALID_CATEGORIES = new Set([
+  'flights', 'accommodation', 'food', 'transport',
+  'attractions', 'shopping', 'communication', 'insurance', 'other',
+])
+
+const VALID_MEMBERS = new Set(['aba', 'ima', 'kid1', 'kid2', 'kid3'])
+
+function parseAIActions(rawActions: unknown): MotiAction[] {
+  if (!Array.isArray(rawActions) || rawActions.length === 0) return []
+
+  const validActions: MotiAction[] = []
+
+  for (const raw of rawActions) {
+    if (!raw || typeof raw !== 'object' || !('type' in raw)) continue
+    const action = raw as Record<string, unknown>
+
+    if (!VALID_ACTION_TYPES.has(action.type as string)) continue
+
+    switch (action.type) {
+      case 'UPDATE_BUDGET_CATEGORY': {
+        const category = String(action.category || '')
+        const amount = Number(action.amount)
+        if (VALID_CATEGORIES.has(category) && amount > 0 && amount < 1_000_000) {
+          validActions.push({ type: 'UPDATE_BUDGET_CATEGORY', category, amount })
+        }
+        break
+      }
+      case 'UPDATE_TOTAL_BUDGET': {
+        const amount = Number(action.amount)
+        if (amount > 0 && amount < 10_000_000) {
+          validActions.push({ type: 'UPDATE_TOTAL_BUDGET', amount })
+        }
+        break
+      }
+      case 'UPDATE_DAILY_BUDGET': {
+        const amount = Number(action.amount)
+        if (amount > 0 && amount < 1_000_000) {
+          validActions.push({ type: 'UPDATE_DAILY_BUDGET', amount })
+        }
+        break
+      }
+      case 'ADD_EXPENSE': {
+        const exp = action.expense as Record<string, unknown> | undefined
+        if (!exp || typeof exp !== 'object') break
+        const title = String(exp.title || '')
+        const amount = Number(exp.amount)
+        const category = String(exp.category || 'other')
+        const paid_by = String(exp.paid_by || 'aba')
+        if (
+          title &&
+          amount > 0 &&
+          amount < 1_000_000 &&
+          VALID_CATEGORIES.has(category) &&
+          VALID_MEMBERS.has(paid_by)
+        ) {
+          validActions.push({
+            type: 'ADD_EXPENSE',
+            expense: {
+              title,
+              amount,
+              currency: String(exp.currency || '₪'),
+              category,
+              paid_by: paid_by as 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3',
+              date: String(exp.date || new Date().toISOString().split('T')[0]),
+            },
+          })
+        }
+        break
+      }
+      case 'ADD_ITINERARY_STOP': {
+        const dayId = String(action.dayId || '')
+        const stop = action.stop as Record<string, unknown> | undefined
+        if (!stop || typeof stop !== 'object') break
+        const title = String(stop.title || '')
+        if (/^day-\d{1,2}$/.test(dayId) && title) {
+          validActions.push({
+            type: 'ADD_ITINERARY_STOP',
+            dayId,
+            stop: {
+              title,
+              description: stop.description ? String(stop.description) : undefined,
+              location: stop.location ? String(stop.location) : undefined,
+              start_time: stop.start_time ? String(stop.start_time) : undefined,
+              end_time: stop.end_time ? String(stop.end_time) : undefined,
+              category: stop.category ? String(stop.category) : 'activity',
+              notes: stop.notes ? String(stop.notes) : undefined,
+            },
+          })
+        }
+        break
+      }
+      case 'UPDATE_ITINERARY_DAY_NOTES': {
+        const dayId = String(action.dayId || '')
+        const notes = String(action.notes || '')
+        if (/^day-\d{1,2}$/.test(dayId) && notes) {
+          validActions.push({ type: 'UPDATE_ITINERARY_DAY_NOTES', dayId, notes })
+        }
+        break
+      }
+    }
+  }
+
+  return validActions
+}
+
 export async function getBotResponseAsync(userMessage: string): Promise<BotResponse> {
   // First, check for actions in the message
   const actions = parseActions(userMessage)
@@ -235,7 +351,14 @@ export async function getBotResponseAsync(userMessage: string): Promise<BotRespo
       if (!error && data?.text) {
         const assistantMessage = data.text as string
         conversationHistory.push({ role: 'assistant', content: assistantMessage })
-        return { text: assistantMessage, actions: [] }
+
+        // Parse AI-returned actions
+        const aiActions = parseAIActions(data.actions)
+
+        // Merge: local regex actions take priority, then AI actions
+        const allActions = actions.length > 0 ? actions : aiActions
+
+        return { text: assistantMessage, actions: allActions }
       }
       console.warn('Supabase function error, falling back to keywords:', error)
     } catch (err) {
