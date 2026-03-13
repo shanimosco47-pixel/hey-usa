@@ -3,7 +3,7 @@
 // Now with ACTIONS — Moti can modify site data!
 
 import { supabase } from '@/lib/supabase'
-import type { MotiAction } from '@/contexts/TripDataContext'
+import type { MotiAction } from '@/contexts/AppDataContext'
 import { EXPENSE_CATEGORIES } from '@/lib/constants'
 
 export interface ChatMessage {
@@ -199,13 +199,72 @@ export function parseActions(message: string): MotiAction[] {
   return actions
 }
 
-// ─── AI Engine ──────────────────────────────────────────────────────
+// ─── AI Engine (with memory) ────────────────────────────────────────
+
+import * as db from '@/lib/database'
 
 let conversationHistory: ChatMessage[] = []
-const MAX_HISTORY = 20
+let memorySummary = ''
+const MAX_CONTEXT_MESSAGES = 15 // Last 15 messages sent verbatim to Claude
 
 export function resetConversation() {
   conversationHistory = []
+  memorySummary = ''
+}
+
+// Initialize conversation from Supabase DB (called on ChatPage mount)
+export async function initConversationFromDb() {
+  try {
+    // Load memory summary
+    const memory = await db.fetchChatMemory()
+    memorySummary = memory.summary || ''
+
+    // Load last 15 messages for context
+    const recent = await db.fetchRecentChatMessages(MAX_CONTEXT_MESSAGES)
+    conversationHistory = recent.map((m) => ({
+      role: m.role,
+      content: m.content,
+    }))
+
+    // Check if we should update the summary (every 10 new messages since last summary)
+    const totalMessages = await db.fetchChatMessages(1000)
+    const totalCount = totalMessages.length
+    if (totalCount > memory.message_count + 10 && totalCount > MAX_CONTEXT_MESSAGES) {
+      // Generate a new summary from older messages (messages not in the last 15)
+      const olderMessages = totalMessages.slice(0, Math.max(0, totalCount - MAX_CONTEXT_MESSAGES))
+      if (olderMessages.length > 0 && supabase) {
+        generateMemorySummary(olderMessages, totalCount).catch(() => {})
+      }
+    }
+  } catch (err) {
+    console.warn('[Moti] Failed to load conversation from DB:', err)
+  }
+}
+
+// Generate a rolling summary of older messages via Claude
+async function generateMemorySummary(
+  olderMessages: Array<{ role: string; content: string }>,
+  totalCount: number,
+) {
+  try {
+    const { data, error } = await supabase!.functions.invoke('moti-chat', {
+      body: {
+        messages: [
+          {
+            role: 'user',
+            content: `סכם את השיחה הבאה ב-3-4 משפטים קצרים בעברית. התמקד בנושאים העיקריים, החלטות שהתקבלו, ובקשות חוזרות. אל תכלול פרטי שיחה טכניים.\n\nשיחה:\n${olderMessages.map((m) => `${m.role === 'user' ? 'משתמש' : 'מוטי'}: ${m.content.slice(0, 200)}`).join('\n')}`,
+          },
+        ],
+        summarize: true, // Flag for the edge function to use a shorter response
+      },
+    })
+    if (!error && data?.text) {
+      memorySummary = data.text
+      await db.updateChatMemory(data.text, totalCount)
+    }
+  } catch {
+    console.warn('[Moti] Failed to generate memory summary')
+  }
 }
 
 // ─── AI Action Parser ───────────────────────────────────────────────
@@ -330,8 +389,8 @@ export async function getBotResponseAsync(userMessage: string): Promise<BotRespo
 
   // Add user message to history
   conversationHistory.push({ role: 'user', content: userMessage })
-  if (conversationHistory.length > MAX_HISTORY) {
-    conversationHistory = conversationHistory.slice(-MAX_HISTORY)
+  if (conversationHistory.length > MAX_CONTEXT_MESSAGES) {
+    conversationHistory = conversationHistory.slice(-MAX_CONTEXT_MESSAGES)
   }
 
   // If we detected actions, generate a confirmation response
@@ -344,8 +403,21 @@ export async function getBotResponseAsync(userMessage: string): Promise<BotRespo
   // Try AI
   if (supabase) {
     try {
+      // Build messages with memory context
+      const messagesWithMemory = [...conversationHistory]
+      if (memorySummary) {
+        // Prepend memory summary as a system-like user message
+        messagesWithMemory.unshift({
+          role: 'user',
+          content: `[זיכרון משיחות קודמות: ${memorySummary}]`,
+        }, {
+          role: 'assistant',
+          content: 'תודה, אני זוכר את השיחות הקודמות שלנו. במה אפשר לעזור?',
+        })
+      }
+
       const { data, error } = await supabase.functions.invoke('moti-chat', {
-        body: { messages: conversationHistory },
+        body: { messages: messagesWithMemory },
       })
 
       if (!error && data?.text) {

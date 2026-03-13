@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Camera,
@@ -14,11 +14,11 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { getFamilyMember, FAMILY_MEMBERS } from '@/lib/constants'
-import { SAMPLE_PHOTOS } from './data/samplePhotos'
+import { useAppData } from '@/contexts/AppDataContext'
 import type { Photo, FamilyMemberId } from '@/lib/types'
 
 export default function PhotosPage() {
-  const [photos, setPhotos] = useState<Photo[]>(SAMPLE_PHOTOS)
+  const { photos, updatePhoto } = useAppData()
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
   const [filterFavorites, setFilterFavorites] = useState(false)
   const [filterMember, setFilterMember] = useState<FamilyMemberId | 'all'>('all')
@@ -32,9 +32,9 @@ export default function PhotosPage() {
   }, [photos, filterFavorites, filterMember])
 
   function toggleFavorite(id: string) {
-    setPhotos((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, is_favorite: !p.is_favorite } : p)),
-    )
+    const photo = photos.find((p) => p.id === id)
+    if (!photo) return
+    updatePhoto(id, { is_favorite: !photo.is_favorite })
     if (selectedPhoto?.id === id) {
       setSelectedPhoto((prev) => prev ? { ...prev, is_favorite: !prev.is_favorite } : null)
     }

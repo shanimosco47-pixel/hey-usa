@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Send, Bot, ArrowRight, Sparkles, WifiOff, Zap, History } from 'lucide-react'
-import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, resetConversation } from './botEngine'
-import { useTripData } from '@/contexts/TripDataContext'
+import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, initConversationFromDb } from './botEngine'
+import { useAppData } from '@/contexts/AppDataContext'
+import * as db from '@/lib/database'
 
 interface Message {
   id: string
@@ -91,27 +92,78 @@ function AIBadge() {
 }
 
 export default function ChatPage() {
-  const { executeMotiAction, changeLog } = useTripData()
+  const { executeMotiAction, changeLog } = useAppData()
   const navigate = useNavigate()
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      text: isAIMode()
-        ? `אהלן! אני **${BOT_NAME}** — ${BOT_SUBTITLE}. 😏\n\nאני מחובר ל-AI ויודע לענות על **כל** שאלה על הטיול שלכם. שאלו אותי כל דבר — מאיך לארוז עד מה לעשות ביום גשום ביוסמיטי.\n\n🔧 **חדש!** אני יכול גם **לשנות דברים באתר** — תקציב, מסלול, ועוד. נסו: "עדכן תקציב ביטוח ל-3000"`
-        : `אהלן! אני **${BOT_NAME}** — יועץ טיולים ציני. 😏\n\nכרגע אני עובד במצב בסיסי (לא מחובר ל-AI). שאלו אותי על הטיול — ביטוח, תקציב, מסלול, אריזה, אטרקציות...\n\n🔧 **חדש!** אני יכול גם **לשנות דברים באתר**! נסו:\n• "עדכן תקציב ביטוח ל-3000"\n• "שנה תקציב כולל ל-60000"\n• "תוסיף עצירה ביום 5: ביקור במוזיאון"`,
-      sender: 'bot',
-      timestamp: new Date(),
-    },
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Reset conversation history on mount
+  // Load chat history from Supabase on mount
   useEffect(() => {
-    resetConversation()
+    let cancelled = false
+
+    async function loadHistory() {
+      try {
+        const history = await db.fetchChatMessages(200)
+
+        if (cancelled) return
+
+        if (history.length > 0) {
+          // Convert DB rows to UI messages
+          const loadedMessages: Message[] = history.map((msg) => ({
+            id: msg.id,
+            text: msg.content,
+            sender: msg.role === 'user' ? 'user' : 'bot',
+            timestamp: new Date(msg.created_at),
+            hasAction: msg.has_action,
+          }))
+          setMessages(loadedMessages)
+
+          // Initialize bot engine with last 15 messages for context
+          await initConversationFromDb()
+        } else {
+          // No history — show welcome message
+          const welcomeMsg: Message = {
+            id: 'welcome',
+            text: isAIMode()
+              ? `אהלן! אני **${BOT_NAME}** — ${BOT_SUBTITLE}. 😏\n\nאני מחובר ל-AI ויודע לענות על **כל** שאלה על הטיול שלכם. שאלו אותי כל דבר — מאיך לארוז עד מה לעשות ביום גשום ביוסמיטי.\n\n🔧 **חדש!** אני יכול גם **לשנות דברים באתר** — תקציב, מסלול, ועוד. נסו: "עדכן תקציב ביטוח ל-3000"`
+              : `אהלן! אני **${BOT_NAME}** — יועץ טיולים ציני. 😏\n\nכרגע אני עובד במצב בסיסי (לא מחובר ל-AI). שאלו אותי על הטיול — ביטוח, תקציב, מסלול, אריזה, אטרקציות...\n\n🔧 **חדש!** אני יכול גם **לשנות דברים באתר**! נסו:\n• "עדכן תקציב ביטוח ל-3000"\n• "שנה תקציב כולל ל-60000"\n• "תוסיף עצירה ביום 5: ביקור במוזיאון"`,
+            sender: 'bot',
+            timestamp: new Date(),
+          }
+          setMessages([welcomeMsg])
+
+          // Save welcome message to DB
+          db.insertChatMessage({
+            id: welcomeMsg.id,
+            role: 'assistant',
+            content: welcomeMsg.text,
+            has_action: false,
+            created_at: new Date().toISOString(),
+          }).catch(() => {})
+
+          await initConversationFromDb()
+        }
+      } catch (err) {
+        console.warn('[Moti] Failed to load chat history:', err)
+        // Fallback welcome
+        setMessages([{
+          id: 'welcome',
+          text: `אהלן! אני **${BOT_NAME}** — ${BOT_SUBTITLE}. 😏\n\nשאלו אותי כל דבר על הטיול!`,
+          sender: 'bot',
+          timestamp: new Date(),
+        }])
+      } finally {
+        if (!cancelled) setIsLoadingHistory(false)
+      }
+    }
+
+    loadHistory()
+    return () => { cancelled = true }
   }, [])
 
   const scrollToBottom = () => {
@@ -136,6 +188,15 @@ export default function ChatPage() {
     setInput('')
     setIsTyping(true)
 
+    // Persist user message to Supabase
+    db.insertChatMessage({
+      id: userMsg.id,
+      role: 'user',
+      content: userMsg.text,
+      has_action: false,
+      created_at: new Date().toISOString(),
+    }).catch(() => {})
+
     try {
       const response = await getBotResponseAsync(text)
 
@@ -154,6 +215,15 @@ export default function ChatPage() {
         hasAction: response.actions.length > 0,
       }
       setMessages((prev) => [...prev, botMsg])
+
+      // Persist bot message to Supabase
+      db.insertChatMessage({
+        id: botMsg.id,
+        role: 'assistant',
+        content: botMsg.text,
+        has_action: response.actions.length > 0,
+        created_at: new Date().toISOString(),
+      }).catch(() => {})
     } catch {
       const errorMsg: Message = {
         id: `bot-${Date.now()}`,
@@ -173,6 +243,15 @@ export default function ChatPage() {
   }
 
   const showSuggestions = messages.length <= 1 && !isTyping
+
+  if (isLoadingHistory) {
+    return (
+      <div className="flex flex-col h-[calc(100dvh-8rem)] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-black/[0.06] border-t-purple-500" />
+        <p className="text-sm text-apple-secondary mt-3">טוען את ההיסטוריה...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col h-[calc(100dvh-8rem)]">

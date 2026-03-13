@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import type { PackingItem } from '@/lib/types'
 import { motion } from 'framer-motion'
 import {
   Package,
@@ -20,8 +21,8 @@ import {
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { PACKING_CATEGORIES, FAMILY_MEMBERS, getFamilyMember } from '@/lib/constants'
-import { SAMPLE_PACKING_ITEMS } from './data/samplePacking'
-import type { PackingItem, FamilyMemberId } from '@/lib/types'
+import { useAppData } from '@/contexts/AppDataContext'
+import type { FamilyMemberId } from '@/lib/types'
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
   clothing: Shirt,
@@ -35,7 +36,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 }
 
 export default function PackingPage() {
-  const [items, setItems] = useState<PackingItem[]>(SAMPLE_PACKING_ITEMS)
+  const { packingItems, addPackingItem, updatePackingItem, deletePackingItem } = useAppData()
   const [filterMember, setFilterMember] = useState<FamilyMemberId | 'all'>('all')
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(Object.keys(PACKING_CATEGORIES)),
@@ -51,9 +52,9 @@ export default function PackingPage() {
   const filtered = useMemo(
     () =>
       filterMember === 'all'
-        ? items
-        : items.filter((i) => i.assigned_to === filterMember),
-    [items, filterMember],
+        ? packingItems
+        : packingItems.filter((i) => i.assigned_to === filterMember),
+    [packingItems, filterMember],
   )
 
   const totalItems = filtered.length
@@ -70,11 +71,8 @@ export default function PackingPage() {
   }, [filtered])
 
   function togglePacked(id: string) {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, is_packed: !item.is_packed } : item,
-      ),
-    )
+    const item = packingItems.find((i) => i.id === id)
+    if (item) updatePackingItem(id, { is_packed: !item.is_packed })
   }
 
   function toggleCategory(cat: string) {
@@ -88,21 +86,19 @@ export default function PackingPage() {
 
   function handleAddItem() {
     if (!newItem.name) return
-    const item: PackingItem = {
-      id: `p-${Date.now()}`,
+    addPackingItem({
       name: newItem.name,
       category: newItem.category,
       assigned_to: newItem.assigned_to,
       is_packed: false,
       quantity: newItem.quantity,
-    }
-    setItems((prev) => [...prev, item])
+    })
     setNewItem({ name: '', category: 'clothing', assigned_to: 'aba', quantity: 1 })
     setShowAddForm(false)
   }
 
   function handleDelete(id: string) {
-    setItems((prev) => prev.filter((i) => i.id !== id))
+    deletePackingItem(id)
   }
 
   return (

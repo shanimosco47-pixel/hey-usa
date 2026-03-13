@@ -13,12 +13,18 @@ import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { FAMILY_MEMBERS, STATUS_MAP } from '@/constants'
 import type { Task, TaskStatus, TaskPriority, FamilyMemberId } from '@/types'
-import { useTasks } from './hooks/useTasks'
-import type { TaskFilters } from './hooks/useTasks'
+import { useAppData } from '@/contexts/AppDataContext'
 import { TableView } from './components/TableView'
 import { KanbanView } from './components/KanbanView'
 import { TimelineView } from './components/TimelineView'
 import { TaskDialog, type TaskFormData } from './components/TaskDialog'
+
+interface TaskFilters {
+  search?: string
+  status?: TaskStatus[]
+  assignee?: FamilyMemberId[]
+  priority?: TaskPriority[]
+}
 
 const STATUS_ORDER: TaskStatus[] = ['todo', 'in_progress', 'waiting', 'done']
 
@@ -39,15 +45,10 @@ const PRIORITY_FILTER_OPTIONS: { value: TaskPriority; label: string }[] = [
 const FAMILY_LIST = Object.values(FAMILY_MEMBERS)
 
 export default function TasksPage() {
-  const {
-    tasks,
-    addTask,
-    updateTask,
-    deleteTask,
-    filterTasks,
-    taskCount,
-    doneCount,
-  } = useTasks()
+  const { tasks, addTask, updateTask, deleteTask } = useAppData()
+
+  const taskCount = tasks.length
+  const doneCount = useMemo(() => tasks.filter((t) => t.status === 'done').length, [tasks])
 
   const [activeView, setActiveView] = useState<string>('table')
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -73,8 +74,23 @@ export default function TasksPage() {
 
   const filteredTasks = useMemo(() => {
     if (!hasFilters) return tasks
-    return filterTasks(filters)
-  }, [tasks, hasFilters, filterTasks, filters])
+    return tasks.filter((task) => {
+      if (filters.search) {
+        const q = filters.search.toLowerCase()
+        const matchesTitle = task.title.toLowerCase().includes(q)
+        const matchesDesc = task.description?.toLowerCase().includes(q)
+        const matchesTags = task.tags?.some((tag) => tag.toLowerCase().includes(q))
+        if (!matchesTitle && !matchesDesc && !matchesTags) return false
+      }
+      if (filters.status?.length && !filters.status.includes(task.status)) return false
+      if (filters.assignee?.length) {
+        const hasMatch = task.assigned_to.some((a) => filters.assignee!.includes(a))
+        if (!hasMatch) return false
+      }
+      if (filters.priority?.length && !filters.priority.includes(task.priority)) return false
+      return true
+    })
+  }, [tasks, hasFilters, filters])
 
   const filteredByGroup = useMemo(() => {
     const grouped = { pre_trip: [] as Task[], during_trip: [] as Task[], post_trip: [] as Task[] }

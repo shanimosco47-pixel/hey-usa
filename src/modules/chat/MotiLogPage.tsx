@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { History, Undo2, Trash2, Bot, Zap } from 'lucide-react'
-import { useTripData } from '@/contexts/TripDataContext'
+import { useAppData } from '@/contexts/AppDataContext'
 import { Button } from '@/components/ui/button'
 
 function formatTimestamp(iso: string): string {
@@ -21,7 +21,7 @@ function formatPreviousValue(value: unknown): string {
 }
 
 export default function MotiLogPage() {
-  const { changeLog, undoLastChange, clearChangeLog } = useTripData()
+  const { changeLog, undoLastChange, clearChangeLog } = useAppData()
 
   const handleUndo = () => {
     const success = undoLastChange()

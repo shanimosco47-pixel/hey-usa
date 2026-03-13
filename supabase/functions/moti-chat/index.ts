@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { messages } = (await req.json()) as { messages: ChatMessage[] }
+    const { messages, summarize } = (await req.json()) as { messages: ChatMessage[]; summarize?: boolean }
 
     const response = await fetch(ANTHROPIC_API_URL, {
       method: 'POST',
@@ -138,9 +138,11 @@ Deno.serve(async (req) => {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
-        system: SYSTEM_PROMPT,
+        model: 'claude-sonnet-4-6',
+        max_tokens: summarize ? 256 : 1024,
+        system: summarize
+          ? 'אתה עוזר שמסכם שיחות. סכם בקצרה ב-3-4 משפטים בעברית.'
+          : SYSTEM_PROMPT,
         messages,
       }),
     })
