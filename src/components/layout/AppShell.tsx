@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { TopBar } from '@/components/layout/TopBar'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -8,6 +9,7 @@ import { cn } from '@/lib/cn'
 
 export function AppShell() {
   const isDesktop = useMediaQuery('(min-width: 768px)')
+  const location = useLocation()
 
   return (
     <div className="min-h-screen bg-surface-primary" dir="rtl">
@@ -23,9 +25,22 @@ export function AppShell() {
             isDesktop ? 'mr-56' : 'pb-16',
           )}
         >
-          <div className="animate-page-enter">
-            <Outlet />
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{
+                type: 'spring',
+                stiffness: 300,
+                damping: 30,
+                mass: 0.8,
+              }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
 

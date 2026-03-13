@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import {
   Plane, CheckSquare, Calendar, FileText, Map,
   Camera, BookOpen, DollarSign, Music, Package,
@@ -7,7 +8,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { FAMILY_MEMBERS } from '@/constants'
 import { GlassCard } from '@/components/shared/GlassCard'
-import { GradientIcon } from '@/components/shared/GradientIcon'
+import { MotionGradientIcon } from '@/components/ui/animated-icon'
 import type { LucideIcon } from 'lucide-react'
 
 const TRIP_DATE = new Date('2026-09-11T00:00:00')
@@ -55,23 +56,47 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
       {/* Header with greeting */}
-      <div className="mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="mb-6"
+      >
         <p className="text-caption uppercase tracking-wide text-apple-secondary">{todayDate}</p>
         <h1 className="mt-1 text-title text-apple-primary">
           {memberData ? `שלום, ${memberData.name}` : 'שלום!'}
           {memberData ? ` ${memberData.emoji}` : ''}
         </h1>
-      </div>
+      </motion.div>
 
       {/* Countdown widget - dark hero card */}
-      <div className="mb-8 dark-card rounded-apple-xl p-6 text-white shadow-dark-card">
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-apple-lg bg-white/[0.12]">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.1 }}
+        className="mb-8 dark-card rounded-apple-xl p-6 text-white shadow-dark-card overflow-hidden relative"
+      >
+        {/* Animated gradient shimmer */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent animate-shimmer pointer-events-none" />
+        <div className="flex items-center gap-4 relative">
+          <motion.div
+            animate={{ rotate: [0, -5, 5, 0] }}
+            transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }}
+            className="flex h-14 w-14 items-center justify-center rounded-apple-lg bg-white/[0.12]"
+          >
             <Plane className="h-7 w-7" />
-          </div>
+          </motion.div>
           <div className="flex-1">
             <div className="flex items-baseline gap-2">
-              <span className="text-5xl font-bold leading-none">{daysLeft}</span>
+              <motion.span
+                key={daysLeft}
+                initial={{ scale: 1.2, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                className="text-5xl font-bold leading-none"
+              >
+                {daysLeft}
+              </motion.span>
               <span className="text-lg font-medium opacity-90">ימים לטיול!</span>
             </div>
             <p className="mt-1 text-sm opacity-60">
@@ -79,25 +104,50 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Quick access grid */}
-      <h2 className="mb-4 text-headline text-apple-primary">גישה מהירה</h2>
-      <div className="grid grid-cols-3 gap-3">
-        {MODULE_CARDS.map(({ path, icon, label, gradient }, index) => (
-          <Link
+      <motion.h2
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="mb-4 text-headline text-apple-primary"
+      >
+        גישה מהירה
+      </motion.h2>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.05, delayChildren: 0.25 } },
+        }}
+        className="grid grid-cols-3 gap-3"
+      >
+        {MODULE_CARDS.map(({ path, icon, label, gradient }) => (
+          <motion.div
             key={path}
-            to={path}
-            className="animate-list-item"
-            style={{ '--index': index } as React.CSSProperties}
+            variants={{
+              hidden: { opacity: 0, y: 16, scale: 0.95 },
+              visible: {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                transition: { type: 'spring', stiffness: 300, damping: 24 },
+              },
+            }}
           >
-            <GlassCard padding="md" className="flex flex-col items-center gap-2.5 card-hover">
-              <GradientIcon icon={icon} gradient={gradient} size="lg" />
-              <span className="text-subhead text-apple-primary">{label}</span>
-            </GlassCard>
-          </Link>
+            <Link to={path}>
+              <motion.div whileHover={{ y: -3, scale: 1.02 }} whileTap={{ scale: 0.97 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}>
+                <GlassCard padding="md" className="flex flex-col items-center gap-2.5">
+                  <MotionGradientIcon icon={icon} gradient={gradient} size="lg" />
+                  <span className="text-subhead text-apple-primary">{label}</span>
+                </GlassCard>
+              </motion.div>
+            </Link>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   )
 }

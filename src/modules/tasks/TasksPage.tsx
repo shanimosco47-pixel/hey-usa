@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
+import { motion } from 'framer-motion'
 import {
   Plus,
   Search,
@@ -9,6 +10,7 @@ import {
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { Button } from '@/components/ui/button'
 import { FAMILY_MEMBERS, STATUS_MAP } from '@/constants'
 import type { Task, TaskStatus, TaskPriority, FamilyMemberId } from '@/types'
 import { useTasks } from './hooks/useTasks'
@@ -195,21 +197,23 @@ export default function TasksPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="mb-6 flex items-center justify-between"
+      >
         <div>
           <h1 className="text-2xl font-bold text-apple-primary">משימות</h1>
           <p className="mt-0.5 text-sm text-apple-secondary">
             {doneCount} מתוך {taskCount} הושלמו
           </p>
         </div>
-        <button
-          onClick={handleAddClick}
-          className="flex items-center gap-1.5 rounded-xl bg-ios-blue px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-ios-blue/90 hover:shadow-md active:scale-95"
-        >
+        <Button onClick={handleAddClick}>
           <Plus className="h-4 w-4" />
           <span>הוסף משימה</span>
-        </button>
-      </div>
+        </Button>
+      </motion.div>
 
       {/* View switcher tabs */}
       <Tabs.Root value={activeView} onValueChange={setActiveView}>

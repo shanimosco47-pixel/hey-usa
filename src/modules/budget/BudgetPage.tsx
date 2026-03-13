@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import {
   DollarSign,
   Plus,
@@ -14,6 +15,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { Button } from '@/components/ui/button'
 import { EXPENSE_CATEGORIES } from '@/lib/constants'
 import { FAMILY_MEMBERS, getFamilyMember } from '@/lib/constants'
 import {
@@ -142,16 +144,18 @@ export default function BudgetPage() {
   return (
     <div className="space-y-4 p-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <motion.div
+        className="flex items-center justify-between"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      >
         <h1 className="text-2xl font-bold text-apple-primary">תקציב</h1>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center gap-1.5 rounded-xl bg-ios-blue px-4 py-2 text-sm font-medium text-white"
-        >
+        <Button onClick={() => setShowAddForm(!showAddForm)}>
           <Plus className="h-4 w-4" />
           הוצאה חדשה
-        </button>
-      </div>
+        </Button>
+      </motion.div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-3">
@@ -231,18 +235,12 @@ export default function BudgetPage() {
             ))}
           </select>
           <div className="flex gap-2">
-            <button
-              onClick={handleAddExpense}
-              className="flex-1 rounded-xl bg-ios-green px-4 py-2 text-sm font-medium text-white"
-            >
+            <Button onClick={handleAddExpense} variant="success" className="flex-1">
               הוסף
-            </button>
-            <button
-              onClick={() => setShowAddForm(false)}
-              className="rounded-xl bg-black/[0.04] px-4 py-2 text-sm font-medium text-apple-secondary"
-            >
+            </Button>
+            <Button onClick={() => setShowAddForm(false)} variant="secondary">
               ביטול
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -306,7 +304,12 @@ export default function BudgetPage() {
       </div>
 
       {/* Expense List */}
-      <div className="space-y-2">
+      <motion.div
+        className="space-y-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+      >
         <h3 className="text-sm font-bold text-apple-primary">הוצאות אחרונות</h3>
         {expenses.map((expense) => {
           const IconComp = CATEGORY_ICONS[expense.category] || DollarSign
@@ -342,7 +345,7 @@ export default function BudgetPage() {
             </div>
           )
         })}
-      </div>
+      </motion.div>
     </div>
   )
 }

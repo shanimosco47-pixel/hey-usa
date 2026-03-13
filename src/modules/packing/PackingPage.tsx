@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import {
   Package,
   Plus,
@@ -17,6 +18,7 @@ import {
   Filter,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { Button } from '@/components/ui/button'
 import { PACKING_CATEGORIES, FAMILY_MEMBERS, getFamilyMember } from '@/lib/constants'
 import { SAMPLE_PACKING_ITEMS } from './data/samplePacking'
 import type { PackingItem, FamilyMemberId } from '@/lib/types'
@@ -106,16 +108,18 @@ export default function PackingPage() {
   return (
     <div className="space-y-4 p-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <motion.div
+        className="flex items-center justify-between"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      >
         <h1 className="text-2xl font-bold text-apple-primary">אריזה</h1>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center gap-1.5 rounded-xl bg-ios-green px-4 py-2 text-sm font-medium text-white"
-        >
+        <Button onClick={() => setShowAddForm(!showAddForm)} variant="success">
           <Plus className="h-4 w-4" />
           פריט חדש
-        </button>
-      </div>
+        </Button>
+      </motion.div>
 
       {/* Progress */}
       <div className="glass rounded-apple-lg p-4 shadow-sm">
@@ -209,24 +213,23 @@ export default function PackingPage() {
             className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
           />
           <div className="flex gap-2">
-            <button
-              onClick={handleAddItem}
-              className="flex-1 rounded-xl bg-ios-green px-4 py-2 text-sm font-medium text-white"
-            >
+            <Button onClick={handleAddItem} variant="success" className="flex-1">
               הוסף
-            </button>
-            <button
-              onClick={() => setShowAddForm(false)}
-              className="rounded-xl bg-black/[0.04] px-4 py-2 text-sm font-medium text-apple-secondary"
-            >
+            </Button>
+            <Button onClick={() => setShowAddForm(false)} variant="secondary">
               ביטול
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {/* Category Groups */}
-      <div className="space-y-2">
+      <motion.div
+        className="space-y-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+      >
         {Object.entries(PACKING_CATEGORIES).map(([catKey, { label }]) => {
           const catItems = groupedByCategory[catKey]
           if (!catItems || catItems.length === 0) return null
@@ -307,7 +310,7 @@ export default function PackingPage() {
             </div>
           )
         })}
-      </div>
+      </motion.div>
     </div>
   )
 }

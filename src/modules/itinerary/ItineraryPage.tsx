@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
 import { format, parseISO, isWithinInterval } from 'date-fns'
 import { Calendar, MapPin, StickyNote, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -74,7 +75,12 @@ export default function ItineraryPage() {
   return (
     <div className="mx-auto max-w-2xl pb-24">
       {/* Page header */}
-      <div className="px-4 pt-4 pb-2">
+      <motion.div
+        className="px-4 pt-4 pb-2"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      >
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ios-orange/10">
             <Calendar className="h-5 w-5 text-ios-orange" />
@@ -86,7 +92,7 @@ export default function ItineraryPage() {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Day selector strip */}
       <DaySelector
@@ -170,7 +176,12 @@ export default function ItineraryPage() {
       </div>
 
       {/* Stops list */}
-      <div className="px-4 pt-2">
+      <motion.div
+        className="px-4 pt-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+      >
         <div className="flex flex-col">
           {currentDay.stops.map((stop, index) => (
             <div key={stop.id}>
@@ -181,7 +192,7 @@ export default function ItineraryPage() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Day notes */}
       {currentDay.notes && (

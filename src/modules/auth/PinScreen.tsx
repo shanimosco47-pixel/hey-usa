@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { Delete } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/contexts/AuthContext'
@@ -56,15 +57,25 @@ export function PinScreen() {
 
       <div className="relative z-10 flex flex-col items-center gap-8 w-full max-w-sm">
         {/* Title */}
-        <div className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[18px] bg-gradient-to-br from-ios-blue to-ios-indigo shadow-[0_4px_16px_rgba(0,122,255,0.3)]">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          className="text-center"
+        >
+          <motion.div
+            initial={{ scale: 0, rotate: -20 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.1 }}
+            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[18px] bg-gradient-to-br from-ios-blue to-ios-indigo shadow-[0_4px_16px_rgba(0,122,255,0.3)]"
+          >
             <span className="text-3xl">🇺🇸</span>
-          </div>
+          </motion.div>
           <h1 className="text-hero text-apple-primary mb-2">
             Hey USA
           </h1>
           <p className="text-subhead text-apple-secondary">הכנס קוד משפחתי</p>
-        </div>
+        </motion.div>
 
         {/* PIN Dots */}
         <div
@@ -94,51 +105,77 @@ export function PinScreen() {
         )}
 
         {/* Numeric keypad */}
-        <div className="grid grid-cols-3 gap-3 w-full max-w-[280px]">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.03, delayChildren: 0.2 } },
+          }}
+          className="grid grid-cols-3 gap-3 w-full max-w-[280px]"
+        >
           {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
-            <button
+            <motion.button
               key={digit}
+              variants={{
+                hidden: { opacity: 0, scale: 0.8 },
+                visible: { opacity: 1, scale: 1 },
+              }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
               onClick={() => handleDigit(digit)}
               className={cn(
                 'h-16 w-full rounded-apple-xl text-title',
                 'glass shadow-glass',
                 'text-apple-primary',
-                'hover:bg-white active:scale-95',
-                'transition-all duration-100',
+                'hover:bg-white',
+                'transition-colors duration-100',
               )}
             >
               {digit}
-            </button>
+            </motion.button>
           ))}
 
           <div />
 
-          <button
+          <motion.button
+            variants={{
+              hidden: { opacity: 0, scale: 0.8 },
+              visible: { opacity: 1, scale: 1 },
+            }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={() => handleDigit('0')}
             className={cn(
               'h-16 w-full rounded-apple-xl text-title',
               'glass shadow-glass',
               'text-apple-primary',
-              'hover:bg-white active:scale-95',
-              'transition-all duration-100',
+              'hover:bg-white',
+              'transition-colors duration-100',
             )}
           >
             0
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            variants={{
+              hidden: { opacity: 0, scale: 0.8 },
+              visible: { opacity: 1, scale: 1 },
+            }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={handleBackspace}
             className={cn(
               'h-16 w-full rounded-apple-xl flex items-center justify-center',
               'bg-white/40 text-apple-secondary',
-              'hover:bg-white/60 active:scale-95',
-              'transition-all duration-100',
+              'hover:bg-white/60',
+              'transition-colors duration-100',
             )}
             aria-label="מחק ספרה"
           >
             <Delete className="h-6 w-6" />
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       </div>
     </div>
   )
