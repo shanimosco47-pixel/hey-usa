@@ -22,6 +22,7 @@ const EntertainmentPage = lazy(
 )
 const PackingPage = lazy(() => import('@/modules/packing/PackingPage'))
 const ChatPage = lazy(() => import('@/modules/chat/ChatPage'))
+const MotiLogPage = lazy(() => import('@/modules/chat/MotiLogPage'))
 
 function LoadingFallback() {
   return (
@@ -78,6 +79,7 @@ export default function App() {
               <Route path="entertainment" element={<EntertainmentPage />} />
               <Route path="packing" element={<PackingPage />} />
               <Route path="chat" element={<ChatPage />} />
+              <Route path="chat/log" element={<MotiLogPage />} />
             </Route>
 
             {/* Catch-all redirect */}
