@@ -66,29 +66,29 @@ export const STATUS_MAP: Record<string, StatusConfig> = {
 
 export const NAV_ITEMS = [
   { path: '/', label: 'בית', icon: 'Home' },
-  { path: '/tasks', label: 'משימות', icon: 'CheckSquare' },
-  { path: '/itinerary', label: 'לוח זמנים', icon: 'Calendar' },
-  { path: '/documents', label: 'מסמכים', icon: 'FileText' },
-  { path: '/map', label: 'מפה', icon: 'Map' },
-  { path: '/photos', label: 'תמונות', icon: 'Camera' },
-  { path: '/blog', label: 'בלוג', icon: 'BookOpen' },
-  { path: '/budget', label: 'תקציב', icon: 'DollarSign' },
-  { path: '/entertainment', label: 'בידור', icon: 'Music' },
-  { path: '/packing', label: 'אריזה', icon: 'Package' },
+  { path: '/tasks', label: 'משימות', icon: 'ClipboardCheck' },
+  { path: '/itinerary', label: 'לוח זמנים', icon: 'CalendarDays' },
+  { path: '/documents', label: 'מסמכים', icon: 'FolderOpen' },
+  { path: '/map', label: 'מפה', icon: 'MapPinned' },
+  { path: '/photos', label: 'תמונות', icon: 'ImagePlus' },
+  { path: '/blog', label: 'בלוג', icon: 'Notebook' },
+  { path: '/budget', label: 'תקציב', icon: 'Wallet' },
+  { path: '/entertainment', label: 'בידור', icon: 'Headphones' },
+  { path: '/packing', label: 'אריזה', icon: 'Luggage' },
 ] as const
 
 export const BOTTOM_TAB_ITEMS = [
   { path: '/', label: 'בית', icon: 'Home' },
-  { path: '/tasks', label: 'משימות', icon: 'CheckSquare' },
-  { path: '/map', label: 'מפה', icon: 'Map' },
-  { path: '/photos', label: 'תמונות', icon: 'Camera' },
+  { path: '/tasks', label: 'משימות', icon: 'ClipboardCheck' },
+  { path: '/map', label: 'מפה', icon: 'MapPinned' },
+  { path: '/photos', label: 'תמונות', icon: 'ImagePlus' },
 ] as const
 
 export const MORE_MENU_ITEMS = [
-  { path: '/itinerary', label: 'לוח זמנים', icon: 'Calendar' },
-  { path: '/documents', label: 'מסמכים', icon: 'FileText' },
-  { path: '/blog', label: 'בלוג', icon: 'BookOpen' },
-  { path: '/budget', label: 'תקציב', icon: 'DollarSign' },
-  { path: '/entertainment', label: 'בידור', icon: 'Music' },
-  { path: '/packing', label: 'אריזה', icon: 'Package' },
+  { path: '/itinerary', label: 'לוח זמנים', icon: 'CalendarDays' },
+  { path: '/documents', label: 'מסמכים', icon: 'FolderOpen' },
+  { path: '/blog', label: 'בלוג', icon: 'Notebook' },
+  { path: '/budget', label: 'תקציב', icon: 'Wallet' },
+  { path: '/entertainment', label: 'בידור', icon: 'Headphones' },
+  { path: '/packing', label: 'אריזה', icon: 'Luggage' },
 ] as const

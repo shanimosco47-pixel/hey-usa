@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  Plane, CheckSquare, Calendar, FileText, Map,
-  Camera, BookOpen, DollarSign, Music, Package,
+  Plane, ClipboardCheck, CalendarDays, FolderOpen, MapPinned,
+  ImagePlus, Notebook, Wallet, Headphones, Luggage,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { FAMILY_MEMBERS } from '@/constants'
@@ -19,15 +19,15 @@ const MODULE_CARDS: {
   label: string
   gradient: [string, string]
 }[] = [
-  { path: '/tasks', icon: CheckSquare, label: 'משימות', gradient: ['#5856D6', '#AF52DE'] },
-  { path: '/itinerary', icon: Calendar, label: 'לוח זמנים', gradient: ['#FF9500', '#FFCC00'] },
-  { path: '/documents', icon: FileText, label: 'מסמכים', gradient: ['#FF3B30', '#FF6259'] },
-  { path: '/map', icon: Map, label: 'מפה', gradient: ['#007AFF', '#34C759'] },
-  { path: '/photos', icon: Camera, label: 'תמונות', gradient: ['#FF2D55', '#FF6B8A'] },
-  { path: '/blog', icon: BookOpen, label: 'בלוג', gradient: ['#34C759', '#30D158'] },
-  { path: '/budget', icon: DollarSign, label: 'תקציב', gradient: ['#FF9500', '#FF6723'] },
-  { path: '/entertainment', icon: Music, label: 'בידור', gradient: ['#AF52DE', '#BF5AF2'] },
-  { path: '/packing', icon: Package, label: 'אריזה', gradient: ['#5AC8FA', '#64D2FF'] },
+  { path: '/tasks', icon: ClipboardCheck, label: 'משימות', gradient: ['#5856D6', '#8944DB'] },
+  { path: '/itinerary', icon: CalendarDays, label: 'לוח זמנים', gradient: ['#FF9500', '#F5C518'] },
+  { path: '/documents', icon: FolderOpen, label: 'מסמכים', gradient: ['#FF3B30', '#FF6B6B'] },
+  { path: '/map', icon: MapPinned, label: 'מפה', gradient: ['#007AFF', '#00C6FB'] },
+  { path: '/photos', icon: ImagePlus, label: 'תמונות', gradient: ['#FF2D55', '#FF6F91'] },
+  { path: '/blog', icon: Notebook, label: 'בלוג', gradient: ['#34C759', '#7EE787'] },
+  { path: '/budget', icon: Wallet, label: 'תקציב', gradient: ['#FF9500', '#FF6723'] },
+  { path: '/entertainment', icon: Headphones, label: 'בידור', gradient: ['#AF52DE', '#E040FB'] },
+  { path: '/packing', icon: Luggage, label: 'אריזה', gradient: ['#5AC8FA', '#64D2FF'] },
 ]
 
 function getDaysUntilTrip(): number {
@@ -139,9 +139,9 @@ export default function DashboardPage() {
           >
             <Link to={path}>
               <motion.div whileHover={{ y: -3, scale: 1.02 }} whileTap={{ scale: 0.97 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}>
-                <GlassCard padding="md" className="flex flex-col items-center gap-2.5">
-                  <MotionGradientIcon icon={icon} gradient={gradient} size="lg" />
-                  <span className="text-subhead text-apple-primary">{label}</span>
+                <GlassCard padding="lg" className="flex flex-col items-center gap-3">
+                  <MotionGradientIcon icon={icon} gradient={gradient} size="xl" strokeWidth={1.8} />
+                  <span className="text-subhead font-semibold text-apple-primary">{label}</span>
                 </GlassCard>
               </motion.div>
             </Link>
