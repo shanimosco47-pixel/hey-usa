@@ -1,22 +1,24 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Bot, ArrowRight, Sparkles, WifiOff } from 'lucide-react'
+import { Send, Bot, ArrowRight, Sparkles, WifiOff, Zap } from 'lucide-react'
 import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, resetConversation } from './botEngine'
+import { useTripData } from '@/contexts/TripDataContext'
 
 interface Message {
   id: string
   text: string
   sender: 'user' | 'bot'
   timestamp: Date
+  hasAction?: boolean
 }
 
 const SUGGESTIONS = [
   'מה הדבר הכי חשוב לסגור לפני הטיול?',
   'תכנן לי יום מושלם בלאס וגאס עם ילדים',
   'מה התקציב שלנו?',
-  'ספר לי על גרנד קניון',
+  'עדכן תקציב ביטוח ל-3000',
   'מה המסלול המלא?',
-  'טיפים לדיסנילנד',
+  'תוסיף עצירה ביום 5: ביקור במוזיאון',
 ]
 
 function BotAvatar({ size = 'md' }: { size?: 'sm' | 'md' }) {
@@ -88,12 +90,14 @@ function AIBadge() {
 }
 
 export default function ChatPage() {
+  const { executeMotiAction } = useTripData()
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       text: isAIMode()
-        ? `אהלן! אני **${BOT_NAME}** — ${BOT_SUBTITLE}. 😏\n\nאני מחובר ל-AI ויודע לענות על **כל** שאלה על הטיול שלכם. שאלו אותי כל דבר — מאיך לארוז עד מה לעשות ביום גשום ביוסמיטי. יש לי תשובה חכמה לכל דבר. ודעה על הכל.`
-        : `אהלן! אני **${BOT_NAME}** — יועץ טיולים ציני. 😏\n\nכרגע אני עובד במצב בסיסי (לא מחובר ל-AI). שאלו אותי על הטיול — ביטוח, תקציב, מסלול, אריזה, אטרקציות... יש לי תשובה לנושאים הראשיים!\n\n💡 *כדי לשדרג אותי למצב AI מלא, צריך להגדיר חיבור ל-Supabase.*`,
+        ? `אהלן! אני **${BOT_NAME}** — ${BOT_SUBTITLE}. 😏\n\nאני מחובר ל-AI ויודע לענות על **כל** שאלה על הטיול שלכם. שאלו אותי כל דבר — מאיך לארוז עד מה לעשות ביום גשום ביוסמיטי.\n\n🔧 **חדש!** אני יכול גם **לשנות דברים באתר** — תקציב, מסלול, ועוד. נסו: "עדכן תקציב ביטוח ל-3000"`
+        : `אהלן! אני **${BOT_NAME}** — יועץ טיולים ציני. 😏\n\nכרגע אני עובד במצב בסיסי (לא מחובר ל-AI). שאלו אותי על הטיול — ביטוח, תקציב, מסלול, אריזה, אטרקציות...\n\n🔧 **חדש!** אני יכול גם **לשנות דברים באתר**! נסו:\n• "עדכן תקציב ביטוח ל-3000"\n• "שנה תקציב כולל ל-60000"\n• "תוסיף עצירה ביום 5: ביקור במוזיאון"`,
       sender: 'bot',
       timestamp: new Date(),
     },
@@ -131,12 +135,21 @@ export default function ChatPage() {
     setIsTyping(true)
 
     try {
-      const responseText = await getBotResponseAsync(text)
+      const response = await getBotResponseAsync(text)
+
+      // Execute any actions Moti returned
+      if (response.actions.length > 0) {
+        for (const action of response.actions) {
+          executeMotiAction(action)
+        }
+      }
+
       const botMsg: Message = {
         id: `bot-${Date.now()}`,
-        text: responseText,
+        text: response.text,
         sender: 'bot',
         timestamp: new Date(),
+        hasAction: response.actions.length > 0,
       }
       setMessages((prev) => [...prev, botMsg])
     } catch {
@@ -191,14 +204,24 @@ export default function ChatPage() {
                 className={`rounded-[16px] px-4 py-3 ${
                   msg.sender === 'user'
                     ? 'bg-apple-primary text-white rounded-bl-[4px]'
-                    : 'bg-white text-apple-primary rounded-br-[4px]'
+                    : msg.hasAction
+                      ? 'bg-gradient-to-br from-purple-50 to-white text-apple-primary rounded-br-[4px] ring-1 ring-purple-200'
+                      : 'bg-white text-apple-primary rounded-br-[4px]'
                 }`}
                 style={
-                  msg.sender === 'bot'
+                  msg.sender === 'bot' && !msg.hasAction
                     ? { boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }
-                    : undefined
+                    : msg.hasAction
+                      ? { boxShadow: '0 2px 8px rgba(88,86,214,0.1)' }
+                      : undefined
                 }
               >
+                {msg.hasAction && (
+                  <div className="flex items-center gap-1 mb-1.5 text-purple-600">
+                    <Zap className="h-3 w-3" />
+                    <span className="text-[10px] font-bold uppercase tracking-wide">פעולה בוצעה</span>
+                  </div>
+                )}
                 <p
                   className="text-[15px] leading-relaxed whitespace-pre-line"
                   dangerouslySetInnerHTML={{
@@ -230,18 +253,26 @@ export default function ChatPage() {
             transition={{ delay: 0.5, duration: 0.4 }}
             className="flex flex-wrap gap-2 pt-2"
           >
-            {SUGGESTIONS.map((s) => (
-              <motion.button
-                key={s}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => sendMessage(s)}
-                className="flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-3.5 py-2 text-[13px] text-apple-primary font-medium transition-colors hover:bg-surface-primary"
-                style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
-              >
-                {s}
-                <ArrowRight className="h-3 w-3 text-apple-tertiary" />
-              </motion.button>
-            ))}
+            {SUGGESTIONS.map((s) => {
+              const isAction = s.startsWith('עדכן') || s.startsWith('תוסיף') || s.startsWith('שנה')
+              return (
+                <motion.button
+                  key={s}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => sendMessage(s)}
+                  className={`flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[13px] font-medium transition-colors ${
+                    isAction
+                      ? 'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100'
+                      : 'border-black/[0.08] bg-white text-apple-primary hover:bg-surface-primary'
+                  }`}
+                  style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
+                >
+                  {isAction && <Zap className="h-3 w-3" />}
+                  {s}
+                  {!isAction && <ArrowRight className="h-3 w-3 text-apple-tertiary" />}
+                </motion.button>
+              )
+            })}
           </motion.div>
         )}
 
@@ -256,7 +287,7 @@ export default function ChatPage() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={isTyping ? 'מוטי חושב...' : 'שאלו את מוטי...'}
+            placeholder={isTyping ? 'מוטי חושב...' : 'שאלו את מוטי או בקשו עדכון...'}
             disabled={isTyping}
             className="flex-1 rounded-full bg-surface-primary px-4 py-2.5 text-[15px] text-apple-primary placeholder:text-apple-tertiary outline-none focus:ring-2 focus:ring-ios-blue/20 transition-shadow disabled:opacity-60"
           />

@@ -18,11 +18,8 @@ import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { EXPENSE_CATEGORIES } from '@/lib/constants'
 import { FAMILY_MEMBERS, getFamilyMember } from '@/lib/constants'
-import {
-  SAMPLE_EXPENSES,
-  SAMPLE_BUDGET_SETTINGS,
-} from './data/sampleExpenses'
-import type { Expense, BudgetSettings } from '@/lib/types'
+import { useTripData } from '@/contexts/TripDataContext'
+import type { Expense } from '@/lib/types'
 import {
   PieChart,
   Pie,
@@ -67,8 +64,7 @@ const PIE_COLORS = [
 ]
 
 export default function BudgetPage() {
-  const [expenses, setExpenses] = useState<Expense[]>(SAMPLE_EXPENSES)
-  const [settings] = useState<BudgetSettings>(SAMPLE_BUDGET_SETTINGS)
+  const { budgetSettings: settings, expenses, addExpense, deleteExpense } = useTripData()
   const [showAddForm, setShowAddForm] = useState(false)
   const [newExpense, setNewExpense] = useState<{
     title: string
@@ -121,8 +117,7 @@ export default function BudgetPage() {
 
   function handleAddExpense() {
     if (!newExpense.title || !newExpense.amount) return
-    const expense: Expense = {
-      id: `exp-${Date.now()}`,
+    const expense: Omit<Expense, 'id' | 'created_at'> = {
       title: newExpense.title,
       amount: Number(newExpense.amount),
       currency: settings.currency,
@@ -130,15 +125,10 @@ export default function BudgetPage() {
       paid_by: newExpense.paid_by,
       date: new Date().toISOString().split('T')[0],
       notes: newExpense.notes || undefined,
-      created_at: new Date().toISOString(),
     }
-    setExpenses((prev) => [expense, ...prev])
+    addExpense(expense)
     setNewExpense({ title: '', amount: '', category: 'food', paid_by: 'aba', notes: '' })
     setShowAddForm(false)
-  }
-
-  function handleDelete(id: string) {
-    setExpenses((prev) => prev.filter((e) => e.id !== id))
   }
 
   return (
@@ -337,7 +327,7 @@ export default function BudgetPage() {
                 </p>
               </div>
               <button
-                onClick={() => handleDelete(expense.id)}
+                onClick={() => deleteExpense(expense.id)}
                 className="shrink-0 rounded-lg p-1.5 text-apple-tertiary hover:bg-ios-red/10 hover:text-ios-red"
               >
                 <Trash2 className="h-4 w-4" />
