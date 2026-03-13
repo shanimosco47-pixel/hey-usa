@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Bot, ArrowRight } from 'lucide-react'
-import { getBotResponse, BOT_NAME, BOT_SUBTITLE } from './botEngine'
+import { Send, Bot, ArrowRight, Sparkles, WifiOff } from 'lucide-react'
+import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, resetConversation } from './botEngine'
 
 interface Message {
   id: string
@@ -11,12 +11,12 @@ interface Message {
 }
 
 const SUGGESTIONS = [
-  'מתי כדאי להזמין ביטוח?',
+  'מה הדבר הכי חשוב לסגור לפני הטיול?',
+  'תכנן לי יום מושלם בלאס וגאס עם ילדים',
   'מה התקציב שלנו?',
   'ספר לי על גרנד קניון',
   'מה המסלול המלא?',
   'טיפים לדיסנילנד',
-  'מה לארוז?',
 ]
 
 function BotAvatar({ size = 'md' }: { size?: 'sm' | 'md' }) {
@@ -62,11 +62,38 @@ function TypingIndicator() {
   )
 }
 
+function AIBadge() {
+  const aiAvailable = isAIMode()
+  return (
+    <div
+      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+        aiAvailable
+          ? 'bg-purple-50 text-purple-600'
+          : 'bg-gray-100 text-gray-500'
+      }`}
+    >
+      {aiAvailable ? (
+        <>
+          <Sparkles className="h-2.5 w-2.5" />
+          AI
+        </>
+      ) : (
+        <>
+          <WifiOff className="h-2.5 w-2.5" />
+          בסיסי
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
-      text: `אהלן! אני **${BOT_NAME}** — ${BOT_SUBTITLE}. 😏\n\nאני מכיר את הטיול שלכם לארה"ב בע"פ. שאלו אותי כל דבר — ביטוח, תקציב, מסלול, אריזה, אטרקציות... יש לי תשובה לכל דבר. ודעה על הכל.`,
+      text: isAIMode()
+        ? `אהלן! אני **${BOT_NAME}** — ${BOT_SUBTITLE}. 😏\n\nאני מחובר ל-AI ויודע לענות על **כל** שאלה על הטיול שלכם. שאלו אותי כל דבר — מאיך לארוז עד מה לעשות ביום גשום ביוסמיטי. יש לי תשובה חכמה לכל דבר. ודעה על הכל.`
+        : `אהלן! אני **${BOT_NAME}** — יועץ טיולים ציני. 😏\n\nכרגע אני עובד במצב בסיסי (לא מחובר ל-AI). שאלו אותי על הטיול — ביטוח, תקציב, מסלול, אריזה, אטרקציות... יש לי תשובה לנושאים הראשיים!\n\n💡 *כדי לשדרג אותי למצב AI מלא, צריך להגדיר חיבור ל-Supabase.*`,
       sender: 'bot',
       timestamp: new Date(),
     },
@@ -76,6 +103,11 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Reset conversation history on mount
+  useEffect(() => {
+    resetConversation()
+  }, [])
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -84,8 +116,8 @@ export default function ChatPage() {
     scrollToBottom()
   }, [messages, isTyping])
 
-  const sendMessage = (text: string) => {
-    if (!text.trim()) return
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isTyping) return
 
     const userMsg: Message = {
       id: `user-${Date.now()}`,
@@ -98,19 +130,26 @@ export default function ChatPage() {
     setInput('')
     setIsTyping(true)
 
-    // Simulate typing delay for natural feel
-    const delay = 600 + Math.random() * 800
-    setTimeout(() => {
-      const response = getBotResponse(text)
+    try {
+      const responseText = await getBotResponseAsync(text)
       const botMsg: Message = {
         id: `bot-${Date.now()}`,
-        text: response.text,
+        text: responseText,
         sender: 'bot',
         timestamp: new Date(),
       }
-      setIsTyping(false)
       setMessages((prev) => [...prev, botMsg])
-    }, delay)
+    } catch {
+      const errorMsg: Message = {
+        id: `bot-${Date.now()}`,
+        text: 'אוי, משהו השתבש... 😅 נסו שוב?',
+        sender: 'bot',
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMsg])
+    } finally {
+      setIsTyping(false)
+    }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -125,8 +164,11 @@ export default function ChatPage() {
       {/* Header */}
       <div className="flex items-center gap-3 px-5 py-4 border-b border-black/[0.04]">
         <BotAvatar />
-        <div>
-          <h1 className="text-[17px] font-semibold text-apple-primary leading-tight">{BOT_NAME}</h1>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h1 className="text-[17px] font-semibold text-apple-primary leading-tight">{BOT_NAME}</h1>
+            <AIBadge />
+          </div>
           <p className="text-[12px] text-apple-secondary">{BOT_SUBTITLE}</p>
         </div>
       </div>
@@ -162,6 +204,7 @@ export default function ChatPage() {
                   dangerouslySetInnerHTML={{
                     __html: msg.text
                       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                      .replace(/\*(.*?)\*/g, '<em>$1</em>')
                       .replace(/\n/g, '<br/>'),
                   }}
                 />
@@ -213,12 +256,13 @@ export default function ChatPage() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="שאלו את מוטי..."
-            className="flex-1 rounded-full bg-surface-primary px-4 py-2.5 text-[15px] text-apple-primary placeholder:text-apple-tertiary outline-none focus:ring-2 focus:ring-ios-blue/20 transition-shadow"
+            placeholder={isTyping ? 'מוטי חושב...' : 'שאלו את מוטי...'}
+            disabled={isTyping}
+            className="flex-1 rounded-full bg-surface-primary px-4 py-2.5 text-[15px] text-apple-primary placeholder:text-apple-tertiary outline-none focus:ring-2 focus:ring-ios-blue/20 transition-shadow disabled:opacity-60"
           />
           <motion.button
             type="submit"
-            disabled={!input.trim()}
+            disabled={!input.trim() || isTyping}
             whileTap={{ scale: 0.9 }}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-apple-primary text-white disabled:opacity-30 transition-opacity"
           >

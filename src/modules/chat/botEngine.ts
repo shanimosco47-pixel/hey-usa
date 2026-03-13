@@ -1,9 +1,60 @@
-// מוטי — the cynical travel advisor bot engine
-// Knows everything about the family's USA trip. Has opinions about everything.
+// מוטי — AI-powered cynical travel advisor
+// Uses Claude API via Supabase Edge Function, with keyword fallback
 
-interface BotResponse {
-  text: string
+import { supabase } from '@/lib/supabase'
+
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
 }
+
+export const BOT_NAME = 'מוטי'
+export const BOT_SUBTITLE = 'יועץ טיולים ציני (מופעל ע"י AI)'
+
+// ─── AI Engine ──────────────────────────────────────────────────────
+
+let conversationHistory: ChatMessage[] = []
+const MAX_HISTORY = 20 // Keep last 20 messages for context
+
+export function resetConversation() {
+  conversationHistory = []
+}
+
+export async function getBotResponseAsync(userMessage: string): Promise<string> {
+  // Add user message to history
+  conversationHistory.push({ role: 'user', content: userMessage })
+
+  // Trim history if too long
+  if (conversationHistory.length > MAX_HISTORY) {
+    conversationHistory = conversationHistory.slice(-MAX_HISTORY)
+  }
+
+  // Try AI first
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.functions.invoke('moti-chat', {
+        body: { messages: conversationHistory },
+      })
+
+      if (!error && data?.text) {
+        const assistantMessage = data.text as string
+        conversationHistory.push({ role: 'assistant', content: assistantMessage })
+        return assistantMessage
+      }
+
+      console.warn('Supabase function error, falling back to keywords:', error)
+    } catch (err) {
+      console.warn('AI request failed, falling back to keywords:', err)
+    }
+  }
+
+  // Fallback to keyword engine
+  const fallbackText = getKeywordResponse(userMessage)
+  conversationHistory.push({ role: 'assistant', content: fallbackText })
+  return fallbackText
+}
+
+// ─── Keyword Fallback Engine ────────────────────────────────────────
 
 const TRIP = {
   dates: '11-30 בספטמבר 2026',
@@ -26,12 +77,8 @@ const TRIP = {
     insurance: '2,000 ₪',
     daily: '2,500 ₪',
   },
-  nationalParks: ['יוסמיטי (18-20/9)', 'גרנד קניון (15/9)', 'זאיון (16/9)'],
-  hotels: ['Airbnb בניו יורק', 'מלון בלאס וגאס', 'מלון בסן פרנסיסקו (28-30/9)'],
-  documents: ['5 דרכונים', 'ESTA לכל המשפחה', 'ביטוח נסיעות', 'רישיון נהיגה בינלאומי', 'אישורי הזמנות'],
 }
 
-// Moti's sarcastic personality injections
 const OPENERS = [
   'אוקיי, שאלת את מוטי — אז תקבל את האמת.',
   'טוב, בוא נדבר תכלס.',
@@ -243,7 +290,7 @@ const rules: MatchRule[] = [
   {
     keywords: ['עזרה', 'help', 'מה אתה', 'מי אתה'],
     response: () =>
-      `אני **מוטי** 🤖 — יועץ הטיולים הציני שלכם.\n\n` +
+      `אני **מוטי** 🤖 — יועץ הטיולים הציני שלכם, מופעל על ידי AI.\n\n` +
       `אני מכיר את הטיול שלכם בע"פ: ${TRIP.dates}, ${TRIP.family}, מסלול מלא ברחבי ארה"ב.\n\n` +
       `תשאלו אותי על:\n` +
       `• ✈️ טיסות ומסלול\n` +
@@ -254,38 +301,38 @@ const rules: MatchRule[] = [
       `• 🎢 דיסנילנד ואטרקציות\n` +
       `• 🧳 אריזה\n` +
       `• 🍔 אוכל\n` +
-      `• או כל שאלה אחרת על הטיול!\n\n` +
-      `אני ציני אבל מדויק. ולפחות לא משעמם. 😏`,
+      `• או **כל שאלה אחרת** — אני AI, אני יודע הכל! (כמעט.)\n\n` +
+      `ציני אבל מדויק. ולפחות לא משעמם. 😏`,
   },
 ]
 
 const FALLBACKS = [
-  `שאלה מעניינת, אבל מוטי לא בטוח שהוא מבין מה בדיוק אתם רוצים. נסו לשאול על משהו ספציפי — טיסות, ביטוח, תקציב, אריזה, או כל מקום במסלול!\n\nאו פשוט תכתבו "עזרה" ואני אראה לכם מה אני יודע.`,
-  `אממ... מוטי קצת מבולבל. אני מומחה לטיול שלכם לארה"ב — שאלו אותי על המסלול, התקציב, המסמכים, או כל אטרקציה ספציפית!`,
-  `לא הבנתי, אבל אל תיקחו את זה אישית — אני בוט. שאלו על הטיול: ביטוח? דיסנילנד? גרנד קניון? אריזה? תקציב? אני פה!`,
+  `שאלה מעניינת, אבל מוטי במצב אופליין כרגע ולא מחובר ל-AI. 🔌\n\nנסו לשאול על משהו ספציפי — טיסות, ביטוח, תקציב, אריזה, או כל מקום במסלול!\n\nאו פשוט תכתבו "עזרה" ואני אראה לכם מה אני יודע.`,
+  `אממ... מוטי לא מחובר ל-AI כרגע, אז אני עובד במצב בסיסי. 🤖\n\nאני מומחה לטיול שלכם לארה"ב — שאלו אותי על המסלול, התקציב, המסמכים, או כל אטרקציה ספציפית!`,
+  `לא הבנתי, אבל אל תיקחו את זה אישית — אני במצב אופליין. 😅\n\nשאלו על הטיול: ביטוח? דיסנילנד? גרנד קניון? אריזה? תקציב? אני פה!`,
 ]
 
-export function getBotResponse(message: string): BotResponse {
+function getKeywordResponse(message: string): string {
   const lower = message.toLowerCase().trim()
 
   // Check for greeting
   if (/^(היי|הי|שלום|בוקר|ערב|מה נשמע|אהלן|hey|hi|hello)/.test(lower)) {
-    return {
-      text: `שלום שלום! 👋 אני מוטי, היועץ הציני שלכם לטיול לארה"ב.\n\nמה רוצים לדעת? יש לי דעה על הכל — ביטוח, תקציב, דיסנילנד, גרנד קניון... רק תשאלו.`,
-    }
+    return `שלום שלום! 👋 אני מוטי, היועץ הציני שלכם לטיול לארה"ב.\n\nמה רוצים לדעת? יש לי דעה על הכל — ביטוח, תקציב, דיסנילנד, גרנד קניון... רק תשאלו.`
   }
 
   // Check rules by keyword match
   for (const rule of rules) {
     const matched = rule.keywords.some((kw) => lower.includes(kw))
     if (matched) {
-      return { text: rule.response() }
+      return rule.response()
     }
   }
 
   // Fallback
-  return { text: randomPick(FALLBACKS) }
+  return randomPick(FALLBACKS)
 }
 
-export const BOT_NAME = 'מוטי'
-export const BOT_SUBTITLE = 'יועץ טיולים ציני'
+// Check if AI mode is available
+export function isAIMode(): boolean {
+  return supabase !== null
+}
