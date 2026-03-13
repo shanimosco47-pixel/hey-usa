@@ -20,6 +20,7 @@ const EntertainmentPage = lazy(
   () => import('@/modules/entertainment/EntertainmentPage'),
 )
 const PackingPage = lazy(() => import('@/modules/packing/PackingPage'))
+const ChatPage = lazy(() => import('@/modules/chat/ChatPage'))
 
 function LoadingFallback() {
   return (
@@ -74,6 +75,7 @@ export default function App() {
               <Route path="budget" element={<BudgetPage />} />
               <Route path="entertainment" element={<EntertainmentPage />} />
               <Route path="packing" element={<PackingPage />} />
+              <Route path="chat" element={<ChatPage />} />
             </Route>
 
             {/* Catch-all redirect */}
