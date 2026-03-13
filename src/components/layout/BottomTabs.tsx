@@ -1,34 +1,16 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  Home,
-  CheckSquare,
-  Map,
-  Camera,
-  MoreHorizontal,
-  Calendar,
-  FileText,
-  BookOpen,
-  DollarSign,
-  Music,
-  Package,
-  X,
+  Home, CheckSquare, Map, Camera, MoreHorizontal,
+  Calendar, FileText, BookOpen, DollarSign, Music, Package, X,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { BOTTOM_TAB_ITEMS, MORE_MENU_ITEMS } from '@/constants'
 import type { LucideIcon } from 'lucide-react'
 
 const ICON_MAP: Record<string, LucideIcon> = {
-  Home,
-  CheckSquare,
-  Map,
-  Camera,
-  Calendar,
-  FileText,
-  BookOpen,
-  DollarSign,
-  Music,
-  Package,
+  Home, CheckSquare, Map, Camera, Calendar,
+  FileText, BookOpen, DollarSign, Music, Package,
 }
 
 export function BottomTabs() {
@@ -40,7 +22,7 @@ export function BottomTabs() {
       {/* More Drawer Overlay */}
       {moreOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/30"
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
           onClick={() => setMoreOpen(false)}
         />
       )}
@@ -49,20 +31,21 @@ export function BottomTabs() {
       <div
         className={cn(
           'fixed bottom-16 left-0 right-0 z-50',
-          'bg-cream rounded-t-2xl shadow-lg border-t border-sand-dark/30',
-          'transform transition-transform duration-300 ease-out',
-          'font-hebrew',
+          'glass-float rounded-t-apple-xl shadow-glass-float',
+          'border-t border-black/[0.06]',
+          'transform transition-transform duration-300',
           moreOpen ? 'translate-y-0' : 'translate-y-full',
         )}
+        style={{ transitionTimingFunction: 'var(--ease-default)' }}
       >
         <div className="flex items-center justify-between px-4 pt-4 pb-2">
-          <h3 className="text-sm font-bold text-brown">עוד מודולים</h3>
+          <h3 className="text-caption uppercase tracking-wide text-apple-secondary">עוד מודולים</h3>
           <button
             onClick={() => setMoreOpen(false)}
-            className="rounded-full p-1 hover:bg-sand-dark/30 transition-colors"
+            className="rounded-full p-1 hover:bg-black/[0.04] transition-colors"
             aria-label="סגור"
           >
-            <X className="h-5 w-5 text-brown-light" />
+            <X className="h-5 w-5 text-apple-secondary" />
           </button>
         </div>
         <div className="grid grid-cols-3 gap-1 px-4 pb-4">
@@ -76,13 +59,13 @@ export function BottomTabs() {
                   navigate(item.path)
                 }}
                 className={cn(
-                  'flex flex-col items-center gap-1.5 rounded-xl py-3 px-2',
-                  'hover:bg-sand-dark/30 transition-colors',
-                  'text-brown',
+                  'flex flex-col items-center gap-1.5 rounded-apple py-3 px-2',
+                  'hover:bg-black/[0.04] transition-colors press-scale',
+                  'text-apple-primary',
                 )}
               >
                 {Icon && <Icon className="h-6 w-6" />}
-                <span className="text-xs">{item.label}</span>
+                <span className="text-caption">{item.label}</span>
               </button>
             )
           })}
@@ -94,8 +77,8 @@ export function BottomTabs() {
         className={cn(
           'fixed bottom-0 left-0 right-0 z-30',
           'flex h-16 items-center justify-around',
-          'bg-cream/95 backdrop-blur-sm border-t border-sand-dark/30',
-          'font-hebrew safe-area-pb',
+          'glass-nav border-t border-black/[0.06]',
+          'pb-safe',
         )}
       >
         {BOTTOM_TAB_ITEMS.map((item) => {
@@ -108,10 +91,10 @@ export function BottomTabs() {
               className={({ isActive }) =>
                 cn(
                   'flex flex-col items-center gap-0.5 px-3 py-1.5',
-                  'text-xs transition-colors',
+                  'text-[10px] transition-colors',
                   isActive
-                    ? 'text-terracotta font-semibold'
-                    : 'text-brown-light',
+                    ? 'text-ios-blue font-semibold'
+                    : 'text-apple-secondary',
                 )
               }
             >
@@ -121,13 +104,12 @@ export function BottomTabs() {
           )
         })}
 
-        {/* More Button */}
         <button
           onClick={() => setMoreOpen((prev) => !prev)}
           className={cn(
             'flex flex-col items-center gap-0.5 px-3 py-1.5',
-            'text-xs transition-colors',
-            moreOpen ? 'text-terracotta font-semibold' : 'text-brown-light',
+            'text-[10px] transition-colors',
+            moreOpen ? 'text-ios-blue font-semibold' : 'text-apple-secondary',
           )}
         >
           <MoreHorizontal className="h-5 w-5" />

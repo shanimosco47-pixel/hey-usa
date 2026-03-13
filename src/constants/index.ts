@@ -8,31 +8,31 @@ export const FAMILY_MEMBERS: Record<FamilyMemberId, FamilyMember> = {
     id: 'aba',
     name: 'אבא',
     emoji: '👨',
-    color: '#4a90d9',
+    color: '#007AFF',
   },
   ima: {
     id: 'ima',
     name: 'אמא',
     emoji: '👩',
-    color: '#e8735e',
+    color: '#FF2D55',
   },
   kid1: {
     id: 'kid1',
     name: 'ילד 1',
     emoji: '👦',
-    color: '#2d7d46',
+    color: '#34C759',
   },
   kid2: {
     id: 'kid2',
     name: 'ילד 2',
     emoji: '👧',
-    color: '#f5c542',
+    color: '#FF9500',
   },
   kid3: {
     id: 'kid3',
     name: 'ילד 3',
     emoji: '🧒',
-    color: '#6c5ce7',
+    color: '#5856D6',
   },
 }
 
@@ -44,12 +44,12 @@ export const STATUS_MAP: Record<string, StatusConfig> = {
   },
   'in-progress': {
     label: 'בתהליך',
-    color: 'text-brown',
+    color: 'text-white',
     bg: 'bg-status-progress',
   },
   in_progress: {
     label: 'בתהליך',
-    color: 'text-brown',
+    color: 'text-white',
     bg: 'bg-status-progress',
   },
   done: {

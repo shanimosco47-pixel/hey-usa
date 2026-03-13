@@ -10,26 +10,25 @@ export function AppShell() {
   const isDesktop = useMediaQuery('(min-width: 768px)')
 
   return (
-    <div className="min-h-screen bg-sand font-hebrew" dir="rtl">
+    <div className="min-h-screen bg-surface-primary" dir="rtl">
       <OfflineBanner />
       <TopBar />
 
       <div className="flex">
-        {/* Desktop sidebar on the right (RTL means right is the start side) */}
         {isDesktop && <Sidebar />}
 
-        {/* Main content area */}
         <main
           className={cn(
             'flex-1 min-h-[calc(100vh-3.5rem)]',
             isDesktop ? 'mr-56' : 'pb-16',
           )}
         >
-          <Outlet />
+          <div className="animate-page-enter">
+            <Outlet />
+          </div>
         </main>
       </div>
 
-      {/* Mobile bottom tabs */}
       {!isDesktop && <BottomTabs />}
     </div>
   )

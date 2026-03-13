@@ -32,8 +32,8 @@ export function DaySelector({ days, activeDay, onDayChange }: DaySelectorProps) 
   return (
     <div className="relative">
       {/* Fade edges */}
-      <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-6 bg-gradient-to-l from-transparent to-sand" />
-      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-6 bg-gradient-to-r from-transparent to-sand" />
+      <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-6 bg-gradient-to-l from-transparent to-surface-primary" />
+      <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-6 bg-gradient-to-r from-transparent to-surface-primary" />
 
       <div
         ref={scrollRef}
@@ -57,8 +57,8 @@ export function DaySelector({ days, activeDay, onDayChange }: DaySelectorProps) 
               className={cn(
                 'flex min-w-[72px] flex-shrink-0 flex-col items-center gap-0.5 rounded-xl px-3 py-2 transition-all',
                 isActive
-                  ? 'bg-terracotta text-white shadow-md scale-105'
-                  : 'bg-white/60 text-brown border border-sand-dark hover:bg-white/80'
+                  ? 'bg-ios-blue text-white shadow-md scale-105'
+                  : 'bg-white/60 text-apple-primary border border-black/[0.06] hover:bg-white/80'
               )}
             >
               <span className="text-[10px] font-medium opacity-75">
@@ -70,7 +70,7 @@ export function DaySelector({ days, activeDay, onDayChange }: DaySelectorProps) 
               <span
                 className={cn(
                   'max-w-[60px] truncate text-[9px]',
-                  isActive ? 'text-white/80' : 'text-brown-light'
+                  isActive ? 'text-white/80' : 'text-apple-secondary'
                 )}
               >
                 {cityShort}

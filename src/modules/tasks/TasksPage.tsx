@@ -197,14 +197,14 @@ export default function TasksPage() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-brown">משימות</h1>
-          <p className="mt-0.5 text-sm text-brown-light">
+          <h1 className="text-2xl font-bold text-apple-primary">משימות</h1>
+          <p className="mt-0.5 text-sm text-apple-secondary">
             {doneCount} מתוך {taskCount} הושלמו
           </p>
         </div>
         <button
           onClick={handleAddClick}
-          className="flex items-center gap-1.5 rounded-xl bg-sky px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-sky/90 hover:shadow-md active:scale-95"
+          className="flex items-center gap-1.5 rounded-xl bg-ios-blue px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-ios-blue/90 hover:shadow-md active:scale-95"
         >
           <Plus className="h-4 w-4" />
           <span>הוסף משימה</span>
@@ -214,14 +214,14 @@ export default function TasksPage() {
       {/* View switcher tabs */}
       <Tabs.Root value={activeView} onValueChange={setActiveView}>
         <div className="mb-4 flex items-center justify-between">
-          <Tabs.List className="flex gap-1 rounded-xl bg-sand-dark/50 p-1">
+          <Tabs.List className="flex gap-1 rounded-xl bg-black/[0.04] p-1">
             <Tabs.Trigger
               value="table"
               className={cn(
                 'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
                 activeView === 'table'
-                  ? 'bg-white text-brown shadow-sm'
-                  : 'text-brown-light hover:text-brown',
+                  ? 'bg-white text-apple-primary shadow-sm'
+                  : 'text-apple-secondary hover:text-apple-primary',
               )}
             >
               <Table2 className="h-4 w-4" />
@@ -232,8 +232,8 @@ export default function TasksPage() {
               className={cn(
                 'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
                 activeView === 'kanban'
-                  ? 'bg-white text-brown shadow-sm'
-                  : 'text-brown-light hover:text-brown',
+                  ? 'bg-white text-apple-primary shadow-sm'
+                  : 'text-apple-secondary hover:text-apple-primary',
               )}
             >
               <Columns3 className="h-4 w-4" />
@@ -244,8 +244,8 @@ export default function TasksPage() {
               className={cn(
                 'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
                 activeView === 'timeline'
-                  ? 'bg-white text-brown shadow-sm'
-                  : 'text-brown-light hover:text-brown',
+                  ? 'bg-white text-apple-primary shadow-sm'
+                  : 'text-apple-secondary hover:text-apple-primary',
               )}
             >
               <GanttChart className="h-4 w-4" />
@@ -257,7 +257,7 @@ export default function TasksPage() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-1 text-xs text-terracotta hover:underline"
+              className="flex items-center gap-1 text-xs text-ios-red hover:underline"
             >
               <X className="h-3 w-3" />
               נקה סינון ({filteredTasks.length} תוצאות)
@@ -269,13 +269,13 @@ export default function TasksPage() {
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {/* Search */}
           <div className="relative flex-1" style={{ minWidth: 180 }}>
-            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brown-light/50" />
+            <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-apple-tertiary" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="חיפוש משימות..."
-              className="w-full rounded-xl border border-sand-dark bg-white/60 py-2 pe-3 ps-10 text-sm text-brown placeholder:text-brown-light/50 focus:border-sky focus:outline-none focus:ring-1 focus:ring-sky/30"
+              className="w-full rounded-xl border border-black/[0.06] glass py-2 pe-3 ps-10 text-sm text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
             />
           </div>
 

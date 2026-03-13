@@ -22,7 +22,6 @@ export function PinScreen() {
       setPin(newPin)
 
       if (newPin.length === PIN_LENGTH) {
-        // Small delay so the user sees the last dot fill in
         setTimeout(() => {
           const success = login(newPin)
           if (success) {
@@ -48,19 +47,16 @@ export function PinScreen() {
 
   return (
     <div
-      className="flex min-h-screen flex-col items-center justify-center bg-sand font-hebrew px-4"
+      className="flex min-h-screen flex-col items-center justify-center bg-surface-primary px-4"
       dir="rtl"
     >
-      {/* Desert gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-sand via-sand to-sand-dark/30 pointer-events-none" />
-
       <div className="relative z-10 flex flex-col items-center gap-8 w-full max-w-sm">
         {/* Title */}
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-brown mb-2">
-            Hey USA 🇺🇸
+          <h1 className="text-hero text-apple-primary mb-2">
+            Hey USA
           </h1>
-          <p className="text-brown-light text-lg">הכנס קוד משפחתי</p>
+          <p className="text-subhead text-apple-secondary">הכנס קוד משפחתי</p>
         </div>
 
         {/* PIN Dots */}
@@ -77,9 +73,9 @@ export function PinScreen() {
                 'h-4 w-4 rounded-full border-2 transition-all duration-200',
                 i < pin.length
                   ? error
-                    ? 'bg-red-500 border-red-500'
-                    : 'bg-terracotta border-terracotta'
-                  : 'border-brown-light/40 bg-transparent',
+                    ? 'bg-ios-red border-ios-red'
+                    : 'bg-ios-blue border-ios-blue'
+                  : 'border-apple-tertiary bg-transparent',
               )}
             />
           ))}
@@ -87,7 +83,7 @@ export function PinScreen() {
 
         {/* Error message */}
         {error && (
-          <p className="text-red-500 text-sm -mt-4">קוד שגוי, נסה שוב</p>
+          <p className="text-ios-red text-subhead -mt-4">קוד שגוי, נסה שוב</p>
         )}
 
         {/* Numeric keypad */}
@@ -97,40 +93,39 @@ export function PinScreen() {
               key={digit}
               onClick={() => handleDigit(digit)}
               className={cn(
-                'h-16 w-full rounded-2xl text-2xl font-semibold',
-                'bg-white/70 text-brown shadow-sm',
-                'hover:bg-white active:bg-sand-dark/40',
-                'transition-colors duration-100',
+                'h-16 w-full rounded-apple-xl text-title',
+                'glass shadow-glass',
+                'text-apple-primary',
+                'hover:bg-white active:scale-95',
+                'transition-all duration-100',
               )}
             >
               {digit}
             </button>
           ))}
 
-          {/* Empty cell */}
           <div />
 
-          {/* Zero */}
           <button
             onClick={() => handleDigit('0')}
             className={cn(
-              'h-16 w-full rounded-2xl text-2xl font-semibold',
-              'bg-white/70 text-brown shadow-sm',
-              'hover:bg-white active:bg-sand-dark/40',
-              'transition-colors duration-100',
+              'h-16 w-full rounded-apple-xl text-title',
+              'glass shadow-glass',
+              'text-apple-primary',
+              'hover:bg-white active:scale-95',
+              'transition-all duration-100',
             )}
           >
             0
           </button>
 
-          {/* Backspace */}
           <button
             onClick={handleBackspace}
             className={cn(
-              'h-16 w-full rounded-2xl flex items-center justify-center',
-              'bg-white/40 text-brown-light',
-              'hover:bg-white/60 active:bg-sand-dark/40',
-              'transition-colors duration-100',
+              'h-16 w-full rounded-apple-xl flex items-center justify-center',
+              'bg-white/40 text-apple-secondary',
+              'hover:bg-white/60 active:scale-95',
+              'transition-all duration-100',
             )}
             aria-label="מחק ספרה"
           >

@@ -27,7 +27,6 @@ export function OfflineBanner() {
   const isOnline = useOnlineStatus()
   const [dismissed, setDismissed] = useState(false)
 
-  // Reset dismissed state when going offline again
   useEffect(() => {
     if (!isOnline) {
       setDismissed(false)
@@ -42,19 +41,20 @@ export function OfflineBanner() {
     <div
       className={cn(
         'flex items-center justify-between gap-2 px-4 py-2',
-        'bg-gold/90 text-brown font-hebrew text-sm',
+        'glass border-b border-ios-orange/30',
+        'text-apple-primary text-sm',
       )}
     >
       <div className="flex items-center gap-2">
-        <WifiOff className="h-4 w-4 shrink-0" />
+        <WifiOff className="h-4 w-4 shrink-0 text-ios-orange" />
         <span>אופליין - השינויים יסונכרנו כשיחזור חיבור</span>
       </div>
       <button
         onClick={() => setDismissed(true)}
-        className="shrink-0 rounded p-1 hover:bg-gold-dark/20 transition-colors"
+        className="shrink-0 rounded-full p-1 hover:bg-black/[0.04] transition-colors"
         aria-label="סגור התראה"
       >
-        <X className="h-3.5 w-3.5" />
+        <X className="h-3.5 w-3.5 text-apple-secondary" />
       </button>
     </div>
   )

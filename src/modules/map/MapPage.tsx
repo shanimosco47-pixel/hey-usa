@@ -18,10 +18,10 @@ const defaultIcon = new Icon({
 })
 
 const DAY_COLORS = [
-  '#c44d34', '#4a90d9', '#2d7d46', '#f5c542', '#6c5ce7',
-  '#e8735e', '#00b894', '#636e72', '#0984e3', '#fd79a8',
-  '#c44d34', '#4a90d9', '#2d7d46', '#f5c542', '#6c5ce7',
-  '#e8735e', '#00b894', '#636e72', '#0984e3', '#fd79a8',
+  '#007AFF', '#FF9500', '#34C759', '#FF3B30', '#5856D6',
+  '#FF2D55', '#5AC8FA', '#FFCC00', '#AF52DE', '#8E8E93',
+  '#007AFF', '#FF9500', '#34C759', '#FF3B30', '#5856D6',
+  '#FF2D55', '#5AC8FA', '#FFCC00', '#AF52DE', '#8E8E93',
 ]
 
 interface MapPoint {
@@ -98,7 +98,7 @@ export default function MapPage() {
     <div className="flex h-[calc(100vh-8rem)] flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3">
-        <h1 className="text-2xl font-bold text-brown">
+        <h1 className="text-2xl font-bold text-apple-primary">
           <Map className="ml-2 inline h-6 w-6" />
           מפת המסלול
         </h1>
@@ -106,7 +106,7 @@ export default function MapPage() {
           onClick={() => setShowLabels(!showLabels)}
           className={cn(
             'rounded-xl px-3 py-1.5 text-xs font-medium transition-colors',
-            showLabels ? 'bg-sky text-white' : 'bg-white/60 text-brown-light',
+            showLabels ? 'bg-ios-blue text-white' : 'glass text-apple-secondary',
           )}
         >
           <Layers className="ml-1 inline h-3.5 w-3.5" />
@@ -121,8 +121,8 @@ export default function MapPage() {
           className={cn(
             'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
             selectedDay === null
-              ? 'bg-brown text-white'
-              : 'bg-white/60 text-brown-light',
+              ? 'bg-apple-primary text-white'
+              : 'glass text-apple-secondary',
           )}
         >
           <Navigation className="ml-1 inline h-3 w-3" />
@@ -136,7 +136,7 @@ export default function MapPage() {
               'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap',
               selectedDay === idx
                 ? 'text-white'
-                : 'bg-white/60 text-brown-light',
+                : 'glass text-apple-secondary',
             )}
             style={selectedDay === idx ? { backgroundColor: DAY_COLORS[idx % DAY_COLORS.length] } : undefined}
           >
@@ -146,7 +146,7 @@ export default function MapPage() {
       </div>
 
       {/* Map */}
-      <div className="flex-1 overflow-hidden rounded-t-2xl mx-2">
+      <div className="flex-1 overflow-hidden rounded-t-apple-lg mx-2">
         <MapContainer
           key={`${center[0]}-${center[1]}-${zoom}`}
           center={center}
@@ -194,20 +194,20 @@ export default function MapPage() {
       </div>
 
       {/* Stats bar */}
-      <div className="flex items-center justify-around bg-white/80 px-4 py-2 text-center">
+      <div className="flex items-center justify-around glass-nav px-4 py-2 text-center">
         <div>
-          <p className="text-lg font-bold text-brown">{ITINERARY_DAYS.length}</p>
-          <p className="text-xs text-brown-light">ימים</p>
+          <p className="text-lg font-bold text-apple-primary">{ITINERARY_DAYS.length}</p>
+          <p className="text-xs text-apple-secondary">ימים</p>
         </div>
         <div>
-          <p className="text-lg font-bold text-sky">{allPoints.length}</p>
-          <p className="text-xs text-brown-light">עצירות</p>
+          <p className="text-lg font-bold text-ios-blue">{allPoints.length}</p>
+          <p className="text-xs text-apple-secondary">עצירות</p>
         </div>
         <div>
-          <p className="text-lg font-bold text-terracotta">
+          <p className="text-lg font-bold text-ios-red">
             {selectedDay !== null ? filteredPoints.length : allPoints.length}
           </p>
-          <p className="text-xs text-brown-light">מוצגות</p>
+          <p className="text-xs text-apple-secondary">מוצגות</p>
         </div>
       </div>
     </div>

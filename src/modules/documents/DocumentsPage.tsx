@@ -50,12 +50,12 @@ export default function DocumentsPage() {
       {/* Header */}
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-terracotta/10">
-            <FileText className="h-5 w-5 text-terracotta" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ios-blue/10">
+            <FileText className="h-5 w-5 text-ios-blue" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-brown">מסמכים</h1>
-            <p className="text-xs text-brown-light">
+            <h1 className="text-xl font-bold text-apple-primary">מסמכים</h1>
+            <p className="text-xs text-apple-secondary">
               {allDocuments.length} מסמכים
             </p>
           </div>
@@ -63,7 +63,7 @@ export default function DocumentsPage() {
         <button
           type="button"
           onClick={() => setUploadOpen(true)}
-          className="flex items-center gap-1.5 rounded-xl bg-terracotta px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-terracotta-light"
+          className="flex items-center gap-1.5 rounded-xl bg-ios-blue px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-ios-blue/90"
         >
           <Plus className="h-4 w-4" />
           העלה מסמך
@@ -73,24 +73,24 @@ export default function DocumentsPage() {
       {/* Search + view toggle */}
       <div className="mb-4 flex items-center gap-3">
         <div className="relative flex-1">
-          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brown-light" />
+          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-apple-secondary" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="חיפוש מסמכים..."
-            className="w-full rounded-xl border border-sand-dark bg-white/60 py-2.5 pe-3 ps-9 text-sm text-brown placeholder:text-brown-light/50 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta/30"
+            className="w-full rounded-xl border border-black/[0.06] glass py-2.5 pe-3 ps-9 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
           />
         </div>
-        <div className="flex overflow-hidden rounded-lg border border-sand-dark">
+        <div className="flex overflow-hidden rounded-lg border border-black/[0.06]">
           <button
             type="button"
             onClick={() => setViewMode('grid')}
             className={cn(
               'p-2 transition-colors',
               viewMode === 'grid'
-                ? 'bg-terracotta text-white'
-                : 'bg-white/60 text-brown-light hover:bg-sand',
+                ? 'bg-ios-blue text-white'
+                : 'glass text-apple-secondary hover:bg-black/[0.04]',
             )}
             aria-label="תצוגת רשת"
           >
@@ -102,8 +102,8 @@ export default function DocumentsPage() {
             className={cn(
               'p-2 transition-colors',
               viewMode === 'list'
-                ? 'bg-terracotta text-white'
-                : 'bg-white/60 text-brown-light hover:bg-sand',
+                ? 'bg-ios-blue text-white'
+                : 'glass text-apple-secondary hover:bg-black/[0.04]',
             )}
             aria-label="תצוגת רשימה"
           >
@@ -125,8 +125,8 @@ export default function DocumentsPage() {
               value={tab.value}
               className={cn(
                 'shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap',
-                'data-[state=active]:bg-terracotta data-[state=active]:text-white data-[state=active]:shadow-sm',
-                'data-[state=inactive]:bg-white/60 data-[state=inactive]:text-brown-light data-[state=inactive]:hover:bg-sand',
+                'data-[state=active]:bg-ios-blue data-[state=active]:text-white data-[state=active]:shadow-sm',
+                'data-[state=inactive]:glass data-[state=inactive]:text-apple-secondary data-[state=inactive]:hover:bg-black/[0.04]',
               )}
             >
               {tab.label}
@@ -138,10 +138,10 @@ export default function DocumentsPage() {
       {/* Documents grid/list */}
       {documents.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-sand-dark/50">
-            <FolderOpen className="h-8 w-8 text-brown-light/50" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-apple-lg bg-black/[0.04]">
+            <FolderOpen className="h-8 w-8 text-apple-secondary/50" />
           </div>
-          <p className="mt-4 text-sm font-medium text-brown-light">
+          <p className="mt-4 text-sm font-medium text-apple-secondary">
             {searchQuery ? 'לא נמצאו מסמכים התואמים לחיפוש' : 'אין מסמכים בקטגוריה זו'}
           </p>
           <button
@@ -150,7 +150,7 @@ export default function DocumentsPage() {
               setSearchQuery('')
               setActiveCategory('all')
             }}
-            className="mt-2 text-sm text-terracotta hover:underline"
+            className="mt-2 text-sm text-ios-blue hover:underline"
           >
             הצג את כל המסמכים
           </button>
@@ -215,29 +215,29 @@ function ListRow({
       type="button"
       onClick={() => onClick(doc)}
       className={cn(
-        'flex items-center gap-3 rounded-xl border bg-white/60 px-4 py-3 text-right transition-all hover:bg-white/80 hover:shadow-sm',
-        isExpired ? 'border-red-300' : 'border-sand-dark',
+        'flex items-center gap-3 rounded-xl border glass px-4 py-3 text-right transition-all hover:bg-white/80 hover:shadow-sm',
+        isExpired ? 'border-red-300' : 'border-black/[0.06]',
       )}
     >
       {/* Icon */}
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sand">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-black/[0.04]">
         {doc.file_type?.includes('pdf') ? (
           <FileText className="h-5 w-5 text-red-400" />
         ) : doc.file_type?.includes('image') ? (
-          <FileText className="h-5 w-5 text-sky/70" />
+          <FileText className="h-5 w-5 text-ios-teal/70" />
         ) : (
-          <FileText className="h-5 w-5 text-brown-light" />
+          <FileText className="h-5 w-5 text-apple-secondary" />
         )}
       </div>
 
       {/* Title + category */}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-brown">{doc.title}</p>
-        <div className="flex items-center gap-2 text-xs text-brown-light">
+        <p className="truncate text-sm font-medium text-apple-primary">{doc.title}</p>
+        <div className="flex items-center gap-2 text-xs text-apple-secondary">
           <span>{categoryLabel}</span>
           {doc.file_size ? (
             <>
-              <span className="text-sand-dark">|</span>
+              <span className="text-apple-tertiary">|</span>
               <span>{formatSize(doc.file_size)}</span>
             </>
           ) : null}

@@ -76,12 +76,12 @@ export default function ItineraryPage() {
       {/* Page header */}
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/10">
-            <Calendar className="h-5 w-5 text-gold-dark" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ios-orange/10">
+            <Calendar className="h-5 w-5 text-ios-orange" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-brown">לוח זמנים</h1>
-            <p className="text-xs text-brown-light">
+            <h1 className="text-xl font-bold text-apple-primary">לוח זמנים</h1>
+            <p className="text-xs text-apple-secondary">
               20 ימים במערב ארה"ב | ספטמבר 2026
             </p>
           </div>
@@ -104,8 +104,8 @@ export default function ItineraryPage() {
             className={cn(
               'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
               activeDayIndex >= ITINERARY_DAYS.length - 1
-                ? 'text-sand-dark'
-                : 'bg-white/60 text-brown hover:bg-white'
+                ? 'text-apple-tertiary'
+                : 'bg-white/60 text-apple-primary hover:bg-white/90'
             )}
           >
             <ChevronRight className="h-4 w-4" />
@@ -113,14 +113,14 @@ export default function ItineraryPage() {
 
           <div className="text-center">
             <div className="flex items-center justify-center gap-2">
-              <span className="rounded-lg bg-terracotta/10 px-2 py-0.5 text-xs font-bold text-terracotta">
+              <span className="rounded-lg bg-ios-blue/10 px-2 py-0.5 text-xs font-bold text-ios-blue">
                 יום {activeDayIndex + 1}
               </span>
-              <span className="text-xs text-brown-light">
+              <span className="text-xs text-apple-secondary">
                 {hebrewDay}, {format(date, 'd.M.yyyy')}
               </span>
             </div>
-            <h2 className="mt-1 text-base font-bold text-brown">
+            <h2 className="mt-1 text-base font-bold text-apple-primary">
               {currentDay.title}
             </h2>
           </div>
@@ -131,8 +131,8 @@ export default function ItineraryPage() {
             className={cn(
               'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
               activeDayIndex <= 0
-                ? 'text-sand-dark'
-                : 'bg-white/60 text-brown hover:bg-white'
+                ? 'text-apple-tertiary'
+                : 'bg-white/60 text-apple-primary hover:bg-white/90'
             )}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -141,7 +141,7 @@ export default function ItineraryPage() {
 
         {/* Day description */}
         {currentDay.description && (
-          <p className="mt-2 text-center text-xs leading-relaxed text-brown-light">
+          <p className="mt-2 text-center text-xs leading-relaxed text-apple-secondary">
             {currentDay.description}
           </p>
         )}
@@ -150,18 +150,18 @@ export default function ItineraryPage() {
         <div className="mt-3 flex items-center justify-center gap-4">
           {currentDay.city && (
             <div className="flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 text-terracotta" />
-              <span className="text-xs font-medium text-brown" dir="ltr">
+              <MapPin className="h-3.5 w-3.5 text-ios-blue" />
+              <span className="text-xs font-medium text-apple-primary" dir="ltr">
                 {currentDay.city}
               </span>
             </div>
           )}
           {dayCost > 0 && (
             <div className="flex items-center gap-1">
-              <span className="text-xs text-brown-light">
+              <span className="text-xs text-apple-secondary">
                 עלות משוערת:
               </span>
-              <span className="text-xs font-bold text-gold-dark" dir="ltr">
+              <span className="text-xs font-bold text-ios-orange" dir="ltr">
                 ~${dayCost}
               </span>
             </div>
@@ -185,12 +185,12 @@ export default function ItineraryPage() {
 
       {/* Day notes */}
       {currentDay.notes && (
-        <div className="mx-4 mt-4 rounded-xl border border-gold/30 bg-gold/5 p-3">
+        <div className="mx-4 mt-4 rounded-xl border border-ios-orange/30 bg-ios-orange/5 p-3">
           <div className="flex gap-2">
-            <StickyNote className="mt-0.5 h-4 w-4 flex-shrink-0 text-gold-dark" />
+            <StickyNote className="mt-0.5 h-4 w-4 flex-shrink-0 text-ios-orange" />
             <div>
-              <h4 className="text-xs font-bold text-gold-dark">הערות ליום</h4>
-              <p className="mt-1 text-xs leading-relaxed text-brown-light">
+              <h4 className="text-xs font-bold text-ios-orange">הערות ליום</h4>
+              <p className="mt-1 text-xs leading-relaxed text-apple-secondary">
                 {currentDay.notes}
               </p>
             </div>
@@ -208,8 +208,8 @@ export default function ItineraryPage() {
               className={cn(
                 'h-1.5 rounded-full transition-all',
                 i === activeDayIndex
-                  ? 'w-6 bg-terracotta'
-                  : 'w-1.5 bg-sand-dark hover:bg-brown-light'
+                  ? 'w-6 bg-ios-blue'
+                  : 'w-1.5 bg-black/[0.04] hover:bg-apple-tertiary'
               )}
               aria-label={`יום ${i + 1}`}
             />

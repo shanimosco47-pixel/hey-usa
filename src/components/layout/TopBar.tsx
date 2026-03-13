@@ -9,29 +9,28 @@ export function TopBar() {
   return (
     <header
       className={cn(
-        'sticky top-0 z-30 flex h-14 items-center justify-between px-4',
-        'bg-cream/95 backdrop-blur-sm border-b border-sand-dark/30',
-        'font-hebrew',
+        'sticky top-0 z-40 flex h-14 items-center justify-between px-5',
+        'glass-nav',
+        'border-b border-black/[0.04]',
+        'shadow-[0_1px_2px_rgba(0,0,0,0.03)]',
       )}
     >
-      {/* Right side (RTL): App name */}
-      <div className="flex items-center gap-2">
-        <h1 className="text-lg font-bold text-brown">
+      <div className="flex items-center gap-2.5">
+        <span className="text-lg" aria-hidden>🇺🇸</span>
+        <h1 className="text-[17px] font-bold tracking-tight text-apple-primary">
           Hey USA
         </h1>
       </div>
 
-      {/* Center: Dual Clock */}
       <div className="absolute left-1/2 -translate-x-1/2">
         <DualClock />
       </div>
 
-      {/* Left side (RTL): Avatar + offline indicator */}
       <div className="flex items-center gap-2">
         {currentMember ? (
           <FamilyAvatar memberId={currentMember} size="sm" />
         ) : (
-          <div className="h-8 w-8 rounded-full bg-sand-dark" />
+          <div className="h-8 w-8 rounded-full bg-surface-primary" />
         )}
       </div>
     </header>

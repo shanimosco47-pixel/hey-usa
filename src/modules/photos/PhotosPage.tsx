@@ -89,33 +89,33 @@ export default function PhotosPage() {
   return (
     <div className="space-y-4 p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brown"><Camera className="ml-2 inline h-6 w-6" />תמונות</h1>
+        <h1 className="text-2xl font-bold text-apple-primary"><Camera className="ml-2 inline h-6 w-6" />תמונות</h1>
         <div className="flex items-center gap-2">
-          <button onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="rounded-xl bg-white/60 p-2 text-brown-light">
+          <button onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="rounded-xl glass p-2 text-apple-secondary">
             {viewMode === 'grid' ? <LayoutList className="h-4 w-4" /> : <Grid3X3 className="h-4 w-4" />}
           </button>
-          <button onClick={() => setFilterFavorites(!filterFavorites)} className={cn('rounded-xl p-2', filterFavorites ? 'bg-red-50 text-red-400' : 'bg-white/60 text-brown-light')}>
+          <button onClick={() => setFilterFavorites(!filterFavorites)} className={cn('rounded-xl p-2', filterFavorites ? 'bg-red-50 text-red-400' : 'glass text-apple-secondary')}>
             <Heart className={cn('h-4 w-4', filterFavorites && 'fill-current')} />
           </button>
         </div>
       </div>
 
       <div className="flex gap-3">
-        <div className="rounded-xl bg-white/80 px-3 py-2 text-center shadow-sm">
-          <p className="text-lg font-bold text-brown">{photos.length}</p>
-          <p className="text-xs text-brown-light">תמונות</p>
+        <div className="rounded-xl glass px-3 py-2 text-center shadow-sm">
+          <p className="text-lg font-bold text-apple-primary">{photos.length}</p>
+          <p className="text-xs text-apple-secondary">תמונות</p>
         </div>
-        <div className="rounded-xl bg-white/80 px-3 py-2 text-center shadow-sm">
-          <p className="text-lg font-bold text-terracotta">{photos.filter((p) => p.is_favorite).length}</p>
-          <p className="text-xs text-brown-light">מועדפות</p>
+        <div className="rounded-xl glass px-3 py-2 text-center shadow-sm">
+          <p className="text-lg font-bold text-ios-red">{photos.filter((p) => p.is_favorite).length}</p>
+          <p className="text-xs text-apple-secondary">מועדפות</p>
         </div>
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <Filter className="h-4 w-4 shrink-0 text-brown-light" />
-        <button onClick={() => setFilterMember('all')} className={cn('shrink-0 rounded-full px-3 py-1.5 text-xs font-medium', filterMember === 'all' ? 'bg-brown text-white' : 'bg-white/60 text-brown-light')}>כולם</button>
+        <Filter className="h-4 w-4 shrink-0 text-apple-secondary" />
+        <button onClick={() => setFilterMember('all')} className={cn('shrink-0 rounded-full px-3 py-1.5 text-xs font-medium', filterMember === 'all' ? 'bg-apple-primary text-white' : 'glass text-apple-secondary')}>כולם</button>
         {FAMILY_MEMBERS.map((m) => (
-          <button key={m.id} onClick={() => setFilterMember(m.id)} className={cn('shrink-0 rounded-full px-3 py-1.5 text-xs font-medium', filterMember === m.id ? 'bg-brown text-white' : 'bg-white/60 text-brown-light')}>
+          <button key={m.id} onClick={() => setFilterMember(m.id)} className={cn('shrink-0 rounded-full px-3 py-1.5 text-xs font-medium', filterMember === m.id ? 'bg-apple-primary text-white' : 'glass text-apple-secondary')}>
             {m.avatar_emoji} {m.name}
           </button>
         ))}

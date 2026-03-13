@@ -8,11 +8,11 @@ import type {
 // ─── Family Members ─────────────────────────────────────────────────
 
 export const FAMILY_MEMBERS: FamilyMember[] = [
-  { id: 'aba', name: 'אבא', name_en: 'Dad', avatar_emoji: '👨', color: '#4a90d9' },
-  { id: 'ima', name: 'אמא', name_en: 'Mom', avatar_emoji: '👩', color: '#e8735e' },
-  { id: 'kid1', name: 'ילד 1', name_en: 'Kid 1', avatar_emoji: '👦', color: '#2d7d46' },
-  { id: 'kid2', name: 'ילד 2', name_en: 'Kid 2', avatar_emoji: '👧', color: '#f5c542' },
-  { id: 'kid3', name: 'ילד 3', name_en: 'Kid 3', avatar_emoji: '🧒', color: '#6c5ce7' },
+  { id: 'aba', name: 'אבא', name_en: 'Dad', avatar_emoji: '👨', color: '#007AFF' },
+  { id: 'ima', name: 'אמא', name_en: 'Mom', avatar_emoji: '👩', color: '#FF2D55' },
+  { id: 'kid1', name: 'ילד 1', name_en: 'Kid 1', avatar_emoji: '👦', color: '#34C759' },
+  { id: 'kid2', name: 'ילד 2', name_en: 'Kid 2', avatar_emoji: '👧', color: '#FF9500' },
+  { id: 'kid3', name: 'ילד 3', name_en: 'Kid 3', avatar_emoji: '🧒', color: '#5856D6' },
 ];
 
 export function getFamilyMember(id: FamilyMemberId): FamilyMember {
@@ -32,10 +32,10 @@ export const TASK_STATUSES: Record<
   TaskStatus,
   { label: string; color: string; icon: string }
 > = {
-  todo: { label: 'לביצוע', color: '#e17055', icon: 'circle' },
-  in_progress: { label: 'בתהליך', color: '#fdcb6e', icon: 'clock' },
-  done: { label: 'הושלם', color: '#00b894', icon: 'check-circle' },
-  waiting: { label: 'ממתין', color: '#636e72', icon: 'pause-circle' },
+  todo: { label: 'לביצוע', color: '#FF3B30', icon: 'circle' },
+  in_progress: { label: 'בתהליך', color: '#FF9500', icon: 'clock' },
+  done: { label: 'הושלם', color: '#34C759', icon: 'check-circle' },
+  waiting: { label: 'ממתין', color: '#8E8E93', icon: 'pause-circle' },
 };
 
 // ─── Task Priorities ────────────────────────────────────────────────
@@ -44,10 +44,10 @@ export const TASK_PRIORITIES: Record<
   TaskPriority,
   { label: string; color: string; icon: string }
 > = {
-  low: { label: 'נמוכה', color: '#636e72', icon: 'arrow-down' },
-  medium: { label: 'בינונית', color: '#4a90d9', icon: 'minus' },
-  high: { label: 'גבוהה', color: '#e17055', icon: 'arrow-up' },
-  urgent: { label: 'דחופה', color: '#c44d34', icon: 'alert-triangle' },
+  low: { label: 'נמוכה', color: '#8E8E93', icon: 'arrow-down' },
+  medium: { label: 'בינונית', color: '#007AFF', icon: 'minus' },
+  high: { label: 'גבוהה', color: '#FF9500', icon: 'arrow-up' },
+  urgent: { label: 'דחופה', color: '#FF3B30', icon: 'alert-triangle' },
 };
 
 // ─── Expense Categories ─────────────────────────────────────────────
@@ -116,5 +116,5 @@ export const MODULE_NAV: ModuleNavItem[] = [
   { icon: 'file-text', label: 'מסמכים', path: '/documents' },
   { icon: 'camera', label: 'תמונות', path: '/photos' },
   { icon: 'book-open', label: 'בלוג', path: '/blog' },
-  { icon: 'music', label: 'פלייליסט', path: '/playlist' },
+  { icon: 'music', label: 'פלייליסט', path: '/entertainment' },
 ];

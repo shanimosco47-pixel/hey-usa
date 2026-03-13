@@ -13,6 +13,12 @@ const sizeClasses = {
   lg: 'h-16 w-16 text-3xl',
 } as const
 
+const ringClasses = {
+  sm: 'ring-2',
+  md: 'ring-2',
+  lg: 'ring-[3px]',
+} as const
+
 export function FamilyAvatar({ memberId, size = 'md' }: FamilyAvatarProps) {
   const member = FAMILY_MEMBERS[memberId]
 
@@ -20,7 +26,7 @@ export function FamilyAvatar({ memberId, size = 'md' }: FamilyAvatarProps) {
     return (
       <div
         className={cn(
-          'flex items-center justify-center rounded-full bg-gray-200',
+          'flex items-center justify-center rounded-full bg-[#f5f5f7]',
           sizeClasses[size],
         )}
       >
@@ -32,10 +38,14 @@ export function FamilyAvatar({ memberId, size = 'md' }: FamilyAvatarProps) {
   return (
     <div
       className={cn(
-        'flex items-center justify-center rounded-full shrink-0',
+        'flex items-center justify-center rounded-full shrink-0 ring-offset-1',
         sizeClasses[size],
+        ringClasses[size],
       )}
-      style={{ backgroundColor: `${member.color}20`, borderColor: member.color, borderWidth: 2 }}
+      style={{
+        backgroundColor: `color-mix(in srgb, ${member.color} 12%, white)`,
+        '--tw-ring-color': member.color,
+      } as React.CSSProperties}
       title={member.name}
     >
       <span role="img" aria-label={member.name}>

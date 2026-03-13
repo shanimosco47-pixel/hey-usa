@@ -1,33 +1,33 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Plane,
-  CheckSquare,
-  Calendar,
-  FileText,
-  Map,
-  Camera,
-  BookOpen,
-  DollarSign,
-  Music,
-  Package,
+  Plane, CheckSquare, Calendar, FileText, Map,
+  Camera, BookOpen, DollarSign, Music, Package,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { FAMILY_MEMBERS } from '@/constants'
+import { GlassCard } from '@/components/shared/GlassCard'
+import { GradientIcon } from '@/components/shared/GradientIcon'
+import type { LucideIcon } from 'lucide-react'
 
 const TRIP_DATE = new Date('2026-09-11T00:00:00')
 
-const MODULE_CARDS = [
-  { path: '/tasks', icon: CheckSquare, label: 'משימות', color: '#6c5ce7', bgClass: 'bg-[#6c5ce7]/10' },
-  { path: '/itinerary', icon: Calendar, label: 'לוח זמנים', color: '#f5c542', bgClass: 'bg-[#f5c542]/10' },
-  { path: '/documents', icon: FileText, label: 'מסמכים', color: '#c44d34', bgClass: 'bg-[#c44d34]/10' },
-  { path: '/map', icon: Map, label: 'מפה', color: '#4a90d9', bgClass: 'bg-[#4a90d9]/10' },
-  { path: '/photos', icon: Camera, label: 'תמונות', color: '#e8735e', bgClass: 'bg-[#e8735e]/10' },
-  { path: '/blog', icon: BookOpen, label: 'בלוג', color: '#2d7d46', bgClass: 'bg-[#2d7d46]/10' },
-  { path: '/budget', icon: DollarSign, label: 'תקציב', color: '#8B6914', bgClass: 'bg-[#8B6914]/10' },
-  { path: '/entertainment', icon: Music, label: 'בידור', color: '#6c5ce7', bgClass: 'bg-[#6c5ce7]/10' },
-  { path: '/packing', icon: Package, label: 'אריזה', color: '#2d7d46', bgClass: 'bg-[#2d7d46]/10' },
-] as const
+const MODULE_CARDS: {
+  path: string
+  icon: LucideIcon
+  label: string
+  gradient: [string, string]
+}[] = [
+  { path: '/tasks', icon: CheckSquare, label: 'משימות', gradient: ['#5856D6', '#AF52DE'] },
+  { path: '/itinerary', icon: Calendar, label: 'לוח זמנים', gradient: ['#FF9500', '#FFCC00'] },
+  { path: '/documents', icon: FileText, label: 'מסמכים', gradient: ['#FF3B30', '#FF6259'] },
+  { path: '/map', icon: Map, label: 'מפה', gradient: ['#007AFF', '#34C759'] },
+  { path: '/photos', icon: Camera, label: 'תמונות', gradient: ['#FF2D55', '#FF6B8A'] },
+  { path: '/blog', icon: BookOpen, label: 'בלוג', gradient: ['#34C759', '#30D158'] },
+  { path: '/budget', icon: DollarSign, label: 'תקציב', gradient: ['#FF9500', '#FF6723'] },
+  { path: '/entertainment', icon: Music, label: 'בידור', gradient: ['#AF52DE', '#BF5AF2'] },
+  { path: '/packing', icon: Package, label: 'אריזה', gradient: ['#5AC8FA', '#64D2FF'] },
+]
 
 function getDaysUntilTrip(): number {
   const now = new Date()
@@ -56,17 +56,17 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-2xl px-4 py-6">
       {/* Header with greeting */}
       <div className="mb-6">
-        <p className="text-sm text-brown-light">{todayDate}</p>
-        <h1 className="mt-1 text-2xl font-bold text-brown">
+        <p className="text-caption uppercase tracking-wide text-apple-secondary">{todayDate}</p>
+        <h1 className="mt-1 text-title text-apple-primary">
           {memberData ? `שלום, ${memberData.name}` : 'שלום!'}
           {memberData ? ` ${memberData.emoji}` : ''}
         </h1>
       </div>
 
-      {/* Countdown widget */}
-      <div className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-bl from-terracotta to-terracotta-light p-6 text-white shadow-lg">
+      {/* Countdown widget - dark hero card */}
+      <div className="mb-8 dark-card rounded-apple-xl p-6 text-white shadow-dark-card">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20">
+          <div className="flex h-14 w-14 items-center justify-center rounded-apple-lg bg-white/[0.12]">
             <Plane className="h-7 w-7" />
           </div>
           <div className="flex-1">
@@ -74,7 +74,7 @@ export default function DashboardPage() {
               <span className="text-5xl font-bold leading-none">{daysLeft}</span>
               <span className="text-lg font-medium opacity-90">ימים לטיול!</span>
             </div>
-            <p className="mt-1 text-sm opacity-80">
+            <p className="mt-1 text-sm opacity-60">
               11 בספטמבר 2026 - ארה״ב, אנחנו באים!
             </p>
           </div>
@@ -82,20 +82,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick access grid */}
-      <h2 className="mb-4 text-lg font-bold text-brown">גישה מהירה</h2>
+      <h2 className="mb-4 text-headline text-apple-primary">גישה מהירה</h2>
       <div className="grid grid-cols-3 gap-3">
-        {MODULE_CARDS.map(({ path, icon: Icon, label, color, bgClass }) => (
-          <Link
-            key={path}
-            to={path}
-            className="flex flex-col items-center gap-2 rounded-2xl border border-sand-dark bg-white/60 p-4 shadow-sm transition-all hover:shadow-md active:scale-95"
-          >
-            <div
-              className={`flex h-12 w-12 items-center justify-center rounded-xl ${bgClass}`}
-            >
-              <Icon className="h-6 w-6" style={{ color }} />
-            </div>
-            <span className="text-xs font-semibold text-brown">{label}</span>
+        {MODULE_CARDS.map(({ path, icon, label, gradient }) => (
+          <Link key={path} to={path}>
+            <GlassCard padding="md" className="flex flex-col items-center gap-2.5 card-hover">
+              <GradientIcon icon={icon} gradient={gradient} size="lg" />
+              <span className="text-subhead text-apple-primary">{label}</span>
+            </GlassCard>
           </Link>
         ))}
       </div>

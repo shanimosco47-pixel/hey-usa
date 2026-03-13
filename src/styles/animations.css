@@ -1,0 +1,40 @@
+/* Page enter animation — apply to page wrapper divs */
+.animate-page-enter {
+  animation: page-enter 300ms var(--ease-default);
+}
+
+/* Staggered list items — set --index via style prop on each item */
+.animate-list-item {
+  animation: list-item-enter 350ms var(--ease-default) backwards;
+  animation-delay: calc(var(--index, 0) * 50ms);
+}
+
+/* Card hover lift — desktop only */
+@media (hover: hover) {
+  .card-hover {
+    transition: transform 200ms var(--ease-default), box-shadow 200ms var(--ease-default);
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  .card-hover:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Press feedback for touch targets */
+.press-scale {
+  transition: transform 100ms var(--ease-default);
+}
+.press-scale:active {
+  transform: scale(0.95);
+}
+
+/* Shimmer skeleton */
+.skeleton-shimmer {
+  background: linear-gradient(90deg, #ebebeb 25%, #e0e0e0 50%, #ebebeb 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
