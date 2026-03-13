@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Plane, CheckCircle2, CalendarRange, FolderClosed, Map,
-  Camera, PenLine, CreditCard, Music, Briefcase,
+  Camera, PenLine, CreditCard, Music, Briefcase, Bot,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { FAMILY_MEMBERS } from '@/constants'
@@ -161,6 +161,24 @@ export default function DashboardPage() {
           </motion.div>
         ))}
       </motion.div>
+
+      {/* Floating chat button */}
+      <Link to="/chat">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.6, type: 'spring', stiffness: 300, damping: 20 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="fixed bottom-20 left-5 z-20 flex h-14 w-14 items-center justify-center rounded-full text-white"
+          style={{
+            background: 'linear-gradient(145deg, #1d1d1f, #3a3a3c)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.25)',
+          }}
+        >
+          <Bot className="h-6 w-6" strokeWidth={1.8} />
+        </motion.div>
+      </Link>
     </div>
   )
 }

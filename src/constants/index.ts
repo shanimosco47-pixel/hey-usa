@@ -85,6 +85,7 @@ export const NAV_ITEMS = [
   { path: '/budget', label: 'תקציב', icon: 'Wallet' },
   { path: '/entertainment', label: 'בידור', icon: 'Headphones' },
   { path: '/packing', label: 'אריזה', icon: 'Luggage' },
+  { path: '/chat', label: 'מוטי', icon: 'Bot' },
 ] as const
 
 export const BOTTOM_TAB_ITEMS = [
@@ -101,4 +102,5 @@ export const MORE_MENU_ITEMS = [
   { path: '/budget', label: 'תקציב', icon: 'Wallet' },
   { path: '/entertainment', label: 'בידור', icon: 'Headphones' },
   { path: '/packing', label: 'אריזה', icon: 'Luggage' },
+  { path: '/chat', label: 'מוטי', icon: 'Bot' },
 ] as const
