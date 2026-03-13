@@ -28,7 +28,9 @@ export interface FamilyMember {
   id: FamilyMemberId
   name: string
   emoji: string
+  initials: string
   color: string
+  colorEnd?: string
 }
 
 /** Status badge configuration */
