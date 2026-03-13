@@ -43,7 +43,7 @@ export function TableView({ tasksByGroup, onToggleDone, onCycleStatus, onTaskCli
         const doneCount = tasks.filter((t) => t.status === 'done').length
 
         return (
-          <div key={group} className="overflow-hidden rounded-xl border border-sand-dark bg-white/50">
+          <div key={group} className="overflow-hidden rounded-xl border border-black/[0.06] glass">
             {/* Group header */}
             <button
               onClick={() => toggleCollapse(group)}
@@ -54,9 +54,9 @@ export function TableView({ tasksByGroup, onToggleDone, onCycleStatus, onTaskCli
                 className={cn('transition-transform', isCollapsed ? '-rotate-90' : 'rotate-0')}
               >
                 {isCollapsed ? (
-                  <ChevronLeft className="h-4 w-4 text-brown-light" />
+                  <ChevronLeft className="h-4 w-4 text-apple-secondary" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-brown-light" />
+                  <ChevronDown className="h-4 w-4 text-apple-secondary" />
                 )}
               </div>
               <span
@@ -72,7 +72,7 @@ export function TableView({ tasksByGroup, onToggleDone, onCycleStatus, onTaskCli
 
             {/* Column headers */}
             {!isCollapsed && tasks.length > 0 && (
-              <div className="flex items-center gap-3 border-b border-sand-dark/50 bg-sand/30 px-4 py-1.5 text-[11px] font-semibold text-brown-light">
+              <div className="flex items-center gap-3 border-b border-black/[0.04] bg-black/[0.03] px-4 py-1.5 text-[11px] font-semibold text-apple-secondary">
                 <div className="w-5 shrink-0" />
                 <div className="flex-1">משימה</div>
                 <div className="w-16 shrink-0 text-center">סטטוס</div>
@@ -86,7 +86,7 @@ export function TableView({ tasksByGroup, onToggleDone, onCycleStatus, onTaskCli
             {!isCollapsed && (
               <div>
                 {tasks.length === 0 ? (
-                  <div className="px-4 py-6 text-center text-sm text-brown-light/60">
+                  <div className="px-4 py-6 text-center text-sm text-apple-secondary/60">
                     אין משימות בקבוצה זו
                   </div>
                 ) : (

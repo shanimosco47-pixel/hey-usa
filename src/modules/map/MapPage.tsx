@@ -18,10 +18,10 @@ const defaultIcon = new Icon({
 })
 
 const DAY_COLORS = [
-  '#007AFF', '#FF9500', '#34C759', '#FF3B30', '#5856D6',
-  '#FF2D55', '#5AC8FA', '#FFCC00', '#AF52DE', '#8E8E93',
-  '#007AFF', '#FF9500', '#34C759', '#FF3B30', '#5856D6',
-  '#FF2D55', '#5AC8FA', '#FFCC00', '#AF52DE', '#8E8E93',
+  '#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6',
+  '#FF2D55', '#5AC8FA', '#AF52DE', '#FFCC00', '#8E8E93',
+  '#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6',
+  '#FF2D55', '#5AC8FA', '#AF52DE', '#FFCC00', '#8E8E93',
 ]
 
 interface MapPoint {
@@ -200,11 +200,11 @@ export default function MapPage() {
           <p className="text-xs text-apple-secondary">ימים</p>
         </div>
         <div>
-          <p className="text-lg font-bold text-ios-blue">{allPoints.length}</p>
+          <p className="text-lg font-bold text-ios-teal">{allPoints.length}</p>
           <p className="text-xs text-apple-secondary">עצירות</p>
         </div>
         <div>
-          <p className="text-lg font-bold text-ios-red">
+          <p className="text-lg font-bold text-ios-blue">
             {selectedDay !== null ? filteredPoints.length : allPoints.length}
           </p>
           <p className="text-xs text-apple-secondary">מוצגות</p>

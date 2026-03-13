@@ -112,18 +112,18 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content
-          className="fixed inset-x-4 top-[50%] z-50 max-h-[85vh] w-auto max-w-lg translate-y-[-50%] overflow-y-auto rounded-2xl bg-cream p-6 shadow-xl sm:inset-x-auto sm:start-[50%] sm:translate-x-[50%] sm:-translate-y-[50%] rtl:sm:-translate-x-[50%]"
+          className="fixed inset-x-4 top-[50%] z-50 max-h-[85vh] w-auto max-w-lg translate-y-[-50%] overflow-y-auto rounded-apple-lg bg-surface-primary p-6 shadow-xl sm:inset-x-auto sm:start-[50%] sm:translate-x-[50%] sm:-translate-y-[50%] rtl:sm:-translate-x-[50%]"
           dir="rtl"
         >
           {/* Header */}
           <div className="mb-5 flex items-center justify-between">
-            <Dialog.Title className="text-lg font-bold text-brown">
+            <Dialog.Title className="text-lg font-bold text-apple-primary">
               העלאת מסמך
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="rounded-lg p-1.5 text-brown-light transition-colors hover:bg-sand-dark"
+                className="rounded-lg p-1.5 text-apple-secondary transition-colors hover:bg-black/[0.04]"
                 aria-label="סגור"
               >
                 <X className="h-5 w-5" />
@@ -139,33 +139,33 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
             className={cn(
               'mb-4 flex flex-col items-center gap-2 rounded-xl border-2 border-dashed p-6 transition-colors',
               isDragging
-                ? 'border-terracotta bg-terracotta/5'
-                : 'border-sand-dark bg-white/40 hover:border-terracotta/50',
+                ? 'border-ios-blue bg-ios-blue/5'
+                : 'border-black/[0.06] bg-white/40 hover:border-ios-blue/50',
             )}
           >
             {selectedFile ? (
               <div className="flex items-center gap-3">
-                <FileText className="h-8 w-8 text-terracotta" />
+                <FileText className="h-8 w-8 text-ios-blue" />
                 <div className="text-right">
-                  <p className="text-sm font-medium text-brown">{selectedFile.name}</p>
-                  <p className="text-xs text-brown-light">{formatFileSize(selectedFile.size)}</p>
+                  <p className="text-sm font-medium text-apple-primary">{selectedFile.name}</p>
+                  <p className="text-xs text-apple-secondary">{formatFileSize(selectedFile.size)}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedFile(null)}
-                  className="rounded-lg p-1 text-brown-light hover:bg-sand-dark"
+                  className="rounded-lg p-1 text-apple-secondary hover:bg-black/[0.04]"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
             ) : (
               <>
-                <Upload className="h-8 w-8 text-brown-light" />
-                <p className="text-sm text-brown-light">גרור קובץ לכאן</p>
+                <Upload className="h-8 w-8 text-apple-secondary" />
+                <p className="text-sm text-apple-secondary">גרור קובץ לכאן</p>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="rounded-lg bg-terracotta px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-terracotta-light"
+                  className="rounded-lg bg-ios-blue px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
                 >
                   בחר קובץ
                 </button>
@@ -184,7 +184,7 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
           <div className="space-y-3">
             {/* Title */}
             <div>
-              <label htmlFor="doc-title" className="mb-1 block text-sm font-medium text-brown">
+              <label htmlFor="doc-title" className="mb-1 block text-sm font-medium text-apple-primary">
                 כותרת
               </label>
               <input
@@ -193,28 +193,28 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="שם המסמך"
-                className="w-full rounded-lg border border-sand-dark bg-white/60 px-3 py-2 text-sm text-brown placeholder:text-brown-light/50 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta/30"
+                className="w-full rounded-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
               />
             </div>
 
             {/* Category */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-brown">קטגוריה</label>
+              <label className="mb-1 block text-sm font-medium text-apple-primary">קטגוריה</label>
               <Select.Root value={category} onValueChange={setCategory} dir="rtl">
                 <Select.Trigger
                   className={cn(
-                    'flex w-full items-center justify-between rounded-lg border border-sand-dark bg-white/60 px-3 py-2 text-sm focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta/30',
-                    category ? 'text-brown' : 'text-brown-light/50',
+                    'flex w-full items-center justify-between rounded-lg border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
+                    category ? 'text-apple-primary' : 'text-apple-tertiary',
                   )}
                 >
                   <Select.Value placeholder="בחר קטגוריה" />
                   <Select.Icon>
-                    <ChevronDown className="h-4 w-4 text-brown-light" />
+                    <ChevronDown className="h-4 w-4 text-apple-secondary" />
                   </Select.Icon>
                 </Select.Trigger>
                 <Select.Portal>
                   <Select.Content
-                    className="z-[60] overflow-hidden rounded-xl border border-sand-dark bg-cream shadow-lg"
+                    className="z-[60] overflow-hidden rounded-xl border border-black/[0.06] bg-surface-primary shadow-lg"
                     position="popper"
                     sideOffset={4}
                     dir="rtl"
@@ -224,10 +224,10 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
                         <Select.Item
                           key={key}
                           value={key}
-                          className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-brown outline-none data-[highlighted]:bg-sand"
+                          className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-apple-primary outline-none data-[highlighted]:bg-black/[0.04]"
                         >
                           <Select.ItemIndicator>
-                            <Check className="h-4 w-4 text-sage" />
+                            <Check className="h-4 w-4 text-ios-blue" />
                           </Select.ItemIndicator>
                           <Select.ItemText>{val.label}</Select.ItemText>
                         </Select.Item>
@@ -240,24 +240,24 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
 
             {/* Family member */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-brown">
+              <label className="mb-1 block text-sm font-medium text-apple-primary">
                 בן משפחה (אופציונלי)
               </label>
               <Select.Root value={memberId} onValueChange={setMemberId} dir="rtl">
                 <Select.Trigger
                   className={cn(
-                    'flex w-full items-center justify-between rounded-lg border border-sand-dark bg-white/60 px-3 py-2 text-sm focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta/30',
-                    memberId ? 'text-brown' : 'text-brown-light/50',
+                    'flex w-full items-center justify-between rounded-lg border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
+                    memberId ? 'text-apple-primary' : 'text-apple-tertiary',
                   )}
                 >
                   <Select.Value placeholder="כל המשפחה" />
                   <Select.Icon>
-                    <ChevronDown className="h-4 w-4 text-brown-light" />
+                    <ChevronDown className="h-4 w-4 text-apple-secondary" />
                   </Select.Icon>
                 </Select.Trigger>
                 <Select.Portal>
                   <Select.Content
-                    className="z-[60] overflow-hidden rounded-xl border border-sand-dark bg-cream shadow-lg"
+                    className="z-[60] overflow-hidden rounded-xl border border-black/[0.06] bg-surface-primary shadow-lg"
                     position="popper"
                     sideOffset={4}
                     dir="rtl"
@@ -267,10 +267,10 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
                         <Select.Item
                           key={key}
                           value={key}
-                          className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-brown outline-none data-[highlighted]:bg-sand"
+                          className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-apple-primary outline-none data-[highlighted]:bg-black/[0.04]"
                         >
                           <Select.ItemIndicator>
-                            <Check className="h-4 w-4 text-sage" />
+                            <Check className="h-4 w-4 text-ios-blue" />
                           </Select.ItemIndicator>
                           <Select.ItemText>
                             {member.emoji} {member.name}
@@ -285,7 +285,7 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
 
             {/* Expiry date */}
             <div>
-              <label htmlFor="doc-expiry" className="mb-1 block text-sm font-medium text-brown">
+              <label htmlFor="doc-expiry" className="mb-1 block text-sm font-medium text-apple-primary">
                 תאריך תפוגה (אופציונלי)
               </label>
               <input
@@ -293,13 +293,13 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
                 type="date"
                 value={expiryDate}
                 onChange={(e) => setExpiryDate(e.target.value)}
-                className="w-full rounded-lg border border-sand-dark bg-white/60 px-3 py-2 text-sm text-brown focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta/30"
+                className="w-full rounded-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
               />
             </div>
 
             {/* Notes */}
             <div>
-              <label htmlFor="doc-notes" className="mb-1 block text-sm font-medium text-brown">
+              <label htmlFor="doc-notes" className="mb-1 block text-sm font-medium text-apple-primary">
                 הערות (אופציונלי)
               </label>
               <textarea
@@ -308,7 +308,7 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
                 placeholder="פרטים נוספים..."
-                className="w-full resize-none rounded-lg border border-sand-dark bg-white/60 px-3 py-2 text-sm text-brown placeholder:text-brown-light/50 focus:border-terracotta focus:outline-none focus:ring-1 focus:ring-terracotta/30"
+                className="w-full resize-none rounded-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
               />
             </div>
           </div>
@@ -319,14 +319,14 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
               type="button"
               onClick={handleSubmit}
               disabled={!title.trim() || !category}
-              className="flex-1 rounded-xl bg-terracotta px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-terracotta-light disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex-1 rounded-xl bg-ios-blue px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ios-blue/80 disabled:cursor-not-allowed disabled:opacity-40"
             >
               העלה מסמך
             </button>
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="rounded-xl border border-sand-dark bg-white/60 px-4 py-2.5 text-sm font-medium text-brown-light transition-colors hover:bg-sand"
+                className="rounded-xl border border-black/[0.06] glass px-4 py-2.5 text-sm font-medium text-apple-secondary transition-colors hover:bg-black/[0.04]"
               >
                 ביטול
               </button>

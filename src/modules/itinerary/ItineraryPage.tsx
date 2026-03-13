@@ -209,7 +209,7 @@ export default function ItineraryPage() {
                 'h-1.5 rounded-full transition-all',
                 i === activeDayIndex
                   ? 'w-6 bg-ios-blue'
-                  : 'w-1.5 bg-black/[0.04] hover:bg-apple-tertiary'
+                  : 'w-1.5 bg-black/[0.06] hover:bg-apple-secondary'
               )}
               aria-label={`יום ${i + 1}`}
             />

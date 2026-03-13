@@ -77,23 +77,23 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
           {(Object.keys(GROUP_COLORS) as TaskGroup[]).map((group) => (
             <div key={group} className="flex items-center gap-1.5">
               <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: GROUP_COLORS[group] }} />
-              <span className="text-xs text-brown-light">{GROUP_LABELS[group]}</span>
+              <span className="text-xs text-apple-secondary">{GROUP_LABELS[group]}</span>
             </div>
           ))}
           <div className="flex items-center gap-1.5">
             <div className="h-3 w-3 rounded-sm bg-red-400 opacity-60" />
-            <span className="text-xs text-brown-light">באיחור</span>
+            <span className="text-xs text-apple-secondary">באיחור</span>
           </div>
         </div>
 
         {/* Month headers */}
-        <div className="mb-1 flex border-b border-sand-dark">
+        <div className="mb-1 flex border-b border-black/[0.06]">
           <div className="w-48 shrink-0" />
           <div className="relative flex flex-1">
             {months.map((month, i) => (
               <div
                 key={i}
-                className="text-center text-[11px] font-medium text-brown-light"
+                className="text-center text-[11px] font-medium text-apple-secondary"
                 style={{ width: `${100 / months.length}%` }}
               >
                 {month.label}
@@ -109,7 +109,7 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
             {months.map((_, i) => (
               <div
                 key={i}
-                className="border-r border-sand-dark/40"
+                className="border-r border-black/[0.04]"
                 style={{ width: `${100 / months.length}%` }}
               />
             ))}
@@ -120,10 +120,10 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
             const todayPos = getBarPosition(new Date().toISOString().split('T')[0])
             return (
               <div
-                className="pointer-events-none absolute top-0 bottom-0 z-10 w-px bg-terracotta"
+                className="pointer-events-none absolute top-0 bottom-0 z-10 w-px bg-ios-red"
                 style={{ right: `calc(192px + ${todayPos}% * (100% - 192px) / 100%)` }}
               >
-                <div className="absolute -top-1 -translate-x-1/2 rounded bg-terracotta px-1 py-0.5 text-[9px] font-bold text-white">
+                <div className="absolute -top-1 -translate-x-1/2 rounded bg-ios-red px-1 py-0.5 text-[9px] font-bold text-white">
                   היום
                 </div>
               </div>
@@ -139,11 +139,11 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
             return (
               <div
                 key={task.id}
-                className="group flex items-center border-b border-sand-dark/20 py-1.5 cursor-pointer hover:bg-white/30 transition-colors"
+                className="group flex items-center border-b border-black/[0.02] py-1.5 cursor-pointer hover:bg-white/30 transition-colors"
                 onClick={() => onTaskClick(task)}
               >
                 {/* Task label */}
-                <div className="w-48 shrink-0 truncate px-2 text-xs font-medium text-brown" title={task.title}>
+                <div className="w-48 shrink-0 truncate px-2 text-xs font-medium text-apple-primary" title={task.title}>
                   <div className="flex items-center gap-1.5">
                     <div className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: groupColor }} />
                     <span className={cn('truncate', task.status === 'done' && 'line-through opacity-50')}>
@@ -176,16 +176,16 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
           {/* Tasks without dates */}
           {tasksWithoutDates.length > 0 && (
             <>
-              <div className="border-t-2 border-dashed border-sand-dark/40 mt-2 pt-2 px-2">
-                <span className="text-[11px] font-medium text-brown-light/60">ללא תאריך יעד</span>
+              <div className="border-t-2 border-dashed border-black/[0.04] mt-2 pt-2 px-2">
+                <span className="text-[11px] font-medium text-apple-secondary/60">ללא תאריך יעד</span>
               </div>
               {tasksWithoutDates.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-center border-b border-sand-dark/20 py-1.5 cursor-pointer hover:bg-white/30 transition-colors"
+                  className="flex items-center border-b border-black/[0.02] py-1.5 cursor-pointer hover:bg-white/30 transition-colors"
                   onClick={() => onTaskClick(task)}
                 >
-                  <div className="w-48 shrink-0 truncate px-2 text-xs font-medium text-brown" title={task.title}>
+                  <div className="w-48 shrink-0 truncate px-2 text-xs font-medium text-apple-primary" title={task.title}>
                     <div className="flex items-center gap-1.5">
                       <div
                         className="h-2 w-2 shrink-0 rounded-full"
@@ -197,7 +197,7 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
                     </div>
                   </div>
                   <div className="flex flex-1 items-center px-4">
-                    <span className="text-[11px] text-brown-light/40">-</span>
+                    <span className="text-[11px] text-apple-secondary/40">-</span>
                   </div>
                 </div>
               ))}

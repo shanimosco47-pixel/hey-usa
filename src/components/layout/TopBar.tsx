@@ -15,9 +15,9 @@ export function TopBar() {
         'shadow-[0_1px_2px_rgba(0,0,0,0.03)]',
       )}
     >
-      <div className="flex items-center gap-2.5">
-        <span className="text-lg" aria-hidden>🇺🇸</span>
-        <h1 className="text-[17px] font-bold tracking-tight text-apple-primary">
+      <div className="flex items-center gap-2">
+        <span className="hidden sm:inline text-lg" aria-hidden>🇺🇸</span>
+        <h1 className="text-[15px] sm:text-[17px] font-bold tracking-tight text-apple-primary">
           Hey USA
         </h1>
       </div>

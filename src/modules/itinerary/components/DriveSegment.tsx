@@ -10,8 +10,8 @@ export function DriveSegment() {
 
         {/* Icon circle */}
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-ios-blue/10">
-            <ChevronDown className="h-3.5 w-3.5 text-ios-blue" />
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-ios-teal/10">
+            <ChevronDown className="h-3.5 w-3.5 text-ios-teal" />
           </div>
         </div>
 

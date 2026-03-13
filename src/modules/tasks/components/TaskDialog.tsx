@@ -102,13 +102,13 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed inset-x-4 top-[50%] z-50 max-h-[85vh] max-w-lg translate-y-[-50%] mx-auto overflow-y-auto rounded-2xl border border-sand-dark bg-cream p-6 shadow-xl focus:outline-none">
+        <Dialog.Content className="fixed inset-x-4 top-[50%] z-50 max-h-[85vh] max-w-lg translate-y-[-50%] mx-auto overflow-y-auto rounded-apple-lg border border-black/[0.06] bg-cream p-6 shadow-xl focus:outline-none">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
-            <Dialog.Title className="text-lg font-bold text-brown">
+            <Dialog.Title className="text-lg font-bold text-apple-primary">
               {isEditing ? 'עריכת משימה' : 'משימה חדשה'}
             </Dialog.Title>
-            <Dialog.Close className="rounded-lg p-1.5 text-brown-light transition-colors hover:bg-sand-dark/50">
+            <Dialog.Close className="rounded-lg p-1.5 text-apple-secondary transition-colors hover:bg-black/[0.04]">
               <X className="h-5 w-5" />
             </Dialog.Close>
           </div>
@@ -116,15 +116,15 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Title */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-brown">
-                כותרת <span className="text-terracotta">*</span>
+              <label className="mb-1 block text-sm font-medium text-apple-primary">
+                כותרת <span className="text-ios-red">*</span>
               </label>
               <input
                 type="text"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="שם המשימה..."
-                className="w-full rounded-xl border border-sand-dark bg-white/70 px-3 py-2 text-sm text-brown placeholder:text-brown-light/50 focus:border-sky focus:outline-none focus:ring-1 focus:ring-sky/30"
+                className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                 required
                 autoFocus
               />
@@ -132,24 +132,24 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
 
             {/* Description */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-brown">תיאור</label>
+              <label className="mb-1 block text-sm font-medium text-apple-primary">תיאור</label>
               <textarea
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 placeholder="פרטים נוספים..."
                 rows={3}
-                className="w-full rounded-xl border border-sand-dark bg-white/70 px-3 py-2 text-sm text-brown placeholder:text-brown-light/50 focus:border-sky focus:outline-none focus:ring-1 focus:ring-sky/30 resize-none"
+                className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 resize-none"
               />
             </div>
 
             {/* Group + Status row */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-sm font-medium text-brown">קבוצה</label>
+                <label className="mb-1 block text-sm font-medium text-apple-primary">קבוצה</label>
                 <select
                   value={form.group}
                   onChange={(e) => setForm((f) => ({ ...f, group: e.target.value as TaskGroup }))}
-                  className="w-full rounded-xl border border-sand-dark bg-white/70 px-3 py-2 text-sm text-brown focus:border-sky focus:outline-none focus:ring-1 focus:ring-sky/30"
+                  className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                 >
                   {GROUP_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -159,11 +159,11 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-brown">סטטוס</label>
+                <label className="mb-1 block text-sm font-medium text-apple-primary">סטטוס</label>
                 <select
                   value={form.status}
                   onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as TaskStatus }))}
-                  className="w-full rounded-xl border border-sand-dark bg-white/70 px-3 py-2 text-sm text-brown focus:border-sky focus:outline-none focus:ring-1 focus:ring-sky/30"
+                  className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                 >
                   {STATUS_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -177,11 +177,11 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
             {/* Priority + Due date row */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-sm font-medium text-brown">עדיפות</label>
+                <label className="mb-1 block text-sm font-medium text-apple-primary">עדיפות</label>
                 <select
                   value={form.priority}
                   onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as TaskPriority }))}
-                  className="w-full rounded-xl border border-sand-dark bg-white/70 px-3 py-2 text-sm text-brown focus:border-sky focus:outline-none focus:ring-1 focus:ring-sky/30"
+                  className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                 >
                   {PRIORITY_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -191,12 +191,12 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-brown">תאריך יעד</label>
+                <label className="mb-1 block text-sm font-medium text-apple-primary">תאריך יעד</label>
                 <input
                   type="date"
                   value={form.due_date}
                   onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
-                  className="w-full rounded-xl border border-sand-dark bg-white/70 px-3 py-2 text-sm text-brown focus:border-sky focus:outline-none focus:ring-1 focus:ring-sky/30"
+                  className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                   dir="ltr"
                 />
               </div>
@@ -204,7 +204,7 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
 
             {/* Assignees */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-brown">אחראים</label>
+              <label className="mb-2 block text-sm font-medium text-apple-primary">אחראים</label>
               <div className="flex flex-wrap gap-2">
                 {FAMILY_LIST.map((member) => {
                   const isSelected = form.assigned_to.includes(member.id)
@@ -216,8 +216,8 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                       className={cn(
                         'flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-sm font-medium transition-all',
                         isSelected
-                          ? 'bg-white/80 shadow-sm'
-                          : 'border-sand-dark/50 bg-transparent opacity-50 hover:opacity-75',
+                          ? 'glass shadow-sm'
+                          : 'border-black/[0.04] bg-transparent opacity-50 hover:opacity-75',
                       )}
                       style={{
                         borderColor: isSelected ? member.color : undefined,
@@ -237,14 +237,14 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
               <button
                 type="submit"
                 disabled={!form.title.trim()}
-                className="flex-1 rounded-xl bg-sky px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-sky/90 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1 rounded-xl bg-ios-blue px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-ios-blue/90 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isEditing ? 'שמור שינויים' : 'הוסף משימה'}
               </button>
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="rounded-xl border border-sand-dark px-4 py-2.5 text-sm font-medium text-brown-light transition-all hover:bg-sand-dark/30"
+                className="rounded-xl border border-black/[0.06] px-4 py-2.5 text-sm font-medium text-apple-secondary transition-all hover:bg-black/[0.03]"
               >
                 ביטול
               </button>

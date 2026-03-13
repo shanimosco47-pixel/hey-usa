@@ -37,8 +37,8 @@ function FilePreview({ doc }: { doc: Document }) {
     return (
       <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-sky-50">
         <div className="flex flex-col items-center gap-3">
-          <Image className="h-16 w-16 text-sky/50" />
-          <p className="text-sm text-brown-light">תצוגה מקדימה לא זמינה</p>
+          <Image className="h-16 w-16 text-ios-blue/50" />
+          <p className="text-sm text-apple-secondary">תצוגה מקדימה לא זמינה</p>
         </div>
       </div>
     )
@@ -62,8 +62,8 @@ function FilePreview({ doc }: { doc: Document }) {
   }
 
   return (
-    <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-sand">
-      <File className="h-16 w-16 text-brown-light/40" />
+    <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-surface-primary">
+      <File className="h-16 w-16 text-apple-tertiary" />
     </div>
   )
 }
@@ -81,10 +81,10 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-brown-light" />
+      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-apple-secondary" />
       <div className="min-w-0">
-        <p className="text-xs text-brown-light">{label}</p>
-        <p className={cn('text-sm text-brown', valueClassName)}>{value}</p>
+        <p className="text-xs text-apple-secondary">{label}</p>
+        <p className={cn('text-sm text-apple-primary', valueClassName)}>{value}</p>
       </div>
     </div>
   )
@@ -103,18 +103,18 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content
-          className="fixed inset-2 z-50 flex flex-col overflow-hidden rounded-2xl bg-cream shadow-2xl sm:inset-auto sm:start-[50%] sm:top-[50%] sm:h-[85vh] sm:w-full sm:max-w-3xl sm:translate-x-[50%] sm:-translate-y-[50%] rtl:sm:-translate-x-[50%]"
+          className="fixed inset-2 z-50 flex flex-col overflow-hidden rounded-apple-lg bg-surface-primary shadow-2xl sm:inset-auto sm:start-[50%] sm:top-[50%] sm:h-[85vh] sm:w-full sm:max-w-3xl sm:translate-x-[50%] sm:-translate-y-[50%] rtl:sm:-translate-x-[50%]"
           dir="rtl"
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-sand-dark px-5 py-3">
-            <Dialog.Title className="line-clamp-1 text-base font-bold text-brown">
+          <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-3">
+            <Dialog.Title className="line-clamp-1 text-base font-bold text-apple-primary">
               {doc.title}
             </Dialog.Title>
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                className="flex items-center gap-1.5 rounded-lg bg-sage px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-sage-light"
+                className="flex items-center gap-1.5 rounded-lg bg-ios-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
               >
                 <Download className="h-4 w-4" />
                 הורד
@@ -122,7 +122,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
               <Dialog.Close asChild>
                 <button
                   type="button"
-                  className="rounded-lg p-1.5 text-brown-light transition-colors hover:bg-sand-dark"
+                  className="rounded-lg p-1.5 text-apple-secondary transition-colors hover:bg-black/[0.04]"
                   aria-label="סגור"
                 >
                   <X className="h-5 w-5" />
@@ -139,8 +139,8 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
             </div>
 
             {/* Details sidebar */}
-            <div className="w-full shrink-0 border-t border-sand-dark bg-white/40 p-5 sm:w-72 sm:border-t-0 sm:border-r">
-              <h4 className="mb-4 text-sm font-semibold text-brown">פרטי מסמך</h4>
+            <div className="w-full shrink-0 border-t border-black/[0.06] bg-white/40 p-5 sm:w-72 sm:border-t-0 sm:border-r">
+              <h4 className="mb-4 text-sm font-semibold text-apple-primary">פרטי מסמך</h4>
               <div className="space-y-4">
                 <DetailRow icon={Tag} label="קטגוריה" value={categoryLabel} />
 
@@ -178,10 +178,10 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
                         )}
                       />
                     ) : (
-                      <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-brown-light" />
+                      <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-apple-secondary" />
                     )}
                     <div>
-                      <p className="text-xs text-brown-light">תוקף</p>
+                      <p className="text-xs text-apple-secondary">תוקף</p>
                       <p
                         className={cn(
                           'text-sm',
@@ -189,7 +189,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
                             ? 'font-semibold text-red-500'
                             : expiringSoon
                               ? 'font-medium text-amber-600'
-                              : 'text-brown',
+                              : 'text-apple-primary',
                         )}
                       >
                         {new Date(doc.expiry_date).toLocaleDateString('he-IL', {

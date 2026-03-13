@@ -84,8 +84,13 @@ export default function DashboardPage() {
       {/* Quick access grid */}
       <h2 className="mb-4 text-headline text-apple-primary">גישה מהירה</h2>
       <div className="grid grid-cols-3 gap-3">
-        {MODULE_CARDS.map(({ path, icon, label, gradient }) => (
-          <Link key={path} to={path}>
+        {MODULE_CARDS.map(({ path, icon, label, gradient }, index) => (
+          <Link
+            key={path}
+            to={path}
+            className="animate-list-item"
+            style={{ '--index': index } as React.CSSProperties}
+          >
             <GlassCard padding="md" className="flex flex-col items-center gap-2.5 card-hover">
               <GradientIcon icon={icon} gradient={gradient} size="lg" />
               <span className="text-subhead text-apple-primary">{label}</span>

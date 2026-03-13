@@ -30,8 +30,8 @@ const CATEGORY_CONFIG: Record<
   drive: {
     icon: Car,
     label: 'נסיעה',
-    color: 'text-ios-blue',
-    bgColor: 'bg-ios-blue/10',
+    color: 'text-ios-teal',
+    bgColor: 'bg-ios-teal/10',
   },
   scenic: {
     icon: Eye,
@@ -54,8 +54,8 @@ const CATEGORY_CONFIG: Record<
   city: {
     icon: Building2,
     label: 'עיר',
-    color: 'text-ios-blue',
-    bgColor: 'bg-ios-blue/10',
+    color: 'text-ios-teal',
+    bgColor: 'bg-ios-teal/10',
   },
   activity: {
     icon: Star,
@@ -67,7 +67,7 @@ const CATEGORY_CONFIG: Record<
     icon: Coffee,
     label: 'מנוחה',
     color: 'text-apple-secondary',
-    bgColor: 'bg-black/[0.04]',
+    bgColor: 'bg-black/[0.06]',
   },
 }
 
@@ -97,7 +97,7 @@ export function StopCard({ stop, index }: StopCardProps) {
         : null
 
   return (
-    <div className="glass rounded-apple-lg shadow-glass p-4">
+    <div className="glass rounded-xl border border-black/[0.06] p-4 shadow-sm">
       {/* Header: Icon + Title + Category badge */}
       <div className="flex items-start gap-3">
         {/* Category icon circle */}
@@ -178,7 +178,7 @@ export function StopCard({ stop, index }: StopCardProps) {
 
           {/* Notes */}
           {stop.notes && (
-            <div className="mt-3 flex gap-2 rounded-lg bg-black/[0.04] p-2">
+            <div className="mt-3 flex gap-2 rounded-lg bg-black/[0.03] p-2">
               <StickyNote className="mt-0.5 h-3 w-3 flex-shrink-0 text-ios-orange" />
               <p className="text-[11px] leading-relaxed text-apple-secondary">
                 {stop.notes}

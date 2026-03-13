@@ -52,8 +52,8 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group rounded-xl border border-sand-dark bg-white/70 p-3 shadow-sm transition-all hover:shadow-md cursor-pointer',
-        isDragging && 'opacity-50 shadow-lg ring-2 ring-sky/30',
+        'group rounded-xl border border-black/[0.06] glass p-3 shadow-sm transition-all hover:shadow-md cursor-pointer',
+        isDragging && 'opacity-50 shadow-lg ring-2 ring-ios-blue/30',
       )}
       onClick={() => onClick(task)}
     >
@@ -66,7 +66,7 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
           {priorityConfig.label}
         </div>
         <button
-          className="cursor-grab touch-none text-brown-light/40 opacity-0 transition-opacity group-hover:opacity-100"
+          className="cursor-grab touch-none text-apple-secondary/40 opacity-0 transition-opacity group-hover:opacity-100"
           {...attributes}
           {...listeners}
         >
@@ -77,7 +77,7 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
       {/* Title */}
       <p
         className={cn(
-          'text-sm font-semibold text-brown leading-snug',
+          'text-sm font-semibold text-apple-primary leading-snug',
           task.status === 'done' && 'line-through opacity-60',
         )}
       >
@@ -107,7 +107,7 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
             )
           })}
           {task.assigned_to.length > 3 && (
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-sand-dark text-[10px] font-bold text-brown-light">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-[10px] font-bold text-apple-secondary">
               +{task.assigned_to.length - 3}
             </div>
           )}
@@ -118,7 +118,7 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
           <span
             className={cn(
               'flex items-center gap-1 text-[11px]',
-              overdue ? 'font-semibold text-red-500' : 'text-brown-light',
+              overdue ? 'font-semibold text-red-500' : 'text-apple-secondary',
             )}
           >
             {overdue && <Clock className="h-3 w-3" />}

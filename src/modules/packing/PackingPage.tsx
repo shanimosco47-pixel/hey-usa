@@ -107,10 +107,10 @@ export default function PackingPage() {
     <div className="space-y-4 p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brown">אריזה</h1>
+        <h1 className="text-2xl font-bold text-apple-primary">אריזה</h1>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center gap-1.5 rounded-xl bg-sage px-4 py-2 text-sm font-medium text-white"
+          className="flex items-center gap-1.5 rounded-xl bg-ios-green px-4 py-2 text-sm font-medium text-white"
         >
           <Plus className="h-4 w-4" />
           פריט חדש
@@ -118,21 +118,21 @@ export default function PackingPage() {
       </div>
 
       {/* Progress */}
-      <div className="rounded-2xl bg-white/80 p-4 shadow-sm">
+      <div className="glass rounded-apple-lg p-4 shadow-sm">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-brown-light">
+          <span className="text-apple-secondary">
             <Package className="ml-1 inline h-4 w-4" />
             {packedItems} מתוך {totalItems} ארוזים
           </span>
-          <span className={cn('font-bold', packedPercent === 100 ? 'text-sage' : 'text-brown')}>
+          <span className={cn('font-bold', packedPercent === 100 ? 'text-ios-green' : 'text-apple-primary')}>
             {packedPercent.toFixed(0)}%
           </span>
         </div>
-        <div className="mt-2 h-3 overflow-hidden rounded-full bg-sand-dark">
+        <div className="mt-2 h-3 overflow-hidden rounded-full bg-black/[0.04]">
           <div
             className={cn(
               'h-full rounded-full transition-all',
-              packedPercent === 100 ? 'bg-sage' : 'bg-sky',
+              packedPercent === 100 ? 'bg-ios-green' : 'bg-ios-teal',
             )}
             style={{ width: `${packedPercent}%` }}
           />
@@ -141,14 +141,14 @@ export default function PackingPage() {
 
       {/* Family Filter */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
-        <Filter className="h-4 w-4 shrink-0 text-brown-light" />
+        <Filter className="h-4 w-4 shrink-0 text-apple-secondary" />
         <button
           onClick={() => setFilterMember('all')}
           className={cn(
             'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
             filterMember === 'all'
-              ? 'bg-brown text-white'
-              : 'bg-white/60 text-brown-light',
+              ? 'bg-apple-primary text-white'
+              : 'glass text-apple-secondary',
           )}
         >
           כולם
@@ -160,8 +160,8 @@ export default function PackingPage() {
             className={cn(
               'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
               filterMember === m.id
-                ? 'bg-brown text-white'
-                : 'bg-white/60 text-brown-light',
+                ? 'bg-apple-primary text-white'
+                : 'glass text-apple-secondary',
             )}
           >
             {m.avatar_emoji} {m.name}
@@ -171,20 +171,20 @@ export default function PackingPage() {
 
       {/* Add Form */}
       {showAddForm && (
-        <div className="rounded-2xl bg-white/90 p-4 shadow-sm space-y-3">
-          <h3 className="font-bold text-brown">פריט חדש</h3>
+        <div className="glass rounded-apple-lg p-4 shadow-sm space-y-3">
+          <h3 className="font-bold text-apple-primary">פריט חדש</h3>
           <input
             type="text"
             placeholder="שם הפריט"
             value={newItem.name}
             onChange={(e) => setNewItem((p) => ({ ...p, name: e.target.value }))}
-            className="w-full rounded-xl border border-sand-dark bg-sand/50 px-3 py-2 text-sm text-brown placeholder:text-brown-light/50"
+            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
           />
           <div className="grid grid-cols-2 gap-2">
             <select
               value={newItem.category}
               onChange={(e) => setNewItem((p) => ({ ...p, category: e.target.value }))}
-              className="rounded-xl border border-sand-dark bg-sand/50 px-3 py-2 text-sm text-brown"
+              className="rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
             >
               {Object.entries(PACKING_CATEGORIES).map(([key, { label }]) => (
                 <option key={key} value={key}>{label}</option>
@@ -193,7 +193,7 @@ export default function PackingPage() {
             <select
               value={newItem.assigned_to}
               onChange={(e) => setNewItem((p) => ({ ...p, assigned_to: e.target.value as FamilyMemberId }))}
-              className="rounded-xl border border-sand-dark bg-sand/50 px-3 py-2 text-sm text-brown"
+              className="rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
             >
               {FAMILY_MEMBERS.map((m) => (
                 <option key={m.id} value={m.id}>{m.avatar_emoji} {m.name}</option>
@@ -206,18 +206,18 @@ export default function PackingPage() {
             placeholder="כמות"
             value={newItem.quantity}
             onChange={(e) => setNewItem((p) => ({ ...p, quantity: Number(e.target.value) }))}
-            className="w-full rounded-xl border border-sand-dark bg-sand/50 px-3 py-2 text-sm text-brown"
+            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
           />
           <div className="flex gap-2">
             <button
               onClick={handleAddItem}
-              className="flex-1 rounded-xl bg-sage px-4 py-2 text-sm font-medium text-white"
+              className="flex-1 rounded-xl bg-ios-green px-4 py-2 text-sm font-medium text-white"
             >
               הוסף
             </button>
             <button
               onClick={() => setShowAddForm(false)}
-              className="rounded-xl bg-sand-dark px-4 py-2 text-sm font-medium text-brown-light"
+              className="rounded-xl bg-black/[0.04] px-4 py-2 text-sm font-medium text-apple-secondary"
             >
               ביטול
             </button>
@@ -235,41 +235,41 @@ export default function PackingPage() {
           const IconComp = CATEGORY_ICONS[catKey] || Package
 
           return (
-            <div key={catKey} className="rounded-2xl bg-white/80 shadow-sm overflow-hidden">
+            <div key={catKey} className="glass rounded-apple-lg shadow-sm overflow-hidden">
               <button
                 onClick={() => toggleCategory(catKey)}
                 className="flex w-full items-center gap-3 p-3"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sand-dark/50">
-                  <IconComp className="h-4 w-4 text-brown-light" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/[0.04]">
+                  <IconComp className="h-4 w-4 text-apple-secondary" />
                 </div>
-                <span className="flex-1 text-right text-sm font-bold text-brown">{label}</span>
-                <span className="text-xs text-brown-light">
+                <span className="flex-1 text-right text-sm font-bold text-apple-primary">{label}</span>
+                <span className="text-xs text-apple-secondary">
                   {catPacked}/{catItems.length}
                 </span>
                 {isExpanded ? (
-                  <ChevronUp className="h-4 w-4 text-brown-light" />
+                  <ChevronUp className="h-4 w-4 text-apple-secondary" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-brown-light" />
+                  <ChevronDown className="h-4 w-4 text-apple-secondary" />
                 )}
               </button>
 
               {isExpanded && (
-                <div className="border-t border-sand-dark/30 px-3 pb-2">
+                <div className="border-t border-black/[0.06] px-3 pb-2">
                   {catItems.map((item) => {
                     const member = getFamilyMember(item.assigned_to)
                     return (
                       <div
                         key={item.id}
-                        className="flex items-center gap-3 py-2 border-b border-sand-dark/10 last:border-0"
+                        className="flex items-center gap-3 py-2 border-b border-black/[0.04] last:border-0"
                       >
                         <button
                           onClick={() => togglePacked(item.id)}
                           className={cn(
                             'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 transition-colors',
                             item.is_packed
-                              ? 'border-sage bg-sage text-white'
-                              : 'border-brown-light/30 bg-transparent',
+                              ? 'border-ios-green bg-ios-green text-white'
+                              : 'border-apple-tertiary/30 bg-transparent',
                           )}
                         >
                           {item.is_packed && <Check className="h-3.5 w-3.5" />}
@@ -278,16 +278,16 @@ export default function PackingPage() {
                           <p
                             className={cn(
                               'text-sm',
-                              item.is_packed ? 'text-brown-light line-through' : 'text-brown',
+                              item.is_packed ? 'text-apple-secondary line-through' : 'text-apple-primary',
                             )}
                           >
                             {item.name}
                             {item.quantity > 1 && (
-                              <span className="mr-1 text-xs text-brown-light">×{item.quantity}</span>
+                              <span className="mr-1 text-xs text-apple-secondary">×{item.quantity}</span>
                             )}
                           </p>
                           {item.notes && (
-                            <p className="text-xs text-brown-light/70">{item.notes}</p>
+                            <p className="text-xs text-apple-tertiary">{item.notes}</p>
                           )}
                         </div>
                         <span className="text-xs" title={member.name}>
@@ -295,7 +295,7 @@ export default function PackingPage() {
                         </span>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          className="shrink-0 rounded-lg p-1 text-brown-light/30 hover:bg-terracotta/10 hover:text-terracotta"
+                          className="shrink-0 rounded-lg p-1 text-apple-tertiary/30 hover:bg-ios-red/10 hover:text-ios-red"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>

@@ -51,14 +51,14 @@ function KanbanColumn({
   return (
     <div
       className={cn(
-        'flex h-full min-w-[260px] flex-col rounded-xl border border-sand-dark bg-sand/40 transition-colors',
-        isOver && 'bg-sky/5 ring-2 ring-sky/30',
+        'flex h-full min-w-[260px] flex-col rounded-xl border border-black/[0.06] bg-black/[0.03] transition-colors',
+        isOver && 'bg-ios-blue/5 ring-2 ring-ios-blue/30',
       )}
     >
       {/* Column header */}
       <div className="flex items-center gap-2 px-3 py-3">
         <div className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
-        <span className="text-sm font-bold text-brown">{label}</span>
+        <span className="text-sm font-bold text-apple-primary">{label}</span>
         <span
           className="mr-auto rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white"
           style={{ backgroundColor: color }}
@@ -75,8 +75,8 @@ function KanbanColumn({
       >
         <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.length === 0 ? (
-            <div className="flex flex-1 items-center justify-center rounded-lg border-2 border-dashed border-sand-dark/60 py-8">
-              <span className="text-xs text-brown-light/50">גרור משימות לכאן</span>
+            <div className="flex flex-1 items-center justify-center rounded-lg border-2 border-dashed border-black/[0.06] py-8">
+              <span className="text-xs text-apple-secondary/50">גרור משימות לכאן</span>
             </div>
           ) : (
             tasks.map((task) => (
@@ -191,8 +191,8 @@ export function KanbanView({ tasksByStatus, onUpdateStatus, onTaskClick }: Kanba
 
       <DragOverlay>
         {activeTask ? (
-          <div className="w-[260px] rounded-xl border border-sky/30 bg-white p-3 shadow-lg">
-            <p className="text-sm font-semibold text-brown">{activeTask.title}</p>
+          <div className="w-[260px] rounded-xl border border-ios-blue/30 bg-white p-3 shadow-lg">
+            <p className="text-sm font-semibold text-apple-primary">{activeTask.title}</p>
           </div>
         ) : null}
       </DragOverlay>

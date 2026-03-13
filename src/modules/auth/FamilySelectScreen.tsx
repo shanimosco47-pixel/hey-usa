@@ -18,9 +18,13 @@ export function FamilySelectScreen() {
 
   return (
     <div
-      className="flex min-h-screen flex-col items-center justify-center bg-surface-primary px-4"
+      className="relative flex min-h-screen flex-col items-center justify-center bg-surface-primary px-4 overflow-hidden"
       dir="rtl"
     >
+      {/* Decorative gradient orbs */}
+      <div className="pointer-events-none absolute -top-32 -left-32 h-64 w-64 rounded-full bg-ios-green/[0.08] blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-ios-orange/[0.06] blur-3xl" />
+
       <div className="relative z-10 flex flex-col items-center gap-10 w-full max-w-md">
         <div className="text-center">
           <h1 className="text-title text-apple-primary mb-2">
@@ -47,8 +51,11 @@ export function FamilySelectScreen() {
                   )}
                 >
                   <div
-                    className="flex h-20 w-20 items-center justify-center rounded-full text-4xl"
-                    style={{ backgroundColor: `color-mix(in srgb, ${member.color} 12%, white)` }}
+                    className="flex h-20 w-20 items-center justify-center rounded-full text-4xl ring-2 ring-offset-2"
+                    style={{
+                      backgroundColor: `color-mix(in srgb, ${member.color} 12%, white)`,
+                      '--tw-ring-color': member.color,
+                    } as React.CSSProperties}
                   >
                     <span role="img" aria-label={member.name}>
                       {member.emoji}
