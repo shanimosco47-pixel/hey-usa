@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import {
   Camera,
   Heart,
@@ -88,7 +89,12 @@ export default function PhotosPage() {
 
   return (
     <div className="space-y-4 p-4">
-      <div className="flex items-center justify-between">
+      <motion.div
+        className="flex items-center justify-between"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      >
         <h1 className="text-2xl font-bold text-apple-primary"><Camera className="ml-2 inline h-6 w-6" />תמונות</h1>
         <div className="flex items-center gap-2">
           <button onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')} className="rounded-xl glass p-2 text-apple-secondary">
@@ -98,7 +104,7 @@ export default function PhotosPage() {
             <Heart className={cn('h-4 w-4', filterFavorites && 'fill-current')} />
           </button>
         </div>
-      </div>
+      </motion.div>
 
       <div className="flex gap-3">
         <div className="rounded-xl glass px-3 py-2 text-center shadow-sm">
@@ -127,14 +133,19 @@ export default function PhotosPage() {
           <p className="mt-4 text-apple-secondary">אין תמונות להצגה</p>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-3 gap-1.5">
+        <motion.div
+          className="grid grid-cols-3 gap-1.5"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+        >
           {filtered.map((photo) => (
             <button key={photo.id} onClick={() => setSelectedPhoto(photo)} className="group relative aspect-square overflow-hidden rounded-xl bg-black/[0.04]">
               <img src={photo.thumbnail_url || photo.url} alt={photo.caption || ''} className="h-full w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
               {photo.is_favorite && <Heart className="absolute top-1.5 left-1.5 h-4 w-4 fill-red-400 text-red-400 drop-shadow" />}
             </button>
           ))}
-        </div>
+        </motion.div>
       ) : (
         <div className="space-y-2">
           {filtered.map((photo) => {

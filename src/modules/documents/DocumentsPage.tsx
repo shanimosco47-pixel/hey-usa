@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import * as Tabs from '@radix-ui/react-tabs'
 import { FileText, Plus, Search, LayoutGrid, List, FolderOpen } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { Button } from '@/components/ui/button'
 import { DOCUMENT_CATEGORIES } from '@/lib/constants'
 import { useDocuments } from './hooks/useDocuments'
 import { DocumentCard } from './components/DocumentCard'
@@ -48,7 +50,12 @@ export default function DocumentsPage() {
   return (
     <div className="min-h-full px-4 pb-24 pt-4 sm:px-6" dir="rtl">
       {/* Header */}
-      <div className="mb-5 flex items-center justify-between">
+      <motion.div
+        className="mb-5 flex items-center justify-between"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      >
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ios-blue/10">
             <FileText className="h-5 w-5 text-ios-blue" />
@@ -60,15 +67,11 @@ export default function DocumentsPage() {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => setUploadOpen(true)}
-          className="flex items-center gap-1.5 rounded-xl bg-ios-blue px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-ios-blue/90"
-        >
+        <Button onClick={() => setUploadOpen(true)}>
           <Plus className="h-4 w-4" />
           העלה מסמך
-        </button>
-      </div>
+        </Button>
+      </motion.div>
 
       {/* Search + view toggle */}
       <div className="mb-4 flex items-center gap-3">
@@ -144,29 +147,38 @@ export default function DocumentsPage() {
           <p className="mt-4 text-sm font-medium text-apple-secondary">
             {searchQuery ? 'לא נמצאו מסמכים התואמים לחיפוש' : 'אין מסמכים בקטגוריה זו'}
           </p>
-          <button
-            type="button"
+          <Button
+            variant="link"
             onClick={() => {
               setSearchQuery('')
               setActiveCategory('all')
             }}
-            className="mt-2 text-sm text-ios-blue hover:underline"
           >
             הצג את כל המסמכים
-          </button>
+          </Button>
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <motion.div
+          className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+        >
           {documents.map((doc) => (
             <DocumentCard key={doc.id} document={doc} onClick={handleCardClick} />
           ))}
-        </div>
+        </motion.div>
       ) : (
-        <div className="flex flex-col gap-2">
+        <motion.div
+          className="flex flex-col gap-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+        >
           {documents.map((doc) => (
             <ListRow key={doc.id} document={doc} onClick={handleCardClick} />
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Dialogs */}

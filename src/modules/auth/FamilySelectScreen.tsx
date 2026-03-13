@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/contexts/AuthContext'
 import { FAMILY_MEMBERS } from '@/constants'
@@ -26,28 +27,52 @@ export function FamilySelectScreen() {
       <div className="pointer-events-none absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-ios-orange/[0.06] blur-3xl" />
 
       <div className="relative z-10 flex flex-col items-center gap-10 w-full max-w-md">
-        <div className="text-center">
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+          className="text-center"
+        >
           <h1 className="text-title text-apple-primary mb-2">
             מי את/ה?
           </h1>
           <p className="text-subhead text-apple-secondary">בחר/י את עצמך</p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.07, delayChildren: 0.15 } },
+          }}
+          className="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full"
+        >
           {memberIds.map((id) => {
             const member = FAMILY_MEMBERS[id]
             return (
-              <button
+              <motion.button
                 key={id}
+                variants={{
+                  hidden: { opacity: 0, y: 20, scale: 0.9 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    transition: { type: 'spring', stiffness: 300, damping: 20 },
+                  },
+                }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => handleSelect(id)}
                 className="text-center"
               >
                 <GlassCard
                   padding="lg"
                   className={cn(
-                    'flex flex-col items-center gap-3 card-hover',
-                    'hover:scale-[1.03] active:scale-[0.98]',
-                    'transition-all duration-200',
+                    'flex flex-col items-center gap-3',
+                    'transition-shadow duration-200',
+                    'hover:shadow-glass-hover',
                   )}
                 >
                   <div
@@ -65,10 +90,10 @@ export function FamilySelectScreen() {
                     {member.name}
                   </span>
                 </GlassCard>
-              </button>
+              </motion.button>
             )
           })}
-        </div>
+        </motion.div>
       </div>
     </div>
   )

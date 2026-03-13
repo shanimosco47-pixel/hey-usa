@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import {
   BookOpen,
   Plus,
@@ -10,6 +11,7 @@ import {
   ArrowRight,
 } from 'lucide-react'
 import { getFamilyMember } from '@/lib/constants'
+import { Button } from '@/components/ui/button'
 import { SAMPLE_BLOG_POSTS } from './data/samplePosts'
 import type { BlogPost, FamilyMemberId } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
@@ -103,10 +105,10 @@ export default function BlogPage() {
             <ArrowRight className="h-4 w-4" />
             חזרה
           </button>
-          <button onClick={savePost} className="flex items-center gap-1.5 rounded-xl bg-ios-green px-4 py-2 text-sm font-medium text-white">
+          <Button onClick={savePost} variant="success">
             <Save className="h-4 w-4" />
             שמור
-          </button>
+          </Button>
         </div>
         <input
           type="text"
@@ -165,12 +167,12 @@ export default function BlogPage() {
           />
         </div>
         <div className="flex gap-2">
-          <button onClick={() => startEditPost(selectedPost)} className="flex items-center gap-1.5 rounded-xl bg-ios-blue/10 px-4 py-2 text-sm font-medium text-ios-blue">
+          <Button onClick={() => startEditPost(selectedPost)} variant="outline">
             <Edit3 className="h-4 w-4" />ערוך
-          </button>
-          <button onClick={() => deletePost(selectedPost.id)} className="flex items-center gap-1.5 rounded-xl bg-ios-red/10 px-4 py-2 text-sm font-medium text-ios-red">
+          </Button>
+          <Button onClick={() => deletePost(selectedPost.id)} variant="destructive">
             <Trash2 className="h-4 w-4" />מחק
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -179,15 +181,20 @@ export default function BlogPage() {
   // Post list
   return (
     <div className="space-y-4 p-4">
-      <div className="flex items-center justify-between">
+      <motion.div
+        className="flex items-center justify-between"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      >
         <h1 className="text-2xl font-bold text-apple-primary">
           <BookOpen className="ml-2 inline h-6 w-6" />
           יומן מסע
         </h1>
-        <button onClick={startNewPost} className="flex items-center gap-1.5 rounded-xl bg-ios-green px-4 py-2 text-sm font-medium text-white">
+        <Button onClick={startNewPost} variant="success">
           <Plus className="h-4 w-4" />פוסט חדש
-        </button>
-      </div>
+        </Button>
+      </motion.div>
 
       {posts.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
@@ -196,7 +203,12 @@ export default function BlogPage() {
           <p className="mt-1 text-sm text-apple-tertiary">התחילו לכתוב על הטיול שלכם!</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <motion.div
+          className="space-y-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+        >
           {posts.map((post) => {
             const author = getFamilyMember(post.author_id)
             const excerpt = post.content.replace(/<[^>]*>/g, '').slice(0, 120)
@@ -225,7 +237,7 @@ export default function BlogPage() {
               </button>
             )
           })}
-        </div>
+        </motion.div>
       )}
     </div>
   )

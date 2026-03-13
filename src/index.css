@@ -181,4 +181,29 @@ ol {
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
   }
+
+  /* Animate-in utility for tooltips & popovers */
+  .animate-in {
+    animation: animate-in 150ms var(--ease-default);
+  }
+
+  @keyframes animate-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Focus ring utility */
+  .focus-ring {
+    outline: none;
+  }
+  .focus-ring:focus-visible {
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.35);
+    border-radius: 12px;
+  }
 }

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import {
   Music,
   Plus,
@@ -85,10 +86,15 @@ export default function EntertainmentPage() {
 
   return (
     <div className="space-y-4 p-4">
-      <h1 className="text-2xl font-bold text-apple-primary">
+      <motion.h1
+        className="text-2xl font-bold text-apple-primary"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+      >
         <Music className="ml-2 inline h-6 w-6" />
         בידור
-      </h1>
+      </motion.h1>
 
       {/* Tabs */}
       <div className="flex glass rounded-apple-lg p-1">
