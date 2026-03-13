@@ -1,5 +1,6 @@
 import { DualClock } from '@/components/shared/DualClock'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
+import { ShareButton } from '@/components/shared/ShareButton'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/cn'
 
@@ -26,8 +27,9 @@ export function TopBar() {
         <DualClock />
       </div>
 
-      {/* Left side (RTL): Avatar + offline indicator */}
+      {/* Left side (RTL): Share + Avatar */}
       <div className="flex items-center gap-2">
+        <ShareButton />
         {currentMember ? (
           <FamilyAvatar memberId={currentMember} size="sm" />
         ) : (
