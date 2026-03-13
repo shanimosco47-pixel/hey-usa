@@ -46,15 +46,8 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 }
 
 const PIE_COLORS = [
-  '#c44d34',
-  '#4a90d9',
-  '#2d7d46',
-  '#f5c542',
-  '#6c5ce7',
-  '#e8735e',
-  '#00b894',
-  '#636e72',
-  '#0984e3',
+  '#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6',
+  '#FF2D55', '#5AC8FA', '#AF52DE', '#FFCC00',
 ]
 
 export default function BudgetPage() {
@@ -136,10 +129,10 @@ export default function BudgetPage() {
     <div className="space-y-4 p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-brown">תקציב</h1>
+        <h1 className="text-2xl font-bold text-apple-primary">תקציב</h1>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="flex items-center gap-1.5 rounded-xl bg-terracotta px-4 py-2 text-sm font-medium text-white"
+          className="flex items-center gap-1.5 rounded-xl bg-ios-blue px-4 py-2 text-sm font-medium text-white"
         >
           <Plus className="h-4 w-4" />
           הוצאה חדשה
@@ -148,39 +141,39 @@ export default function BudgetPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl bg-white/80 p-4 text-center shadow-sm">
-          <p className="text-xs text-brown-light">תקציב כולל</p>
-          <p className="mt-1 text-lg font-bold text-brown">
+        <div className="glass rounded-apple-lg p-4 text-center shadow-sm">
+          <p className="text-xs text-apple-secondary">תקציב כולל</p>
+          <p className="mt-1 text-lg font-bold text-apple-primary">
             {settings.currency}{settings.total_budget.toLocaleString()}
           </p>
         </div>
-        <div className="rounded-2xl bg-white/80 p-4 text-center shadow-sm">
-          <p className="text-xs text-brown-light">הוצאות</p>
-          <p className="mt-1 text-lg font-bold text-terracotta">
+        <div className="glass rounded-apple-lg p-4 text-center shadow-sm">
+          <p className="text-xs text-apple-secondary">הוצאות</p>
+          <p className="mt-1 text-lg font-bold text-ios-red">
             {settings.currency}{totalSpent.toLocaleString()}
           </p>
         </div>
-        <div className="rounded-2xl bg-white/80 p-4 text-center shadow-sm">
-          <p className="text-xs text-brown-light">נותר</p>
-          <p className={cn('mt-1 text-lg font-bold', remaining >= 0 ? 'text-sage' : 'text-terracotta')}>
+        <div className="glass rounded-apple-lg p-4 text-center shadow-sm">
+          <p className="text-xs text-apple-secondary">נותר</p>
+          <p className={cn('mt-1 text-lg font-bold', remaining >= 0 ? 'text-ios-green' : 'text-ios-red')}>
             {settings.currency}{remaining.toLocaleString()}
           </p>
         </div>
       </div>
 
       {/* Progress Bar */}
-      <div className="rounded-2xl bg-white/80 p-4 shadow-sm">
+      <div className="glass rounded-apple-lg p-4 shadow-sm">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-brown-light">ניצול תקציב</span>
-          <span className={cn('font-bold', spentPercent > 80 ? 'text-terracotta' : 'text-sage')}>
+          <span className="text-apple-secondary">ניצול תקציב</span>
+          <span className={cn('font-bold', spentPercent > 80 ? 'text-ios-red' : 'text-ios-green')}>
             {spentPercent.toFixed(0)}%
           </span>
         </div>
-        <div className="mt-2 h-3 overflow-hidden rounded-full bg-sand-dark">
+        <div className="mt-2 h-3 overflow-hidden rounded-full bg-black/[0.04]">
           <div
             className={cn(
               'h-full rounded-full transition-all',
-              spentPercent > 80 ? 'bg-terracotta' : spentPercent > 50 ? 'bg-gold' : 'bg-sage',
+              spentPercent > 80 ? 'bg-ios-red' : spentPercent > 50 ? 'bg-ios-orange' : 'bg-ios-green',
             )}
             style={{ width: `${Math.min(spentPercent, 100)}%` }}
           />
@@ -189,26 +182,26 @@ export default function BudgetPage() {
 
       {/* Add Expense Form */}
       {showAddForm && (
-        <div className="rounded-2xl bg-white/90 p-4 shadow-sm space-y-3">
-          <h3 className="font-bold text-brown">הוצאה חדשה</h3>
+        <div className="glass rounded-apple-lg p-4 shadow-sm space-y-3">
+          <h3 className="font-bold text-apple-primary">הוצאה חדשה</h3>
           <input
             type="text"
             placeholder="שם ההוצאה"
             value={newExpense.title}
             onChange={(e) => setNewExpense((p) => ({ ...p, title: e.target.value }))}
-            className="w-full rounded-xl border border-sand-dark bg-sand/50 px-3 py-2 text-sm text-brown placeholder:text-brown-light/50"
+            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
           />
           <input
             type="number"
             placeholder="סכום"
             value={newExpense.amount}
             onChange={(e) => setNewExpense((p) => ({ ...p, amount: e.target.value }))}
-            className="w-full rounded-xl border border-sand-dark bg-sand/50 px-3 py-2 text-sm text-brown placeholder:text-brown-light/50"
+            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
           />
           <select
             value={newExpense.category}
             onChange={(e) => setNewExpense((p) => ({ ...p, category: e.target.value }))}
-            className="w-full rounded-xl border border-sand-dark bg-sand/50 px-3 py-2 text-sm text-brown"
+            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
           >
             {Object.entries(EXPENSE_CATEGORIES).map(([key, { label }]) => (
               <option key={key} value={key}>{label}</option>
@@ -217,7 +210,7 @@ export default function BudgetPage() {
           <select
             value={newExpense.paid_by}
             onChange={(e) => setNewExpense((p) => ({ ...p, paid_by: e.target.value as 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3' }))}
-            className="w-full rounded-xl border border-sand-dark bg-sand/50 px-3 py-2 text-sm text-brown"
+            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
           >
             {FAMILY_MEMBERS.map((m) => (
               <option key={m.id} value={m.id}>{m.avatar_emoji} {m.name}</option>
@@ -226,13 +219,13 @@ export default function BudgetPage() {
           <div className="flex gap-2">
             <button
               onClick={handleAddExpense}
-              className="flex-1 rounded-xl bg-sage px-4 py-2 text-sm font-medium text-white"
+              className="flex-1 rounded-xl bg-ios-green px-4 py-2 text-sm font-medium text-white"
             >
               הוסף
             </button>
             <button
               onClick={() => setShowAddForm(false)}
-              className="rounded-xl bg-sand-dark px-4 py-2 text-sm font-medium text-brown-light"
+              className="rounded-xl bg-black/[0.04] px-4 py-2 text-sm font-medium text-apple-secondary"
             >
               ביטול
             </button>
@@ -243,8 +236,8 @@ export default function BudgetPage() {
       {/* Charts */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Pie Chart */}
-        <div className="rounded-2xl bg-white/80 p-4 shadow-sm">
-          <h3 className="mb-2 text-sm font-bold text-brown">חלוקה לפי קטגוריה</h3>
+        <div className="glass rounded-apple-lg p-4 shadow-sm">
+          <h3 className="mb-2 text-sm font-bold text-apple-primary">חלוקה לפי קטגוריה</h3>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
@@ -267,7 +260,7 @@ export default function BudgetPage() {
           </ResponsiveContainer>
           <div className="mt-2 flex flex-wrap gap-2 justify-center">
             {pieData.map((entry, i) => (
-              <div key={entry.name} className="flex items-center gap-1 text-xs text-brown-light">
+              <div key={entry.name} className="flex items-center gap-1 text-xs text-apple-secondary">
                 <div className="h-2.5 w-2.5 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
                 {entry.name}
               </div>
@@ -276,8 +269,8 @@ export default function BudgetPage() {
         </div>
 
         {/* Bar Chart */}
-        <div className="rounded-2xl bg-white/80 p-4 shadow-sm">
-          <h3 className="mb-2 text-sm font-bold text-brown">תקציב מול הוצאות</h3>
+        <div className="glass rounded-apple-lg p-4 shadow-sm">
+          <h3 className="mb-2 text-sm font-bold text-apple-primary">תקציב מול הוצאות</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={barData} layout="vertical">
               <XAxis type="number" hide />
@@ -285,17 +278,17 @@ export default function BudgetPage() {
               <Tooltip
                 formatter={(value) => `${settings.currency}${Number(value).toLocaleString()}`}
               />
-              <Bar dataKey="budget" fill="#e8d5b8" radius={[0, 4, 4, 0]} barSize={12} />
-              <Bar dataKey="spent" fill="#c44d34" radius={[0, 4, 4, 0]} barSize={12} />
+              <Bar dataKey="budget" fill="#d1d1d6" radius={[0, 4, 4, 0]} barSize={12} />
+              <Bar dataKey="spent" fill="#007AFF" radius={[0, 4, 4, 0]} barSize={12} />
             </BarChart>
           </ResponsiveContainer>
-          <div className="mt-2 flex justify-center gap-4 text-xs text-brown-light">
+          <div className="mt-2 flex justify-center gap-4 text-xs text-apple-secondary">
             <div className="flex items-center gap-1">
-              <div className="h-2.5 w-2.5 rounded-full bg-[#e8d5b8]" />
+              <div className="h-2.5 w-2.5 rounded-full bg-[#d1d1d6]" />
               תקציב
             </div>
             <div className="flex items-center gap-1">
-              <div className="h-2.5 w-2.5 rounded-full bg-terracotta" />
+              <div className="h-2.5 w-2.5 rounded-full bg-ios-blue" />
               הוצאות
             </div>
           </div>
@@ -304,35 +297,35 @@ export default function BudgetPage() {
 
       {/* Expense List */}
       <div className="space-y-2">
-        <h3 className="text-sm font-bold text-brown">הוצאות אחרונות</h3>
+        <h3 className="text-sm font-bold text-apple-primary">הוצאות אחרונות</h3>
         {expenses.map((expense) => {
           const IconComp = CATEGORY_ICONS[expense.category] || DollarSign
           const member = getFamilyMember(expense.paid_by)
           return (
             <div
               key={expense.id}
-              className="flex items-center gap-3 rounded-2xl bg-white/80 p-3 shadow-sm"
+              className="flex items-center gap-3 glass rounded-apple-lg p-3 shadow-sm"
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sand-dark/50">
-                <IconComp className="h-5 w-5 text-brown-light" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/[0.04]">
+                <IconComp className="h-5 w-5 text-apple-secondary" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-brown truncate">{expense.title}</p>
-                <p className="text-xs text-brown-light">
+                <p className="text-sm font-medium text-apple-primary truncate">{expense.title}</p>
+                <p className="text-xs text-apple-secondary">
                   {member.avatar_emoji} {member.name} · {expense.date}
                 </p>
               </div>
               <div className="text-left shrink-0">
-                <p className="text-sm font-bold text-terracotta">
+                <p className="text-sm font-bold text-ios-red">
                   {expense.currency}{expense.amount.toLocaleString()}
                 </p>
-                <p className="text-xs text-brown-light">
+                <p className="text-xs text-apple-secondary">
                   {EXPENSE_CATEGORIES[expense.category]?.label}
                 </p>
               </div>
               <button
                 onClick={() => handleDelete(expense.id)}
-                className="shrink-0 rounded-lg p-1.5 text-brown-light/50 hover:bg-terracotta/10 hover:text-terracotta"
+                className="shrink-0 rounded-lg p-1.5 text-apple-tertiary hover:bg-ios-red/10 hover:text-ios-red"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

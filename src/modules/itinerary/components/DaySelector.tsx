@@ -58,7 +58,7 @@ export function DaySelector({ days, activeDay, onDayChange }: DaySelectorProps) 
                 'flex min-w-[72px] flex-shrink-0 flex-col items-center gap-0.5 rounded-xl px-3 py-2 transition-all',
                 isActive
                   ? 'bg-ios-blue text-white shadow-md scale-105'
-                  : 'bg-white/60 text-apple-primary border border-black/[0.06] hover:bg-white/80'
+                  : 'glass text-apple-primary border border-black/[0.06] hover:bg-white/80'
               )}
             >
               <span className="text-[10px] font-medium opacity-75">

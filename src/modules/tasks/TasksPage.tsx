@@ -292,7 +292,7 @@ export default function TasksPage() {
                     'rounded-full px-2.5 py-1 text-[11px] font-medium transition-all border',
                     active
                       ? `${cfg?.bg} ${cfg?.color} border-transparent`
-                      : 'border-sand-dark/60 bg-transparent text-brown-light/70 hover:bg-sand-dark/30',
+                      : 'border-black/[0.06] bg-transparent text-apple-tertiary hover:bg-black/[0.03]',
                   )}
                 >
                   {opt.label}
@@ -312,8 +312,8 @@ export default function TasksPage() {
                   className={cn(
                     'rounded-full px-2.5 py-1 text-[11px] font-medium transition-all border',
                     active
-                      ? 'border-sky bg-sky/10 text-sky'
-                      : 'border-sand-dark/60 bg-transparent text-brown-light/70 hover:bg-sand-dark/30',
+                      ? 'border-ios-blue bg-ios-blue/10 text-ios-blue'
+                      : 'border-black/[0.06] bg-transparent text-apple-tertiary hover:bg-black/[0.03]',
                   )}
                 >
                   {opt.label}

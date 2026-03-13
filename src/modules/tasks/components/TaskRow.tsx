@@ -56,7 +56,7 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
   return (
     <div
       className={cn(
-        'group flex items-center gap-3 px-4 py-2.5 border-b border-sand-dark/50 cursor-pointer transition-all hover:bg-white/40',
+        'group flex items-center gap-3 px-4 py-2.5 border-b border-black/[0.04] cursor-pointer transition-all hover:bg-white/40',
         isDone && 'opacity-60',
       )}
       onClick={() => onClick(task)}
@@ -68,7 +68,7 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
           'flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-all',
           isDone
             ? 'border-status-done bg-status-done text-white'
-            : 'border-brown-light/40 hover:border-status-done',
+            : 'border-apple-tertiary hover:border-status-done',
         )}
       >
         {isDone && <Check className="h-3 w-3" />}
@@ -77,8 +77,8 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
       {/* Title */}
       <span
         className={cn(
-          'flex-1 text-sm font-medium text-brown truncate',
-          isDone && 'line-through text-brown-light',
+          'flex-1 text-sm font-medium text-apple-primary truncate',
+          isDone && 'line-through text-apple-secondary',
         )}
       >
         {task.title}
@@ -123,7 +123,7 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
           )
         })}
         {task.assigned_to.length > 3 && (
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-sand-dark text-[10px] font-bold text-brown-light">
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-[10px] font-bold text-apple-secondary">
             +{task.assigned_to.length - 3}
           </div>
         )}
@@ -135,14 +135,14 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
           <span
             className={cn(
               'flex items-center gap-1 text-xs',
-              overdue ? 'font-semibold text-red-500' : 'text-brown-light',
+              overdue ? 'font-semibold text-red-500' : 'text-apple-secondary',
             )}
           >
             {overdue && <Clock className="h-3 w-3" />}
             {formatDate(task.due_date)}
           </span>
         ) : (
-          <span className="text-xs text-brown-light/50">-</span>
+          <span className="text-xs text-apple-tertiary">-</span>
         )}
       </div>
     </div>

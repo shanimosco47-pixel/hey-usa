@@ -24,50 +24,50 @@ const CATEGORY_CONFIG: Record<
   hike: {
     icon: Mountain,
     label: 'טיול',
-    color: 'text-sage',
-    bgColor: 'bg-sage/10',
+    color: 'text-ios-green',
+    bgColor: 'bg-ios-green/10',
   },
   drive: {
     icon: Car,
     label: 'נסיעה',
-    color: 'text-sky',
-    bgColor: 'bg-sky/10',
+    color: 'text-ios-blue',
+    bgColor: 'bg-ios-blue/10',
   },
   scenic: {
     icon: Eye,
     label: 'תצפית',
-    color: 'text-gold-dark',
-    bgColor: 'bg-gold/10',
+    color: 'text-ios-orange',
+    bgColor: 'bg-ios-orange/10',
   },
   food: {
     icon: Utensils,
     label: 'אוכל',
-    color: 'text-terracotta',
-    bgColor: 'bg-terracotta/10',
+    color: 'text-ios-red',
+    bgColor: 'bg-ios-red/10',
   },
   camp: {
     icon: Tent,
     label: 'לינה',
-    color: 'text-sage',
-    bgColor: 'bg-sage/10',
+    color: 'text-ios-green',
+    bgColor: 'bg-ios-green/10',
   },
   city: {
     icon: Building2,
     label: 'עיר',
-    color: 'text-sky',
-    bgColor: 'bg-sky/10',
+    color: 'text-ios-blue',
+    bgColor: 'bg-ios-blue/10',
   },
   activity: {
     icon: Star,
     label: 'פעילות',
-    color: 'text-gold-dark',
-    bgColor: 'bg-gold/10',
+    color: 'text-ios-orange',
+    bgColor: 'bg-ios-orange/10',
   },
   rest: {
     icon: Coffee,
     label: 'מנוחה',
-    color: 'text-brown-light',
-    bgColor: 'bg-brown/10',
+    color: 'text-apple-secondary',
+    bgColor: 'bg-black/[0.04]',
   },
 }
 
@@ -97,7 +97,7 @@ export function StopCard({ stop, index }: StopCardProps) {
         : null
 
   return (
-    <div className="rounded-xl border border-sand-dark bg-white/60 p-4 shadow-sm">
+    <div className="glass rounded-apple-lg shadow-glass p-4">
       {/* Header: Icon + Title + Category badge */}
       <div className="flex items-start gap-3">
         {/* Category icon circle */}
@@ -114,11 +114,11 @@ export function StopCard({ stop, index }: StopCardProps) {
           {/* Title row */}
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-bold text-brown">{stop.title}</h3>
+              <h3 className="text-sm font-bold text-apple-primary">{stop.title}</h3>
               {stop.location && (
                 <div className="mt-0.5 flex items-center gap-1">
-                  <MapPin className="h-3 w-3 flex-shrink-0 text-brown-light" />
-                  <span className="truncate text-xs text-brown-light" dir="ltr">
+                  <MapPin className="h-3 w-3 flex-shrink-0 text-apple-secondary" />
+                  <span className="truncate text-xs text-apple-secondary" dir="ltr">
                     {stop.location}
                   </span>
                 </div>
@@ -126,7 +126,7 @@ export function StopCard({ stop, index }: StopCardProps) {
             </div>
 
             {/* Stop number badge */}
-            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-sand text-[10px] font-bold text-brown-light">
+            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[10px] font-bold text-apple-secondary">
               {index + 1}
             </span>
           </div>
@@ -134,8 +134,8 @@ export function StopCard({ stop, index }: StopCardProps) {
           {/* Time */}
           {timeRange && (
             <div className="mt-2 flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5 text-brown-light" />
-              <span className="text-xs font-medium text-brown-light" dir="ltr">
+              <Clock className="h-3.5 w-3.5 text-apple-secondary" />
+              <span className="text-xs font-medium text-apple-secondary" dir="ltr">
                 {timeRange}
               </span>
             </div>
@@ -143,7 +143,7 @@ export function StopCard({ stop, index }: StopCardProps) {
 
           {/* Description */}
           {stop.description && (
-            <p className="mt-2 text-xs leading-relaxed text-brown-light">
+            <p className="mt-2 text-xs leading-relaxed text-apple-secondary">
               {stop.description}
             </p>
           )}
@@ -151,14 +151,14 @@ export function StopCard({ stop, index }: StopCardProps) {
           {/* Meta row: cost, booking */}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {stop.cost_estimate != null && stop.cost_estimate > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-lg bg-gold/10 px-2 py-0.5 text-[11px] font-medium text-gold-dark">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-ios-orange/10 px-2 py-0.5 text-[11px] font-medium text-ios-orange">
                 <DollarSign className="h-3 w-3" />
                 ~${stop.cost_estimate}
               </span>
             )}
 
             {stop.booking_confirmation && (
-              <span className="inline-flex items-center gap-1 rounded-lg bg-sage/10 px-2 py-0.5 text-[11px] font-medium text-sage">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-ios-green/10 px-2 py-0.5 text-[11px] font-medium text-ios-green">
                 <ExternalLink className="h-3 w-3" />
                 {stop.booking_confirmation}
               </span>
@@ -178,9 +178,9 @@ export function StopCard({ stop, index }: StopCardProps) {
 
           {/* Notes */}
           {stop.notes && (
-            <div className="mt-3 flex gap-2 rounded-lg bg-sand/60 p-2">
-              <StickyNote className="mt-0.5 h-3 w-3 flex-shrink-0 text-gold-dark" />
-              <p className="text-[11px] leading-relaxed text-brown-light">
+            <div className="mt-3 flex gap-2 rounded-lg bg-black/[0.04] p-2">
+              <StickyNote className="mt-0.5 h-3 w-3 flex-shrink-0 text-ios-orange" />
+              <p className="text-[11px] leading-relaxed text-apple-secondary">
                 {stop.notes}
               </p>
             </div>
@@ -190,7 +190,7 @@ export function StopCard({ stop, index }: StopCardProps) {
           {stop.lat && stop.lng && (
             <button
               onClick={handleNavigate}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-terracotta px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-terracotta-light active:scale-95"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-ios-blue px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-ios-blue/80 active:scale-95"
             >
               <Navigation className="h-3.5 w-3.5" />
               <span>נווט</span>

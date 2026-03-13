@@ -42,13 +42,13 @@ function FileIcon({ fileType }: { fileType?: string }) {
   if (fileType?.includes('image')) {
     return (
       <div className="flex h-full w-full items-center justify-center rounded-t-xl bg-sky-50">
-        <Image className="h-10 w-10 text-sky/70" />
+        <Image className="h-10 w-10 text-ios-teal/70" />
       </div>
     )
   }
   return (
-    <div className="flex h-full w-full items-center justify-center rounded-t-xl bg-sand">
-      <File className="h-10 w-10 text-brown-light" />
+    <div className="flex h-full w-full items-center justify-center rounded-t-xl bg-black/[0.04]">
+      <File className="h-10 w-10 text-apple-secondary" />
     </div>
   )
 }
@@ -59,10 +59,10 @@ const categoryColors: Record<string, string> = {
   insurance: 'bg-sage/15 text-sage',
   flights: 'bg-sky/15 text-sky',
   accommodation: 'bg-gold/15 text-gold-dark',
-  car_rental: 'bg-terracotta/15 text-terracotta',
+  car_rental: 'bg-ios-blue/15 text-ios-blue',
   attractions: 'bg-sage/15 text-sage',
   medical: 'bg-red-100 text-red-600',
-  other: 'bg-brown/10 text-brown-light',
+  other: 'bg-black/[0.04] text-apple-secondary',
 }
 
 export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
@@ -79,9 +79,9 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
       onClick={() => onClick(doc)}
       className={cn(
         'group flex w-full flex-col overflow-hidden rounded-xl border text-right',
-        'bg-white/60 shadow-sm transition-all hover:shadow-md hover:bg-white/80',
+        'glass shadow-sm transition-all hover:shadow-md hover:bg-white/80',
         'focus:outline-none focus:ring-2 focus:ring-sky/40',
-        expired ? 'border-red-300' : 'border-sand-dark',
+        expired ? 'border-red-300' : 'border-black/[0.06]',
       )}
     >
       {/* Thumbnail / Icon area */}
@@ -104,7 +104,7 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
 
       {/* Content */}
       <div className="flex flex-1 flex-col gap-2 p-3">
-        <h3 className="line-clamp-2 text-sm font-semibold text-brown leading-tight">
+        <h3 className="line-clamp-2 text-sm font-semibold text-apple-primary leading-tight">
           {doc.title}
         </h3>
 
@@ -118,7 +118,7 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
             {categoryLabel}
           </span>
           {doc.file_size && (
-            <span className="text-[11px] text-brown-light">
+            <span className="text-[11px] text-apple-secondary">
               {formatFileSize(doc.file_size)}
             </span>
           )}
@@ -129,10 +129,10 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
           {doc.family_member_id ? (
             <div className="flex items-center gap-1.5">
               <FamilyAvatar memberId={doc.family_member_id as FamilyMemberId} size="sm" />
-              <span className="text-xs text-brown-light">{memberName}</span>
+              <span className="text-xs text-apple-secondary">{memberName}</span>
             </div>
           ) : (
-            <span className="text-xs text-brown-light/50">משפחתי</span>
+            <span className="text-xs text-apple-secondary/50">משפחתי</span>
           )}
 
           {doc.expiry_date && (
@@ -143,7 +143,7 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
                   ? 'font-semibold text-red-500'
                   : expiringSoon
                     ? 'font-medium text-amber-600'
-                    : 'text-brown-light',
+                    : 'text-apple-secondary',
               )}
             >
               {new Date(doc.expiry_date).toLocaleDateString('he-IL')}

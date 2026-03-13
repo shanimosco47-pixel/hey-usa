@@ -122,14 +122,14 @@ export default function PhotosPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl bg-white/80 p-12 text-center shadow-sm">
-          <Camera className="h-12 w-12 text-brown-light/30" />
-          <p className="mt-4 text-brown-light">אין תמונות להצגה</p>
+        <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
+          <Camera className="h-12 w-12 text-apple-secondary/30" />
+          <p className="mt-4 text-apple-secondary">אין תמונות להצגה</p>
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-3 gap-1.5">
           {filtered.map((photo) => (
-            <button key={photo.id} onClick={() => setSelectedPhoto(photo)} className="group relative aspect-square overflow-hidden rounded-xl bg-sand-dark">
+            <button key={photo.id} onClick={() => setSelectedPhoto(photo)} className="group relative aspect-square overflow-hidden rounded-xl bg-black/[0.04]">
               <img src={photo.thumbnail_url || photo.url} alt={photo.caption || ''} className="h-full w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
               {photo.is_favorite && <Heart className="absolute top-1.5 left-1.5 h-4 w-4 fill-red-400 text-red-400 drop-shadow" />}
             </button>
@@ -140,11 +140,11 @@ export default function PhotosPage() {
           {filtered.map((photo) => {
             const photographer = photo.taken_by ? getFamilyMember(photo.taken_by) : null
             return (
-              <button key={photo.id} onClick={() => setSelectedPhoto(photo)} className="flex w-full items-center gap-3 rounded-2xl bg-white/80 p-2 text-right shadow-sm">
+              <button key={photo.id} onClick={() => setSelectedPhoto(photo)} className="flex w-full items-center gap-3 rounded-apple-lg glass p-2 text-right shadow-sm">
                 <img src={photo.thumbnail_url || photo.url} alt={photo.caption || ''} className="h-16 w-16 shrink-0 rounded-xl object-cover" loading="lazy" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-brown truncate">{photo.caption || 'ללא כיתוב'}</p>
-                  <p className="text-xs text-brown-light">
+                  <p className="text-sm font-medium text-apple-primary truncate">{photo.caption || 'ללא כיתוב'}</p>
+                  <p className="text-xs text-apple-secondary">
                     {photographer && <span>{photographer.avatar_emoji} </span>}
                     {photo.location && <span>{photo.location} · </span>}
                     {photo.taken_at && formatDate(photo.taken_at)}
