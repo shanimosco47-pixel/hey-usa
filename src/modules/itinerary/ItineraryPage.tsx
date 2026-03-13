@@ -3,14 +3,14 @@ import { motion } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
 import { format, parseISO, isWithinInterval } from 'date-fns'
 import { Calendar, MapPin, StickyNote, ChevronLeft, ChevronRight } from 'lucide-react'
-import { ITINERARY_DAYS } from '@/data/itinerary'
+import { useTripData } from '@/contexts/TripDataContext'
 import { DaySelector } from './components/DaySelector'
 import { StopCard } from './components/StopCard'
 import { DriveSegment } from './components/DriveSegment'
 import { cn } from '@/lib/cn'
 
 /** Determine the default day index: during the trip show the current day, otherwise show day 1 */
-function getDefaultDayIndex(): number {
+function getDefaultDayIndex(totalDays: number): number {
   const today = new Date()
   const tripStart = parseISO('2026-09-11')
   const tripEnd = parseISO('2026-09-30')
@@ -19,7 +19,7 @@ function getDefaultDayIndex(): number {
     const diff = Math.floor(
       (today.getTime() - tripStart.getTime()) / (1000 * 60 * 60 * 24)
     )
-    return Math.min(Math.max(diff, 0), ITINERARY_DAYS.length - 1)
+    return Math.min(Math.max(diff, 0), totalDays - 1)
   }
   return 0
 }
@@ -27,6 +27,7 @@ function getDefaultDayIndex(): number {
 export default function ItineraryPage() {
   const { day: dayParam } = useParams<{ day?: string }>()
   const navigate = useNavigate()
+  const { itineraryDays: ITINERARY_DAYS } = useTripData()
 
   // Parse route param or use smart default
   const initialIndex = useMemo(() => {
@@ -36,8 +37,8 @@ export default function ItineraryPage() {
         return parsed - 1
       }
     }
-    return getDefaultDayIndex()
-  }, [dayParam])
+    return getDefaultDayIndex(ITINERARY_DAYS.length)
+  }, [dayParam, ITINERARY_DAYS.length])
 
   const [activeDayIndex, setActiveDayIndex] = useState(initialIndex)
 

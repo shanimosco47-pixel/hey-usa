@@ -1,35 +1,231 @@
 // מוטי — AI-powered cynical travel advisor
 // Uses Claude API via Supabase Edge Function, with keyword fallback
+// Now with ACTIONS — Moti can modify site data!
 
 import { supabase } from '@/lib/supabase'
+import type { MotiAction } from '@/contexts/TripDataContext'
+import { EXPENSE_CATEGORIES } from '@/lib/constants'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
 }
 
+export interface BotResponse {
+  text: string
+  actions: MotiAction[]
+}
+
 export const BOT_NAME = 'מוטי'
 export const BOT_SUBTITLE = 'יועץ טיולים ציני (מופעל ע"י AI)'
+
+// ─── Category Mapping (Hebrew → key) ───────────────────────────────
+
+const CATEGORY_MAP: Record<string, string> = {
+  'טיסות': 'flights',
+  'טיסה': 'flights',
+  'לינה': 'accommodation',
+  'מלון': 'accommodation',
+  'אירוח': 'accommodation',
+  'אוכל': 'food',
+  'מזון': 'food',
+  'תחבורה': 'transport',
+  'הסעות': 'transport',
+  'רכב': 'transport',
+  'אטרקציות': 'attractions',
+  'כרטיסים': 'attractions',
+  'קניות': 'shopping',
+  'שופינג': 'shopping',
+  'תקשורת': 'communication',
+  'סים': 'communication',
+  'ביטוח': 'insurance',
+  'אחר': 'other',
+}
+
+const CATEGORY_LABELS: Record<string, string> = {}
+for (const [heb, key] of Object.entries(CATEGORY_MAP)) {
+  if (!CATEGORY_LABELS[key]) CATEGORY_LABELS[key] = heb
+}
+// Also add from EXPENSE_CATEGORIES
+for (const [key, { label }] of Object.entries(EXPENSE_CATEGORIES)) {
+  CATEGORY_LABELS[key] = label
+}
+
+// ─── Day mapping ───────────────────────────────────────────────────
+
+const DAY_MAP: Record<string, string> = {}
+for (let i = 1; i <= 20; i++) {
+  DAY_MAP[`יום ${i}`] = `day-${i}`
+  DAY_MAP[`day ${i}`] = `day-${i}`
+  DAY_MAP[`${i}`] = `day-${i}`
+}
+
+// ─── Action Parser ─────────────────────────────────────────────────
+
+function extractNumber(text: string): number | null {
+  // Match numbers with commas or plain: 3,000 or 3000
+  const match = text.match(/(\d[\d,]*)/g)
+  if (!match) return null
+  // Take the last number (usually the value, not part of a category)
+  for (let i = match.length - 1; i >= 0; i--) {
+    const num = Number(match[i].replace(/,/g, ''))
+    if (num > 0) return num
+  }
+  return null
+}
+
+function findCategory(text: string): string | null {
+  const lower = text.toLowerCase()
+  for (const [heb, key] of Object.entries(CATEGORY_MAP)) {
+    if (lower.includes(heb)) return key
+  }
+  return null
+}
+
+function findDayId(text: string): string | null {
+  const lower = text.toLowerCase()
+  for (const [pattern, id] of Object.entries(DAY_MAP)) {
+    if (lower.includes(pattern)) return id
+  }
+  // Also match dates like "11 בספטמבר" → day-1, "12 בספטמבר" → day-2, etc.
+  const dateMatch = lower.match(/(\d{1,2})\s*(בספט|ספט|\/9|\.9)/)
+  if (dateMatch) {
+    const dayOfMonth = Number(dateMatch[1])
+    const dayIndex = dayOfMonth - 10 // Sept 11 = day 1
+    if (dayIndex >= 1 && dayIndex <= 20) return `day-${dayIndex}`
+  }
+  return null
+}
+
+export function parseActions(message: string): MotiAction[] {
+  const lower = message.trim()
+  const actions: MotiAction[] = []
+
+  // ── Budget category update ──────────────────────────────────────
+  // "תעדכן/שנה/עדכן את תקציב הביטוח ל-3000"
+  // "תקציב ביטוח 3000"
+  const budgetUpdatePatterns = [
+    /(?:תעדכן|עדכן|שנה|תשנה|הגדר|תגדיר|קבע|תקבע)\s.*?תקציב\s.*?(?:ה)?(טיסות|טיסה|לינה|מלון|אירוח|אוכל|מזון|תחבורה|הסעות|רכב|אטרקציות|כרטיסים|קניות|שופינג|תקשורת|סים|ביטוח|אחר)\s.*?(?:ל[-\s]?)?(\d[\d,]*)/,
+    /(?:תעדכן|עדכן|שנה|תשנה|הגדר|תגדיר|קבע|תקבע)\s.*?(?:ה)?(טיסות|טיסה|לינה|מלון|אירוח|אוכל|מזון|תחבורה|הסעות|רכב|אטרקציות|כרטיסים|קניות|שופינג|תקשורת|סים|ביטוח|אחר)\s.*?(?:ל[-\s]?)?(\d[\d,]*)/,
+    /תקציב\s+(?:ה)?(טיסות|טיסה|לינה|מלון|אירוח|אוכל|מזון|תחבורה|הסעות|רכב|אטרקציות|כרטיסים|קניות|שופינג|תקשורת|סים|ביטוח|אחר)\s.*?(?:ל[-\s]?)?(\d[\d,]*)/,
+    /(?:ה)?(טיסות|טיסה|לינה|מלון|אירוח|אוכל|מזון|תחבורה|הסעות|רכב|אטרקציות|כרטיסים|קניות|שופינג|תקשורת|סים|ביטוח|אחר)\s.*?תקציב\s.*?(?:ל[-\s]?)?(\d[\d,]*)/,
+  ]
+
+  for (const pattern of budgetUpdatePatterns) {
+    const match = lower.match(pattern)
+    if (match) {
+      const category = CATEGORY_MAP[match[1]]
+      const amount = Number(match[2].replace(/,/g, ''))
+      if (category && amount > 0) {
+        actions.push({ type: 'UPDATE_BUDGET_CATEGORY', category, amount })
+        return actions
+      }
+    }
+  }
+
+  // ── Total budget update ─────────────────────────────────────────
+  // "תעדכן את התקציב הכולל ל-60000"
+  const totalBudgetMatch = lower.match(
+    /(?:תעדכן|עדכן|שנה|תשנה|הגדר|תגדיר|קבע|תקבע)\s.*?תקציב\s+(?:ה)?כולל\s.*?(?:ל[-\s]?)?(\d[\d,]*)/,
+  )
+  if (totalBudgetMatch) {
+    const amount = Number(totalBudgetMatch[1].replace(/,/g, ''))
+    if (amount > 0) {
+      actions.push({ type: 'UPDATE_TOTAL_BUDGET', amount })
+      return actions
+    }
+  }
+
+  // ── Daily budget update ─────────────────────────────────────────
+  const dailyBudgetMatch = lower.match(
+    /(?:תעדכן|עדכן|שנה|תשנה|הגדר|תגדיר|קבע|תקבע)\s.*?תקציב\s+(?:ה)?יומי\s.*?(?:ל[-\s]?)?(\d[\d,]*)/,
+  )
+  if (dailyBudgetMatch) {
+    const amount = Number(dailyBudgetMatch[1].replace(/,/g, ''))
+    if (amount > 0) {
+      actions.push({ type: 'UPDATE_DAILY_BUDGET', amount })
+      return actions
+    }
+  }
+
+  // ── Generic budget category detection (simpler patterns) ────────
+  // "ביטוח 3000" or "שנה ביטוח ל-3000"
+  if (/(?:תעדכן|עדכן|שנה|תשנה|הגדר|תגדיר|קבע|תקבע)/.test(lower)) {
+    const category = findCategory(lower)
+    const amount = extractNumber(lower)
+    if (category && amount && amount > 0) {
+      actions.push({ type: 'UPDATE_BUDGET_CATEGORY', category, amount })
+      return actions
+    }
+  }
+
+  // ── Add stop to itinerary ───────────────────────────────────────
+  // "תוסיף עצירה ביום 3: ביקור במוזיאון"
+  const addStopMatch = lower.match(
+    /(?:תוסיף|הוסף|תכניס|הכנס)\s+(?:עצירה|תחנה|פעילות|אטרקציה)\s+(?:ב)?(יום\s+\d+|\d{1,2}\s*בספט)/,
+  )
+  if (addStopMatch) {
+    const dayId = findDayId(lower)
+    if (dayId) {
+      // Extract the description after the day reference
+      const afterDay = lower.split(/יום\s+\d+|\d{1,2}\s*בספט/)[1] || ''
+      const title = afterDay.replace(/^[\s:—\-]+/, '').trim() || 'עצירה חדשה'
+      actions.push({
+        type: 'ADD_ITINERARY_STOP',
+        dayId,
+        stop: { title, category: 'activity' },
+      })
+      return actions
+    }
+  }
+
+  // ── Update itinerary day notes ──────────────────────────────────
+  // "תוסיף הערה ליום 5: לזכור לקחת מים"
+  const notesMatch = lower.match(
+    /(?:תוסיף|הוסף|תעדכן|עדכן)\s+(?:הערה|הערות|פתק)\s+(?:ל|ב)?(יום\s+\d+|\d{1,2}\s*בספט)/,
+  )
+  if (notesMatch) {
+    const dayId = findDayId(lower)
+    if (dayId) {
+      const afterDay = lower.split(/יום\s+\d+|\d{1,2}\s*בספט/)[1] || ''
+      const notes = afterDay.replace(/^[\s:—\-]+/, '').trim() || ''
+      if (notes) {
+        actions.push({ type: 'UPDATE_ITINERARY_DAY_NOTES', dayId, notes })
+        return actions
+      }
+    }
+  }
+
+  return actions
+}
 
 // ─── AI Engine ──────────────────────────────────────────────────────
 
 let conversationHistory: ChatMessage[] = []
-const MAX_HISTORY = 20 // Keep last 20 messages for context
+const MAX_HISTORY = 20
 
 export function resetConversation() {
   conversationHistory = []
 }
 
-export async function getBotResponseAsync(userMessage: string): Promise<string> {
+export async function getBotResponseAsync(userMessage: string): Promise<BotResponse> {
+  // First, check for actions in the message
+  const actions = parseActions(userMessage)
+
   // Add user message to history
   conversationHistory.push({ role: 'user', content: userMessage })
-
-  // Trim history if too long
   if (conversationHistory.length > MAX_HISTORY) {
     conversationHistory = conversationHistory.slice(-MAX_HISTORY)
   }
 
-  // Try AI first
+  // If we detected actions, generate a confirmation response
+  if (actions.length > 0) {
+    const confirmText = generateActionConfirmation(actions)
+    conversationHistory.push({ role: 'assistant', content: confirmText })
+    return { text: confirmText, actions }
+  }
+
+  // Try AI
   if (supabase) {
     try {
       const { data, error } = await supabase.functions.invoke('moti-chat', {
@@ -39,9 +235,8 @@ export async function getBotResponseAsync(userMessage: string): Promise<string> 
       if (!error && data?.text) {
         const assistantMessage = data.text as string
         conversationHistory.push({ role: 'assistant', content: assistantMessage })
-        return assistantMessage
+        return { text: assistantMessage, actions: [] }
       }
-
       console.warn('Supabase function error, falling back to keywords:', error)
     } catch (err) {
       console.warn('AI request failed, falling back to keywords:', err)
@@ -51,7 +246,52 @@ export async function getBotResponseAsync(userMessage: string): Promise<string> 
   // Fallback to keyword engine
   const fallbackText = getKeywordResponse(userMessage)
   conversationHistory.push({ role: 'assistant', content: fallbackText })
-  return fallbackText
+  return { text: fallbackText, actions: [] }
+}
+
+// ─── Action Confirmation Messages ──────────────────────────────────
+
+function generateActionConfirmation(actions: MotiAction[]): string {
+  const parts: string[] = []
+
+  for (const action of actions) {
+    switch (action.type) {
+      case 'UPDATE_BUDGET_CATEGORY': {
+        const label = CATEGORY_LABELS[action.category] || action.category
+        parts.push(
+          `בוצע! עדכנתי את תקציב **${label}** ל-**₪${action.amount.toLocaleString()}**. ✅\n\nתבדקו בעמוד התקציב — הכל מעודכן שם.`,
+        )
+        break
+      }
+      case 'UPDATE_TOTAL_BUDGET':
+        parts.push(
+          `בוצע! עדכנתי את **התקציב הכולל** ל-**₪${action.amount.toLocaleString()}**. ✅\n\nמקווה שמצאתם עוד כסף מתחת לספה.`,
+        )
+        break
+      case 'UPDATE_DAILY_BUDGET':
+        parts.push(
+          `בוצע! עדכנתי את **התקציב היומי** ל-**₪${action.amount.toLocaleString()}**. ✅`,
+        )
+        break
+      case 'ADD_EXPENSE':
+        parts.push(
+          `בוצע! הוספתי הוצאה חדשה: **${action.expense.title}** בסך **₪${action.expense.amount.toLocaleString()}**. ✅`,
+        )
+        break
+      case 'UPDATE_ITINERARY_DAY_NOTES':
+        parts.push(
+          `בוצע! עדכנתי את ההערות ל-**${action.dayId.replace('day-', 'יום ')}**. ✅\n\nתבדקו בלוח הזמנים.`,
+        )
+        break
+      case 'ADD_ITINERARY_STOP':
+        parts.push(
+          `בוצע! הוספתי עצירה חדשה ל-**${action.dayId.replace('day-', 'יום ')}**: **${action.stop.title}**. ✅\n\nתבדקו בלוח הזמנים — הכל מעודכן.`,
+        )
+        break
+    }
+  }
+
+  return parts.join('\n\n') + '\n\nעוד משהו לעדכן? אני פה. 😏'
 }
 
 // ─── Keyword Fallback Engine ────────────────────────────────────────
@@ -117,7 +357,8 @@ const rules: MatchRule[] = [
       `• קנו ביטוח עם כיסוי רפואי של לפחות $1M — אמריקה זו לא קופת חולים\n` +
       `• וודאו שהביטוח מכסה פעילות אתגרית (הייקינג בגרנד קניון זה לא טיול בפארק הירקון)\n` +
       `• שמרו את הפוליסה בנייד + עותק מודפס\n` +
-      `• שימו לב שהביטוח מכסה את כל 5 בני המשפחה`
+      `• שימו לב שהביטוח מכסה את כל 5 בני המשפחה\n\n` +
+      `💡 *רוצים לעדכן את תקציב הביטוח? כתבו: "עדכן תקציב ביטוח ל-3000"*`
     ),
   },
   {
@@ -132,7 +373,8 @@ const rules: MatchRule[] = [
       `🎢 אטרקציות: ${TRIP.budget.attractions}\n` +
       `🛍️ קניות: ${TRIP.budget.shopping}\n` +
       `🛡️ ביטוח: ${TRIP.budget.insurance}\n\n` +
-      `תקציב יומי: **${TRIP.budget.daily}**. כלומר, תשכחו מסטייקים כל ערב. אבל In-N-Out Burger? חובה.`
+      `תקציב יומי: **${TRIP.budget.daily}**. כלומר, תשכחו מסטייקים כל ערב. אבל In-N-Out Burger? חובה.\n\n` +
+      `💡 *רוצים לשנות? כתבו למשל: "עדכן תקציב ביטוח ל-3000" או "שנה תקציב כולל ל-60000"*`
     ),
   },
   {
@@ -257,7 +499,8 @@ const rules: MatchRule[] = [
       `• 28/9 — החזרת קרוואן בסן פרנסיסקו\n` +
       `• 28-30/9 — סן פרנסיסקו (מלון)\n` +
       `• 30/9 — טיסה הביתה מ-SFO\n\n` +
-      `20 יום. 5 בני משפחה. קרוואן אחד. מה יכול להשתבש? 😄`
+      `20 יום. 5 בני משפחה. קרוואן אחד. מה יכול להשתבש? 😄\n\n` +
+      `💡 *רוצים להוסיף עצירה? כתבו: "תוסיף עצירה ביום 5: ביקור במוזיאון"*`
     ),
   },
   {
@@ -302,6 +545,11 @@ const rules: MatchRule[] = [
       `• 🧳 אריזה\n` +
       `• 🍔 אוכל\n` +
       `• או **כל שאלה אחרת** — אני AI, אני יודע הכל! (כמעט.)\n\n` +
+      `🔧 **חדש! אני יכול גם לשנות דברים באתר:**\n` +
+      `• "עדכן תקציב ביטוח ל-3000"\n` +
+      `• "שנה תקציב כולל ל-60000"\n` +
+      `• "תוסיף עצירה ביום 5: ביקור במוזיאון"\n` +
+      `• "תוסיף הערה ליום 3: לקחת מים"\n\n` +
       `ציני אבל מדויק. ולפחות לא משעמם. 😏`,
   },
 ]
@@ -317,7 +565,7 @@ function getKeywordResponse(message: string): string {
 
   // Check for greeting
   if (/^(היי|הי|שלום|בוקר|ערב|מה נשמע|אהלן|hey|hi|hello)/.test(lower)) {
-    return `שלום שלום! 👋 אני מוטי, היועץ הציני שלכם לטיול לארה"ב.\n\nמה רוצים לדעת? יש לי דעה על הכל — ביטוח, תקציב, דיסנילנד, גרנד קניון... רק תשאלו.`
+    return `שלום שלום! 👋 אני מוטי, היועץ הציני שלכם לטיול לארה"ב.\n\nמה רוצים לדעת? יש לי דעה על הכל — ביטוח, תקציב, דיסנילנד, גרנד קניון... רק תשאלו.\n\n🔧 **חידוש:** אני יכול גם לעדכן דברים באתר! נסו: "עדכן תקציב ביטוח ל-3000"`
   }
 
   // Check rules by keyword match
