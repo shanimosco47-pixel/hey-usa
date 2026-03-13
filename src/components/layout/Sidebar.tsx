@@ -1,16 +1,16 @@
 import { NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  Home, CheckSquare, Calendar, FileText, Map,
-  Camera, BookOpen, DollarSign, Music, Package,
+  Home, ClipboardCheck, CalendarDays, FolderOpen, MapPinned,
+  ImagePlus, Notebook, Wallet, Headphones, Luggage,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { NAV_ITEMS } from '@/constants'
 import type { LucideIcon } from 'lucide-react'
 
 const ICON_MAP: Record<string, LucideIcon> = {
-  Home, CheckSquare, Calendar, FileText, Map,
-  Camera, BookOpen, DollarSign, Music, Package,
+  Home, ClipboardCheck, CalendarDays, FolderOpen, MapPinned,
+  ImagePlus, Notebook, Wallet, Headphones, Luggage,
 }
 
 export function Sidebar() {
