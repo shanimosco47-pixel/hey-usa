@@ -193,7 +193,7 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="שם המסמך"
-                className="w-full rounded-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+                className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
               />
             </div>
 
@@ -203,7 +203,7 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
               <Select.Root value={category} onValueChange={setCategory} dir="rtl">
                 <Select.Trigger
                   className={cn(
-                    'flex w-full items-center justify-between rounded-lg border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
+                    'flex w-full items-center justify-between rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
                     category ? 'text-apple-primary' : 'text-apple-tertiary',
                   )}
                 >
@@ -246,7 +246,7 @@ export function UploadDialog({ open, onOpenChange, onUpload }: UploadDialogProps
               <Select.Root value={memberId} onValueChange={setMemberId} dir="rtl">
                 <Select.Trigger
                   className={cn(
-                    'flex w-full items-center justify-between rounded-lg border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
+                    'flex w-full items-center justify-between rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
                     memberId ? 'text-apple-primary' : 'text-apple-tertiary',
                   )}
                 >

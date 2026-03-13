@@ -214,14 +214,14 @@ export default function TasksPage() {
       {/* View switcher tabs */}
       <Tabs.Root value={activeView} onValueChange={setActiveView}>
         <div className="mb-4 flex items-center justify-between">
-          <Tabs.List className="flex gap-1 rounded-xl bg-black/[0.04] p-1">
+          <Tabs.List className="flex gap-1 rounded-apple-lg glass p-1 shadow-sm">
             <Tabs.Trigger
               value="table"
               className={cn(
                 'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
                 activeView === 'table'
                   ? 'bg-white text-apple-primary shadow-sm'
-                  : 'text-apple-secondary hover:text-apple-primary',
+                  : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
               )}
             >
               <Table2 className="h-4 w-4" />
@@ -233,7 +233,7 @@ export default function TasksPage() {
                 'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
                 activeView === 'kanban'
                   ? 'bg-white text-apple-primary shadow-sm'
-                  : 'text-apple-secondary hover:text-apple-primary',
+                  : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
               )}
             >
               <Columns3 className="h-4 w-4" />
@@ -245,7 +245,7 @@ export default function TasksPage() {
                 'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
                 activeView === 'timeline'
                   ? 'bg-white text-apple-primary shadow-sm'
-                  : 'text-apple-secondary hover:text-apple-primary',
+                  : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
               )}
             >
               <GanttChart className="h-4 w-4" />
