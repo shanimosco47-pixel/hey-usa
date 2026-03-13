@@ -54,13 +54,13 @@ function FileIcon({ fileType }: { fileType?: string }) {
 }
 
 const categoryColors: Record<string, string> = {
-  passport: 'bg-sky/15 text-sky',
-  visa: 'bg-[#6c5ce7]/15 text-[#6c5ce7]',
-  insurance: 'bg-sage/15 text-sage',
-  flights: 'bg-sky/15 text-sky',
-  accommodation: 'bg-gold/15 text-gold-dark',
+  passport: 'bg-ios-blue/15 text-ios-blue',
+  visa: 'bg-ios-indigo/15 text-ios-indigo',
+  insurance: 'bg-ios-green/15 text-ios-green',
+  flights: 'bg-ios-blue/15 text-ios-blue',
+  accommodation: 'bg-ios-orange/15 text-ios-orange',
   car_rental: 'bg-ios-blue/15 text-ios-blue',
-  attractions: 'bg-sage/15 text-sage',
+  attractions: 'bg-ios-green/15 text-ios-green',
   medical: 'bg-red-100 text-red-600',
   other: 'bg-black/[0.04] text-apple-secondary',
 }
