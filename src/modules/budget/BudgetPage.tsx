@@ -13,6 +13,10 @@ import {
   Shield,
   MoreHorizontal,
   Trash2,
+  Calculator,
+  Receipt,
+  Pencil,
+  Check,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
@@ -63,9 +67,16 @@ const PIE_COLORS = [
   '#FF2D55', '#5AC8FA', '#AF52DE', '#FFCC00',
 ]
 
+type BudgetTab = 'planning' | 'actual'
+
 export default function BudgetPage() {
-  const { budgetSettings: settings, expenses, addExpense, deleteExpense } = useAppData()
+  const { budgetSettings: settings, expenses, addExpense, deleteExpense, updateBudgetCategory, updateTotalBudget } = useAppData()
+  const [activeTab, setActiveTab] = useState<BudgetTab>('planning')
   const [showAddForm, setShowAddForm] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState('')
+  const [editingTotal, setEditingTotal] = useState(false)
+  const [editTotalValue, setEditTotalValue] = useState('')
   const [newExpense, setNewExpense] = useState<{
     title: string
     amount: string
@@ -86,7 +97,7 @@ export default function BudgetPage() {
   )
 
   const remaining = settings.total_budget - totalSpent
-  const spentPercent = (totalSpent / settings.total_budget) * 100
+  const spentPercent = settings.total_budget > 0 ? (totalSpent / settings.total_budget) * 100 : 0
 
   const spendingMood = useMemo(() => {
     if (spentPercent > 100) return 'חרגנו מהתקציב! 🚨'
@@ -103,6 +114,11 @@ export default function BudgetPage() {
     }
     return totals
   }, [expenses])
+
+  const totalPlanned = useMemo(
+    () => Object.values(settings.category_budgets).reduce((sum, v) => sum + v, 0),
+    [settings.category_budgets],
+  )
 
   const pieData = useMemo(
     () =>
@@ -139,6 +155,34 @@ export default function BudgetPage() {
     setShowAddForm(false)
   }
 
+  function handleEditCategory(cat: string) {
+    setEditingCategory(cat)
+    setEditValue(String(settings.category_budgets[cat] || 0))
+  }
+
+  function handleSaveCategory(cat: string) {
+    const val = Number(editValue)
+    if (!isNaN(val) && val >= 0) {
+      updateBudgetCategory(cat, val)
+    }
+    setEditingCategory(null)
+  }
+
+  function handleEditTotal() {
+    setEditingTotal(true)
+    setEditTotalValue(String(settings.total_budget))
+  }
+
+  function handleSaveTotal() {
+    const val = Number(editTotalValue)
+    if (!isNaN(val) && val > 0) {
+      updateTotalBudget(val)
+    }
+    setEditingTotal(false)
+  }
+
+  const inputClass = "w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors"
+
   return (
     <div className="space-y-4 p-4">
       {/* Header */}
@@ -149,10 +193,6 @@ export default function BudgetPage() {
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
         <h1 className="text-2xl font-bold text-apple-primary">תקציב</h1>
-        <Button onClick={() => setShowAddForm(!showAddForm)}>
-          <Plus className="h-4 w-4" />
-          הוצאה חדשה
-        </Button>
       </motion.div>
 
       {/* Summary Cards */}
@@ -199,154 +239,335 @@ export default function BudgetPage() {
         </p>
       </div>
 
-      {/* Add Expense Form */}
-      {showAddForm && (
-        <div className="glass rounded-apple-lg p-4 shadow-sm space-y-3">
-          <h3 className="font-bold text-apple-primary">הוצאה חדשה</h3>
-          <input
-            type="text"
-            placeholder="שם ההוצאה"
-            value={newExpense.title}
-            onChange={(e) => setNewExpense((p) => ({ ...p, title: e.target.value }))}
-            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors"
-          />
-          <input
-            type="number"
-            placeholder="סכום"
-            value={newExpense.amount}
-            onChange={(e) => setNewExpense((p) => ({ ...p, amount: e.target.value }))}
-            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors"
-          />
-          <select
-            value={newExpense.category}
-            onChange={(e) => setNewExpense((p) => ({ ...p, category: e.target.value }))}
-            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors"
-          >
-            {Object.entries(EXPENSE_CATEGORIES).map(([key, { label }]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </select>
-          <select
-            value={newExpense.paid_by}
-            onChange={(e) => setNewExpense((p) => ({ ...p, paid_by: e.target.value as 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3' }))}
-            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors"
-          >
-            {FAMILY_MEMBERS.map((m) => (
-              <option key={m.id} value={m.id}>{m.avatar_emoji} {m.name}</option>
-            ))}
-          </select>
-          <div className="flex gap-2">
-            <Button onClick={handleAddExpense} variant="success" className="flex-1">
-              הוסף
-            </Button>
-            <Button onClick={() => setShowAddForm(false)} variant="secondary">
-              ביטול
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {/* Pie Chart */}
-        <div className="glass rounded-apple-lg p-4 shadow-sm">
-          <h3 className="mb-2 text-sm font-bold text-apple-primary">חלוקה לפי קטגוריה</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={80}
-                paddingAngle={2}
-                dataKey="value"
-              >
-                {pieData.map((_, i) => (
-                  <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<GlassTooltip currency={settings.currency} />} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="mt-2 flex flex-wrap gap-2 justify-center">
-            {pieData.map((entry, i) => (
-              <div key={entry.name} className="flex items-center gap-1 text-xs text-apple-secondary">
-                <div className="h-2.5 w-2.5 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
-                {entry.name}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Bar Chart */}
-        <div className="glass rounded-apple-lg p-4 shadow-sm">
-          <h3 className="mb-2 text-sm font-bold text-apple-primary">תקציב מול הוצאות</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={barData} layout="vertical">
-              <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" width={60} tick={{ fontSize: 11 }} />
-              <Tooltip content={<GlassTooltip currency={settings.currency} />} />
-              <Bar dataKey="budget" fill="#d1d1d6" radius={[0, 4, 4, 0]} barSize={12} />
-              <Bar dataKey="spent" fill="#007AFF" radius={[0, 4, 4, 0]} barSize={12} />
-            </BarChart>
-          </ResponsiveContainer>
-          <div className="mt-2 flex justify-center gap-4 text-xs text-apple-secondary">
-            <div className="flex items-center gap-1">
-              <div className="h-2.5 w-2.5 rounded-full bg-[#d1d1d6]" />
-              תקציב
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="h-2.5 w-2.5 rounded-full bg-ios-blue" />
-              הוצאות
-            </div>
-          </div>
-        </div>
+      {/* Tab Switcher */}
+      <div className="flex gap-1 rounded-apple-lg glass p-1 shadow-sm">
+        <button
+          onClick={() => setActiveTab('planning')}
+          className={cn(
+            'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+            activeTab === 'planning'
+              ? 'bg-white text-apple-primary shadow-sm'
+              : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
+          )}
+        >
+          <Calculator className="h-4 w-4" />
+          <span>תכנון תקציב</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('actual')}
+          className={cn(
+            'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+            activeTab === 'actual'
+              ? 'bg-white text-apple-primary shadow-sm'
+              : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
+          )}
+        >
+          <Receipt className="h-4 w-4" />
+          <span>הוצאות בפועל</span>
+        </button>
       </div>
 
-      {/* Expense List */}
-      <motion.div
-        className="space-y-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.3 }}
-      >
-        <h3 className="text-sm font-bold text-apple-primary">הוצאות אחרונות</h3>
-        {expenses.map((expense) => {
-          const IconComp = CATEGORY_ICONS[expense.category] || DollarSign
-          const member = getFamilyMember(expense.paid_by)
-          return (
-            <div
-              key={expense.id}
-              className="flex items-center gap-3 glass rounded-apple-lg p-3 shadow-sm"
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/[0.04]">
-                <IconComp className="h-5 w-5 text-apple-secondary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-apple-primary truncate">{expense.title}</p>
-                <p className="text-xs text-apple-secondary">
-                  {member.avatar_emoji} {member.name} · {expense.date}
-                </p>
-              </div>
-              <div className="text-left shrink-0">
-                <p className="text-sm font-bold text-ios-red">
-                  {expense.currency}{expense.amount.toLocaleString()}
-                </p>
-                <p className="text-xs text-apple-secondary">
-                  {EXPENSE_CATEGORIES[expense.category]?.label}
-                </p>
-              </div>
-              <button
-                onClick={() => deleteExpense(expense.id)}
-                className="shrink-0 rounded-lg p-1.5 text-apple-tertiary hover:bg-ios-red/10 hover:text-ios-red"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+      {/* ═══ PLANNING TAB ═══ */}
+      {activeTab === 'planning' && (
+        <motion.div
+          className="space-y-4"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          {/* Total Budget Editor */}
+          <div className="glass rounded-apple-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-apple-primary">תקציב כולל לטיול</h3>
+              {!editingTotal ? (
+                <button
+                  onClick={handleEditTotal}
+                  className="flex items-center gap-1 text-xs text-ios-blue hover:underline"
+                >
+                  <Pencil className="h-3 w-3" />
+                  ערוך
+                </button>
+              ) : (
+                <button
+                  onClick={handleSaveTotal}
+                  className="flex items-center gap-1 text-xs text-ios-green font-medium"
+                >
+                  <Check className="h-3 w-3" />
+                  שמור
+                </button>
+              )}
             </div>
-          )
-        })}
-      </motion.div>
+            {editingTotal ? (
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-apple-primary">{settings.currency}</span>
+                <input
+                  type="number"
+                  value={editTotalValue}
+                  onChange={(e) => setEditTotalValue(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveTotal()}
+                  className={cn(inputClass, 'text-lg font-bold')}
+                  autoFocus
+                />
+              </div>
+            ) : (
+              <p className="text-2xl font-bold text-apple-primary">
+                {settings.currency}{settings.total_budget.toLocaleString()}
+              </p>
+            )}
+            {totalPlanned !== settings.total_budget && (
+              <p className="mt-2 text-xs text-ios-orange">
+                סה״כ מתוכנן לפי קטגוריות: {settings.currency}{totalPlanned.toLocaleString()}
+                {totalPlanned > settings.total_budget ? ' (חריגה!)' : ` (נותר ${settings.currency}${(settings.total_budget - totalPlanned).toLocaleString()} לא מחולק)`}
+              </p>
+            )}
+          </div>
+
+          {/* Category Budgets */}
+          <div className="glass rounded-apple-lg p-4 shadow-sm">
+            <h3 className="text-sm font-bold text-apple-primary mb-3">תקציב לפי קטגוריה</h3>
+            <div className="space-y-2">
+              {Object.entries(EXPENSE_CATEGORIES).map(([cat, { label }]) => {
+                const IconComp = CATEGORY_ICONS[cat] || DollarSign
+                const planned = settings.category_budgets[cat] || 0
+                const spent = categoryTotals[cat] || 0
+                const catPercent = planned > 0 ? (spent / planned) * 100 : 0
+                const isEditing = editingCategory === cat
+
+                return (
+                  <div key={cat} className="rounded-xl border border-black/[0.04] p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black/[0.04]">
+                        <IconComp className="h-4 w-4 text-apple-secondary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-apple-primary">{label}</span>
+                          {isEditing ? (
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSaveCategory(cat)}
+                                className="w-24 rounded-lg border border-ios-blue/30 bg-surface-primary px-2 py-1 text-sm text-left font-medium focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+                                autoFocus
+                                dir="ltr"
+                              />
+                              <button
+                                onClick={() => handleSaveCategory(cat)}
+                                className="rounded-lg p-1 text-ios-green hover:bg-ios-green/10"
+                              >
+                                <Check className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleEditCategory(cat)}
+                              className="flex items-center gap-1 text-sm font-medium text-apple-primary hover:text-ios-blue"
+                            >
+                              {settings.currency}{planned.toLocaleString()}
+                              <Pencil className="h-3 w-3 text-apple-tertiary" />
+                            </button>
+                          )}
+                        </div>
+                        {/* Mini progress bar */}
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <div className="flex-1 h-1.5 rounded-full bg-black/[0.04]">
+                            <div
+                              className={cn(
+                                'h-full rounded-full transition-all',
+                                catPercent > 100 ? 'bg-ios-red' : catPercent > 70 ? 'bg-ios-orange' : 'bg-ios-blue',
+                              )}
+                              style={{ width: `${Math.min(catPercent, 100)}%` }}
+                            />
+                          </div>
+                          <span className="text-[10px] text-apple-tertiary whitespace-nowrap">
+                            {settings.currency}{spent.toLocaleString()} / {settings.currency}{planned.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Bar Chart: Budget vs Actual */}
+          <div className="glass rounded-apple-lg p-4 shadow-sm">
+            <h3 className="mb-2 text-sm font-bold text-apple-primary">תקציב מול הוצאות</h3>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={barData} layout="vertical">
+                <XAxis type="number" hide />
+                <YAxis type="category" dataKey="name" width={60} tick={{ fontSize: 11 }} />
+                <Tooltip content={<GlassTooltip currency={settings.currency} />} />
+                <Bar dataKey="budget" name="תקציב" fill="#d1d1d6" radius={[0, 4, 4, 0]} barSize={12} />
+                <Bar dataKey="spent" name="הוצאות" fill="#007AFF" radius={[0, 4, 4, 0]} barSize={12} />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-2 flex justify-center gap-4 text-xs text-apple-secondary">
+              <div className="flex items-center gap-1">
+                <div className="h-2.5 w-2.5 rounded-full bg-[#d1d1d6]" />
+                תקציב מתוכנן
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="h-2.5 w-2.5 rounded-full bg-ios-blue" />
+                הוצאות בפועל
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ═══ ACTUAL EXPENSES TAB ═══ */}
+      {activeTab === 'actual' && (
+        <motion.div
+          className="space-y-4"
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          {/* Add expense button */}
+          <div className="flex justify-end">
+            <Button onClick={() => setShowAddForm(!showAddForm)}>
+              <Plus className="h-4 w-4" />
+              הוצאה חדשה
+            </Button>
+          </div>
+
+          {/* Add Expense Form */}
+          {showAddForm && (
+            <div className="glass rounded-apple-lg p-4 shadow-sm space-y-3">
+              <h3 className="font-bold text-apple-primary">הוצאה חדשה</h3>
+              <input
+                type="text"
+                placeholder="שם ההוצאה"
+                value={newExpense.title}
+                onChange={(e) => setNewExpense((p) => ({ ...p, title: e.target.value }))}
+                className={inputClass}
+              />
+              <input
+                type="number"
+                placeholder="סכום"
+                value={newExpense.amount}
+                onChange={(e) => setNewExpense((p) => ({ ...p, amount: e.target.value }))}
+                className={inputClass}
+              />
+              <select
+                value={newExpense.category}
+                onChange={(e) => setNewExpense((p) => ({ ...p, category: e.target.value }))}
+                className={inputClass}
+              >
+                {Object.entries(EXPENSE_CATEGORIES).map(([key, { label }]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+              <select
+                value={newExpense.paid_by}
+                onChange={(e) => setNewExpense((p) => ({ ...p, paid_by: e.target.value as 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3' }))}
+                className={inputClass}
+              >
+                {FAMILY_MEMBERS.map((m) => (
+                  <option key={m.id} value={m.id}>{m.avatar_emoji} {m.name}</option>
+                ))}
+              </select>
+              <div className="flex gap-2">
+                <Button onClick={handleAddExpense} variant="success" className="flex-1">
+                  הוסף
+                </Button>
+                <Button onClick={() => setShowAddForm(false)} variant="secondary">
+                  ביטול
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Pie Chart */}
+          {pieData.length > 0 && (
+            <div className="glass rounded-apple-lg p-4 shadow-sm">
+              <h3 className="mb-2 text-sm font-bold text-apple-primary">חלוקת הוצאות בפועל</h3>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {pieData.map((_, i) => (
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<GlassTooltip currency={settings.currency} />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="mt-2 flex flex-wrap gap-2 justify-center">
+                {pieData.map((entry, i) => (
+                  <div key={entry.name} className="flex items-center gap-1 text-xs text-apple-secondary">
+                    <div className="h-2.5 w-2.5 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                    {entry.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Expense List */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-bold text-apple-primary">
+              הוצאות ({expenses.length})
+            </h3>
+            {expenses.length === 0 && (
+              <div className="glass rounded-apple-lg p-6 text-center shadow-sm">
+                <Receipt className="mx-auto h-8 w-8 text-apple-tertiary mb-2" />
+                <p className="text-sm text-apple-secondary">עדיין אין הוצאות</p>
+                <p className="text-xs text-apple-tertiary mt-1">לחצו על "הוצאה חדשה" כדי להתחיל</p>
+              </div>
+            )}
+            {expenses.map((expense) => {
+              const IconComp = CATEGORY_ICONS[expense.category] || DollarSign
+              const member = getFamilyMember(expense.paid_by)
+              const planned = settings.category_budgets[expense.category] || 0
+              return (
+                <div
+                  key={expense.id}
+                  className="flex items-center gap-3 glass rounded-apple-lg p-3 shadow-sm"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/[0.04]">
+                    <IconComp className="h-5 w-5 text-apple-secondary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-apple-primary truncate">{expense.title}</p>
+                    <p className="text-xs text-apple-secondary">
+                      {member.avatar_emoji} {member.name} · {expense.date}
+                    </p>
+                  </div>
+                  <div className="text-left shrink-0">
+                    <p className="text-sm font-bold text-ios-red">
+                      {expense.currency}{expense.amount.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-apple-secondary">
+                      {EXPENSE_CATEGORIES[expense.category]?.label}
+                      {planned > 0 && (
+                        <span className="text-apple-tertiary"> / {expense.currency}{planned.toLocaleString()}</span>
+                      )}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => deleteExpense(expense.id)}
+                    className="shrink-0 rounded-lg p-1.5 text-apple-tertiary hover:bg-ios-red/10 hover:text-ios-red"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </motion.div>
+      )}
     </div>
   )
 }
