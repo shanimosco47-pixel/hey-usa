@@ -139,6 +139,27 @@ export default function PackingPage() {
         </div>
       </div>
 
+      {/* Motivational progress text */}
+      <p className="text-center text-sm text-apple-secondary">
+        {packedPercent === 0 && 'בואו נתחיל לארוז! 📦'}
+        {packedPercent > 0 && packedPercent <= 30 && 'התחלנו! עוד קצת... 💪'}
+        {packedPercent > 30 && packedPercent <= 60 && 'יופי, ממשיכים! 🎒'}
+        {packedPercent > 60 && packedPercent < 100 && 'כמעט שם! 🔥'}
+      </p>
+
+      {/* Celebration banner */}
+      {packedPercent === 100 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="rounded-apple-lg bg-gradient-to-r from-green-500 to-emerald-500 p-4 text-center text-white shadow-lg"
+        >
+          <p className="text-2xl mb-1">🎉</p>
+          <p className="font-bold">הכל ארוז!</p>
+          <p className="text-sm text-white/80">מוכנים לטיול! 🚐✨</p>
+        </motion.div>
+      )}
+
       {/* Family Filter */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1">
         <Filter className="h-4 w-4 shrink-0 text-apple-secondary" />
@@ -242,7 +263,9 @@ export default function PackingPage() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/[0.04]">
                   <IconComp className="h-4 w-4 text-apple-secondary" />
                 </div>
-                <span className="flex-1 text-right text-sm font-bold text-apple-primary">{label}</span>
+                <span className="flex-1 text-right text-sm font-bold text-apple-primary">
+                  {label} {catPacked === catItems.length && '✅'}
+                </span>
                 <span className="text-xs text-apple-secondary">
                   {catPacked}/{catItems.length}
                 </span>

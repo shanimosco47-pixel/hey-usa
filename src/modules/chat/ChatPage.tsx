@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Send, Bot, ArrowRight, Sparkles, WifiOff, Zap, History } from 'lucide-react'
@@ -14,14 +14,47 @@ interface Message {
   hasAction?: boolean
 }
 
-const SUGGESTIONS = [
-  'מה הדבר הכי חשוב לסגור לפני הטיול?',
-  'תכנן לי יום מושלם בלאס וגאס עם ילדים',
-  'מה התקציב שלנו?',
-  'עדכן תקציב ביטוח ל-3000',
-  'מה המסלול המלא?',
-  'תוסיף עצירה ביום 5: ביקור במוזיאון',
-]
+function getSmartSuggestions(data: {
+  tasksTotal: number
+  tasksDone: number
+  packingPercent: number
+  budgetPercent: number
+  daysUntilTrip: number
+}): string[] {
+  const suggestions: string[] = []
+
+  // Always include 1-2 action suggestions
+  suggestions.push('עדכן תקציב ביטוח ל-3000')
+
+  // Add contextual ones based on state
+  if (data.daysUntilTrip > 60) {
+    suggestions.push('מה הדבר הכי חשוב לסגור עכשיו?')
+  } else if (data.daysUntilTrip > 14) {
+    suggestions.push('מה עוד חסר לנו לפני הטיול?')
+  } else if (data.daysUntilTrip <= 14) {
+    suggestions.push('תעשה לי רשימת last minute!')
+  }
+
+  if (data.packingPercent < 50) {
+    suggestions.push('עזור לי עם רשימת האריזה')
+  }
+
+  if (data.budgetPercent > 70) {
+    suggestions.push('איפה אפשר לחסוך בתקציב?')
+  }
+
+  if (data.tasksDone < data.tasksTotal) {
+    suggestions.push(`נשארו ${data.tasksTotal - data.tasksDone} משימות, מה הכי דחוף?`)
+  }
+
+  // Always add some fun ones
+  suggestions.push('תכנן לי יום מושלם ביוסמיטי')
+  suggestions.push('מה המסלול המלא?')
+  suggestions.push('תוסיף עצירה ביום 5: ביקור במוזיאון')
+
+  // Return first 6 unique
+  return [...new Set(suggestions)].slice(0, 6)
+}
 
 function BotAvatar({ size = 'md' }: { size?: 'sm' | 'md' }) {
   const px = size === 'sm' ? 'h-8 w-8' : 'h-10 w-10'
@@ -92,8 +125,26 @@ function AIBadge() {
 }
 
 export default function ChatPage() {
-  const { executeMotiAction, changeLog } = useAppData()
+  const { executeMotiAction, changeLog, tasks, packingItems, expenses, budgetSettings } = useAppData()
   const navigate = useNavigate()
+
+  const tasksTotal = tasks.length
+  const tasksDone = tasks.filter((t) => t.status === 'done').length
+  const packedCount = packingItems.filter((p) => p.is_packed).length
+  const packingPercent = packingItems.length > 0 ? Math.round((packedCount / packingItems.length) * 100) : 0
+  const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0)
+  const budgetPercent = budgetSettings.total_budget > 0 ? Math.round((totalSpent / budgetSettings.total_budget) * 100) : 0
+  const daysUntilTrip = Math.max(0, Math.ceil(
+    (new Date('2026-09-11').getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  ))
+
+  const suggestions = useMemo(() => getSmartSuggestions({
+    tasksTotal,
+    tasksDone,
+    packingPercent,
+    budgetPercent,
+    daysUntilTrip,
+  }), [tasksTotal, tasksDone, packingPercent, budgetPercent, daysUntilTrip])
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -346,7 +397,7 @@ export default function ChatPage() {
             transition={{ delay: 0.5, duration: 0.4 }}
             className="flex flex-wrap gap-2 pt-2"
           >
-            {SUGGESTIONS.map((s) => {
+            {suggestions.map((s) => {
               const isAction = s.startsWith('עדכן') || s.startsWith('תוסיף') || s.startsWith('שנה')
               return (
                 <motion.button

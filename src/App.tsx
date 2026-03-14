@@ -1,8 +1,9 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState, useCallback } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { AppDataProvider } from '@/contexts/AppDataContext'
 import AppShell from '@/components/layout/AppShell'
+import SplashScreen from '@/components/shared/SplashScreen'
 
 // Auth screens (small, loaded eagerly for fast first paint)
 import PinScreen from '@/screens/PinScreen'
@@ -47,10 +48,14 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true)
+  const handleSplashFinished = useCallback(() => setShowSplash(false), [])
+
   return (
     <BrowserRouter basename="/hey-usa">
       <AuthProvider>
         <AppDataProvider>
+        {showSplash && <SplashScreen onFinished={handleSplashFinished} />}
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             {/* Auth routes */}
