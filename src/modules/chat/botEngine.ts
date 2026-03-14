@@ -2,7 +2,6 @@
 // Uses Claude API via Supabase Edge Function, with keyword fallback
 // Now with ACTIONS — Moti can modify site data!
 
-import { supabase } from '@/lib/supabase'
 import type { MotiAction } from '@/contexts/AppDataContext'
 import { EXPENSE_CATEGORIES } from '@/lib/constants'
 
@@ -232,7 +231,7 @@ export async function initConversationFromDb() {
     if (totalCount > memory.message_count + 10 && totalCount > MAX_CONTEXT_MESSAGES) {
       // Generate a new summary from older messages (messages not in the last 15)
       const olderMessages = totalMessages.slice(0, Math.max(0, totalCount - MAX_CONTEXT_MESSAGES))
-      if (olderMessages.length > 0 && supabase) {
+      if (olderMessages.length > 0 && isAIMode()) {
         generateMemorySummary(olderMessages, totalCount).catch(() => {})
       }
     }
@@ -247,18 +246,28 @@ async function generateMemorySummary(
   totalCount: number,
 ) {
   try {
-    const { data, error } = await supabase!.functions.invoke('moti-chat', {
-      body: {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/moti-chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseKey}`,
+        'apikey': supabaseKey,
+      },
+      body: JSON.stringify({
         messages: [
           {
             role: 'user',
             content: `סכם את השיחה הבאה ב-3-4 משפטים קצרים בעברית. התמקד בנושאים העיקריים, החלטות שהתקבלו, ובקשות חוזרות. אל תכלול פרטי שיחה טכניים.\n\nשיחה:\n${olderMessages.map((m) => `${m.role === 'user' ? 'משתמש' : 'מוטי'}: ${m.content.slice(0, 200)}`).join('\n')}`,
           },
         ],
-        summarize: true, // Flag for the edge function to use a shorter response
-      },
+        summarize: true,
+      }),
     })
-    if (!error && data?.text) {
+    const data = response.ok ? await response.json() : null
+    if (data?.text) {
       memorySummary = data.text
       await db.updateChatMemory(data.text, totalCount)
     }
@@ -400,13 +409,15 @@ export async function getBotResponseAsync(userMessage: string): Promise<BotRespo
     return { text: confirmText, actions }
   }
 
-  // Try AI
-  if (supabase) {
+  // Try AI via direct fetch (more reliable than supabase.functions.invoke)
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+
+  if (supabaseUrl && supabaseKey) {
     try {
       // Build messages with memory context
       const messagesWithMemory = [...conversationHistory]
       if (memorySummary) {
-        // Prepend memory summary as a system-like user message
         messagesWithMemory.unshift({
           role: 'user',
           content: `[זיכרון משיחות קודמות: ${memorySummary}]`,
@@ -416,23 +427,29 @@ export async function getBotResponseAsync(userMessage: string): Promise<BotRespo
         })
       }
 
-      const { data, error } = await supabase.functions.invoke('moti-chat', {
-        body: { messages: messagesWithMemory },
+      const response = await fetch(`${supabaseUrl}/functions/v1/moti-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`,
+          'apikey': supabaseKey,
+        },
+        body: JSON.stringify({ messages: messagesWithMemory }),
       })
 
-      if (!error && data?.text) {
-        const assistantMessage = data.text as string
-        conversationHistory.push({ role: 'assistant', content: assistantMessage })
+      if (response.ok) {
+        const data = await response.json()
+        if (data?.text) {
+          const assistantMessage = data.text as string
+          conversationHistory.push({ role: 'assistant', content: assistantMessage })
 
-        // Parse AI-returned actions
-        const aiActions = parseAIActions(data.actions)
+          const aiActions = parseAIActions(data.actions)
+          const allActions = actions.length > 0 ? actions : aiActions
 
-        // Merge: local regex actions take priority, then AI actions
-        const allActions = actions.length > 0 ? actions : aiActions
-
-        return { text: assistantMessage, actions: allActions }
+          return { text: assistantMessage, actions: allActions }
+        }
       }
-      console.warn('Supabase function error, falling back to keywords:', error)
+      console.warn('AI request failed with status:', response.status)
     } catch (err) {
       console.warn('AI request failed, falling back to keywords:', err)
     }
@@ -777,5 +794,5 @@ function getKeywordResponse(message: string): string {
 
 // Check if AI mode is available
 export function isAIMode(): boolean {
-  return supabase !== null
+  return !!(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)
 }
