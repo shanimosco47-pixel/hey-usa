@@ -9,10 +9,9 @@ self.addEventListener('activate', function(event) {
       return Promise.all(names.map(function(name) { return caches.delete(name); }));
     }).then(function() {
       return self.registration.unregister();
-    }).then(function() {
-      return self.clients.matchAll();
-    }).then(function(clients) {
-      clients.forEach(function(client) { client.navigate(client.url); });
     })
   );
 });
+
+// Don't intercept any requests - let them go to network
+self.addEventListener('fetch', function() {});
