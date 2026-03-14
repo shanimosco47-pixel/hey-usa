@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Camera } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { FAMILY_MEMBERS } from '@/constants'
 import type { FamilyMemberId } from '@/types'
+import { getAvatarPhoto, saveAvatarPhoto, compressImageFile } from '@/lib/avatarStorage'
 
 const memberIds = Object.keys(FAMILY_MEMBERS) as FamilyMemberId[]
 
@@ -20,14 +22,46 @@ export function FamilySelectScreen() {
   const { selectMember } = useAuth()
   const navigate = useNavigate()
   const [selected, setSelected] = useState<FamilyMemberId | null>(null)
+  const [avatarPhotos, setAvatarPhotos] = useState<Record<string, string>>(() => {
+    const photos: Record<string, string> = {}
+    for (const id of memberIds) {
+      const photo = getAvatarPhoto(id)
+      if (photo) photos[id] = photo
+    }
+    return photos
+  })
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadingFor, setUploadingFor] = useState<FamilyMemberId | null>(null)
 
   function handleSelect(id: FamilyMemberId) {
     setSelected(id)
-    // Small delay so the bounce animation is visible before navigating
     setTimeout(() => {
       selectMember(id)
       navigate('/')
     }, 400)
+  }
+
+  function handleCameraClick(e: React.MouseEvent, id: FamilyMemberId) {
+    e.stopPropagation()
+    setUploadingFor(id)
+    fileInputRef.current?.click()
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !uploadingFor) return
+
+    try {
+      const compressed = await compressImageFile(file)
+      saveAvatarPhoto(uploadingFor, compressed)
+      setAvatarPhotos((prev) => ({ ...prev, [uploadingFor]: compressed }))
+    } catch (err) {
+      console.warn('Failed to process avatar image:', err)
+    }
+
+    // Reset input so same file can be re-selected
+    e.target.value = ''
+    setUploadingFor(null)
   }
 
   return (
@@ -35,6 +69,15 @@ export function FamilySelectScreen() {
       className="relative flex min-h-screen flex-col items-center justify-center bg-surface-primary px-4 overflow-hidden"
       dir="rtl"
     >
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       {/* Decorative gradient orbs */}
       <div className="pointer-events-none absolute -top-32 -left-32 h-64 w-64 rounded-full bg-ios-green/[0.08] blur-3xl" />
       <div className="pointer-events-none absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-ios-orange/[0.06] blur-3xl" />
@@ -74,6 +117,7 @@ export function FamilySelectScreen() {
             const member = FAMILY_MEMBERS[id]
             const meta = MEMBER_META[id] || { role: member.name, subtitle: '' }
             const isSelected = selected === id
+            const photo = avatarPhotos[id]
 
             return (
               <motion.button
@@ -127,9 +171,26 @@ export function FamilySelectScreen() {
                         maskComposite: 'exclude',
                       }}
                     />
-                    <span className="text-[44px] leading-none" role="img" aria-label={member.name}>
-                      {member.emoji}
-                    </span>
+                    {photo ? (
+                      <img
+                        src={photo}
+                        alt={member.name}
+                        className="h-[88px] w-[88px] rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[44px] leading-none" role="img" aria-label={member.name}>
+                        {member.emoji}
+                      </span>
+                    )}
+
+                    {/* Camera upload button */}
+                    <button
+                      onClick={(e) => handleCameraClick(e, id)}
+                      className="absolute -bottom-1 -left-1 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md border border-black/10 hover:bg-gray-50 active:scale-90 transition-all"
+                      title="העלה תמונה"
+                    >
+                      <Camera className="h-4 w-4 text-apple-secondary" />
+                    </button>
                   </div>
 
                   {/* Name */}

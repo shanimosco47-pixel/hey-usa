@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS } from '@/constants'
 import { motion } from 'framer-motion'
 import type { FamilyMemberId } from '@/types'
+import { getAvatarPhoto } from '@/lib/avatarStorage'
 
 interface FamilyAvatarProps {
   memberId: FamilyMemberId
@@ -33,6 +35,11 @@ export function FamilyAvatar({
 }: FamilyAvatarProps) {
   const member = FAMILY_MEMBERS[memberId]
   const cfg = sizeConfig[size]
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    setPhotoUrl(getAvatarPhoto(memberId))
+  }, [memberId])
 
   if (!member) {
     return (
@@ -58,7 +65,7 @@ export function FamilyAvatar({
       {/* Main avatar circle */}
       <div
         className={cn(
-          'flex items-center justify-center rounded-full font-bold text-white',
+          'flex items-center justify-center rounded-full font-bold text-white overflow-hidden',
           'ring-white/80 ring-offset-1 ring-offset-white/50',
           cfg.box,
           cfg.text,
@@ -70,9 +77,17 @@ export function FamilyAvatar({
         }}
         title={member.name}
       >
-        <span className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)] select-none">
-          {member.initials}
-        </span>
+        {photoUrl ? (
+          <img
+            src={photoUrl}
+            alt={member.name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)] select-none">
+            {member.initials}
+          </span>
+        )}
       </div>
 
       {/* Role icon badge */}
