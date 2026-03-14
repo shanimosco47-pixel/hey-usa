@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Home, ClipboardCheck, MapPinned, MapPin, ImagePlus, MoreHorizontal,
   CalendarDays, FolderOpen, Notebook, Wallet, Headphones, Luggage, Bot, X,
+  StickyNote,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { BOTTOM_TAB_ITEMS, MORE_MENU_ITEMS } from '@/constants'
@@ -11,7 +12,7 @@ import type { LucideIcon } from 'lucide-react'
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Home, ClipboardCheck, MapPinned, MapPin, ImagePlus, CalendarDays,
-  FolderOpen, Notebook, Wallet, Headphones, Luggage, Bot,
+  FolderOpen, Notebook, Wallet, Headphones, Luggage, Bot, StickyNote,
 }
 
 export function BottomTabs() {

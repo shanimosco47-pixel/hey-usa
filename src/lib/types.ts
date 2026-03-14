@@ -177,7 +177,7 @@ export type NoteColor = 'yellow' | 'pink' | 'blue' | 'green' | 'orange' | 'purpl
 
 export interface LocationNote {
   id: string;
-  locationId: string;
+  locationId: string | null;
   text: string;
   author: FamilyMemberId;
   color: NoteColor;

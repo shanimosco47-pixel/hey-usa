@@ -26,6 +26,7 @@ const ChatPage = lazy(() => import('@/modules/chat/ChatPage'))
 const MotiLogPage = lazy(() => import('@/modules/chat/MotiLogPage'))
 const LocationsPage = lazy(() => import('@/modules/locations/LocationsPage'))
 const LocationHubPage = lazy(() => import('@/modules/locations/LocationHubPage'))
+const NotesPage = lazy(() => import('@/modules/notes/NotesPage'))
 
 function LoadingFallback() {
   return (
@@ -85,6 +86,7 @@ export default function App() {
               <Route path="budget" element={<BudgetPage />} />
               <Route path="entertainment" element={<EntertainmentPage />} />
               <Route path="packing" element={<PackingPage />} />
+              <Route path="notes" element={<NotesPage />} />
               <Route path="locations" element={<LocationsPage />} />
               <Route path="locations/:locationId" element={<LocationHubPage />} />
               <Route path="chat" element={<ChatPage />} />
