@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { FAMILY_MEMBERS } from '@/constants'
+import WeatherWidget from '@/components/shared/WeatherWidget'
 import type { LucideIcon } from 'lucide-react'
 
 const TRIP_DATE = new Date('2026-09-11T00:00:00')
@@ -111,6 +112,11 @@ export default function DashboardPage() {
           </div>
         </div>
       </motion.div>
+
+      {/* Weather */}
+      <div className="mb-6">
+        <WeatherWidget mode="dashboard" />
+      </div>
 
       {/* Module grid */}
       <motion.div

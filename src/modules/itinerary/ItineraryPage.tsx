@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useParams, useNavigate } from 'react-router-dom'
 import { format, parseISO, isWithinInterval } from 'date-fns'
@@ -8,6 +8,7 @@ import { DaySelector } from './components/DaySelector'
 import { StopCard } from './components/StopCard'
 import { DriveSegment } from './components/DriveSegment'
 import { cn } from '@/lib/cn'
+import { fetchTripWeather, getWeatherForDate, type DestinationWeather } from '@/lib/weather'
 
 /** Determine the default day index: during the trip show the current day, otherwise show day 1 */
 function getDefaultDayIndex(totalDays: number): number {
@@ -41,6 +42,11 @@ export default function ItineraryPage() {
   }, [dayParam, ITINERARY_DAYS.length])
 
   const [activeDayIndex, setActiveDayIndex] = useState(initialIndex)
+  const [weatherData, setWeatherData] = useState<Record<string, DestinationWeather>>({})
+
+  useEffect(() => {
+    fetchTripWeather().then(setWeatherData).catch(() => {})
+  }, [])
 
   const currentDay = ITINERARY_DAYS[activeDayIndex]
   const date = parseISO(currentDay.date)
@@ -153,7 +159,7 @@ export default function ItineraryPage() {
           </p>
         )}
 
-        {/* Day meta: city, cost */}
+        {/* Day meta: city, weather, cost */}
         <div className="mt-3 flex items-center justify-center gap-4">
           {currentDay.city && (
             <div className="flex items-center gap-1">
@@ -163,6 +169,23 @@ export default function ItineraryPage() {
               </span>
             </div>
           )}
+          {(() => {
+            const w = getWeatherForDate(weatherData, currentDay.date)
+            if (!w) return null
+            return (
+              <div className="flex items-center gap-1">
+                <span className="text-sm">{w.weatherEmoji}</span>
+                <span className="text-xs text-apple-secondary">
+                  {w.tempMin}°–{w.tempMax}°C
+                </span>
+                {w.precipitationProbability > 20 && (
+                  <span className="text-[10px] text-ios-blue">
+                    ({w.precipitationProbability}% גשם)
+                  </span>
+                )}
+              </div>
+            )
+          })()}
           {dayCost > 0 && (
             <div className="flex items-center gap-1">
               <span className="text-xs text-apple-secondary">

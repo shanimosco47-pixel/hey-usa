@@ -201,9 +201,11 @@ export function parseActions(message: string): MotiAction[] {
 // ─── AI Engine (with memory) ────────────────────────────────────────
 
 import * as db from '@/lib/database'
+import { fetchTripWeather, getWeatherSummaryForMoti } from '@/lib/weather'
 
 let conversationHistory: ChatMessage[] = []
 let memorySummary = ''
+let weatherContext = ''
 const MAX_CONTEXT_MESSAGES = 15 // Last 15 messages sent verbatim to Claude
 
 export function resetConversation() {
@@ -214,6 +216,11 @@ export function resetConversation() {
 // Initialize conversation from Supabase DB (called on ChatPage mount)
 export async function initConversationFromDb() {
   try {
+    // Load weather data for Moti's context
+    fetchTripWeather()
+      .then((data) => { weatherContext = getWeatherSummaryForMoti(data) })
+      .catch(() => {})
+
     // Load memory summary
     const memory = await db.fetchChatMemory()
     memorySummary = memory.summary || ''
@@ -415,15 +422,18 @@ export async function getBotResponseAsync(userMessage: string): Promise<BotRespo
 
   if (supabaseUrl && supabaseKey) {
     try {
-      // Build messages with memory context
+      // Build messages with memory + weather context
       const messagesWithMemory = [...conversationHistory]
-      if (memorySummary) {
+      if (memorySummary || weatherContext) {
+        const contextParts: string[] = []
+        if (memorySummary) contextParts.push(`[זיכרון משיחות קודמות: ${memorySummary}]`)
+        if (weatherContext) contextParts.push(`[${weatherContext}]`)
         messagesWithMemory.unshift({
           role: 'user',
-          content: `[זיכרון משיחות קודמות: ${memorySummary}]`,
+          content: contextParts.join('\n\n'),
         }, {
           role: 'assistant',
-          content: 'תודה, אני זוכר את השיחות הקודמות שלנו. במה אפשר לעזור?',
+          content: 'תודה, אני מעודכן. במה אפשר לעזור?',
         })
       }
 
