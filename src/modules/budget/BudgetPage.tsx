@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   DollarSign,
@@ -115,10 +115,21 @@ export default function BudgetPage() {
     return totals
   }, [expenses])
 
-  const totalPlanned = useMemo(
-    () => Object.values(settings.category_budgets).reduce((sum, v) => sum + v, 0),
+  const nonOtherPlanned = useMemo(
+    () => Object.entries(settings.category_budgets)
+      .filter(([cat]) => cat !== 'other')
+      .reduce((sum, [, v]) => sum + v, 0),
     [settings.category_budgets],
   )
+
+  const otherBudgetRemainder = settings.total_budget - nonOtherPlanned
+
+  // Keep "other" category_budgets in sync with the calculated remainder
+  useEffect(() => {
+    if (settings.category_budgets['other'] !== otherBudgetRemainder) {
+      updateBudgetCategory('other', otherBudgetRemainder)
+    }
+  }, [otherBudgetRemainder, settings.category_budgets, updateBudgetCategory])
 
   const pieData = useMemo(
     () =>
@@ -314,12 +325,6 @@ export default function BudgetPage() {
                 {settings.currency}{settings.total_budget.toLocaleString()}
               </p>
             )}
-            {totalPlanned !== settings.total_budget && (
-              <p className="mt-2 text-xs text-ios-orange">
-                סה״כ מתוכנן לפי קטגוריות: {settings.currency}{totalPlanned.toLocaleString()}
-                {totalPlanned > settings.total_budget ? ' (חריגה!)' : ` (נותר ${settings.currency}${(settings.total_budget - totalPlanned).toLocaleString()} לא מחולק)`}
-              </p>
-            )}
           </div>
 
           {/* Category Budgets */}
@@ -328,21 +333,29 @@ export default function BudgetPage() {
             <div className="space-y-2">
               {Object.entries(EXPENSE_CATEGORIES).map(([cat, { label }]) => {
                 const IconComp = CATEGORY_ICONS[cat] || DollarSign
-                const planned = settings.category_budgets[cat] || 0
+                const isOther = cat === 'other'
+                const planned = isOther ? otherBudgetRemainder : (settings.category_budgets[cat] || 0)
                 const spent = categoryTotals[cat] || 0
                 const catPercent = planned > 0 ? (spent / planned) * 100 : 0
                 const isEditing = editingCategory === cat
 
                 return (
-                  <div key={cat} className="rounded-xl border border-black/[0.04] p-3">
+                  <div key={cat} className={cn('rounded-xl border p-3', isOther ? 'border-black/[0.08] bg-black/[0.02]' : 'border-black/[0.04]')}>
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black/[0.04]">
-                        <IconComp className="h-4 w-4 text-apple-secondary" />
+                      <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', isOther ? 'bg-black/[0.06]' : 'bg-black/[0.04]')}>
+                        <IconComp className={cn('h-4 w-4', isOther ? 'text-apple-tertiary' : 'text-apple-secondary')} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-apple-primary">{label}</span>
-                          {isEditing ? (
+                          <span className={cn('text-sm font-medium', isOther ? 'text-apple-secondary' : 'text-apple-primary')}>
+                            {label}
+                            {isOther && <span className="text-[10px] text-apple-tertiary mr-1"> (יתרה אוטומטית)</span>}
+                          </span>
+                          {isOther ? (
+                            <span className={cn('text-sm font-medium', planned < 0 ? 'text-ios-red' : 'text-apple-secondary')}>
+                              {settings.currency}{planned.toLocaleString()}
+                            </span>
+                          ) : isEditing ? (
                             <div className="flex items-center gap-1">
                               <input
                                 type="number"
@@ -378,7 +391,7 @@ export default function BudgetPage() {
                                 'h-full rounded-full transition-all',
                                 catPercent > 100 ? 'bg-ios-red' : catPercent > 70 ? 'bg-ios-orange' : 'bg-ios-blue',
                               )}
-                              style={{ width: `${Math.min(catPercent, 100)}%` }}
+                              style={{ width: `${Math.min(Math.max(catPercent, 0), 100)}%` }}
                             />
                           </div>
                           <span className="text-[10px] text-apple-tertiary whitespace-nowrap">

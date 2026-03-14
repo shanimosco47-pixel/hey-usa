@@ -60,44 +60,37 @@ function MotiCharacter({ size = 24 }: { size?: number }) {
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} fill="none" xmlns="http://www.w3.org/2000/svg">
       {/* Body */}
-      <ellipse cx="32" cy="46" rx="12" ry="10" fill="#FFD93D" />
+      <ellipse cx="32" cy="50" rx="10" ry="8" fill="#FFD93D" />
       {/* Neck */}
-      <rect x="29" y="36" width="6" height="6" rx="2" fill="#FFD93D" />
-      {/* Head */}
-      <circle cx="32" cy="28" r="14" fill="#FFE066" />
-      {/* Explorer hat */}
-      <ellipse cx="32" cy="18" rx="16" ry="4" fill="#8B6914" />
-      <path d="M22 18 Q32 6 42 18" fill="#A0791A" />
-      <rect x="22" y="16" width="20" height="3" rx="1.5" fill="#8B6914" />
-      {/* Eyes */}
+      <rect x="30" y="40" width="4" height="5" rx="2" fill="#FFD93D" />
+      {/* Head - simple round face */}
+      <circle cx="32" cy="28" r="16" fill="#FFE066" />
+      {/* Eyes - blinking */}
       <motion.g
         animate={{ scaleY: [1, 0.1, 1] }}
         transition={{ duration: 0.15, repeat: Infinity, repeatDelay: 4, ease: 'easeInOut' }}
       >
-        <circle cx="27" cy="27" r="2.5" fill="#1d1d1f" />
-        <circle cx="37" cy="27" r="2.5" fill="#1d1d1f" />
+        <circle cx="26" cy="26" r="2.5" fill="#1d1d1f" />
+        <circle cx="38" cy="26" r="2.5" fill="#1d1d1f" />
       </motion.g>
       {/* Eye highlights */}
-      <circle cx="28" cy="26" r="0.8" fill="white" />
-      <circle cx="38" cy="26" r="0.8" fill="white" />
+      <circle cx="27" cy="25" r="0.8" fill="white" />
+      <circle cx="39" cy="25" r="0.8" fill="white" />
       {/* Smile */}
-      <path d="M27 32 Q32 37 37 32" stroke="#1d1d1f" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+      <path d="M25 33 Q32 39 39 33" stroke="#1d1d1f" strokeWidth="1.8" strokeLinecap="round" fill="none" />
       {/* Cheeks */}
-      <circle cx="23" cy="31" r="2" fill="#FFB5B5" opacity="0.6" />
-      <circle cx="41" cy="31" r="2" fill="#FFB5B5" opacity="0.6" />
+      <circle cx="21" cy="31" r="2.5" fill="#FFB5B5" opacity="0.5" />
+      <circle cx="43" cy="31" r="2.5" fill="#FFB5B5" opacity="0.5" />
       {/* Waving hand */}
       <motion.g
         animate={{ rotate: [0, 15, -5, 15, 0] }}
         transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
-        style={{ transformOrigin: '46px 42px' }}
+        style={{ transformOrigin: '44px 48px' }}
       >
-        <circle cx="48" cy="38" r="3.5" fill="#FFD93D" />
-        {/* Fingers */}
-        <circle cx="50" cy="35" r="1.2" fill="#FFD93D" />
-        <circle cx="48" cy="34" r="1.2" fill="#FFD93D" />
+        <circle cx="46" cy="44" r="3.5" fill="#FFD93D" />
       </motion.g>
       {/* Other arm */}
-      <circle cx="16" cy="42" r="3.5" fill="#FFD93D" />
+      <circle cx="18" cy="46" r="3.5" fill="#FFD93D" />
     </svg>
   )
 }
@@ -199,8 +192,12 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(true)
+  const [visibleCount, setVisibleCount] = useState(5)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const hasOlderMessages = messages.length > visibleCount
+  const visibleMessages = hasOlderMessages ? messages.slice(-visibleCount) : messages
 
   // Load chat history from Supabase on mount
   useEffect(() => {
@@ -342,7 +339,7 @@ export default function ChatPage() {
     sendMessage(input)
   }
 
-  const showSuggestions = messages.length <= 1 && !isTyping
+  const showSuggestions = visibleMessages.length <= 1 && !isTyping
 
   if (isLoadingHistory) {
     return (
@@ -381,8 +378,20 @@ export default function ChatPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {hasOlderMessages && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 10)}
+              className="flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-4 py-2 text-[13px] font-medium text-apple-secondary hover:bg-surface-primary transition-colors"
+              style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
+            >
+              <History className="h-3.5 w-3.5" />
+              הצג הודעות ישנות ({messages.length - visibleCount} נוספות)
+            </button>
+          </div>
+        )}
         <AnimatePresence initial={false}>
-          {messages.map((msg) => (
+          {visibleMessages.map((msg) => (
             <motion.div
               key={msg.id}
               initial={{ opacity: 0, y: 10, scale: 0.97 }}
