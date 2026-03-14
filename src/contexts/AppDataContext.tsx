@@ -21,6 +21,7 @@ import type {
   Photo,
   Document,
   PlaylistItem,
+  LocationNote,
 } from '@/lib/types'
 import { EXPENSE_CATEGORIES } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
@@ -35,6 +36,7 @@ import { SAMPLE_BLOG_POSTS } from '@/modules/blog/data/samplePosts'
 import { SAMPLE_PHOTOS } from '@/modules/photos/data/samplePhotos'
 import { sampleDocuments as SAMPLE_DOCUMENTS } from '@/modules/documents/data/sampleDocuments'
 import { SAMPLE_PLAYLIST } from '@/modules/entertainment/data/sampleEntertainment'
+import { SAMPLE_LOCATION_NOTES } from '@/data/sampleLocationNotes'
 
 // ─── Moti Action Types ──────────────────────────────────────────────
 
@@ -135,6 +137,12 @@ interface AppDataContextType {
   updatePlaylistItem: (id: string, changes: Partial<PlaylistItem>) => void
   deletePlaylistItem: (id: string) => void
 
+  // Location Notes
+  locationNotes: LocationNote[]
+  addLocationNote: (note: Omit<LocationNote, 'id' | 'created_at' | 'updated_at'>) => void
+  updateLocationNote: (id: string, changes: Partial<LocationNote>) => void
+  deleteLocationNote: (id: string) => void
+
   // Moti
   executeMotiAction: (action: MotiAction) => string | null
   changeLog: MotiChangeLogEntry[]
@@ -168,6 +176,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [photos, setPhotos] = useState<Photo[]>(SAMPLE_PHOTOS)
   const [documents, setDocuments] = useState<Document[]>(SAMPLE_DOCUMENTS)
   const [playlistItems, setPlaylistItems] = useState<PlaylistItem[]>(SAMPLE_PLAYLIST)
+  const [locationNotes, setLocationNotes] = useState<LocationNote[]>(SAMPLE_LOCATION_NOTES)
   const [changeLog, setChangeLog] = useState<MotiChangeLogEntry[]>([])
 
   // ─── Load from Supabase on mount ────────────────────────────────
@@ -517,6 +526,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     db.deletePlaylistItem(id).catch(() => {})
   }, [])
 
+  // ─── Location Notes ────────────────────────────────────────────
+
+  const addLocationNote = useCallback((note: Omit<LocationNote, 'id' | 'created_at' | 'updated_at'>) => {
+    const now = new Date().toISOString()
+    const newNote: LocationNote = { ...note, id: `note-${Date.now()}`, created_at: now, updated_at: now }
+    setLocationNotes((prev) => [newNote, ...prev])
+  }, [])
+
+  const updateLocationNote = useCallback((id: string, changes: Partial<LocationNote>) => {
+    setLocationNotes((prev) =>
+      prev.map((n) => {
+        if (n.id !== id) return n
+        return { ...n, ...changes, updated_at: new Date().toISOString() }
+      }),
+    )
+  }, [])
+
+  const deleteLocationNote = useCallback((id: string) => {
+    setLocationNotes((prev) => prev.filter((n) => n.id !== id))
+  }, [])
+
   // ─── Undo ───────────────────────────────────────────────────────
 
   const undoLastChange = useCallback((): boolean => {
@@ -671,6 +701,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         addPlaylistItem,
         updatePlaylistItem,
         deletePlaylistItem,
+        locationNotes,
+        addLocationNote,
+        updateLocationNote,
+        deleteLocationNote,
         executeMotiAction,
         changeLog,
         undoLastChange,

@@ -1,11 +1,11 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Camera } from 'lucide-react'
+import { Camera, Pencil, Check } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { FAMILY_MEMBERS } from '@/constants'
 import type { FamilyMemberId } from '@/types'
-import { getAvatarPhoto, saveAvatarPhoto, compressImageFile } from '@/lib/avatarStorage'
+import { getAvatarPhoto, saveAvatarPhoto, compressImageFile, getMemberName, saveMemberName } from '@/lib/avatarStorage'
 
 const memberIds = Object.keys(FAMILY_MEMBERS) as FamilyMemberId[]
 
@@ -32,6 +32,17 @@ export function FamilySelectScreen() {
   })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadingFor, setUploadingFor] = useState<FamilyMemberId | null>(null)
+  const [customNames, setCustomNames] = useState<Record<string, string>>(() => {
+    const names: Record<string, string> = {}
+    for (const id of memberIds) {
+      const name = getMemberName(id)
+      if (name) names[id] = name
+    }
+    return names
+  })
+  const [editingName, setEditingName] = useState<FamilyMemberId | null>(null)
+  const [editNameValue, setEditNameValue] = useState('')
+  const nameInputRef = useRef<HTMLInputElement>(null)
 
   function handleSelect(id: FamilyMemberId) {
     setSelected(id)
@@ -39,6 +50,25 @@ export function FamilySelectScreen() {
       selectMember(id)
       navigate('/')
     }, 400)
+  }
+
+  function handleEditName(e: React.MouseEvent, id: FamilyMemberId) {
+    e.stopPropagation()
+    const current = customNames[id] || FAMILY_MEMBERS[id].name
+    setEditingName(id)
+    setEditNameValue(current)
+    setTimeout(() => nameInputRef.current?.focus(), 50)
+  }
+
+  function handleSaveName(e?: React.MouseEvent) {
+    e?.stopPropagation()
+    if (!editingName) return
+    const trimmed = editNameValue.trim()
+    if (trimmed) {
+      saveMemberName(editingName, trimmed)
+      setCustomNames((prev) => ({ ...prev, [editingName]: trimmed }))
+    }
+    setEditingName(null)
   }
 
   function handleCameraClick(e: React.MouseEvent, id: FamilyMemberId) {
@@ -194,9 +224,37 @@ export function FamilySelectScreen() {
                   </div>
 
                   {/* Name */}
-                  <span className="text-[17px] font-bold text-apple-primary leading-tight">
-                    {member.name}
-                  </span>
+                  {editingName === id ? (
+                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        ref={nameInputRef}
+                        value={editNameValue}
+                        onChange={(e) => setEditNameValue(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName() }}
+                        className="w-24 text-center text-[17px] font-bold text-apple-primary bg-white/60 border border-ios-blue/30 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-ios-blue/40"
+                        dir="rtl"
+                      />
+                      <button
+                        onClick={handleSaveName}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-ios-blue text-white shadow-sm hover:bg-blue-600 active:scale-90 transition-all"
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[17px] font-bold text-apple-primary leading-tight">
+                        {customNames[id] || member.name}
+                      </span>
+                      <button
+                        onClick={(e) => handleEditName(e, id)}
+                        className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-black/[0.06] transition-colors"
+                        title="שנה שם"
+                      >
+                        <Pencil className="h-3 w-3 text-apple-tertiary" />
+                      </button>
+                    </div>
+                  )}
 
                   {/* Role label */}
                   <span

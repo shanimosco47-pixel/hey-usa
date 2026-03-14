@@ -218,6 +218,72 @@ ol {
     50% { transform: scale(1.2); }
     100% { transform: scale(1); opacity: 1; }
   }
+
+  /* ── Sticky Note Colors ──────────────────────────────────── */
+  .sticky-yellow { background: #fff9c4; }
+  .sticky-pink { background: #fce4ec; }
+  .sticky-blue { background: #e3f2fd; }
+  .sticky-green { background: #e8f5e9; }
+  .sticky-orange { background: #fff3e0; }
+  .sticky-purple { background: #f3e5f5; }
+
+  /* Sticky note base style */
+  .sticky-note {
+    position: relative;
+    border-radius: 2px 2px 12px 2px;
+    box-shadow:
+      2px 3px 8px rgba(0, 0, 0, 0.12),
+      0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: transform 200ms var(--ease-default), box-shadow 200ms var(--ease-default);
+  }
+  .sticky-note:hover {
+    box-shadow:
+      3px 5px 15px rgba(0, 0, 0, 0.18),
+      0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Tape strip decoration */
+  .tape-strip {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 0.5px solid rgba(0, 0, 0, 0.08);
+    border-radius: 1px;
+    z-index: 1;
+  }
+
+  /* Cork board background */
+  .cork-bg {
+    background-color: #c9956b;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(139, 90, 43, 0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(160, 110, 60, 0.12) 0%, transparent 50%),
+      radial-gradient(circle at 40% 70%, rgba(120, 75, 35, 0.1) 0%, transparent 40%);
+  }
+
+  /* Pushpin decoration */
+  .pushpin {
+    position: relative;
+  }
+  .pushpin::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle at 40% 35%, #ff6b6b, #c0392b);
+    border-radius: 50%;
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.3),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    z-index: 2;
+  }
 }
 
 /* Custom scrollbar — thin & rounded */

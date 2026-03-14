@@ -79,6 +79,7 @@ export interface Document {
   file_size?: number;
   notes?: string;
   expiry_date?: string;
+  locationId?: string;
   created_at: string;
   updated_at: string;
 }
@@ -168,6 +169,21 @@ export interface PlaylistItem {
 export interface PlaylistVote {
   member_id: FamilyMemberId;
   vote: 'up' | 'down';
+}
+
+// ─── Location Notes ────────────────────────────────────────────
+
+export type NoteColor = 'yellow' | 'pink' | 'blue' | 'green' | 'orange' | 'purple'
+
+export interface LocationNote {
+  id: string;
+  locationId: string;
+  text: string;
+  author: FamilyMemberId;
+  color: NoteColor;
+  pinned: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 // ─── Sync ───────────────────────────────────────────────────────────

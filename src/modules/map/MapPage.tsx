@@ -4,6 +4,7 @@ import { Icon } from 'leaflet'
 import { Map, Layers, Navigation } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { ITINERARY_DAYS } from '@/data/itinerary'
+import { getPrimaryLocationForCity } from '@/data/locations'
 import 'leaflet/dist/leaflet.css'
 
 // Fix default marker icon issue in Leaflet + bundlers
@@ -32,6 +33,7 @@ interface MapPoint {
   dayIndex: number
   location?: string
   time?: string
+  city?: string
 }
 
 export default function MapPage() {
@@ -51,6 +53,7 @@ export default function MapPage() {
             dayIndex: dayIdx,
             location: stop.location,
             time: stop.start_time,
+            city: day.city,
           })
         }
       })
@@ -214,6 +217,17 @@ export default function MapPage() {
                     {point.time && (
                       <p className="text-xs text-gray-400">{point.time}</p>
                     )}
+                    {(() => {
+                      const loc = getPrimaryLocationForCity(point.city)
+                      return loc ? (
+                        <a
+                          href={`/hey-usa/locations/${loc.id}`}
+                          className="inline-block mt-1.5 text-xs font-medium text-blue-600 hover:underline"
+                        >
+                          📍 {loc.nameHe} — הערות ומסמכים
+                        </a>
+                      ) : null
+                    })()}
                   </div>
                 </Popup>
               )}

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { format, parseISO, isWithinInterval } from 'date-fns'
 import { Calendar, MapPin, StickyNote, ChevronLeft, ChevronRight, List, Clock } from 'lucide-react'
 import { useAppData } from '@/contexts/AppDataContext'
@@ -10,6 +10,7 @@ import { DriveSegment } from './components/DriveSegment'
 import { DayPlannerBoard } from './components/DayPlannerBoard'
 import { cn } from '@/lib/cn'
 import { fetchTripWeather, getWeatherForDate, type DestinationWeather } from '@/lib/weather'
+import { getPrimaryLocationForCity } from '@/data/locations'
 
 // City-themed gradients, emojis & hero photos for visual flair
 const CITY_THEMES: Record<string, { gradient: string; emoji: string; photo?: string }> = {
@@ -221,12 +222,23 @@ export default function ItineraryPage() {
 
               <h2 className="text-lg font-bold text-center drop-shadow-sm">{currentDay.title}</h2>
 
-              {currentDay.city && (
-                <div className="flex items-center justify-center gap-1 mt-1">
-                  <MapPin className="h-3 w-3 text-white/70" />
-                  <span className="text-xs text-white/80" dir="ltr">{currentDay.city}</span>
-                </div>
-              )}
+              {currentDay.city && (() => {
+                const loc = getPrimaryLocationForCity(currentDay.city)
+                return loc ? (
+                  <Link
+                    to={`/locations/${loc.id}`}
+                    className="flex items-center justify-center gap-1 mt-1 hover:bg-white/10 rounded-full px-2 py-0.5 transition-colors"
+                  >
+                    <MapPin className="h-3 w-3 text-white/70" />
+                    <span className="text-xs text-white/80 underline decoration-white/30" dir="ltr">{currentDay.city}</span>
+                  </Link>
+                ) : (
+                  <div className="flex items-center justify-center gap-1 mt-1">
+                    <MapPin className="h-3 w-3 text-white/70" />
+                    <span className="text-xs text-white/80" dir="ltr">{currentDay.city}</span>
+                  </div>
+                )
+              })()}
 
               {/* Weather + cost strip */}
               <div className="flex items-center justify-center gap-3 mt-2">

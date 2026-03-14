@@ -3,7 +3,7 @@ import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS } from '@/constants'
 import { motion } from 'framer-motion'
 import type { FamilyMemberId } from '@/types'
-import { getAvatarPhoto } from '@/lib/avatarStorage'
+import { getAvatarPhoto, getMemberName } from '@/lib/avatarStorage'
 
 interface FamilyAvatarProps {
   memberId: FamilyMemberId
@@ -36,6 +36,8 @@ export function FamilyAvatar({
   const member = FAMILY_MEMBERS[memberId]
   const cfg = sizeConfig[size]
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const displayName = getMemberName(memberId) || member?.name || '?'
+  const displayInitials = displayName.slice(0, 2)
 
   useEffect(() => {
     setPhotoUrl(getAvatarPhoto(memberId))
@@ -75,17 +77,17 @@ export function FamilyAvatar({
           background: `linear-gradient(145deg, ${member.color}, ${member.colorEnd || member.color})`,
           boxShadow: `0 2px 10px ${member.color}40, inset 0 1px 0 rgba(255,255,255,0.2)`,
         }}
-        title={member.name}
+        title={displayName}
       >
         {photoUrl ? (
           <img
             src={photoUrl}
-            alt={member.name}
+            alt={displayName}
             className="h-full w-full object-cover"
           />
         ) : (
           <span className="drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)] select-none">
-            {member.initials}
+            {displayInitials}
           </span>
         )}
       </div>

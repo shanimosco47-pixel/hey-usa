@@ -72,6 +72,7 @@ const MODULE_CARDS: {
   { path: '/budget', icon: CreditCard, label: 'תקציב', color: '#FF9500', countKey: 'expenses' },
   { path: '/entertainment', icon: Music, label: 'בידור', color: '#AF52DE' },
   { path: '/packing', icon: Briefcase, label: 'אריזה', color: '#5AC8FA', countKey: 'packing' },
+  { path: '/locations', icon: MapPin, label: 'יעדים', color: '#FF6B35' },
 ]
 
 function getDaysUntilTrip(): number {

@@ -28,6 +28,35 @@ export function saveAvatarPhoto(memberId: FamilyMemberId, dataUrl: string): void
   }
 }
 
+// --- Custom member names ---
+
+const NAMES_KEY = 'hey-usa-member-names'
+
+function getAllNames(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(NAMES_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+/** Get custom name for a member, or null if not set */
+export function getMemberName(memberId: FamilyMemberId): string | null {
+  return getAllNames()[memberId] || null
+}
+
+/** Save a custom name for a member */
+export function saveMemberName(memberId: FamilyMemberId, name: string): void {
+  const all = getAllNames()
+  all[memberId] = name
+  try {
+    localStorage.setItem(NAMES_KEY, JSON.stringify(all))
+  } catch {
+    // ignore
+  }
+}
+
 /** Remove avatar photo for a member */
 export function removeAvatarPhoto(memberId: FamilyMemberId): void {
   const all = getAll()

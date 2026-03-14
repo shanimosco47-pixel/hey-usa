@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Home, ClipboardCheck, MapPinned, ImagePlus, MoreHorizontal,
+  Home, ClipboardCheck, MapPinned, MapPin, ImagePlus, MoreHorizontal,
   CalendarDays, FolderOpen, Notebook, Wallet, Headphones, Luggage, Bot, X,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -10,7 +10,7 @@ import { BOTTOM_TAB_ITEMS, MORE_MENU_ITEMS } from '@/constants'
 import type { LucideIcon } from 'lucide-react'
 
 const ICON_MAP: Record<string, LucideIcon> = {
-  Home, ClipboardCheck, MapPinned, ImagePlus, CalendarDays,
+  Home, ClipboardCheck, MapPinned, MapPin, ImagePlus, CalendarDays,
   FolderOpen, Notebook, Wallet, Headphones, Luggage, Bot,
 }
 
