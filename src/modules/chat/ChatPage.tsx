@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Send, Bot, ArrowRight, Sparkles, WifiOff, Zap, History } from 'lucide-react'
+import { Send, ArrowRight, Sparkles, WifiOff, Zap, History } from 'lucide-react'
 import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, initConversationFromDb } from './botEngine'
 import { useAppData } from '@/contexts/AppDataContext'
 import * as db from '@/lib/database'
@@ -56,18 +56,67 @@ function getSmartSuggestions(data: {
   return [...new Set(suggestions)].slice(0, 6)
 }
 
+function MotiCharacter({ size = 24 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 64 64" width={size} height={size} fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Body */}
+      <ellipse cx="32" cy="46" rx="12" ry="10" fill="#FFD93D" />
+      {/* Neck */}
+      <rect x="29" y="36" width="6" height="6" rx="2" fill="#FFD93D" />
+      {/* Head */}
+      <circle cx="32" cy="28" r="14" fill="#FFE066" />
+      {/* Explorer hat */}
+      <ellipse cx="32" cy="18" rx="16" ry="4" fill="#8B6914" />
+      <path d="M22 18 Q32 6 42 18" fill="#A0791A" />
+      <rect x="22" y="16" width="20" height="3" rx="1.5" fill="#8B6914" />
+      {/* Eyes */}
+      <motion.g
+        animate={{ scaleY: [1, 0.1, 1] }}
+        transition={{ duration: 0.15, repeat: Infinity, repeatDelay: 4, ease: 'easeInOut' }}
+      >
+        <circle cx="27" cy="27" r="2.5" fill="#1d1d1f" />
+        <circle cx="37" cy="27" r="2.5" fill="#1d1d1f" />
+      </motion.g>
+      {/* Eye highlights */}
+      <circle cx="28" cy="26" r="0.8" fill="white" />
+      <circle cx="38" cy="26" r="0.8" fill="white" />
+      {/* Smile */}
+      <path d="M27 32 Q32 37 37 32" stroke="#1d1d1f" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+      {/* Cheeks */}
+      <circle cx="23" cy="31" r="2" fill="#FFB5B5" opacity="0.6" />
+      <circle cx="41" cy="31" r="2" fill="#FFB5B5" opacity="0.6" />
+      {/* Waving hand */}
+      <motion.g
+        animate={{ rotate: [0, 15, -5, 15, 0] }}
+        transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
+        style={{ transformOrigin: '46px 42px' }}
+      >
+        <circle cx="48" cy="38" r="3.5" fill="#FFD93D" />
+        {/* Fingers */}
+        <circle cx="50" cy="35" r="1.2" fill="#FFD93D" />
+        <circle cx="48" cy="34" r="1.2" fill="#FFD93D" />
+      </motion.g>
+      {/* Other arm */}
+      <circle cx="16" cy="42" r="3.5" fill="#FFD93D" />
+    </svg>
+  )
+}
+
 function BotAvatar({ size = 'md' }: { size?: 'sm' | 'md' }) {
   const px = size === 'sm' ? 'h-8 w-8' : 'h-10 w-10'
+  const charSize = size === 'sm' ? 28 : 34
   return (
-    <div
-      className={`${px} rounded-full flex items-center justify-center shrink-0`}
+    <motion.div
+      animate={{ y: [0, -2, 0] }}
+      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+      className={`${px} rounded-full flex items-center justify-center shrink-0 overflow-hidden`}
       style={{
-        background: 'linear-gradient(145deg, #1d1d1f, #3a3a3c)',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+        background: 'linear-gradient(145deg, #4A90D9, #7B68EE)',
+        boxShadow: '0 2px 10px rgba(90, 100, 220, 0.3)',
       }}
     >
-      <Bot className="h-5 w-5 text-white/90" strokeWidth={1.8} />
-    </div>
+      <MotiCharacter size={charSize} />
+    </motion.div>
   )
 }
 

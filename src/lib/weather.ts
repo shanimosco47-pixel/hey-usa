@@ -102,44 +102,112 @@ function saveCache(data: Record<string, DestinationWeather>) {
   } catch { /* quota exceeded — ignore */ }
 }
 
+// Check if a date is more than 14 days in the future
+function isBeyondForecastRange(dateStr: string): boolean {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = date.getTime() - now.getTime()
+  const diffDays = diffMs / (1000 * 60 * 60 * 24)
+  return diffDays > 14
+}
+
+// Shift a date string back by one year (2026 → 2025)
+function shiftYearBack(dateStr: string): string {
+  return dateStr.replace(/^2026-/, '2025-')
+}
+
+// Shift a date string forward by one year (2025 → 2026)
+function shiftYearForward(dateStr: string): string {
+  return dateStr.replace(/^2025-/, '2026-')
+}
+
+// Estimate precipitation probability from daily precipitation sum (mm)
+function estimatePrecipProbability(precipSum: number): number {
+  if (precipSum <= 0.1) return 0
+  if (precipSum <= 1) return 15
+  if (precipSum <= 5) return 40
+  if (precipSum <= 15) return 65
+  return 85
+}
+
 // Fetch weather for a single destination
+// Uses archive API (last year's data) when trip dates are beyond forecast range
 async function fetchDestinationWeather(
   city: string,
   lat: number,
   lng: number,
 ): Promise<DestinationWeather | null> {
   try {
-    const params = new URLSearchParams({
-      latitude: lat.toString(),
-      longitude: lng.toString(),
-      daily: 'temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code',
-      timezone: 'America/Los_Angeles',
-      start_date: '2026-09-11',
-      end_date: '2026-09-30',
-      temperature_unit: 'celsius',
-    })
+    const useArchive = isBeyondForecastRange('2026-09-11')
 
-    const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`)
-    if (!res.ok) return null
+    if (useArchive) {
+      // Use last year's actual weather as a proxy for this year
+      const params = new URLSearchParams({
+        latitude: lat.toString(),
+        longitude: lng.toString(),
+        daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,weather_code',
+        timezone: 'America/Los_Angeles',
+        start_date: shiftYearBack('2026-09-11'),
+        end_date: shiftYearBack('2026-09-30'),
+        temperature_unit: 'celsius',
+      })
 
-    const json = await res.json()
-    const d = json.daily
+      const res = await fetch(`https://archive-api.open-meteo.com/v1/archive?${params}`)
+      if (!res.ok) return null
 
-    const daily: DayWeather[] = d.time.map((date: string, i: number) => {
-      const code = d.weather_code[i] ?? 0
-      const info = getWeatherInfo(code)
-      return {
-        date,
-        tempMax: Math.round(d.temperature_2m_max[i]),
-        tempMin: Math.round(d.temperature_2m_min[i]),
-        precipitationProbability: d.precipitation_probability_max[i] ?? 0,
-        weatherCode: code,
-        weatherLabel: info.label,
-        weatherEmoji: info.emoji,
-      }
-    })
+      const json = await res.json()
+      const d = json.daily
 
-    return { city, lat, lng, daily }
+      const daily: DayWeather[] = d.time.map((date: string, i: number) => {
+        const code = d.weather_code[i] ?? 0
+        const info = getWeatherInfo(code)
+        const precipSum = d.precipitation_sum[i] ?? 0
+        return {
+          date: shiftYearForward(date), // Map 2025 dates back to 2026
+          tempMax: Math.round(d.temperature_2m_max[i]),
+          tempMin: Math.round(d.temperature_2m_min[i]),
+          precipitationProbability: estimatePrecipProbability(precipSum),
+          weatherCode: code,
+          weatherLabel: info.label,
+          weatherEmoji: info.emoji,
+        }
+      })
+
+      return { city, lat, lng, daily }
+    } else {
+      // Trip is within forecast range — use the regular forecast API
+      const params = new URLSearchParams({
+        latitude: lat.toString(),
+        longitude: lng.toString(),
+        daily: 'temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code',
+        timezone: 'America/Los_Angeles',
+        start_date: '2026-09-11',
+        end_date: '2026-09-30',
+        temperature_unit: 'celsius',
+      })
+
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`)
+      if (!res.ok) return null
+
+      const json = await res.json()
+      const d = json.daily
+
+      const daily: DayWeather[] = d.time.map((date: string, i: number) => {
+        const code = d.weather_code[i] ?? 0
+        const info = getWeatherInfo(code)
+        return {
+          date,
+          tempMax: Math.round(d.temperature_2m_max[i]),
+          tempMin: Math.round(d.temperature_2m_min[i]),
+          precipitationProbability: d.precipitation_probability_max[i] ?? 0,
+          weatherCode: code,
+          weatherLabel: info.label,
+          weatherEmoji: info.emoji,
+        }
+      })
+
+      return { city, lat, lng, daily }
+    }
   } catch {
     return null
   }

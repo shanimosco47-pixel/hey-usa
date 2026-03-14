@@ -13,7 +13,7 @@ function formatTime(timezone: string): string {
   }).format(new Date())
 }
 
-export function DualClock({ usaTimezone = 'America/Denver' }: DualClockProps) {
+export function DualClock({ usaTimezone = 'America/Los_Angeles' }: DualClockProps) {
   const [israelTime, setIsraelTime] = useState(() =>
     formatTime('Asia/Jerusalem'),
   )
@@ -46,7 +46,7 @@ export function DualClock({ usaTimezone = 'America/Denver' }: DualClockProps) {
           🇺🇸
         </span>
         <span className="font-medium">{usaTime}</span>
-        <span className="text-[10px] text-apple-tertiary">US</span>
+        <span className="text-[10px] text-apple-tertiary">PT</span>
       </span>
     </div>
   )

@@ -119,12 +119,17 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
           {(() => {
             const todayPos = getBarPosition(new Date().toISOString().split('T')[0])
             return (
-              <div
-                className="pointer-events-none absolute top-0 bottom-0 z-10 w-px bg-ios-red"
-                style={{ right: `calc(192px + ${todayPos}% * (100% - 192px) / 100%)` }}
-              >
-                <div className="absolute -top-1 -translate-x-1/2 rounded bg-ios-red px-1 py-0.5 text-[9px] font-bold text-white">
-                  היום
+              <div className="pointer-events-none absolute inset-0 flex" style={{ zIndex: 10 }}>
+                <div className="w-48 shrink-0" />
+                <div className="relative flex-1">
+                  <div
+                    className="absolute top-0 bottom-0 w-px bg-ios-red"
+                    style={{ right: `${todayPos}%` }}
+                  >
+                    <div className="absolute -top-1 -translate-x-1/2 rounded bg-ios-red px-1 py-0.5 text-[9px] font-bold text-white">
+                      היום
+                    </div>
+                  </div>
                 </div>
               </div>
             )

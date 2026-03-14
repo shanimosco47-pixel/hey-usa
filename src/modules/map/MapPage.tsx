@@ -66,22 +66,51 @@ export default function MapPage() {
     [allPoints, selectedDay],
   )
 
+  // Build a continuous route: colored segments between consecutive stops
   const routeLines = useMemo(() => {
-    const lines: { positions: [number, number][]; color: string }[] = []
-    const daysToShow =
-      selectedDay !== null
-        ? [{ day: ITINERARY_DAYS[selectedDay], idx: selectedDay }]
-        : ITINERARY_DAYS.map((day, idx) => ({ day, idx }))
+    const lines: { positions: [number, number][]; color: string; dashed?: boolean }[] = []
 
-    for (const { day, idx } of daysToShow) {
+    if (selectedDay !== null) {
+      // Single day selected — draw segments within that day
+      const day = ITINERARY_DAYS[selectedDay]
+      const color = DAY_COLORS[selectedDay % DAY_COLORS.length]
       const coords: [number, number][] = []
       for (const stop of day.stops) {
-        if (stop.lat && stop.lng) {
-          coords.push([stop.lat, stop.lng])
-        }
+        if (stop.lat && stop.lng) coords.push([stop.lat, stop.lng])
       }
       if (coords.length >= 2) {
-        lines.push({ positions: coords, color: DAY_COLORS[idx % DAY_COLORS.length] })
+        lines.push({ positions: coords, color })
+      }
+    } else {
+      // All days — build one continuous path with color-coded segments per day,
+      // plus dashed connector segments between consecutive days
+      let prevDayLastCoord: [number, number] | null = null
+
+      for (let idx = 0; idx < ITINERARY_DAYS.length; idx++) {
+        const day = ITINERARY_DAYS[idx]
+        const color = DAY_COLORS[idx % DAY_COLORS.length]
+        const coords: [number, number][] = []
+        for (const stop of day.stops) {
+          if (stop.lat && stop.lng) coords.push([stop.lat, stop.lng])
+        }
+
+        // Draw a dashed connector from previous day's last stop to this day's first stop
+        if (prevDayLastCoord && coords.length > 0) {
+          lines.push({
+            positions: [prevDayLastCoord, coords[0]],
+            color: color,
+            dashed: true,
+          })
+        }
+
+        // Draw this day's solid route
+        if (coords.length >= 2) {
+          lines.push({ positions: coords, color })
+        }
+
+        if (coords.length > 0) {
+          prevDayLastCoord = coords[coords.length - 1]
+        }
       }
     }
     return lines
@@ -159,15 +188,15 @@ export default function MapPage() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
-          {/* Route lines */}
+          {/* Route lines — solid for intra-day, dashed for inter-day connectors */}
           {routeLines.map((line, i) => (
             <Polyline
               key={i}
               positions={line.positions}
               color={line.color}
-              weight={3}
-              opacity={0.7}
-              dashArray="8 4"
+              weight={line.dashed ? 2 : 4}
+              opacity={line.dashed ? 0.5 : 0.8}
+              dashArray={line.dashed ? '6 8' : undefined}
             />
           ))}
 
