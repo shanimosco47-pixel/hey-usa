@@ -3,6 +3,7 @@ import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS } from '@/constants'
 import { DOCUMENT_CATEGORIES } from '@/lib/constants'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
+import { getLocationById } from '@/data/locations'
 import type { Document, FamilyMemberId } from '@/types'
 
 interface DocumentCardProps {
@@ -72,6 +73,7 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
   const memberName = doc.family_member_id
     ? FAMILY_MEMBERS[doc.family_member_id]?.name
     : null
+  const location = doc.locationId ? getLocationById(doc.locationId) : null
 
   return (
     <button
@@ -117,6 +119,11 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
           >
             {categoryLabel}
           </span>
+          {location && (
+            <span className="inline-block rounded-full bg-black/[0.04] px-2 py-0.5 text-[11px] font-medium text-apple-secondary">
+              {location.emoji} {location.nameHe}
+            </span>
+          )}
           {doc.file_size && (
             <span className="text-[11px] text-apple-secondary">
               {formatFileSize(doc.file_size)}

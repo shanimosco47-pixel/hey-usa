@@ -17,6 +17,7 @@ import {
   Receipt,
   Pencil,
   Check,
+  CalendarDays,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,7 @@ import { EXPENSE_CATEGORIES } from '@/lib/constants'
 import { FAMILY_MEMBERS, getFamilyMember } from '@/lib/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Expense } from '@/lib/types'
+import { DailyBudgetView } from './components/DailyBudgetView'
 import {
   PieChart,
   Pie,
@@ -67,10 +69,10 @@ const PIE_COLORS = [
   '#FF2D55', '#5AC8FA', '#AF52DE', '#FFCC00',
 ]
 
-type BudgetTab = 'planning' | 'actual'
+type BudgetTab = 'planning' | 'actual' | 'daily'
 
 export default function BudgetPage() {
-  const { budgetSettings: settings, expenses, addExpense, deleteExpense, updateBudgetCategory, updateTotalBudget } = useAppData()
+  const { budgetSettings: settings, expenses, addExpense, deleteExpense, updateBudgetCategory, updateTotalBudget, itineraryDays } = useAppData()
   const [activeTab, setActiveTab] = useState<BudgetTab>('planning')
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingCategory, setEditingCategory] = useState<string | null>(null)
@@ -83,12 +85,14 @@ export default function BudgetPage() {
     category: string
     paid_by: 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3'
     notes: string
+    day_id: string
   }>({
     title: '',
     amount: '',
     category: 'food',
     paid_by: 'aba',
     notes: '',
+    day_id: '',
   })
 
   const totalSpent = useMemo(
@@ -152,17 +156,19 @@ export default function BudgetPage() {
 
   function handleAddExpense() {
     if (!newExpense.title || !newExpense.amount) return
+    const matchedDay = itineraryDays.find((d) => d.id === newExpense.day_id)
     const expense: Omit<Expense, 'id' | 'created_at'> = {
       title: newExpense.title,
       amount: Number(newExpense.amount),
       currency: settings.currency,
       category: newExpense.category,
       paid_by: newExpense.paid_by,
-      date: new Date().toISOString().split('T')[0],
+      date: matchedDay?.date || new Date().toISOString().split('T')[0],
+      day_id: newExpense.day_id || undefined,
       notes: newExpense.notes || undefined,
     }
     addExpense(expense)
-    setNewExpense({ title: '', amount: '', category: 'food', paid_by: 'aba', notes: '' })
+    setNewExpense({ title: '', amount: '', category: 'food', paid_by: 'aba', notes: '', day_id: '' })
     setShowAddForm(false)
   }
 
@@ -275,6 +281,18 @@ export default function BudgetPage() {
         >
           <Receipt className="h-4 w-4" />
           <span>הוצאות בפועל</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('daily')}
+          className={cn(
+            'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+            activeTab === 'daily'
+              ? 'bg-white text-apple-primary shadow-sm'
+              : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
+          )}
+        >
+          <CalendarDays className="h-4 w-4" />
+          <span>יומי</span>
         </button>
       </div>
 
@@ -484,6 +502,16 @@ export default function BudgetPage() {
                   <option key={m.id} value={m.id}>{m.avatar_emoji} {m.name}</option>
                 ))}
               </select>
+              <select
+                value={newExpense.day_id}
+                onChange={(e) => setNewExpense((p) => ({ ...p, day_id: e.target.value }))}
+                className={inputClass}
+              >
+                <option value="">יום בטיול (אופציונלי)</option>
+                {itineraryDays.map((d, i) => (
+                  <option key={d.id} value={d.id}>יום {i + 1} — {d.title}</option>
+                ))}
+              </select>
               <div className="flex gap-2">
                 <Button onClick={handleAddExpense} variant="success" className="flex-1">
                   הוסף
@@ -579,6 +607,17 @@ export default function BudgetPage() {
               )
             })}
           </div>
+        </motion.div>
+      )}
+
+      {/* ═══ DAILY TAB ═══ */}
+      {activeTab === 'daily' && (
+        <motion.div
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <DailyBudgetView />
         </motion.div>
       )}
     </div>

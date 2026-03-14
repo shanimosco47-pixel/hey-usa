@@ -20,7 +20,7 @@ const CATEGORY_TABS: { value: string; label: string }[] = [
 ]
 
 export default function DocumentsPage() {
-  const { documents: allDocuments, addDocument } = useAppData()
+  const { documents: allDocuments, addDocument, addExpense } = useAppData()
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -200,6 +200,7 @@ export default function DocumentsPage() {
         open={uploadOpen}
         onOpenChange={setUploadOpen}
         onUpload={handleUpload}
+        onAddExpense={addExpense}
       />
       <DocumentViewer
         document={viewerDoc}

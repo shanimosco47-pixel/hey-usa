@@ -3,6 +3,17 @@ import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/cn'
 
+declare const __BUILD_TIME__: string
+
+const buildTime = (() => {
+  try {
+    const d = new Date(__BUILD_TIME__)
+    return d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return ''
+  }
+})()
+
 export function TopBar() {
   const { currentMember } = useAuth()
 
@@ -20,6 +31,11 @@ export function TopBar() {
         <h1 className="text-[15px] sm:text-[17px] font-bold tracking-tight text-apple-primary">
           Hey USA
         </h1>
+        {buildTime && (
+          <span className="text-[10px] text-apple-tertiary font-medium tabular-nums">
+            v1.0 • {buildTime}
+          </span>
+        )}
       </div>
 
       <div className="absolute left-1/2 -translate-x-1/2">

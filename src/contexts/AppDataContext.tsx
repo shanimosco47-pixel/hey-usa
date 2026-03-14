@@ -26,6 +26,7 @@ import type {
 import { EXPENSE_CATEGORIES } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
 import * as db from '@/lib/database'
+import { hydrateAvatarsFromSupabase } from '@/lib/avatarStorage'
 
 // Fallback sample data (used when Supabase is unavailable)
 import { SAMPLE_BUDGET_SETTINGS, SAMPLE_EXPENSES } from '@/modules/budget/data/sampleExpenses'
@@ -210,6 +211,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           documentData,
           playlistData,
           changeLogData,
+          locationNoteData,
         ] = await Promise.all([
           db.fetchBudgetSettings(),
           db.fetchExpenses(),
@@ -221,6 +223,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           db.fetchDocuments(),
           db.fetchPlaylistItems(),
           db.fetchMotiChangeLog(),
+          db.fetchLocationNotes(),
         ])
 
         if (cancelled) return
@@ -234,6 +237,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         if (photoData.length) setPhotos(photoData)
         if (documentData.length) setDocuments(documentData)
         if (playlistData.length) setPlaylistItems(playlistData)
+        if (locationNoteData.length) setLocationNotes(locationNoteData)
         if (changeLogData.length) {
           setChangeLog(
             changeLogData.map((e) => ({
@@ -246,6 +250,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             })),
           )
         }
+
+        // Hydrate avatar photos from Supabase into localStorage
+        await hydrateAvatarsFromSupabase()
 
         console.log('[Hey USA] Data loaded from Supabase')
       } catch (err) {
@@ -532,19 +539,23 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const now = new Date().toISOString()
     const newNote: LocationNote = { ...note, id: `note-${Date.now()}`, created_at: now, updated_at: now }
     setLocationNotes((prev) => [newNote, ...prev])
+    db.upsertLocationNote(newNote).catch(() => {})
   }, [])
 
   const updateLocationNote = useCallback((id: string, changes: Partial<LocationNote>) => {
     setLocationNotes((prev) =>
       prev.map((n) => {
         if (n.id !== id) return n
-        return { ...n, ...changes, updated_at: new Date().toISOString() }
+        const updated = { ...n, ...changes, updated_at: new Date().toISOString() }
+        db.upsertLocationNote(updated).catch(() => {})
+        return updated
       }),
     )
   }, [])
 
   const deleteLocationNote = useCallback((id: string) => {
     setLocationNotes((prev) => prev.filter((n) => n.id !== id))
+    db.deleteLocationNoteById(id).catch(() => {})
   }, [])
 
   // ─── Undo ───────────────────────────────────────────────────────

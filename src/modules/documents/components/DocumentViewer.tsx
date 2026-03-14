@@ -1,8 +1,9 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, Download, FileText, Image, File, ExternalLink, Calendar, Tag, User, StickyNote, HardDrive, AlertTriangle } from 'lucide-react'
+import { X, Download, FileText, Image, File, ExternalLink, Calendar, Tag, User, StickyNote, HardDrive, AlertTriangle, MapPin } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS } from '@/constants'
 import { DOCUMENT_CATEGORIES } from '@/lib/constants'
+import { getLocationById } from '@/data/locations'
 import type { Document } from '@/types'
 
 interface DocumentViewerProps {
@@ -97,6 +98,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
   const member = doc.family_member_id ? FAMILY_MEMBERS[doc.family_member_id] : null
   const expired = isExpired(doc.expiry_date)
   const expiringSoon = !expired && isExpiringWithin6Months(doc.expiry_date)
+  const location = doc.locationId ? getLocationById(doc.locationId) : null
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -143,6 +145,14 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
               <h4 className="mb-4 text-sm font-semibold text-apple-primary">פרטי מסמך</h4>
               <div className="space-y-4">
                 <DetailRow icon={Tag} label="קטגוריה" value={categoryLabel} />
+
+                {location && (
+                  <DetailRow
+                    icon={MapPin}
+                    label="מיקום"
+                    value={`${location.emoji} ${location.nameHe}`}
+                  />
+                )}
 
                 {member && (
                   <DetailRow

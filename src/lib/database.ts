@@ -13,6 +13,7 @@ import type {
   Photo,
   Document,
   PlaylistItem,
+  LocationNote,
 } from './types'
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -449,6 +450,71 @@ export async function deletePlaylistItem(id: string): Promise<void> {
   await sb.from('playlist_items').delete().eq('id', id)
 }
 
+// ─── Location Notes ─────────────────────────────────────────────────
+
+export async function fetchLocationNotes(): Promise<LocationNote[]> {
+  const sb = assertSupabase()
+  const { data, error } = await sb
+    .from('location_notes')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error || !data) return []
+  return data.map((n) => ({
+    id: n.id,
+    locationId: n.location_id,
+    text: n.text,
+    author: n.author,
+    color: n.color,
+    pinned: n.pinned,
+    created_at: n.created_at,
+    updated_at: n.updated_at,
+  }))
+}
+
+export async function upsertLocationNote(note: LocationNote): Promise<void> {
+  const sb = assertSupabase()
+  await sb.from('location_notes').upsert({
+    id: note.id,
+    location_id: note.locationId,
+    text: note.text,
+    author: note.author,
+    color: note.color,
+    pinned: note.pinned,
+    created_at: note.created_at,
+    updated_at: new Date().toISOString(),
+  })
+}
+
+export async function deleteLocationNoteById(id: string): Promise<void> {
+  const sb = assertSupabase()
+  await sb.from('location_notes').delete().eq('id', id)
+}
+
+// ─── Member Avatars ─────────────────────────────────────────────────
+
+export interface MemberAvatarRow {
+  member_id: string
+  photo_data: string | null
+  custom_name: string | null
+}
+
+export async function fetchMemberAvatars(): Promise<MemberAvatarRow[]> {
+  const sb = assertSupabase()
+  const { data, error } = await sb.from('member_avatars').select('*')
+  if (error || !data) return []
+  return data
+}
+
+export async function upsertMemberAvatar(row: MemberAvatarRow): Promise<void> {
+  const sb = assertSupabase()
+  await sb.from('member_avatars').upsert({
+    member_id: row.member_id,
+    photo_data: row.photo_data,
+    custom_name: row.custom_name,
+    updated_at: new Date().toISOString(),
+  })
+}
+
 // ─── Chat Messages ──────────────────────────────────────────────────
 
 export interface ChatMessageRow {
@@ -575,6 +641,7 @@ export async function seedAllData(): Promise<void> {
   const { SAMPLE_PLAYLIST } = await import(
     '@/modules/entertainment/data/sampleEntertainment'
   )
+  const { SAMPLE_LOCATION_NOTES } = await import('@/data/sampleLocationNotes')
 
   // Budget settings
   await sb.from('budget_settings').upsert({
@@ -753,6 +820,22 @@ export async function seedAllData(): Promise<void> {
         added_by: p.added_by,
         votes: p.votes,
         created_at: p.created_at,
+      })),
+    )
+  }
+
+  // Location notes
+  if (SAMPLE_LOCATION_NOTES.length > 0) {
+    await sb.from('location_notes').upsert(
+      SAMPLE_LOCATION_NOTES.map((n: LocationNote) => ({
+        id: n.id,
+        location_id: n.locationId,
+        text: n.text,
+        author: n.author,
+        color: n.color,
+        pinned: n.pinned,
+        created_at: n.created_at,
+        updated_at: n.updated_at,
       })),
     )
   }
