@@ -255,7 +255,7 @@ export default function DashboardPage() {
       {/* Light overlay for readability */}
       <div className="fixed inset-0 z-0" style={{ backgroundColor: 'rgba(245, 245, 247, 0.88)' }} />
 
-    <div className="relative z-10 mx-auto max-w-lg px-5 py-8">
+    <div className="relative z-10 mx-auto max-w-lg px-5 pt-8 pb-28">
       {/* Greeting */}
       <motion.div
         initial={{ opacity: 0, y: 6 }}

@@ -221,13 +221,13 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="mx-auto max-w-5xl px-4 py-6 pb-24 overflow-x-hidden">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        className="mb-6 flex items-center justify-between"
+        className="mb-6 flex items-start justify-between gap-3"
       >
         <div>
           <h1 className="text-2xl font-bold text-apple-primary">משימות</h1>
@@ -240,9 +240,10 @@ export default function TasksPage() {
             </p>
           )}
         </div>
-        <Button onClick={handleAddClick}>
+        <Button onClick={handleAddClick} className="shrink-0">
           <Plus className="h-4 w-4" />
-          <span>הוסף משימה</span>
+          <span className="hidden sm:inline">הוסף משימה</span>
+          <span className="sm:hidden">הוסף</span>
         </Button>
       </motion.div>
 

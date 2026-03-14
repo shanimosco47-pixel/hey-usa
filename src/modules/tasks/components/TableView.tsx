@@ -43,7 +43,7 @@ export function TableView({ tasksByGroup, onToggleDone, onCycleStatus, onTaskCli
         const doneCount = tasks.filter((t) => t.status === 'done').length
 
         return (
-          <div key={group} className="overflow-hidden rounded-xl border border-black/[0.06] glass">
+          <div key={group} className="overflow-x-auto rounded-xl border border-black/[0.06] glass">
             {/* Group header */}
             <button
               onClick={() => toggleCollapse(group)}
