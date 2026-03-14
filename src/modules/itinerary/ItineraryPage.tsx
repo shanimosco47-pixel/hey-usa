@@ -10,6 +10,35 @@ import { DriveSegment } from './components/DriveSegment'
 import { cn } from '@/lib/cn'
 import { fetchTripWeather, getWeatherForDate, type DestinationWeather } from '@/lib/weather'
 
+// City-themed gradients & emojis for visual flair
+const CITY_THEMES: Record<string, { gradient: string; emoji: string }> = {
+  'Los Angeles': { gradient: 'from-orange-400 to-pink-500', emoji: '🌴' },
+  'Barstow': { gradient: 'from-amber-500 to-orange-600', emoji: '🏜️' },
+  'Las Vegas': { gradient: 'from-purple-500 to-pink-500', emoji: '🎰' },
+  'Zion': { gradient: 'from-red-500 to-orange-500', emoji: '🏔️' },
+  'Bryce': { gradient: 'from-orange-500 to-red-600', emoji: '🪨' },
+  'Capitol Reef': { gradient: 'from-amber-600 to-red-500', emoji: '🏜️' },
+  'Moab': { gradient: 'from-red-600 to-amber-500', emoji: '🌄' },
+  'Monument Valley': { gradient: 'from-red-700 to-orange-500', emoji: '🏜️' },
+  'Page': { gradient: 'from-blue-500 to-cyan-400', emoji: '🌊' },
+  'Grand Canyon': { gradient: 'from-orange-600 to-red-700', emoji: '🏞️' },
+  'Kanab': { gradient: 'from-amber-500 to-red-400', emoji: '⛰️' },
+  'Great Basin': { gradient: 'from-emerald-600 to-teal-500', emoji: '🌲' },
+  'Bishop': { gradient: 'from-sky-500 to-blue-600', emoji: '🏔️' },
+  'Mammoth': { gradient: 'from-blue-500 to-indigo-600', emoji: '🎿' },
+  'Yosemite': { gradient: 'from-green-600 to-emerald-500', emoji: '🌿' },
+  'California': { gradient: 'from-cyan-400 to-blue-500', emoji: '🌊' },
+  'San Francisco': { gradient: 'from-red-500 to-orange-400', emoji: '🌉' },
+}
+
+function getCityTheme(city?: string): { gradient: string; emoji: string } {
+  if (!city) return { gradient: 'from-gray-500 to-gray-600', emoji: '📍' }
+  for (const [key, theme] of Object.entries(CITY_THEMES)) {
+    if (city.includes(key)) return theme
+  }
+  return { gradient: 'from-blue-500 to-indigo-600', emoji: '📍' }
+}
+
 /** Determine the default day index: during the trip show the current day, otherwise show day 1 */
 function getDefaultDayIndex(totalDays: number): number {
   const today = new Date()
@@ -108,96 +137,83 @@ export default function ItineraryPage() {
         onDayChange={handleDayChange}
       />
 
-      {/* Day header with navigation arrows */}
-      <div className="px-4 pt-3 pb-2">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={handleNextDay}
-            disabled={activeDayIndex >= ITINERARY_DAYS.length - 1}
-            className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
-              activeDayIndex >= ITINERARY_DAYS.length - 1
-                ? 'text-apple-tertiary'
-                : 'bg-white/60 text-apple-primary hover:bg-white/90'
-            )}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
+      {/* Day hero banner */}
+      {(() => {
+        const theme = getCityTheme(currentDay.city)
+        const w = getWeatherForDate(weatherData, currentDay.date)
+        return (
+          <div className={`mx-4 mt-3 rounded-2xl bg-gradient-to-br ${theme.gradient} p-4 text-white relative overflow-hidden`}>
+            {/* Background emoji */}
+            <span className="absolute -bottom-2 -left-2 text-[80px] opacity-10 pointer-events-none select-none">
+              {theme.emoji}
+            </span>
 
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2">
-              <span className="rounded-lg bg-ios-blue/10 px-2 py-0.5 text-xs font-bold text-ios-blue">
-                יום {activeDayIndex + 1}
-              </span>
-              <span className="text-xs text-apple-secondary">
-                {hebrewDay}, {format(date, 'd.M.yyyy')}
-              </span>
-            </div>
-            <h2 className="mt-1 text-base font-bold text-apple-primary">
-              {currentDay.title}
-            </h2>
-          </div>
-
-          <button
-            onClick={handlePrevDay}
-            disabled={activeDayIndex <= 0}
-            className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
-              activeDayIndex <= 0
-                ? 'text-apple-tertiary'
-                : 'bg-white/60 text-apple-primary hover:bg-white/90'
-            )}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-        </div>
-
-        {/* Day description */}
-        {currentDay.description && (
-          <p className="mt-2 text-center text-xs leading-relaxed text-apple-secondary">
-            {currentDay.description}
-          </p>
-        )}
-
-        {/* Day meta: city, weather, cost */}
-        <div className="mt-3 flex items-center justify-center gap-4">
-          {currentDay.city && (
-            <div className="flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 text-ios-blue" />
-              <span className="text-xs font-medium text-apple-primary" dir="ltr">
-                {currentDay.city}
-              </span>
-            </div>
-          )}
-          {(() => {
-            const w = getWeatherForDate(weatherData, currentDay.date)
-            if (!w) return null
-            return (
-              <div className="flex items-center gap-1">
-                <span className="text-sm">{w.weatherEmoji}</span>
-                <span className="text-xs text-apple-secondary">
-                  {w.tempMin}°–{w.tempMax}°C
-                </span>
-                {w.precipitationProbability > 20 && (
-                  <span className="text-[10px] text-ios-blue">
-                    ({w.precipitationProbability}% גשם)
+            {/* Nav + content */}
+            <div className="relative">
+              <div className="flex items-center justify-between mb-2">
+                <button
+                  onClick={handleNextDay}
+                  disabled={activeDayIndex >= ITINERARY_DAYS.length - 1}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 disabled:opacity-30"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold">
+                    יום {activeDayIndex + 1}/20
                   </span>
+                  <span className="text-[11px] text-white/70">
+                    {hebrewDay}, {format(date, 'd.M.yyyy')}
+                  </span>
+                </div>
+                <button
+                  onClick={handlePrevDay}
+                  disabled={activeDayIndex <= 0}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 disabled:opacity-30"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+              </div>
+
+              <h2 className="text-lg font-bold text-center">{currentDay.title}</h2>
+
+              {currentDay.city && (
+                <div className="flex items-center justify-center gap-1 mt-1">
+                  <MapPin className="h-3 w-3 text-white/70" />
+                  <span className="text-xs text-white/80" dir="ltr">{currentDay.city}</span>
+                </div>
+              )}
+
+              {/* Weather + cost strip */}
+              <div className="flex items-center justify-center gap-3 mt-2">
+                {w && (
+                  <div className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1">
+                    <span className="text-sm">{w.weatherEmoji}</span>
+                    <span className="text-[11px]">{w.tempMin}°–{w.tempMax}°C</span>
+                    {w.precipitationProbability > 20 && (
+                      <span className="text-[10px] text-white/70">
+                        💧{w.precipitationProbability}%
+                      </span>
+                    )}
+                  </div>
+                )}
+                {dayCost > 0 && (
+                  <div className="rounded-full bg-white/15 px-2.5 py-1 text-[11px]" dir="ltr">
+                    ~${dayCost}
+                  </div>
                 )}
               </div>
-            )
-          })()}
-          {dayCost > 0 && (
-            <div className="flex items-center gap-1">
-              <span className="text-xs text-apple-secondary">
-                עלות משוערת:
-              </span>
-              <span className="text-xs font-bold text-ios-orange" dir="ltr">
-                ~${dayCost}
-              </span>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        )
+      })()}
+
+      {/* Day description */}
+      {currentDay.description && (
+        <p className="mx-4 mt-2 text-center text-xs leading-relaxed text-apple-secondary">
+          {currentDay.description}
+        </p>
+      )}
 
       {/* Stops list */}
       <motion.div
