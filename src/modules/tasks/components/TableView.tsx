@@ -68,6 +68,11 @@ export function TableView({ tasksByGroup, onToggleDone, onCycleStatus, onTaskCli
               <span className="rounded-full px-2 py-0.5 text-xs font-medium text-white" style={{ backgroundColor: config.color }}>
                 {doneCount}/{tasks.length}
               </span>
+              {tasks.length > 0 && doneCount === tasks.length && (
+                <span className="text-xs font-medium text-ios-green fun-bounce">
+                  🎉 הכל סגור!
+                </span>
+              )}
             </button>
 
             {/* Column headers */}

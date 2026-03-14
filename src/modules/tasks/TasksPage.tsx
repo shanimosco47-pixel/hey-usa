@@ -50,6 +50,16 @@ export default function TasksPage() {
   const taskCount = tasks.length
   const doneCount = useMemo(() => tasks.filter((t) => t.status === 'done').length, [tasks])
 
+  const completionPercent = taskCount > 0 ? Math.round((doneCount / taskCount) * 100) : 0
+  const motivationalLine = useMemo(() => {
+    if (taskCount === 0) return null
+    if (completionPercent === 100) return '🎉 סיימנו הכל! מוכנים לטיול!'
+    if (completionPercent >= 80) return '🔥 כמעט שם! עוד קצת!'
+    if (completionPercent >= 50) return '💪 חצי מהדרך, יאללה!'
+    if (completionPercent >= 30) return '🚗 מתקדמים יפה...'
+    return '📋 יש עוד עבודה... יאללה מתחילים!'
+  }, [taskCount, completionPercent])
+
   const [activeView, setActiveView] = useState<string>('table')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
@@ -224,6 +234,11 @@ export default function TasksPage() {
           <p className="mt-0.5 text-sm text-apple-secondary">
             {doneCount} מתוך {taskCount} הושלמו
           </p>
+          {motivationalLine && (
+            <p className="mt-1 text-xs font-medium text-ios-blue">
+              {motivationalLine}
+            </p>
+          )}
         </div>
         <Button onClick={handleAddClick}>
           <Plus className="h-4 w-4" />

@@ -88,6 +88,14 @@ export default function BudgetPage() {
   const remaining = settings.total_budget - totalSpent
   const spentPercent = (totalSpent / settings.total_budget) * 100
 
+  const spendingMood = useMemo(() => {
+    if (spentPercent > 100) return 'חרגנו מהתקציב! 🚨'
+    if (spentPercent >= 80) return 'אוי אוי, קרובים לגבול! 😬'
+    if (spentPercent >= 60) return 'כדאי להתחיל לשים לב... 👀'
+    if (spentPercent >= 30) return 'בדיוק בכיוון הנכון 👍'
+    return 'חוסכים כמו ישראלים אמיתיים 💪'
+  }, [spentPercent])
+
   const categoryTotals = useMemo(() => {
     const totals: Record<string, number> = {}
     for (const e of expenses) {
@@ -186,6 +194,9 @@ export default function BudgetPage() {
             style={{ width: `${Math.min(spentPercent, 100)}%` }}
           />
         </div>
+        <p className="mt-2 text-center text-xs font-medium text-apple-secondary">
+          {spendingMood}
+        </p>
       </div>
 
       {/* Add Expense Form */}
