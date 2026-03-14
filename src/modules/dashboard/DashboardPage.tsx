@@ -241,19 +241,17 @@ export default function DashboardPage() {
 
   return (
     <div className="relative min-h-screen">
-      {/* Background image */}
+      {/* Background image — Yosemite Valley */}
       <div
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: 'url(https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=1600&q=80)',
+          backgroundImage: 'url(https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1920&q=85)',
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
-          filter: 'blur(2px)',
+          backgroundPosition: 'center 40%',
         }}
       />
       {/* Light overlay for readability */}
-      <div className="fixed inset-0 z-0" style={{ backgroundColor: 'rgba(245, 245, 247, 0.88)' }} />
+      <div className="fixed inset-0 z-0" style={{ backgroundColor: 'rgba(245, 245, 247, 0.82)' }} />
 
     <div className="relative z-10 mx-auto max-w-lg px-5 pt-8 pb-28">
       {/* Greeting */}

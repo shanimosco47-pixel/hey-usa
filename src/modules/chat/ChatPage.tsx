@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Send, ArrowRight, Sparkles, WifiOff, Zap, History } from 'lucide-react'
@@ -192,7 +192,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(true)
-  const [visibleCount, setVisibleCount] = useState(5)
+  const [visibleCount, setVisibleCount] = useState(2)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -263,13 +263,23 @@ export default function ChatPage() {
     return () => { cancelled = true }
   }, [])
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const scrollToBottom = useCallback((instant = false) => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: instant ? 'instant' : 'smooth' })
+    }, 50)
+  }, [])
 
+  // Auto-scroll on new messages
   useEffect(() => {
     scrollToBottom()
-  }, [messages, isTyping])
+  }, [messages, isTyping, scrollToBottom])
+
+  // Instant scroll to bottom when history finishes loading
+  useEffect(() => {
+    if (!isLoadingHistory) {
+      scrollToBottom(true)
+    }
+  }, [isLoadingHistory, scrollToBottom])
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return
