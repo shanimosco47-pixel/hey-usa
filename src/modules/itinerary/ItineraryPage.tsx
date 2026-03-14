@@ -111,7 +111,7 @@ export default function ItineraryPage() {
   }).format(date)
 
   return (
-    <div className="mx-auto max-w-2xl pb-24">
+    <div className="mx-auto max-w-2xl pb-24 overflow-x-hidden">
       {/* Page header */}
       <motion.div
         className="px-4 pt-4 pb-2"

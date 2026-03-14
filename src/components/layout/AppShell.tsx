@@ -21,7 +21,7 @@ export function AppShell() {
 
         <main
           className={cn(
-            'flex-1 min-h-[calc(100vh-3.5rem)]',
+            'flex-1 min-w-0 min-h-[calc(100vh-3.5rem)] overflow-x-hidden',
             isDesktop ? 'mr-56' : 'pb-16',
           )}
         >

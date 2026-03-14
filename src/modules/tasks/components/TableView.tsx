@@ -80,10 +80,10 @@ export function TableView({ tasksByGroup, onToggleDone, onCycleStatus, onTaskCli
               <div className="flex items-center gap-3 border-b border-black/[0.04] bg-black/[0.03] px-4 py-1.5 text-[11px] font-semibold text-apple-secondary">
                 <div className="w-5 shrink-0" />
                 <div className="flex-1">משימה</div>
-                <div className="w-16 shrink-0 text-center">סטטוס</div>
-                <div className="w-4 shrink-0" />
-                <div className="w-[72px] shrink-0 text-center">אחראי</div>
-                <div className="w-16 shrink-0 text-left">תאריך</div>
+                <div className="shrink-0 text-center">סטטוס</div>
+                <div className="w-4 shrink-0 hidden sm:block" />
+                <div className="shrink-0 text-center">אחראי</div>
+                <div className="w-16 shrink-0 text-left hidden sm:block">תאריך</div>
               </div>
             )}
 

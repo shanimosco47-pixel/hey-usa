@@ -56,7 +56,7 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
   return (
     <div
       className={cn(
-        'group flex items-center gap-3 px-4 py-2.5 border-b border-black/[0.04] cursor-pointer transition-all hover:bg-white/40',
+        'group flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 border-b border-black/[0.04] cursor-pointer transition-all hover:bg-white/40',
         isDone && 'opacity-60',
       )}
       onClick={() => onClick(task)}
@@ -89,7 +89,7 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
         onClick={handleCycleStatus}
         title={`לחץ לשנות ל: ${nextStatus()}`}
         className={cn(
-          'shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium transition-all hover:opacity-80',
+          'shrink-0 rounded-full px-2 py-0.5 text-[11px] sm:text-xs sm:px-2.5 font-medium transition-all hover:opacity-80',
           statusConfig?.bg ?? 'bg-gray-200',
           statusConfig?.color ?? 'text-gray-600',
         )}
@@ -97,20 +97,20 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
         {statusConfig?.label ?? task.status}
       </button>
 
-      {/* Priority */}
-      <div className={cn('shrink-0', priorityConfig.className)} title={priorityConfig.label}>
+      {/* Priority - hidden on mobile */}
+      <div className={cn('shrink-0 hidden sm:block', priorityConfig.className)} title={priorityConfig.label}>
         <PriorityIcon className="h-4 w-4" />
       </div>
 
-      {/* Assignees */}
+      {/* Assignees - show fewer on mobile */}
       <div className="flex shrink-0 -space-x-1.5 space-x-reverse">
-        {task.assigned_to.slice(0, 3).map((memberId: FamilyMemberId) => {
+        {task.assigned_to.slice(0, 2).map((memberId: FamilyMemberId) => {
           const member = FAMILY_MEMBERS[memberId]
           if (!member) return null
           return (
             <div
               key={memberId}
-              className="flex h-6 w-6 items-center justify-center rounded-full text-xs"
+              className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full text-[10px] sm:text-xs"
               style={{
                 backgroundColor: `${member.color}20`,
                 borderColor: member.color,
@@ -122,15 +122,15 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
             </div>
           )
         })}
-        {task.assigned_to.length > 3 && (
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-[10px] font-bold text-apple-secondary">
-            +{task.assigned_to.length - 3}
+        {task.assigned_to.length > 2 && (
+          <div className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-black/[0.04] text-[9px] sm:text-[10px] font-bold text-apple-secondary">
+            +{task.assigned_to.length - 2}
           </div>
         )}
       </div>
 
-      {/* Due date */}
-      <div className="w-16 shrink-0 text-left">
+      {/* Due date - hidden on mobile */}
+      <div className="w-16 shrink-0 text-left hidden sm:block">
         {task.due_date ? (
           <span
             className={cn(
