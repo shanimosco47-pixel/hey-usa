@@ -1,6 +1,7 @@
 import { Check, AlertTriangle, Clock, ChevronUp, ChevronDown, Minus } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS, STATUS_MAP } from '@/constants'
+import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import type { Task, TaskStatus, TaskPriority, FamilyMemberId } from '@/types'
 
 interface TaskRowProps {
@@ -108,18 +109,11 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
           const member = FAMILY_MEMBERS[memberId]
           if (!member) return null
           return (
-            <div
+            <FamilyAvatar
               key={memberId}
-              className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full text-[10px] sm:text-xs"
-              style={{
-                backgroundColor: `${member.color}20`,
-                borderColor: member.color,
-                borderWidth: 1.5,
-              }}
-              title={member.name}
-            >
-              {member.emoji}
-            </div>
+              memberId={memberId}
+              size="xs"
+            />
           )
         })}
         {task.assigned_to.length > 2 && (

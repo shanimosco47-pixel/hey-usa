@@ -3,6 +3,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { AlertTriangle, ChevronUp, Minus, ChevronDown, Clock, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS } from '@/constants'
+import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import type { Task, TaskPriority, FamilyMemberId } from '@/types'
 
 interface KanbanCardProps {
@@ -92,18 +93,11 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
             const member = FAMILY_MEMBERS[memberId]
             if (!member) return null
             return (
-              <div
+              <FamilyAvatar
                 key={memberId}
-                className="flex h-6 w-6 items-center justify-center rounded-full text-xs"
-                style={{
-                  backgroundColor: `${member.color}20`,
-                  borderColor: member.color,
-                  borderWidth: 1.5,
-                }}
-                title={member.name}
-              >
-                {member.emoji}
-              </div>
+                memberId={memberId}
+                size="sm"
+              />
             )
           })}
           {task.assigned_to.length > 3 && (
