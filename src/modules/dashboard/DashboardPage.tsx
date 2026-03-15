@@ -10,6 +10,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Task } from '@/lib/types'
 import { FAMILY_MEMBERS } from '@/constants'
+import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
+import type { FamilyMemberId } from '@/lib/types'
 import { TRIP_START_DATE, TRIP_END_DATE } from '@/lib/constants'
 import WeatherWidget from '@/components/shared/WeatherWidget'
 import type { LucideIcon } from 'lucide-react'
@@ -266,6 +268,27 @@ export default function DashboardPage() {
         <h1 className="mt-1 text-[28px] font-bold tracking-tight text-apple-primary leading-tight">
           {memberData ? `שלום, ${memberData.name}` : 'שלום!'}
         </h1>
+      </motion.div>
+
+      {/* Family strip */}
+      <motion.div
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.05 }}
+        className="mb-5 flex items-center justify-center gap-3"
+      >
+        {(['aba', 'ima', 'kid1', 'kid2', 'kid3', 'moti'] as FamilyMemberId[]).map((id, i) => (
+          <motion.div
+            key={id}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 + i * 0.06, type: 'spring', stiffness: 400, damping: 20 }}
+          >
+            <Link to={id === 'moti' ? '/chat' : '#'}>
+              <FamilyAvatar memberId={id} size="md" showRoleIcon />
+            </Link>
+          </motion.div>
+        ))}
       </motion.div>
 
       {/* ── Rotating Hero Card (replaces countdown) ── */}
@@ -651,45 +674,51 @@ export default function DashboardPage() {
         ))}
       </motion.div>
 
-      {/* Floating chat button — Moti character */}
+      {/* Floating chat button — Moti robot */}
       <Link to="/chat">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1, y: [0, -3, 0] }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{
             opacity: { delay: 0.6 },
             scale: { delay: 0.6, type: 'spring', stiffness: 300, damping: 20 },
-            y: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' },
           }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           className="fixed bottom-20 left-5 z-20 flex h-14 w-14 items-center justify-center rounded-full overflow-hidden"
           style={{
-            background: 'linear-gradient(145deg, #4A90D9, #7B68EE)',
-            boxShadow: '0 4px 20px rgba(90, 100, 220, 0.35)',
+            background: 'linear-gradient(145deg, #00C7BE, #30D158)',
+            boxShadow: '0 4px 20px rgba(0, 199, 190, 0.35)',
           }}
         >
-          <svg viewBox="0 0 64 64" width={36} height={36} fill="none" xmlns="http://www.w3.org/2000/svg">
-            {/* Body */}
-            <ellipse cx="32" cy="50" rx="10" ry="8" fill="#FFD93D" />
-            {/* Neck */}
-            <rect x="30" y="40" width="4" height="5" rx="2" fill="#FFD93D" />
-            {/* Head - simple round face */}
-            <circle cx="32" cy="28" r="16" fill="#FFE066" />
-            {/* Eyes */}
-            <circle cx="26" cy="26" r="2.5" fill="#1d1d1f" />
-            <circle cx="38" cy="26" r="2.5" fill="#1d1d1f" />
-            <circle cx="27" cy="25" r="0.8" fill="white" />
-            <circle cx="39" cy="25" r="0.8" fill="white" />
-            {/* Smile */}
-            <path d="M25 33 Q32 39 39 33" stroke="#1d1d1f" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-            {/* Cheeks */}
-            <circle cx="21" cy="31" r="2.5" fill="#FFB5B5" opacity="0.5" />
-            <circle cx="43" cy="31" r="2.5" fill="#FFB5B5" opacity="0.5" />
-            {/* Arms */}
-            <circle cx="46" cy="44" r="3.5" fill="#FFD93D" />
-            <circle cx="18" cy="46" r="3.5" fill="#FFD93D" />
-          </svg>
+          {/* Robot bouncing animation */}
+          <motion.div
+            animate={{ y: [0, -3, 0], rotate: [0, 3, -3, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <svg viewBox="0 0 64 64" width={36} height={36} fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Antenna */}
+              <line x1="32" y1="6" x2="32" y2="14" stroke="#E0E0E0" strokeWidth="2" strokeLinecap="round" />
+              <circle cx="32" cy="5" r="3" fill="#FF5252" />
+              {/* Head */}
+              <rect x="16" y="14" width="32" height="24" rx="6" fill="#E8E8ED" />
+              {/* Eyes */}
+              <circle cx="24" cy="26" r="4" fill="#007AFF" />
+              <circle cx="40" cy="26" r="4" fill="#007AFF" />
+              <circle cx="25" cy="25" r="1.5" fill="white" />
+              <circle cx="41" cy="25" r="1.5" fill="white" />
+              {/* Mouth */}
+              <rect x="25" y="32" width="14" height="3" rx="1.5" fill="#007AFF" opacity="0.5" />
+              {/* Body */}
+              <rect x="20" y="40" width="24" height="14" rx="4" fill="#D1D1D6" />
+              {/* Arms */}
+              <rect x="10" y="42" width="8" height="4" rx="2" fill="#D1D1D6" />
+              <rect x="46" y="42" width="8" height="4" rx="2" fill="#D1D1D6" />
+              {/* Buttons on body */}
+              <circle cx="28" cy="47" r="2" fill="#34C759" />
+              <circle cx="36" cy="47" r="2" fill="#FF9500" />
+            </svg>
+          </motion.div>
         </motion.div>
       </Link>
     </div>
