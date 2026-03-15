@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useCallback } from 'react'
+import { lazy, Suspense, useState, useCallback, Component, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { AppDataProvider } from '@/contexts/AppDataContext'
@@ -8,6 +8,25 @@ import SplashScreen from '@/components/shared/SplashScreen'
 // Auth screens (small, loaded eagerly for fast first paint)
 import PinScreen from '@/screens/PinScreen'
 import FamilySelectScreen from '@/screens/FamilySelectScreen'
+
+// Error boundary for lazy-loaded chunks that fail to load
+class ChunkErrorBoundary extends Component<
+  { children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  componentDidCatch() {
+    // Chunk load failure — reload to get fresh assets
+    window.location.reload()
+  }
+  render() {
+    if (this.state.hasError) return null
+    return this.props.children
+  }
+}
 
 // Lazy-loaded module pages
 const DashboardPage = lazy(() => import('@/modules/dashboard/DashboardPage'))
@@ -59,6 +78,7 @@ export default function App() {
       <AuthProvider>
         <AppDataProvider>
         {showSplash && <SplashScreen onFinished={handleSplashFinished} />}
+        <ChunkErrorBoundary>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             {/* Auth routes */}
@@ -97,6 +117,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
+        </ChunkErrorBoundary>
         </AppDataProvider>
       </AuthProvider>
     </BrowserRouter>
