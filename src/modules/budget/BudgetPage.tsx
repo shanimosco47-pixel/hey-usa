@@ -25,7 +25,7 @@ import { EXPENSE_CATEGORIES } from '@/lib/constants'
 import { FAMILY_MEMBERS, getFamilyMember } from '@/lib/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Expense } from '@/lib/types'
-import { DailyBudgetView } from './components/DailyBudgetView'
+import { DailyBudgetTable } from './components/DailyBudgetTable'
 import {
   PieChart,
   Pie,
@@ -617,7 +617,7 @@ export default function BudgetPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.2 }}
         >
-          <DailyBudgetView />
+          <DailyBudgetTable />
         </motion.div>
       )}
     </div>
