@@ -62,7 +62,7 @@ export default function DocumentsPage() {
   )
 
   return (
-    <div className="min-h-full px-4 pb-24 pt-4 sm:px-6" dir="rtl">
+    <div className="min-h-full px-4 pb-24 pt-4 sm:px-6 overflow-x-hidden" dir="rtl">
       {/* Header */}
       <motion.div
         className="mb-5 flex items-center justify-between"
@@ -173,7 +173,7 @@ export default function DocumentsPage() {
         </div>
       ) : viewMode === 'grid' ? (
         <motion.div
-          className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+          className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.3 }}

@@ -5,10 +5,12 @@ import { cn } from '@/lib/cn'
 
 declare const __BUILD_TIME__: string
 
-const buildTime = (() => {
+const buildInfo = (() => {
   try {
     const d = new Date(__BUILD_TIME__)
-    return d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+    const time = d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+    const date = d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' })
+    return `${date} ${time}`
   } catch {
     return ''
   }
@@ -31,9 +33,9 @@ export function TopBar() {
         <h1 className="text-[15px] sm:text-[17px] font-bold tracking-tight text-apple-primary">
           Hey USA
         </h1>
-        {buildTime && (
+        {buildInfo && (
           <span className="text-[10px] text-apple-tertiary font-medium tabular-nums">
-            v1.0 • {buildTime}
+            v2.0 • {buildInfo}
           </span>
         )}
       </div>
