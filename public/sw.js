@@ -1,17 +1,4 @@
-// Self-destructing service worker - clears all caches and unregisters itself
-self.addEventListener('install', function() {
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', function(event) {
-  event.waitUntil(
-    caches.keys().then(function(names) {
-      return Promise.all(names.map(function(name) { return caches.delete(name); }));
-    }).then(function() {
-      return self.registration.unregister();
-    })
-  );
-});
-
-// Don't intercept any requests - let them go to network
-self.addEventListener('fetch', function() {});
+// This file is intentionally empty.
+// VitePWA generates its own service worker during build.
+// Keeping this file ensures any old SW registrations pointing here
+// will load a no-op worker and not break anything.
