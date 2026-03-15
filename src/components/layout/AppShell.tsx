@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { TopBar } from '@/components/layout/TopBar'
 import { Sidebar } from '@/components/layout/Sidebar'
@@ -26,30 +26,22 @@ export function AppShell() {
             isDesktop ? 'mr-56' : 'pb-16',
           )}
         >
-          <AnimatePresence mode="wait">
+          <Suspense
+            fallback={
+              <div className="flex min-h-[50vh] items-center justify-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-black/[0.06] border-t-ios-blue" />
+              </div>
+            }
+          >
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{
-                type: 'spring',
-                stiffness: 300,
-                damping: 30,
-                mass: 0.8,
-              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
             >
-              <Suspense
-                fallback={
-                  <div className="flex min-h-[50vh] items-center justify-center">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-black/[0.06] border-t-ios-blue" />
-                  </div>
-                }
-              >
-                <Outlet />
-              </Suspense>
+              <Outlet />
             </motion.div>
-          </AnimatePresence>
+          </Suspense>
         </main>
       </div>
 
