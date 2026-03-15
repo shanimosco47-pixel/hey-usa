@@ -3,6 +3,7 @@ import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS, STATUS_MAP } from '@/constants'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import type { Task, TaskStatus, TaskPriority, FamilyMemberId } from '@/types'
+import { isSampleData } from '@/lib/sampleData'
 
 interface TaskRowProps {
   task: Task
@@ -82,6 +83,7 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
           isDone && 'line-through text-apple-secondary',
         )}
       >
+        {isSampleData(task.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}
         {task.title}
       </span>
 

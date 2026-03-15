@@ -8,7 +8,7 @@ const SAMPLE_PREFIXES = [
   'task-',     // sample tasks
   'post-',     // sample blog posts
   'song-',     // sample playlist items
-  'pack-',     // sample packing items
+  'p-',        // sample packing items
   'note-sample-', // sample notes
 ]
 

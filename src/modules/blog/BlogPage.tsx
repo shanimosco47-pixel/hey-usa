@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { BlogPost, FamilyMemberId } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
+import { isSampleData } from '@/lib/sampleData'
 
 // Moti's writing prompt suggestions
 const MOTI_PROMPTS = [
@@ -276,7 +277,7 @@ export default function BlogPage() {
                 onClick={() => setSelectedPost(post)}
                 className="w-full rounded-apple-lg glass p-4 text-right shadow-sm transition-shadow hover:shadow-md"
               >
-                <h3 className="text-base font-bold text-apple-primary">{post.title}</h3>
+                <h3 className="text-base font-bold text-apple-primary">{isSampleData(post.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}{post.title}</h3>
                 <p className="mt-1.5 text-sm text-apple-secondary leading-relaxed line-clamp-2">{excerpt}...</p>
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs text-apple-secondary">

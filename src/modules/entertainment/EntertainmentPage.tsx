@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { getFamilyMember } from '@/lib/constants'
+import { isSampleData } from '@/lib/sampleData'
 import {
   ROAD_TRIP_GAMES,
   USA_TRIVIA,
@@ -138,7 +139,7 @@ export default function EntertainmentPage() {
               <div key={song.id} className="flex items-center gap-3 glass rounded-apple-lg p-3 shadow-sm">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ios-indigo/10 text-sm font-bold text-ios-indigo">{idx + 1}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-apple-primary truncate">{song.title}</p>
+                  <p className="text-sm font-medium text-apple-primary truncate">{isSampleData(song.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}{song.title}</p>
                   <p className="text-xs text-apple-secondary">{song.artist && <span>{song.artist} · </span>}{adder.avatar_emoji} {adder.name}</p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">

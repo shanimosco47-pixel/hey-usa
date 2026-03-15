@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button'
 import { PACKING_CATEGORIES, FAMILY_MEMBERS, getFamilyMember } from '@/lib/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { FamilyMemberId } from '@/lib/types'
+import { isSampleData } from '@/lib/sampleData'
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
   clothing: Shirt,
@@ -303,6 +304,7 @@ export default function PackingPage() {
                               item.is_packed ? 'text-apple-secondary line-through' : 'text-apple-primary',
                             )}
                           >
+                            {isSampleData(item.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}
                             {item.name}
                             {item.quantity > 1 && (
                               <span className="mr-1 text-xs text-apple-secondary">×{item.quantity}</span>

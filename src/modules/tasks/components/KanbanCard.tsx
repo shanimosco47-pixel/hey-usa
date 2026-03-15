@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS } from '@/constants'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import type { Task, TaskPriority, FamilyMemberId } from '@/types'
+import { isSampleData } from '@/lib/sampleData'
 
 interface KanbanCardProps {
   task: Task
@@ -82,6 +83,7 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
           task.status === 'done' && 'line-through opacity-60',
         )}
       >
+        {isSampleData(task.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}
         {task.title}
       </p>
 

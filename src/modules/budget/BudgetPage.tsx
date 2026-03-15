@@ -25,6 +25,7 @@ import { EXPENSE_CATEGORIES } from '@/lib/constants'
 import { FAMILY_MEMBERS, getFamilyMember } from '@/lib/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Expense } from '@/lib/types'
+import { isSampleData } from '@/lib/sampleData'
 import { DailyBudgetTable } from './components/DailyBudgetTable'
 import {
   PieChart,
@@ -581,7 +582,7 @@ export default function BudgetPage() {
                     <IconComp className="h-5 w-5 text-apple-secondary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-apple-primary truncate">{expense.title}</p>
+                    <p className="text-sm font-medium text-apple-primary truncate">{isSampleData(expense.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}{expense.title}</p>
                     <p className="text-xs text-apple-secondary">
                       {member.avatar_emoji} {member.name} · {expense.date}
                     </p>
