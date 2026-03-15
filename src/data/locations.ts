@@ -10,6 +10,10 @@ export interface LocationDef {
   matchPatterns: string[]
   coordinates: { lat: number; lng: number }
   type: 'city' | 'park' | 'town' | 'scenic'
+  /** Moti's summary of the location */
+  summary?: string
+  /** Short fun fact */
+  funFact?: string
 }
 
 export const LOCATIONS: LocationDef[] = [
@@ -23,6 +27,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Los Angeles'],
     coordinates: { lat: 33.9425, lng: -118.4081 },
     type: 'city',
+    summary: 'עיר המלאכים! כאן אוספים את הקרוואן ויוצאים לדרך. שווה לעצור בחוף סנטה מוניקה, לטייל בהוליווד בולוורד, ולהכין את עצמכם להרפתקה הגדולה.',
+    funFact: '🤖 ידעתם? שלט ה-HOLLYWOOD המקורי נבנה ב-1923 כפרסומת לנדל"ן ונועד לעמוד רק 18 חודשים!',
   },
   {
     id: 'barstow',
@@ -34,6 +40,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Barstow'],
     coordinates: { lat: 34.8958, lng: -117.0173 },
     type: 'town',
+    summary: 'עצירת ביניים אייקונית על כביש 66! עיירת מדבר עם אווירה של מערב פרוע. מקום מושלם לתדלק, לאכול ולצלם.',
+    funFact: '🤖 ידעתם? בארסטו היא אחת מהעיירות הוותיקות ביותר על הכביש הראשי בין LA ללאס וגאס — רוט 66 המקורי!',
   },
   {
     id: 'las-vegas',
@@ -45,6 +53,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Las Vegas'],
     coordinates: { lat: 36.1699, lng: -115.1398 },
     type: 'city',
+    summary: 'הנה, ויגאס! גם עם ילדים יש פה מלא מה לעשות — שואו של Cirque du Soleil, הרצפת זכוכית ב-Stratosphere, ומדבר נבדה ממש מעבר לפינה.',
+    funFact: '🤖 ידעתם? לאס וגאס צורכת כמות חשמל שיכולה להאיר את כל תל אביב פי 3 — והכל במדבר!',
   },
   {
     id: 'zion',
@@ -56,6 +66,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Zion'],
     coordinates: { lat: 37.2982, lng: -113.0263 },
     type: 'park',
+    summary: 'הפארק הלאומי הראשון שלנו! קניונים אדומים מרהיבים, מסלולי הליכה לכל הרמות, ונהר הווירג\'ין שזורם בתוך הקניון. חובה: Angels Landing או Narrows.',
+    funFact: '🤖 ידעתם? שם הפארק "ציון" ניתן לו על ידי מתיישבים מורמונים ב-1860 — הם חשבו שזה נראה כמו גן עדן!',
   },
   {
     id: 'bryce-canyon',
@@ -67,6 +79,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Bryce'],
     coordinates: { lat: 37.5930, lng: -112.1871 },
     type: 'park',
+    summary: 'עמודי הודו (Hoodoos) — תצורות סלע מדהימות שנראות כאילו הגיעו מכוכב אחר. הזריחה כאן היא מהמרהיבות בעולם!',
+    funFact: '🤖 ידעתם? ברייס קניון הוא לא באמת קניון — הוא אמפיתיאטר טבעי ענק שנשחק ע"י גשם וקרח לאורך מיליוני שנים!',
   },
   {
     id: 'capitol-reef',
@@ -78,6 +92,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Capitol Reef'],
     coordinates: { lat: 38.2972, lng: -111.2615 },
     type: 'park',
+    summary: 'הפנינה הנסתרת של יוטה! פחות תיירים, יותר שקט ונוף. הפארק מפורסם בגשרי הסלע, הקירות הצבעוניים ומטעי הפירות ההיסטוריים.',
+    funFact: '🤖 ידעתם? בפארק יש מטע פירות מתקופת המתיישבים — אפשר לקטוף תפוחים ודובדבנים בחינם (בעונה)!',
   },
   {
     id: 'moab',
@@ -89,6 +105,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Moab', 'Canyonlands'],
     coordinates: { lat: 38.5733, lng: -109.5498 },
     type: 'town',
+    summary: 'בירת ההרפתקאות של יוטה! שער הכניסה ל-Arches ול-Canyonlands. ג\'יפים, אופני הרים, ומסלולי טיול מטורפים. חובה: Delicate Arch בשקיעה.',
+    funFact: '🤖 ידעתם? ב-Arches National Park יש מעל 2,000 קשתות סלע טבעיות — הריכוז הגדול בעולם!',
   },
   {
     id: 'monument-valley',
@@ -100,6 +118,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Monument Valley'],
     coordinates: { lat: 36.9985, lng: -110.0985 },
     type: 'scenic',
+    summary: 'הנוף האיקוני של אמריקה! ביוטות אדומים ענקיים שמשתקפים מכל סרט מערבון שראיתם. שטח הנבאחו — תרבות ומסורת מרתקת.',
+    funFact: '🤖 ידעתם? מוניומנט ואלי הוא לא פארק לאומי אלא שמורה של עם הנבאחו — הם מנהלים אותו בעצמם!',
   },
   {
     id: 'page',
@@ -111,6 +131,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Page'],
     coordinates: { lat: 36.9147, lng: -111.4558 },
     type: 'town',
+    summary: 'כאן נמצאים שניים מהאתרים המצולמים ביותר בעולם: Antelope Canyon וההורסשו בנד. הצבעים בקניון הם פשוט לא אמיתיים!',
+    funFact: '🤖 ידעתם? Antelope Canyon נוצר ע"י שיטפונות פתאומיים שחצבו את אבן החול במשך אלפי שנים — ועדיין מוצף לפעמים!',
   },
   {
     id: 'grand-canyon',
@@ -122,6 +144,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Grand Canyon'],
     coordinates: { lat: 36.0544, lng: -112.1401 },
     type: 'park',
+    summary: 'אחד מ-7 פלאי הטבע של העולם. 1.6 קילומטר עומק, 16 קילומטר רוחב. השקיעה מהשפה הדרומית היא חוויה שלא תשכחו לעולם.',
+    funFact: '🤖 ידעתם? הסלעים בתחתית הגרנד קניון בני כמעט 2 מיליארד שנה — כמעט חצי מגיל כדור הארץ!',
   },
   {
     id: 'kanab',
@@ -133,6 +157,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Kanab'],
     coordinates: { lat: 37.0475, lng: -112.5263 },
     type: 'town',
+    summary: 'עיירה קטנה ומקסימה על הגבול בין יוטה לאריזונה. בסיס מושלם לטיולים באזור — קרוב לגרנד קניון, זאיון וברייס.',
+    funFact: '🤖 ידעתם? קנאב מכונה "ליטל הוליווד" — צולמו כאן מעל 100 סרטי מערבון בשנות ה-50 וה-60!',
   },
   {
     id: 'great-basin',
@@ -144,6 +170,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Great Basin', 'Ely'],
     coordinates: { lat: 38.9833, lng: -114.3007 },
     type: 'park',
+    summary: 'הפארק הלאומי הכי פחות מבוקר בארה"ב — וזה בדיוק הקסם שלו. מערות שיש מרהיבות, עצי Bristlecone בני 5,000 שנה, ושמים מלאי כוכבים.',
+    funFact: '🤖 ידעתם? כאן גדל העץ הכי זקן בעולם — Bristlecone Pine בן 4,855 שנים, זקן מהפירמידות!',
   },
   {
     id: 'bishop',
@@ -155,6 +183,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Bishop'],
     coordinates: { lat: 37.3636, lng: -118.3951 },
     type: 'town',
+    summary: 'עיירה קטנה ומקסימה למרגלות הרי הסיירה נבדה. נקודת עצירה מושלמת בדרך ליוסמיטי, עם נופי הרים מטורפים.',
+    funFact: '🤖 ידעתם? בישופ היא בירת הטיפוס של קליפורניה — סלעי Buttermilk מושכים מטפסים מכל העולם!',
   },
   {
     id: 'mammoth-lakes',
@@ -166,6 +196,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Mammoth'],
     coordinates: { lat: 37.6485, lng: -118.9721 },
     type: 'town',
+    summary: 'אתר סקי מפורסם שבקיץ הופך לגן עדן של טיולים ואגמים. מעיינות חמים, אגמי הרים צלולים, ונוף וולקני מרשים.',
+    funFact: '🤖 ידעתם? האגמי הרים באזור מאמות\' הם כל כך צלולים שאפשר לראות את הקרקעית ב-30 מטר עומק!',
   },
   {
     id: 'yosemite',
@@ -177,6 +209,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['Yosemite'],
     coordinates: { lat: 37.7490, lng: -119.5885 },
     type: 'park',
+    summary: 'אחד הפארקים הלאומיים המפורסמים בעולם! מפלי ענק, צוקים מרשימים, ועצי סקויה עתיקים. El Capitan ו-Half Dome — האייקונים של קליפורניה.',
+    funFact: '🤖 ידעתם? מפל יוסמיטי הוא המפל הגבוה ביותר בצפון אמריקה — 739 מטר, כמעט פי 7 ממפלי הניאגרה!',
   },
   {
     id: 'california-coast',
@@ -188,6 +222,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['California'],
     coordinates: { lat: 36.5580, lng: -121.9233 },
     type: 'scenic',
+    summary: 'כביש החוף של קליפורניה (Highway 1) — אחד הכבישים היפים בעולם. צוקים דרמטיים, אריות ים, ומפרצים טורקיזיים. נהיגה לאטלאט.',
+    funFact: '🤖 ידעתם? גשר Bixby Bridge בביג סור הוא אחד הגשרים המצולמים ביותר בעולם — וגובהו 85 מטר!',
   },
   {
     id: 'san-francisco',
@@ -199,6 +235,8 @@ export const LOCATIONS: LocationDef[] = [
     matchPatterns: ['San Francisco'],
     coordinates: { lat: 37.7749, lng: -122.4194 },
     type: 'city',
+    summary: 'העיר האחרונה בטיול! גשר הזהב, הרכבלים, רציף הדייגים ואלקטרז. עיר עם אופי מיוחד, ערפל מפורסם ואוכל מדהים.',
+    funFact: '🤖 ידעתם? כבלי הרכבלים של סן פרנסיסקו הם מערכת התחבורה האחרונה מסוגה בעולם — ופועלים מאז 1873!',
   },
 ]
 

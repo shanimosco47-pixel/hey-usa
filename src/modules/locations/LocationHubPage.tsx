@@ -184,6 +184,28 @@ export default function LocationHubPage() {
         </div>
       </div>
 
+      {/* ── Moti's Summary ──────────────────────────────────── */}
+      {(location.summary || location.funFact) && (
+        <div className="max-w-3xl mx-auto px-4 py-4 space-y-3">
+          {location.summary && (
+            <div className="glass rounded-apple-lg px-4 py-3">
+              <div className="flex items-start gap-2">
+                <span className="text-lg shrink-0">🤖</span>
+                <div>
+                  <p className="text-[13px] text-apple-primary leading-relaxed">{location.summary}</p>
+                  <p className="text-[10px] text-apple-tertiary mt-1 font-medium">— מוטי</p>
+                </div>
+              </div>
+            </div>
+          )}
+          {location.funFact && (
+            <div className="rounded-apple-lg bg-amber-50 border border-amber-200/60 px-4 py-3">
+              <p className="text-[13px] text-amber-900 leading-relaxed">{location.funFact}</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── Tab Navigation ─────────────────────────────────── */}
       <div className="sticky top-14 z-20 bg-surface-primary/90 backdrop-blur-md border-b border-black/[0.06]">
         <div className="flex gap-1 px-4 py-2 max-w-3xl mx-auto">
