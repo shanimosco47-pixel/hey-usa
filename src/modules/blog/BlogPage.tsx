@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   BookOpen,
   Plus,
@@ -9,12 +9,27 @@ import {
   Trash2,
   Save,
   ArrowRight,
+  Sparkles,
 } from 'lucide-react'
 import { getFamilyMember } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { BlogPost, FamilyMemberId } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
+
+// Moti's writing prompt suggestions
+const MOTI_PROMPTS = [
+  { title: 'הנחיתה באמריקה!', starter: 'היום נחתנו בלוס אנג\'לס! הרגע שירדנו מהמטוס...', tags: 'לוס אנג\'לס, טיסה', emoji: '✈️' },
+  { title: 'הרכב הראשון שלנו', starter: 'הקרוואן הזה ענק! כשנכנסנו בפעם הראשונה...', tags: 'קרוואן, התחלה', emoji: '🚐' },
+  { title: 'לאס וגאס בלילה', starter: 'לאס וגאס בלילה זה משהו אחר לגמרי. האורות, הקולות...', tags: 'לאס וגאס, לילה', emoji: '🎰' },
+  { title: 'פארק זאיון — ההליכה בקניון', starter: 'ההליכה דרך הקניון הצר של זאיון הייתה מדהימה. המים...', tags: 'זאיון, טיול, טבע', emoji: '🏔️' },
+  { title: 'שקיעה בגרנד קניון', starter: 'עמדנו על שפת הגרנד קניון וראינו את השקיעה. הצבעים...', tags: 'גרנד קניון, שקיעה', emoji: '🌅' },
+  { title: 'מה למדתי היום', starter: 'דבר מעניין שגיליתי היום בטיול...', tags: 'חוויות, למידה', emoji: '💡' },
+  { title: 'הארוחה הכי טובה', starter: 'האוכל האמריקאי הוא סיפור בפני עצמו! היום אכלנו...', tags: 'אוכל, חוויות', emoji: '🍔' },
+  { title: 'כוכבים במדבר', starter: 'בלילה, רחוק מכל עיר, ראינו כוכבים כמו שמעולם לא ראינו...', tags: 'מדבר, לילה, כוכבים', emoji: '🌌' },
+  { title: 'גשר הזהב!', starter: 'סן פרנסיסקו! הגשר האדום המפורסם נראה בדיוק כמו בסרטים...', tags: 'סן פרנסיסקו, גשר הזהב', emoji: '🌉' },
+  { title: 'היום האחרון — סיכום הטיול', starter: '20 ימים חלפו כמו רגע. מהרגע שנחתנו ב-LAX ועד...', tags: 'סיכום, זיכרונות', emoji: '🇺🇸' },
+]
 
 export default function BlogPage() {
   const { currentMember } = useAuth()
@@ -24,13 +39,22 @@ export default function BlogPage() {
   const [editTitle, setEditTitle] = useState('')
   const [editContent, setEditContent] = useState('')
   const [editTags, setEditTags] = useState('')
+  const [showPrompts, setShowPrompts] = useState(false)
 
   function startNewPost() {
     setSelectedPost(null)
     setEditTitle('')
     setEditContent('')
     setEditTags('')
+    setShowPrompts(true)
     setIsEditing(true)
+  }
+
+  function usePrompt(prompt: typeof MOTI_PROMPTS[0]) {
+    setEditTitle(prompt.title)
+    setEditContent(prompt.starter)
+    setEditTags(prompt.tags)
+    setShowPrompts(false)
   }
 
   function startEditPost(post: BlogPost) {
@@ -98,6 +122,52 @@ export default function BlogPage() {
             שמור
           </Button>
         </div>
+        {/* Moti's writing prompts */}
+        {!selectedPost && (
+          <div className="rounded-apple-lg border border-ios-teal/20 bg-ios-teal/5 overflow-hidden">
+            <button
+              onClick={() => setShowPrompts((v) => !v)}
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-right"
+            >
+              <span className="text-lg">🤖</span>
+              <span className="text-sm font-semibold text-apple-primary flex-1">מוטי מציע רעיונות לכתיבה</span>
+              <Sparkles className="h-4 w-4 text-ios-teal" />
+              <motion.span
+                animate={{ rotate: showPrompts ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="text-apple-tertiary text-xs"
+              >
+                &#9662;
+              </motion.span>
+            </button>
+            <AnimatePresence>
+              {showPrompts && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-3 pb-3 grid grid-cols-2 gap-2">
+                    {MOTI_PROMPTS.map((prompt) => (
+                      <button
+                        key={prompt.title}
+                        onClick={() => usePrompt(prompt)}
+                        className="rounded-xl bg-white/80 p-2.5 text-right shadow-sm hover:shadow-md transition-shadow border border-black/[0.04]"
+                      >
+                        <span className="text-lg">{prompt.emoji}</span>
+                        <p className="text-xs font-semibold text-apple-primary mt-1 line-clamp-1">{prompt.title}</p>
+                        <p className="text-[10px] text-apple-tertiary mt-0.5 line-clamp-1">{prompt.starter.slice(0, 40)}...</p>
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+
         <input
           type="text"
           placeholder="כותרת הפוסט"
