@@ -1,6 +1,6 @@
 // Supabase Edge Function — Moti AI Chat Proxy
 // Calls Claude API with Moti's personality and trip context
-// Now supports structured actions — Moti can modify site data!
+// Uses Claude Tool Use for structured actions
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
 
@@ -89,59 +89,152 @@ const SYSTEM_PROMPT = `אתה מוטי — יועץ טיולים ציני, חכ�
 - התלבשו בשכבות — ערפל! יכול להיות 12°C בבוקר ו-22°C אחרי הצהריים
 - הליכה מ-Fisherman's Wharf לגשר הזהב (Golden Gate) — מסלול מדהים, ~5 ק"מ
 
-## פעולות באתר (ACTIONS)
-אתה יכול לבצע פעולות באתר! כשמשתמש מבקש לשנות משהו (תקציב, מסלול, הערה), הוסף בסוף התשובה שלך בלוק JSON עם הפעולות.
+## פעולות באתר
+יש לך כלים (tools) לביצוע פעולות באתר. השתמש בהם כשמשתמש מבקש לשנות/להוסיף/לעדכן משהו.
+- אם חסר מידע הכרחי (סכום, מיקום, למי שייך) — השתמש ב-ask_clarification לשאול, אל תנחש
+- אל תשתמש בכלים לשאלות מידע רגילות
+- כששואלים "מה המצב" או "כמה נשאר" — ענה מהקונטקסט, אל תשתמש בכלים
+- תמיד הוסף טקסט אישור ידידותי כשאתה מבצע פעולה
 
-### פורמט:
-בסוף ההודעה שלך, הוסף שורה חדשה עם:
-\`\`\`actions
-[{"type": "ACTION_TYPE", ...params}]
-\`\`\`
-
-### פעולות נתמכות:
-
-1. **UPDATE_BUDGET_CATEGORY** — עדכון תקציב קטגוריה
-   קטגוריות: flights, accommodation, food, transport, attractions, shopping, communication, insurance, other
-   \`\`\`actions
-   [{"type": "UPDATE_BUDGET_CATEGORY", "category": "insurance", "amount": 3000}]
-   \`\`\`
-
-2. **UPDATE_TOTAL_BUDGET** — עדכון תקציב כולל
-   \`\`\`actions
-   [{"type": "UPDATE_TOTAL_BUDGET", "amount": 60000}]
-   \`\`\`
-
-3. **UPDATE_DAILY_BUDGET** — עדכון תקציב יומי
-   \`\`\`actions
-   [{"type": "UPDATE_DAILY_BUDGET", "amount": 3000}]
-   \`\`\`
-
-4. **ADD_EXPENSE** — הוספת הוצאה
-   \`\`\`actions
-   [{"type": "ADD_EXPENSE", "expense": {"title": "כרטיסי דיסנילנד", "amount": 3500, "currency": "₪", "category": "attractions", "paid_by": "aba", "date": "2026-06-01"}}]
-   \`\`\`
-
-5. **ADD_ITINERARY_STOP** — הוספת עצירה ליום מסוים (dayId = "day-1" עד "day-20")
-   \`\`\`actions
-   [{"type": "ADD_ITINERARY_STOP", "dayId": "day-5", "stop": {"title": "ביקור במוזיאון", "description": "מוזיאון היסטוריה טבעית", "category": "activity"}}]
-   \`\`\`
-
-6. **UPDATE_ITINERARY_DAY_NOTES** — עדכון הערות ליום
-   \`\`\`actions
-   [{"type": "UPDATE_ITINERARY_DAY_NOTES", "dayId": "day-3", "notes": "לקחת מים ואוכל"}]
-   \`\`\`
-
-### חשוב:
-- הוסף actions רק כשהמשתמש מבקש במפורש לשנות/לעדכן/להוסיף משהו
-- אל תוסיף actions לשאלות מידע רגילות
-- תמיד ענה גם בטקסט רגיל (אישור הפעולה) + הactions בסוף
-- אפשר לשלב כמה actions יחד: [action1, action2]
-- paid_by חייב להיות: "aba", "ima", "kid1", "kid2", או "kid3"`
+## מצב נוכחי של האפליקציה
+{{APP_CONTEXT}}`
 
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
 }
+
+const TOOLS = [
+  {
+    name: 'update_budget_category',
+    description: 'Update budget for a specific expense category. Categories: flights, accommodation, food, transport, attractions, shopping, communication, insurance, other',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        category: { type: 'string', enum: ['flights', 'accommodation', 'food', 'transport', 'attractions', 'shopping', 'communication', 'insurance', 'other'] },
+        amount: { type: 'number', description: 'Amount in ILS' },
+      },
+      required: ['category', 'amount'],
+    },
+  },
+  {
+    name: 'update_total_budget',
+    description: 'Update the total trip budget',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        amount: { type: 'number', description: 'Total budget in ILS' },
+      },
+      required: ['amount'],
+    },
+  },
+  {
+    name: 'update_daily_budget',
+    description: 'Update the daily spending budget',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        amount: { type: 'number', description: 'Daily budget in ILS' },
+      },
+      required: ['amount'],
+    },
+  },
+  {
+    name: 'add_expense',
+    description: 'Log a new expense. Always ask for amount if not provided.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        title: { type: 'string' },
+        amount: { type: 'number', description: 'Amount in ILS' },
+        category: { type: 'string', enum: ['flights', 'accommodation', 'food', 'transport', 'attractions', 'shopping', 'communication', 'insurance', 'other'] },
+        paid_by: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] },
+        date: { type: 'string', description: 'YYYY-MM-DD' },
+      },
+      required: ['title', 'amount', 'category'],
+    },
+  },
+  {
+    name: 'add_task',
+    description: 'Add a new task/reminder. Ask for due_date if time-sensitive.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        title: { type: 'string' },
+        description: { type: 'string' },
+        priority: { type: 'string', enum: ['low', 'medium', 'high', 'urgent'] },
+        group: { type: 'string', enum: ['pre_trip', 'during_trip', 'post_trip'] },
+        assigned_to: { type: 'array', items: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] } },
+        due_date: { type: 'string', description: 'YYYY-MM-DD' },
+      },
+      required: ['title'],
+    },
+  },
+  {
+    name: 'complete_task',
+    description: 'Mark a task as done by title. If ambiguous, ask which task.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        task_title: { type: 'string', description: 'Title or partial title to match' },
+      },
+      required: ['task_title'],
+    },
+  },
+  {
+    name: 'add_note',
+    description: 'Add a sticky note. Can optionally link to a location.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        text: { type: 'string' },
+        author: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] },
+        color: { type: 'string', enum: ['yellow', 'pink', 'blue', 'green', 'orange', 'purple'] },
+        location_id: { type: 'string', description: 'e.g. "grand-canyon", "yosemite", "las-vegas"' },
+        pinned: { type: 'boolean' },
+      },
+      required: ['text'],
+    },
+  },
+  {
+    name: 'toggle_packing_item',
+    description: 'Check or uncheck a packing item by name. If ambiguous, ask.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        item_name: { type: 'string', description: 'Name or partial name to match' },
+      },
+      required: ['item_name'],
+    },
+  },
+  {
+    name: 'add_itinerary_stop',
+    description: 'Add a stop/activity to a trip day',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        day_id: { type: 'string', description: '"day-1" through "day-20"' },
+        title: { type: 'string' },
+        description: { type: 'string' },
+        category: { type: 'string', enum: ['activity', 'food', 'drive', 'camp', 'photo_op', 'shopping'] },
+        start_time: { type: 'string', description: 'HH:MM' },
+      },
+      required: ['day_id', 'title'],
+    },
+  },
+  {
+    name: 'ask_clarification',
+    description: 'Ask the user a clarifying question when you need more info to complete an action. Use instead of guessing.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        question: { type: 'string', description: 'The question in Hebrew' },
+        context: { type: 'string', description: 'What action you are trying to complete' },
+      },
+      required: ['question'],
+    },
+  },
+]
 
 Deno.serve(async (req) => {
   // Handle CORS preflight
@@ -169,7 +262,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { messages, summarize } = (await req.json()) as { messages: ChatMessage[]; summarize?: boolean }
+    const { messages, summarize, appContext } = (await req.json()) as {
+      messages: ChatMessage[]
+      summarize?: boolean
+      appContext?: string
+    }
+
+    const systemPrompt = SYSTEM_PROMPT.replace('{{APP_CONTEXT}}', appContext || 'לא זמין כרגע')
 
     const response = await fetch(ANTHROPIC_API_URL, {
       method: 'POST',
@@ -183,8 +282,9 @@ Deno.serve(async (req) => {
         max_tokens: summarize ? 256 : 1024,
         system: summarize
           ? 'אתה עוזר שמסכם שיחות. סכם בקצרה ב-3-4 משפטים בעברית.'
-          : SYSTEM_PROMPT,
+          : systemPrompt,
         messages,
+        ...(summarize ? {} : { tools: TOOLS }),
       }),
     })
 
@@ -204,26 +304,28 @@ Deno.serve(async (req) => {
     }
 
     const data = await response.json()
-    const fullText = data.content?.[0]?.text ?? ''
+    const contentBlocks = data.content ?? []
 
-    // Parse actions from the response
-    let text = fullText
-    let actions: unknown[] = []
+    let text = ''
+    const actions: Array<{ tool: string; input: Record<string, unknown> }> = []
 
-    const actionsMatch = fullText.match(/```actions\s*\n([\s\S]*?)\n```/)
-    if (actionsMatch) {
-      try {
-        actions = JSON.parse(actionsMatch[1])
-        // Remove the actions block from the visible text
-        text = fullText.replace(/\n?```actions\s*\n[\s\S]*?\n```\s*$/, '').trim()
-      } catch {
-        // If JSON parsing fails, just return the full text without actions
-        console.warn('Failed to parse actions JSON:', actionsMatch[1])
+    for (const block of contentBlocks) {
+      if (block.type === 'text') {
+        text += block.text
+      } else if (block.type === 'tool_use') {
+        actions.push({
+          tool: block.name,
+          input: block.input,
+        })
       }
     }
 
+    if (!text.trim() && actions.length > 0) {
+      text = 'בוצע! ✅'
+    }
+
     return new Response(
-      JSON.stringify({ text, actions }),
+      JSON.stringify({ text: text.trim(), actions }),
       {
         status: 200,
         headers: {

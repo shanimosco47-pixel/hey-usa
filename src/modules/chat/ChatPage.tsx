@@ -167,7 +167,7 @@ function AIBadge() {
 }
 
 export default function ChatPage() {
-  const { executeMotiAction, changeLog, tasks, packingItems, expenses, budgetSettings } = useAppData()
+  const { executeMotiAction, buildMotiContext, changeLog, tasks, packingItems, expenses, budgetSettings } = useAppData()
   const navigate = useNavigate()
 
   const tasksTotal = tasks.length
@@ -305,12 +305,16 @@ export default function ChatPage() {
     }).catch(() => {})
 
     try {
-      const response = await getBotResponseAsync(text)
+      const response = await getBotResponseAsync(text, buildMotiContext())
 
       // Execute any actions Moti returned
       if (response.actions.length > 0) {
         for (const action of response.actions) {
-          executeMotiAction(action)
+          if (action.type === 'ASK_CLARIFICATION') continue // question is in the text
+          const error = executeMotiAction(action)
+          if (error) {
+            response.text += `\n\n⚠️ ${error}`
+          }
         }
       }
 

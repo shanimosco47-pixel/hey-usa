@@ -22,6 +22,8 @@ import type {
   Document,
   PlaylistItem,
   LocationNote,
+  FamilyMemberId,
+  NoteColor,
 } from '@/lib/types'
 import { EXPENSE_CATEGORIES } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
@@ -49,6 +51,11 @@ export type MotiAction =
   | { type: 'UPDATE_ITINERARY_STOP_NOTES'; dayId: string; stopId: string; notes: string }
   | { type: 'UPDATE_ITINERARY_DAY_NOTES'; dayId: string; notes: string }
   | { type: 'ADD_ITINERARY_STOP'; dayId: string; stop: { title: string; description?: string; location?: string; start_time?: string; end_time?: string; category?: string; notes?: string } }
+  | { type: 'ADD_TASK'; task: Omit<Task, 'id' | 'created_at' | 'updated_at' | 'order'> }
+  | { type: 'COMPLETE_TASK'; taskTitle: string }
+  | { type: 'ADD_NOTE'; note: { text: string; author: FamilyMemberId; color: NoteColor; locationId: string | null; pinned: boolean } }
+  | { type: 'TOGGLE_PACKING_ITEM'; itemName: string }
+  | { type: 'ASK_CLARIFICATION'; question: string }
 
 // ─── Change Log ─────────────────────────────────────────────────────
 
@@ -79,6 +86,16 @@ function describeAction(action: MotiAction): string {
       return `עדכון הערות ${action.dayId.replace('day-', 'יום ')}`
     case 'ADD_ITINERARY_STOP':
       return `הוספת עצירה "${action.stop.title}" ל-${action.dayId.replace('day-', 'יום ')}`
+    case 'ADD_TASK':
+      return `הוספת משימה: ${action.task.title}`
+    case 'COMPLETE_TASK':
+      return `סימון משימה כהושלמה: ${action.taskTitle}`
+    case 'ADD_NOTE':
+      return `הוספת פתק: ${action.note.text.slice(0, 30)}${action.note.text.length > 30 ? '...' : ''}`
+    case 'TOGGLE_PACKING_ITEM':
+      return `שינוי סטטוס אריזה: ${action.itemName}`
+    case 'ASK_CLARIFICATION':
+      return `שאלת הבהרה`
   }
 }
 
@@ -146,6 +163,7 @@ interface AppDataContextType {
 
   // Moti
   executeMotiAction: (action: MotiAction) => string | null
+  buildMotiContext: () => string
   changeLog: MotiChangeLogEntry[]
   undoLastChange: () => boolean
   clearChangeLog: () => void
@@ -643,6 +661,44 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     db.deleteMotiChangeLog().catch(() => {})
   }, [])
 
+  // ─── Build Moti Context ─────────────────────────────────────────
+
+  const buildMotiContext = useCallback((): string => {
+    const totalBudget = budgetSettings.total_budget
+    const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0)
+    const budgetPercent = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0
+
+    const openTasks = tasks.filter((t) => t.status !== 'done')
+    const urgentTasks = openTasks.filter((t) => t.priority === 'urgent' || t.priority === 'high')
+
+    const totalPacking = packingItems.length
+    const packedCount = packingItems.filter((p) => p.is_packed).length
+    const packingPercent = totalPacking > 0 ? Math.round((packedCount / totalPacking) * 100) : 0
+
+    const daysUntilTrip = Math.ceil(
+      (new Date('2026-09-11').getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    )
+
+    const recentExpenses = expenses.slice(0, 5).map(
+      (e) => `${e.title}: ₪${e.amount}`
+    ).join(', ')
+
+    const lines = [
+      `ימים לטיול: ${daysUntilTrip}`,
+      `תקציב: ₪${totalSpent.toLocaleString()} מתוך ₪${totalBudget.toLocaleString()} (${budgetPercent}% נוצל)`,
+      `תקציב יומי: ₪${(budgetSettings.daily_budget ?? 0).toLocaleString()}`,
+      `משימות: ${openTasks.length} פתוחות מתוך ${tasks.length} (${urgentTasks.length} דחופות)`,
+      `אריזה: ${packingPercent}% ארוז (${packedCount}/${totalPacking})`,
+      `פתקים: ${locationNotes.length}`,
+      recentExpenses ? `הוצאות אחרונות: ${recentExpenses}` : '',
+      urgentTasks.length > 0
+        ? `משימות דחופות: ${urgentTasks.map((t) => t.title).join(', ')}`
+        : '',
+    ]
+
+    return lines.filter(Boolean).join('\n')
+  }, [budgetSettings, expenses, tasks, packingItems, locationNotes])
+
   // ─── Execute Moti Action ────────────────────────────────────────
 
   const executeMotiAction = useCallback(
@@ -666,11 +722,56 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         case 'ADD_ITINERARY_STOP':
           addItineraryStop(action.dayId, action.stop)
           return null
+        case 'ADD_TASK': {
+          const newTask = addTask({
+            ...action.task,
+            status: action.task.status || 'todo',
+            priority: action.task.priority || 'medium',
+            group: action.task.group || 'pre_trip',
+            assigned_to: action.task.assigned_to || ['aba'],
+            order: tasks.length,
+          })
+          addToLog(action, null, newTask)
+          return null
+        }
+        case 'COMPLETE_TASK': {
+          const searchTitle = action.taskTitle.toLowerCase()
+          const task = tasks.find((t) =>
+            t.title.toLowerCase().includes(searchTitle) && t.status !== 'done'
+          )
+          if (!task) return `לא מצאתי משימה פתוחה שמתאימה ל: ${action.taskTitle}`
+          updateTask(task.id, { status: 'done', completed_at: new Date().toISOString() })
+          addToLog(action, task.status, 'done')
+          return null
+        }
+        case 'ADD_NOTE': {
+          addLocationNote({
+            text: action.note.text,
+            author: action.note.author || 'aba',
+            color: action.note.color || 'yellow',
+            locationId: action.note.locationId,
+            pinned: action.note.pinned || false,
+          })
+          addToLog(action, null, action.note.text)
+          return null
+        }
+        case 'TOGGLE_PACKING_ITEM': {
+          const searchName = action.itemName.toLowerCase()
+          const item = packingItems.find((p) =>
+            p.name.toLowerCase().includes(searchName)
+          )
+          if (!item) return `לא מצאתי פריט אריזה שמתאים ל: ${action.itemName}`
+          updatePackingItem(item.id, { is_packed: !item.is_packed })
+          addToLog(action, item.is_packed, !item.is_packed)
+          return null
+        }
+        case 'ASK_CLARIFICATION':
+          return null
         default:
           return 'לא הצלחתי לבצע את הפעולה'
       }
     },
-    [updateBudgetCategory, updateTotalBudget, updateDailyBudget, addExpense, updateItineraryDayNotes, addItineraryStop],
+    [updateBudgetCategory, updateTotalBudget, updateDailyBudget, addExpense, updateItineraryDayNotes, addItineraryStop, tasks, packingItems, updateTask, updatePackingItem, addTask, addLocationNote, addToLog],
   )
 
   return (
@@ -720,6 +821,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         changeLog,
         undoLastChange,
         clearChangeLog,
+        buildMotiContext,
       }}
     >
       {children}
