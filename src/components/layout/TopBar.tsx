@@ -35,7 +35,7 @@ export function TopBar() {
         </h1>
         {buildInfo && (
           <span className="text-[10px] text-apple-tertiary font-medium tabular-nums">
-            v2.0 • {buildInfo}
+            v2.1 • {buildInfo}
           </span>
         )}
       </div>
