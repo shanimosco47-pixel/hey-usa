@@ -399,6 +399,105 @@ export default function DashboardPage() {
         </AnimatePresence>
       </motion.div>
 
+      {/* ── Trip Route Progress ── */}
+      {itineraryDays.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="mb-4"
+        >
+          <div
+            className="rounded-[16px] bg-white px-4 py-3.5"
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[14px] font-semibold text-apple-primary">🛣️ מסלול הטיול</span>
+              {tripDayIndex !== null && (
+                <span className="text-[11px] font-bold text-white bg-ios-green rounded-full px-2 py-0.5">
+                  יום {tripDayIndex + 1} מתוך {itineraryDays.length}
+                </span>
+              )}
+              {tripDayIndex === null && daysLeft > 0 && (
+                <span className="text-[11px] font-medium text-apple-tertiary">
+                  עוד {daysLeft} ימים
+                </span>
+              )}
+            </div>
+            <div className="overflow-x-auto -mx-1 px-1 pb-1">
+              <div className="flex items-center gap-0 min-w-max">
+                {itineraryDays.map((day, i) => {
+                  const isCurrent = tripDayIndex === i
+                  const isPast = tripDayIndex !== null && i < tripDayIndex
+                  const isFuture = tripDayIndex === null || i > tripDayIndex
+                  const cityShort = day.city?.split('→')[0]?.trim()?.split(',')[0]?.trim()?.slice(0, 10) || ''
+                  return (
+                    <div key={day.id} className="flex items-center">
+                      <div className="flex flex-col items-center" style={{ width: 38 }}>
+                        {/* Dot */}
+                        <div
+                          className="relative flex items-center justify-center rounded-full transition-all"
+                          style={{
+                            width: isCurrent ? 20 : 10,
+                            height: isCurrent ? 20 : 10,
+                            backgroundColor: isPast ? '#34C759' : isCurrent ? '#007AFF' : '#E5E5EA',
+                            boxShadow: isCurrent ? '0 0 0 4px rgba(0,122,255,0.2)' : 'none',
+                          }}
+                        >
+                          {isCurrent && (
+                            <motion.div
+                              animate={{ scale: [1, 1.4, 1] }}
+                              transition={{ duration: 2, repeat: Infinity }}
+                              className="absolute inset-0 rounded-full"
+                              style={{ backgroundColor: 'rgba(0,122,255,0.25)' }}
+                            />
+                          )}
+                          {isPast && (
+                            <svg viewBox="0 0 10 10" width={6} height={6}>
+                              <path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                          {isCurrent && <span className="text-[8px]">📍</span>}
+                        </div>
+                        {/* Day label */}
+                        <span
+                          className="text-[9px] mt-1 font-medium text-center leading-tight"
+                          style={{
+                            color: isCurrent ? '#007AFF' : isPast ? '#34C759' : '#8E8E93',
+                            fontWeight: isCurrent ? 700 : 500,
+                          }}
+                        >
+                          {i + 1}
+                        </span>
+                        {/* City name */}
+                        {cityShort && (
+                          <span
+                            className="text-[7px] text-center leading-tight truncate max-w-[38px]"
+                            style={{ color: isCurrent ? '#007AFF' : isFuture ? '#C7C7CC' : '#8E8E93' }}
+                          >
+                            {cityShort}
+                          </span>
+                        )}
+                      </div>
+                      {/* Connector line */}
+                      {i < itineraryDays.length - 1 && (
+                        <div
+                          className="h-[2px] flex-shrink-0"
+                          style={{
+                            width: 8,
+                            backgroundColor: isPast ? '#34C759' : '#E5E5EA',
+                          }}
+                        />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Quick Stats Row */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
