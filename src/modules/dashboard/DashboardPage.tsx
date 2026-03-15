@@ -14,6 +14,7 @@ import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import type { FamilyMemberId } from '@/lib/types'
 import { TRIP_START_DATE, TRIP_END_DATE } from '@/lib/constants'
 import WeatherWidget from '@/components/shared/WeatherWidget'
+import { MotiRobot } from '@/components/shared/MotiRobot'
 import type { LucideIcon } from 'lucide-react'
 
 const TRIP_DATE = new Date(`${TRIP_START_DATE}T00:00:00`)
@@ -786,37 +787,16 @@ export default function DashboardPage() {
           whileTap={{ scale: 0.95 }}
           className="fixed bottom-20 left-5 z-20 flex h-14 w-14 items-center justify-center rounded-full overflow-hidden"
           style={{
-            background: 'linear-gradient(145deg, #00C7BE, #30D158)',
-            boxShadow: '0 4px 20px rgba(0, 199, 190, 0.35)',
+            background: 'linear-gradient(145deg, #F5F5F7, #E5E5EA)',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(255,255,255,0.8)',
+            border: '1.5px solid rgba(0,0,0,0.06)',
           }}
         >
-          {/* Robot bouncing animation */}
           <motion.div
             animate={{ y: [0, -3, 0], rotate: [0, 3, -3, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <svg viewBox="0 0 64 64" width={36} height={36} fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Antenna */}
-              <line x1="32" y1="6" x2="32" y2="14" stroke="#E0E0E0" strokeWidth="2" strokeLinecap="round" />
-              <circle cx="32" cy="5" r="3" fill="#FF5252" />
-              {/* Head */}
-              <rect x="16" y="14" width="32" height="24" rx="6" fill="#E8E8ED" />
-              {/* Eyes */}
-              <circle cx="24" cy="26" r="4" fill="#007AFF" />
-              <circle cx="40" cy="26" r="4" fill="#007AFF" />
-              <circle cx="25" cy="25" r="1.5" fill="white" />
-              <circle cx="41" cy="25" r="1.5" fill="white" />
-              {/* Mouth */}
-              <rect x="25" y="32" width="14" height="3" rx="1.5" fill="#007AFF" opacity="0.5" />
-              {/* Body */}
-              <rect x="20" y="40" width="24" height="14" rx="4" fill="#D1D1D6" />
-              {/* Arms */}
-              <rect x="10" y="42" width="8" height="4" rx="2" fill="#D1D1D6" />
-              <rect x="46" y="42" width="8" height="4" rx="2" fill="#D1D1D6" />
-              {/* Buttons on body */}
-              <circle cx="28" cy="47" r="2" fill="#34C759" />
-              <circle cx="36" cy="47" r="2" fill="#FF9500" />
-            </svg>
+            <MotiRobot size={36} animated={false} />
           </motion.div>
         </motion.div>
       </Link>

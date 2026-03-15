@@ -49,8 +49,8 @@ export const FAMILY_MEMBERS: Record<FamilyMemberId, FamilyMember> = {
     name: 'מוטי',
     emoji: '🤖',
     initials: 'מ',
-    color: '#00C7BE',
-    colorEnd: '#30D158',
+    color: '#8E8E93',
+    colorEnd: '#C7C7CC',
   },
 }
 

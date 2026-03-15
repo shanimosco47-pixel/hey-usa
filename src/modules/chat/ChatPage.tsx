@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Send, ArrowRight, Sparkles, WifiOff, Zap, History } from 'lucide-react'
 import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, initConversationFromDb } from './botEngine'
 import { useAppData } from '@/contexts/AppDataContext'
+import { MotiAvatar } from '@/components/shared/MotiRobot'
 import * as db from '@/lib/database'
 
 interface Message {
@@ -56,68 +57,8 @@ function getSmartSuggestions(data: {
   return [...new Set(suggestions)].slice(0, 6)
 }
 
-function MotiCharacter({ size = 24 }: { size?: number }) {
-  return (
-    <svg viewBox="0 0 64 64" width={size} height={size} fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Antenna */}
-      <line x1="32" y1="6" x2="32" y2="14" stroke="#E0E0E0" strokeWidth="2" strokeLinecap="round" />
-      <motion.circle
-        cx="32" cy="5" r="3" fill="#FF5252"
-        animate={{ opacity: [1, 0.3, 1] }}
-        transition={{ duration: 2, repeat: Infinity }}
-      />
-      {/* Head */}
-      <rect x="16" y="14" width="32" height="24" rx="6" fill="#E8E8ED" />
-      {/* Eyes - blinking */}
-      <motion.g
-        animate={{ scaleY: [1, 0.1, 1] }}
-        transition={{ duration: 0.15, repeat: Infinity, repeatDelay: 4, ease: 'easeInOut' }}
-      >
-        <circle cx="24" cy="26" r="4" fill="#007AFF" />
-        <circle cx="40" cy="26" r="4" fill="#007AFF" />
-      </motion.g>
-      <circle cx="25" cy="25" r="1.5" fill="white" />
-      <circle cx="41" cy="25" r="1.5" fill="white" />
-      {/* Mouth - animated */}
-      <motion.rect
-        x="25" y="32" width="14" height="3" rx="1.5" fill="#007AFF" opacity="0.5"
-        animate={{ width: [14, 10, 14] }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      {/* Body */}
-      <rect x="20" y="40" width="24" height="14" rx="4" fill="#D1D1D6" />
-      {/* Waving arm */}
-      <motion.g
-        animate={{ rotate: [0, 15, -5, 15, 0] }}
-        transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
-        style={{ transformOrigin: '50px 44px' }}
-      >
-        <rect x="46" y="42" width="8" height="4" rx="2" fill="#D1D1D6" />
-      </motion.g>
-      <rect x="10" y="42" width="8" height="4" rx="2" fill="#D1D1D6" />
-      {/* Buttons */}
-      <circle cx="28" cy="47" r="2" fill="#34C759" />
-      <circle cx="36" cy="47" r="2" fill="#FF9500" />
-    </svg>
-  )
-}
-
 function BotAvatar({ size = 'md' }: { size?: 'sm' | 'md' }) {
-  const px = size === 'sm' ? 'h-8 w-8' : 'h-10 w-10'
-  const charSize = size === 'sm' ? 28 : 34
-  return (
-    <motion.div
-      animate={{ y: [0, -2, 0] }}
-      transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-      className={`${px} rounded-full flex items-center justify-center shrink-0 overflow-hidden`}
-      style={{
-        background: 'linear-gradient(145deg, #00C7BE, #30D158)',
-        boxShadow: '0 2px 10px rgba(0, 199, 190, 0.3)',
-      }}
-    >
-      <MotiCharacter size={charSize} />
-    </motion.div>
-  )
+  return <MotiAvatar size={size} />
 }
 
 function TypingIndicator() {
