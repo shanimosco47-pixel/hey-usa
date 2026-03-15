@@ -25,6 +25,7 @@ const roleIcons: Record<string, string> = {
   kid1: '⭐',
   kid2: '⭐',
   kid3: '⭐',
+  moti: '🤖',
 }
 
 export function FamilyAvatar({

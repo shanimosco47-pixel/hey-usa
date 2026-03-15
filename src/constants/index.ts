@@ -44,6 +44,14 @@ export const FAMILY_MEMBERS: Record<FamilyMemberId, FamilyMember> = {
     color: '#5856D6',
     colorEnd: '#AF52DE',
   },
+  moti: {
+    id: 'moti',
+    name: 'מוטי',
+    emoji: '🤖',
+    initials: 'מ',
+    color: '#00C7BE',
+    colorEnd: '#30D158',
+  },
 }
 
 export const STATUS_MAP: Record<string, StatusConfig> = {

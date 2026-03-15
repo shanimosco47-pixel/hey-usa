@@ -16,6 +16,7 @@ import { cn } from '@/lib/cn'
 import { getFamilyMember, FAMILY_MEMBERS } from '@/lib/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Photo, FamilyMemberId } from '@/lib/types'
+import { isSampleData } from '@/lib/sampleData'
 
 export default function PhotosPage() {
   const { photos, updatePhoto } = useAppData()
@@ -140,9 +141,10 @@ export default function PhotosPage() {
           transition={{ delay: 0.1, duration: 0.3 }}
         >
           {filtered.map((photo) => (
-            <button key={photo.id} onClick={() => setSelectedPhoto(photo)} className="group relative aspect-square overflow-hidden rounded-xl bg-black/[0.04]">
+            <button key={photo.id} onClick={() => setSelectedPhoto(photo)} className={cn('group relative aspect-square overflow-hidden rounded-xl bg-black/[0.04]', isSampleData(photo.id) && 'ring-1 ring-dashed ring-ios-teal/30')}>
               <img src={photo.thumbnail_url || photo.url} alt={photo.caption || ''} className="h-full w-full object-cover transition-transform group-hover:scale-105" loading="lazy" />
               {photo.is_favorite && <Heart className="absolute top-1.5 left-1.5 h-4 w-4 fill-red-400 text-red-400 drop-shadow" />}
+              {isSampleData(photo.id) && <span className="absolute bottom-1 right-1 text-xs bg-black/50 rounded-full px-1.5 py-0.5 text-white">🤖</span>}
             </button>
           ))}
         </motion.div>

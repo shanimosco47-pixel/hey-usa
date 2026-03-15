@@ -5,6 +5,7 @@ import { DOCUMENT_CATEGORIES } from '@/lib/constants'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import { getLocationById } from '@/data/locations'
 import type { Document, FamilyMemberId } from '@/types'
+import { isSampleData } from '@/lib/sampleData'
 
 interface DocumentCardProps {
   document: Document
@@ -74,6 +75,7 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
     ? FAMILY_MEMBERS[doc.family_member_id]?.name
     : null
   const location = doc.locationId ? getLocationById(doc.locationId) : null
+  const sample = isSampleData(doc.id)
 
   return (
     <button
@@ -83,7 +85,7 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
         'group flex w-full flex-col overflow-hidden rounded-xl border text-right',
         'glass shadow-sm transition-all hover:shadow-md hover:bg-white/80',
         'focus:outline-none focus:ring-2 focus:ring-sky/40',
-        expired ? 'border-red-300' : 'border-black/[0.06]',
+        expired ? 'border-red-300' : sample ? 'border-dashed border-ios-teal/40' : 'border-black/[0.06]',
       )}
     >
       {/* Thumbnail / Icon area */}
@@ -157,6 +159,13 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
             </span>
           )}
         </div>
+
+        {sample && (
+          <div className="flex items-center gap-1 mt-1 pt-1 border-t border-dashed border-ios-teal/20">
+            <span className="text-[10px]">🤖</span>
+            <span className="text-[10px] text-ios-teal font-medium">דוגמה מאת מוטי — יש להעלות מסמך אמיתי</span>
+          </div>
+        )}
       </div>
     </button>
   )

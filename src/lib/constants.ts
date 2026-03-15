@@ -13,6 +13,7 @@ export const FAMILY_MEMBERS: FamilyMember[] = [
   { id: 'kid1', name: 'ילד 1', name_en: 'Kid 1', avatar_emoji: '👦', color: '#34C759' },
   { id: 'kid2', name: 'ילד 2', name_en: 'Kid 2', avatar_emoji: '👧', color: '#FF9500' },
   { id: 'kid3', name: 'ילד 3', name_en: 'Kid 3', avatar_emoji: '🧒', color: '#5856D6' },
+  { id: 'moti', name: 'מוטי', name_en: 'Moti', avatar_emoji: '🤖', color: '#00C7BE' },
 ];
 
 export function getFamilyMember(id: FamilyMemberId): FamilyMember {

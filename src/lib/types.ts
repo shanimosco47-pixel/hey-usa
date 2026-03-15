@@ -6,7 +6,7 @@ export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export type TaskGroup = 'pre_trip' | 'during_trip' | 'post_trip';
 
-export type FamilyMemberId = 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3';
+export type FamilyMemberId = 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3' | 'moti';
 
 // ─── Tasks ──────────────────────────────────────────────────────────
 
