@@ -24,7 +24,7 @@ export function getFamilyMember(id: FamilyMemberId): FamilyMember {
 
 // ─── Trip Dates ─────────────────────────────────────────────────────
 
-export const TRIP_START_DATE = '2026-09-11';
+export const TRIP_START_DATE = '2026-09-10';
 export const TRIP_END_DATE = '2026-09-30';
 
 // ─── Task Statuses ──────────────────────────────────────────────────

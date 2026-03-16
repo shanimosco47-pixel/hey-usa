@@ -24,17 +24,17 @@ const TRIP_END = new Date(`${TRIP_END_DATE}T00:00:00`)
 /* ── Rotating Hero Scenes ── */
 const HERO_SCENES = [
   {
-    id: 'desert',
-    emoji: '🚐',
-    secondaryEmoji: '🌵',
-    text: 'בדרך להרפתקה!',
+    id: 'geyser',
+    emoji: '🌋',
+    secondaryEmoji: '💨',
+    text: 'יילוסטון מחכה לנו!',
     gradient: 'linear-gradient(135deg, #FF512F 0%, #DD2476 50%, #F09819 100%)',
   },
   {
     id: 'mountain',
-    emoji: '⛰️',
-    secondaryEmoji: '🌲',
-    text: 'יוסמיטי מחכה לנו!',
+    emoji: '🏔️',
+    secondaryEmoji: '🦌',
+    text: 'גרנד טיטון, wow!',
     gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 50%, #2193b0 100%)',
   },
   {
@@ -45,18 +45,25 @@ const HERO_SCENES = [
     gradient: 'linear-gradient(135deg, #8E2DE2 0%, #4A00E0 50%, #E040FB 100%)',
   },
   {
-    id: 'beach',
-    emoji: '🌊',
-    secondaryEmoji: '🌴',
-    text: 'חוף מערבי, פה אנחנו באים!',
+    id: 'yosemite',
+    emoji: '🌿',
+    secondaryEmoji: '🌲',
+    text: 'יוסמיטי, הנה אנחנו באים!',
     gradient: 'linear-gradient(135deg, #0ED2F7 0%, #00B4DB 50%, #009688 100%)',
   },
   {
     id: 'canyon',
-    emoji: '🏜️',
-    secondaryEmoji: '🌄',
-    text: 'גרנד קניון, wow!',
+    emoji: '🪨',
+    secondaryEmoji: '🏜️',
+    text: 'קניונים של יוטה!',
     gradient: 'linear-gradient(135deg, #F37335 0%, #FDC830 50%, #D32F2F 100%)',
+  },
+  {
+    id: 'cowboy',
+    emoji: '🤠',
+    secondaryEmoji: '🦬',
+    text: "ג'קסון הול, yeehaw!",
+    gradient: 'linear-gradient(135deg, #D4A574 0%, #8B6914 50%, #CD853F 100%)',
   },
 ]
 

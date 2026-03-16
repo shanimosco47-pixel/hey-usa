@@ -14,23 +14,20 @@ import { getPrimaryLocationForCity } from '@/data/locations'
 
 // City-themed gradients, emojis & hero photos for visual flair
 const CITY_THEMES: Record<string, { gradient: string; emoji: string; photo?: string }> = {
-  'Los Angeles': { gradient: 'from-orange-400 to-pink-500', emoji: '🌴', photo: 'https://images.unsplash.com/photo-1534190760961-74e8c1c5c3da?w=800&q=80' },
-  'Barstow': { gradient: 'from-amber-500 to-orange-600', emoji: '🏜️', photo: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=80' },
-  'Las Vegas': { gradient: 'from-purple-500 to-pink-500', emoji: '🎰', photo: 'https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=800&q=80' },
-  'Zion': { gradient: 'from-red-500 to-orange-500', emoji: '🏔️', photo: 'https://images.unsplash.com/photo-1462651567147-aa679fd1cfaf?w=800&q=80' },
+  'Denver': { gradient: 'from-blue-500 to-indigo-500', emoji: '🏔️', photo: 'https://images.unsplash.com/photo-1546156929-a4c0ac411f47?w=800&q=80' },
+  'Bozeman': { gradient: 'from-emerald-500 to-teal-600', emoji: '🦬', photo: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80' },
+  'Gardiner': { gradient: 'from-emerald-500 to-teal-600', emoji: '🦬', photo: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80' },
+  'Yellowstone': { gradient: 'from-yellow-500 to-orange-600', emoji: '🌋', photo: 'https://images.unsplash.com/photo-1533419790775-85dff57b5a3e?w=800&q=80' },
+  'Grand Teton': { gradient: 'from-sky-500 to-blue-700', emoji: '🏔️', photo: 'https://images.unsplash.com/photo-1536183922588-166604504d5e?w=800&q=80' },
+  'Jackson': { gradient: 'from-amber-500 to-yellow-600', emoji: '🤠', photo: 'https://images.unsplash.com/photo-1577083552431-6e5fd01988ec?w=800&q=80' },
   'Bryce': { gradient: 'from-orange-500 to-red-600', emoji: '🪨', photo: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=800&q=80' },
-  'Capitol Reef': { gradient: 'from-amber-600 to-red-500', emoji: '🏜️', photo: 'https://images.unsplash.com/photo-1568515045052-f9a854d70bfd?w=800&q=80' },
-  'Moab': { gradient: 'from-red-600 to-amber-500', emoji: '🌄', photo: 'https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?w=800&q=80' },
-  'Monument Valley': { gradient: 'from-red-700 to-orange-500', emoji: '🏜️', photo: 'https://images.unsplash.com/photo-1558216993-3f64d879ae76?w=800&q=80' },
-  'Page': { gradient: 'from-blue-500 to-cyan-400', emoji: '🌊', photo: 'https://images.unsplash.com/photo-1527549993586-dff825b37782?w=800&q=80' },
-  'Grand Canyon': { gradient: 'from-orange-600 to-red-700', emoji: '🏞️', photo: 'https://images.unsplash.com/photo-1615551043360-33de8b5f410c?w=800&q=80' },
-  'Kanab': { gradient: 'from-amber-500 to-red-400', emoji: '⛰️', photo: 'https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=800&q=80' },
-  'Great Basin': { gradient: 'from-emerald-600 to-teal-500', emoji: '🌲', photo: 'https://images.unsplash.com/photo-1504567961542-e24d9439a724?w=800&q=80' },
-  'Bishop': { gradient: 'from-sky-500 to-blue-600', emoji: '🏔️', photo: 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&q=80' },
+  'Zion': { gradient: 'from-red-500 to-orange-500', emoji: '🏔️', photo: 'https://images.unsplash.com/photo-1462651567147-aa679fd1cfaf?w=800&q=80' },
+  'Las Vegas': { gradient: 'from-purple-500 to-pink-500', emoji: '🎰', photo: 'https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=800&q=80' },
   'Mammoth': { gradient: 'from-blue-500 to-indigo-600', emoji: '🎿', photo: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80' },
   'Yosemite': { gradient: 'from-green-600 to-emerald-500', emoji: '🌿', photo: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=800&q=80' },
-  'California': { gradient: 'from-cyan-400 to-blue-500', emoji: '🌊', photo: 'https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=800&q=80' },
   'San Francisco': { gradient: 'from-red-500 to-orange-400', emoji: '🌉', photo: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80' },
+  'Provo': { gradient: 'from-slate-500 to-gray-600', emoji: '🛣️' },
+  'Nephi': { gradient: 'from-slate-500 to-gray-600', emoji: '🛣️' },
 }
 
 function getCityTheme(city?: string): { gradient: string; emoji: string; photo?: string } {
@@ -44,7 +41,7 @@ function getCityTheme(city?: string): { gradient: string; emoji: string; photo?:
 /** Determine the default day index: during the trip show the current day, otherwise show day 1 */
 function getDefaultDayIndex(totalDays: number): number {
   const today = new Date()
-  const tripStart = parseISO('2026-09-11')
+  const tripStart = parseISO('2026-09-10')
   const tripEnd = parseISO('2026-09-30')
 
   if (isWithinInterval(today, { start: tripStart, end: tripEnd })) {

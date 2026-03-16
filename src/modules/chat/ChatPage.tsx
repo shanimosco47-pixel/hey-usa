@@ -142,7 +142,7 @@ export default function ChatPage() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(true)
   const [visibleCount, setVisibleCount] = useState(2)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const hasOlderMessages = messages.length > visibleCount
   const visibleMessages = hasOlderMessages ? messages.slice(-visibleCount) : messages
@@ -445,15 +445,22 @@ export default function ChatPage() {
 
       {/* Input */}
       <div className="border-t border-black/[0.04] px-4 py-3 pb-safe bg-white/80 backdrop-blur-xl">
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
-          <input
+        <form onSubmit={handleSubmit} className="flex items-end gap-2">
+          <textarea
             ref={inputRef}
-            type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleSubmit(e)
+              }
+            }}
             placeholder={isTyping ? 'מוטי חושב...' : 'שאלו את מוטי או בקשו עדכון...'}
             disabled={isTyping}
-            className="flex-1 rounded-full bg-surface-primary px-4 py-2.5 text-[15px] text-apple-primary placeholder:text-apple-tertiary outline-none focus:ring-2 focus:ring-ios-blue/20 transition-shadow disabled:opacity-60"
+            rows={1}
+            className="flex-1 rounded-2xl bg-surface-primary px-4 py-2.5 text-[15px] text-apple-primary placeholder:text-apple-tertiary outline-none focus:ring-2 focus:ring-ios-blue/20 transition-shadow disabled:opacity-60 resize-none max-h-32 overflow-y-auto"
+            style={{ minHeight: '40px' }}
           />
           <motion.button
             type="submit"
