@@ -54,14 +54,14 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop + centering wrapper */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center"
             onClick={onClose}
-          />
+          >
 
           {/* Dialog */}
           <motion.div
@@ -70,12 +70,12 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             className={cn(
-              'fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
               'w-[90vw] max-w-md',
               'rounded-apple-xl shadow-glass-float',
               'overflow-hidden',
             )}
             style={{ backgroundColor: NOTE_COLORS.find((c) => c.value === color)?.bg || '#fff9c4' }}
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-5 pb-2">
@@ -153,6 +153,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
                 {editingNote ? 'שמור' : 'הוסף'}
               </button>
             </div>
+          </motion.div>
           </motion.div>
         </>
       )}

@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { getAvatarPhoto } from '@/lib/avatarStorage'
 
 /**
  * Moti — the family's quirky white robot companion.
@@ -166,6 +168,27 @@ export function MotiAvatar({
   const robotSize = { xs: 18, sm: 24, md: 30, lg: 42 }
   const px = sizeMap[size]
   const rs = robotSize[size]
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    setPhotoUrl(getAvatarPhoto('moti'))
+  }, [])
+
+  if (photoUrl) {
+    return (
+      <motion.div
+        animate={animated ? { y: [0, -2, 0] } : undefined}
+        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+        className={`${px} rounded-full shrink-0 overflow-hidden`}
+        style={{
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+          border: '1.5px solid rgba(0,0,0,0.06)',
+        }}
+      >
+        <img src={photoUrl} alt="מוטי" className="h-full w-full object-cover" />
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div
