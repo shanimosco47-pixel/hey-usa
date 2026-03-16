@@ -7,10 +7,15 @@ import { Check, Pencil } from 'lucide-react'
 const BUDGET_ROWS = [
   { key: 'accommodation', label: 'לינה / קמפינג', emoji: '🏕️' },
   { key: 'gas', label: 'דלק', emoji: '⛽' },
-  { key: 'food', label: 'אוכל', emoji: '🍔' },
-  { key: 'attractions', label: 'כניסה לאתרים', emoji: '🎟️' },
+  { key: 'food', label: 'אוכל (מסעדות)', emoji: '🍔' },
   { key: 'groceries', label: 'סופר / מכולת', emoji: '🛒' },
-  { key: 'misc', label: 'שונות', emoji: '📦' },
+  { key: 'attractions', label: 'כניסה לאתרים', emoji: '🎟️' },
+  { key: 'shopping', label: 'קניות', emoji: '🛍️' },
+  { key: 'communication', label: 'תקשורת / SIM', emoji: '📱' },
+  { key: 'laundry', label: 'כביסה', emoji: '🧺' },
+  { key: 'tips', label: 'טיפים', emoji: '💵' },
+  { key: 'parking', label: 'חנייה', emoji: '🅿️' },
+  { key: 'unexpected', label: 'בלתי צפוי / אחר', emoji: '❓' },
 ] as const
 
 type BudgetRowKey = (typeof BUDGET_ROWS)[number]['key']
@@ -22,27 +27,37 @@ const PRETRIP_ROWS = [
   { key: 'insurance', label: 'ביטוח נסיעות', emoji: '🛡️' },
   { key: 'esta', label: 'ESTA', emoji: '📋' },
   { key: 'gear', label: 'ציוד', emoji: '🎒' },
+  { key: 'sim_cards', label: 'כרטיסי SIM', emoji: '📶' },
+  { key: 'campground_reservations', label: 'הזמנות קמפינג מראש', emoji: '📋' },
 ] as const
 
 type PretripRowKey = (typeof PRETRIP_ROWS)[number]['key']
 
 // Moti's estimated daily costs for family of 5 in RV (USD)
+// Based on research: average USA travel costs for family of 5 with RV, Sep 2026
 const MOTI_DAILY_ESTIMATES: Record<BudgetRowKey, number> = {
-  accommodation: 45,   // RV campground average
-  gas: 65,             // RV fuel ~10-12 mpg, ~150 miles/day
-  food: 120,           // Mix of cooking in RV and eating out
-  attractions: 40,     // Average across trip (some days $0, some $100+)
-  groceries: 35,       // Supermarket runs
-  misc: 25,            // Tips, laundry, supplies
+  accommodation: 45,   // RV campground/hookup avg ($30-60/night)
+  gas: 65,             // RV fuel ~10-12 mpg, ~150 miles/day, ~$4/gal
+  food: 80,            // Eating out: ~$16/person/meal, ~1 meal/day out
+  groceries: 40,       // Supermarket for RV cooking: breakfast+lunch+snacks
+  attractions: 50,     // National parks $35/vehicle + activities avg
+  shopping: 15,        // Souvenirs, small purchases
+  communication: 3,    // T-Mobile/AT&T prepaid SIM amortized daily
+  laundry: 5,          // RV park laundry every 3-4 days avg
+  tips: 15,            // Restaurant/service tips ~18-20%
+  parking: 8,          // City parking (Vegas, SF, LA days)
+  unexpected: 20,      // Buffer for unplanned expenses
 }
 
 // Moti's pre-trip estimates (USD)
 const MOTI_PRETRIP_ESTIMATES: Record<PretripRowKey, number> = {
   flights: 7500,       // Family of 5, TLV→LAX roundtrip
   rv_rental: 4200,     // Cruise America C30, ~20 days
-  insurance: 1500,     // Travel insurance family
+  insurance: 1500,     // Travel insurance family of 5
   esta: 105,           // $21 × 5 people
   gear: 500,           // Misc gear purchases
+  sim_cards: 100,      // 2 prepaid SIM cards ~$50 each
+  campground_reservations: 300,  // Popular spots booked in advance
 }
 
 interface CellData {
