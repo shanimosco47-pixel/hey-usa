@@ -15,6 +15,7 @@ import type { FamilyMemberId } from '@/lib/types'
 import { TRIP_START_DATE, TRIP_END_DATE } from '@/lib/constants'
 import WeatherWidget from '@/components/shared/WeatherWidget'
 import { MotiRobot } from '@/components/shared/MotiRobot'
+import { getAvatarPhoto } from '@/lib/avatarStorage'
 import type { LucideIcon } from 'lucide-react'
 
 const TRIP_DATE = new Date(`${TRIP_START_DATE}T00:00:00`)
@@ -796,7 +797,11 @@ export default function DashboardPage() {
             animate={{ y: [0, -3, 0], rotate: [0, 3, -3, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <MotiRobot size={36} animated={false} />
+            {getAvatarPhoto('moti') ? (
+              <img src={getAvatarPhoto('moti')!} alt="מוטי" className="h-10 w-10 rounded-full object-cover" />
+            ) : (
+              <MotiRobot size={36} animated={false} />
+            )}
           </motion.div>
         </motion.div>
       </Link>
