@@ -28,28 +28,22 @@ export function TopBar() {
         'shadow-[0_1px_2px_rgba(0,0,0,0.03)]',
       )}
     >
-      <div className="flex items-center gap-2">
-        <span className="hidden sm:inline text-lg" aria-hidden>🇺🇸</span>
-        <h1 className="text-[15px] sm:text-[17px] font-bold tracking-tight text-apple-primary">
-          Hey USA
-        </h1>
-        {buildInfo && (
-          <span className="text-[10px] text-apple-tertiary font-medium tabular-nums">
-            v2.1 • {buildInfo}
-          </span>
-        )}
-      </div>
-
-      <div className="absolute left-1/2 -translate-x-1/2">
-        <DualClock />
-      </div>
-
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         {currentMember ? (
           <FamilyAvatar memberId={currentMember} size="sm" />
         ) : (
           <div className="h-8 w-8 rounded-full bg-surface-primary" />
         )}
+      </div>
+
+      <div className="flex-1 flex justify-center min-w-0">
+        <DualClock />
+      </div>
+
+      <div className="flex items-center gap-1.5 shrink-0">
+        <h1 className="text-[15px] sm:text-[17px] font-bold tracking-tight text-apple-primary whitespace-nowrap">
+          Hey USA
+        </h1>
       </div>
     </header>
   )

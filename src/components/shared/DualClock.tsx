@@ -32,7 +32,7 @@ export function DualClock({ usaTimezone = 'America/Los_Angeles' }: DualClockProp
   }, [usaTimezone])
 
   return (
-    <div className="flex items-center gap-2.5 text-[12px] tabular-nums text-apple-secondary">
+    <div className="flex items-center gap-1.5 sm:gap-2.5 text-[11px] sm:text-[12px] tabular-nums text-apple-secondary whitespace-nowrap">
       <span className="flex items-center gap-1">
         <span role="img" aria-label="Israel" className="text-[11px]">
           🇮🇱
