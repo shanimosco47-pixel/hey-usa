@@ -2,9 +2,12 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const DESTINATIONS = [
-  'Los Angeles',
+  'Denver',
+  'Yellowstone',
+  'Jackson Hole',
+  'Bryce Canyon',
+  'Zion',
   'Las Vegas',
-  'Grand Canyon',
   'Yosemite',
   'San Francisco',
 ]
@@ -156,7 +159,7 @@ export default function SplashScreen({ onFinished }: { onFinished: () => void })
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            LA &bull; LV &bull; GC &bull; YS &bull; SF
+            MT &bull; WY &bull; UT &bull; NV &bull; CA
           </motion.p>
         </motion.div>
       )}

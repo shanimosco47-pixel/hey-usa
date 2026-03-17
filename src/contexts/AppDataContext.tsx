@@ -221,7 +221,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const [
           budgetData,
           expenseData,
-          itineraryData,
+          _itineraryData,
           taskData,
           packingData,
           blogData,
@@ -248,7 +248,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
         if (budgetData) setBudgetSettings(budgetData)
         if (expenseData.length) setExpenses(expenseData)
-        if (itineraryData.length) setItineraryDays(itineraryData)
+        // Itinerary: always use local ITINERARY_DAYS as source of truth
+        // Supabase may contain old route data — skip override
+        // if (itineraryData.length) setItineraryDays(itineraryData)
         if (taskData.length) setTasks(taskData)
         if (packingData.length) setPackingItems(packingData)
         if (blogData.length) setBlogPosts(blogData)

@@ -47,26 +47,24 @@ function getWeatherInfo(code: number): { label: string; emoji: string } {
   return WEATHER_CODES[code] || { label: 'לא ידוע', emoji: '❓' }
 }
 
-// Key destinations with coordinates — one per city cluster
+// Key destinations with coordinates — one per city cluster (matches itinerary.ts)
 export const TRIP_DESTINATIONS = [
-  { city: 'Los Angeles', lat: 33.94, lng: -118.41, days: ['2026-09-11'] },
-  { city: 'Barstow', lat: 34.90, lng: -117.02, days: ['2026-09-11'] },
-  { city: 'Las Vegas', lat: 36.11, lng: -115.17, days: ['2026-09-12'] },
-  { city: 'Zion NP', lat: 37.29, lng: -112.95, days: ['2026-09-13', '2026-09-14'] },
-  { city: 'Bryce Canyon', lat: 37.63, lng: -112.16, days: ['2026-09-15'] },
-  { city: 'Capitol Reef', lat: 38.21, lng: -111.49, days: ['2026-09-16'] },
-  { city: 'Moab', lat: 38.57, lng: -109.55, days: ['2026-09-17', '2026-09-18'] },
-  { city: 'Monument Valley', lat: 37.00, lng: -110.08, days: ['2026-09-19'] },
-  { city: 'Page, AZ', lat: 36.91, lng: -111.46, days: ['2026-09-20'] },
-  { city: 'Grand Canyon', lat: 36.23, lng: -112.05, days: ['2026-09-21'] },
-  { city: 'Kanab', lat: 37.04, lng: -112.53, days: ['2026-09-22'] },
-  { city: 'Great Basin NP', lat: 39.09, lng: -114.23, days: ['2026-09-23'] },
-  { city: 'Bishop, CA', lat: 37.37, lng: -118.40, days: ['2026-09-24'] },
-  { city: 'Mammoth Lakes', lat: 37.64, lng: -118.97, days: ['2026-09-25'] },
-  { city: 'Yosemite', lat: 37.75, lng: -119.57, days: ['2026-09-26', '2026-09-27'] },
-  { city: 'California Coast', lat: 36.60, lng: -121.90, days: ['2026-09-28'] },
-  { city: 'San Francisco', lat: 37.77, lng: -122.42, days: ['2026-09-29'] },
-  { city: 'Los Angeles (Return)', lat: 33.94, lng: -118.41, days: ['2026-09-30'] },
+  { city: 'Denver', lat: 39.86, lng: -104.67, days: ['2026-09-10'] },
+  { city: 'Gardiner', lat: 45.03, lng: -110.71, days: ['2026-09-11'] },
+  { city: 'Yellowstone (Canyon)', lat: 44.73, lng: -110.49, days: ['2026-09-12'] },
+  { city: 'Yellowstone (Madison)', lat: 44.65, lng: -110.86, days: ['2026-09-13'] },
+  { city: 'Yellowstone (Grant)', lat: 44.39, lng: -110.56, days: ['2026-09-14'] },
+  { city: 'Jackson, WY', lat: 43.48, lng: -110.76, days: ['2026-09-15', '2026-09-16'] },
+  { city: 'Provo / Nephi', lat: 40.23, lng: -111.66, days: ['2026-09-17'] },
+  { city: 'Bryce Canyon', lat: 37.59, lng: -112.19, days: ['2026-09-18'] },
+  { city: 'Zion NP', lat: 37.19, lng: -113.00, days: ['2026-09-19', '2026-09-20'] },
+  { city: 'Las Vegas', lat: 36.17, lng: -115.14, days: ['2026-09-21', '2026-09-22'] },
+  { city: 'Mammoth Lakes', lat: 37.65, lng: -118.97, days: ['2026-09-23'] },
+  { city: 'Yosemite Valley', lat: 37.75, lng: -119.59, days: ['2026-09-24', '2026-09-25'] },
+  { city: 'Wawona', lat: 37.54, lng: -119.66, days: ['2026-09-26'] },
+  { city: 'Anthony Chabot', lat: 37.73, lng: -122.06, days: ['2026-09-27'] },
+  { city: 'Marin', lat: 37.89, lng: -122.51, days: ['2026-09-28'] },
+  { city: 'San Francisco', lat: 37.77, lng: -122.42, days: ['2026-09-29', '2026-09-30'] },
 ] as const
 
 // Map date → destination for quick lookup

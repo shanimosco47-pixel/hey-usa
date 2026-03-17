@@ -20,7 +20,7 @@ export const sampleTasks: Task[] = [
   {
     id: 'task-002',
     title: 'הזמנת טיסות',
-    description: 'טיסה ישירה TLV-JFK. לבדוק אל-על ויונייטד. להשוות מחירים.',
+    description: 'טיסה TLV-DEN. לבדוק אל-על ויונייטד. להשוות מחירים.',
     status: 'in_progress',
     priority: 'high',
     group: 'pre_trip',
@@ -118,7 +118,7 @@ export const sampleTasks: Task[] = [
   {
     id: 'task-009',
     title: 'הזמנת קמפינגים בפארקים',
-    description: 'Yellowstone, Grand Canyon, Yosemite. חלק מהקמפינגים נפתחים להזמנה 6 חודשים מראש!',
+    description: 'Yellowstone, Bryce Canyon, Zion, Yosemite. חלק מהקמפינגים נפתחים להזמנה 6 חודשים מראש!',
     status: 'in_progress',
     priority: 'urgent',
     group: 'pre_trip',

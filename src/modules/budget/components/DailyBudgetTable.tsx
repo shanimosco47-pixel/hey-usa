@@ -51,7 +51,7 @@ const MOTI_DAILY_ESTIMATES: Record<BudgetRowKey, number> = {
 
 // Moti's pre-trip estimates (USD)
 const MOTI_PRETRIP_ESTIMATES: Record<PretripRowKey, number> = {
-  flights: 7500,       // Family of 5, TLV→LAX roundtrip
+  flights: 7500,       // Family of 5, TLV→DEN + SFO→TLV
   rv_rental: 4200,     // Cruise America C30, ~20 days
   insurance: 1500,     // Travel insurance family of 5
   esta: 105,           // $21 × 5 people
