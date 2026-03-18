@@ -33,31 +33,61 @@ const PRETRIP_ROWS = [
 
 type PretripRowKey = (typeof PRETRIP_ROWS)[number]['key']
 
-// Moti's estimated daily costs for family of 5 in RV (USD)
-// Based on research: average USA travel costs for family of 5 with RV, Sep 2026
-const MOTI_DAILY_ESTIMATES: Record<BudgetRowKey, number> = {
+// Moti's default daily costs for family of 5 in RV (USD)
+const MOTI_DAILY_DEFAULTS: Record<BudgetRowKey, number> = {
   accommodation: 45,   // RV campground/hookup avg ($30-60/night)
-  gas: 65,             // RV fuel ~10-12 mpg, ~150 miles/day, ~$4/gal
-  food: 80,            // Eating out: ~$16/person/meal, ~1 meal/day out
+  gas: 50,             // RV fuel ~10-12 mpg, avg driving day
+  food: 70,            // Eating out: ~$14/person/meal, ~1 meal/day out
   groceries: 40,       // Supermarket for RV cooking: breakfast+lunch+snacks
-  attractions: 50,     // National parks $35/vehicle + activities avg
+  attractions: 35,     // National parks $35/vehicle entry amortized
   shopping: 15,        // Souvenirs, small purchases
-  communication: 3,    // T-Mobile/AT&T prepaid SIM amortized daily
-  laundry: 5,          // RV park laundry every 3-4 days avg
-  tips: 15,            // Restaurant/service tips ~18-20%
-  parking: 8,          // City parking (Vegas, SF, LA days)
+  communication: 3,    // T-Mobile prepaid SIM amortized daily
+  laundry: 0,          // Only on laundry days
+  tips: 12,            // Restaurant/service tips ~18-20%
+  parking: 0,          // Free at campgrounds/parks, paid in cities
   unexpected: 20,      // Buffer for unplanned expenses
 }
 
-// Moti's pre-trip estimates (USD)
+// Per-day overrides based on actual route & activities
+// Day IDs: day-1 (Sep 10 Denver) through day-21 (Sep 30 SF→home)
+const DAY_OVERRIDES: Record<string, Partial<Record<BudgetRowKey, number>>> = {
+  'day-1':  { accommodation: 150, gas: 0,   food: 50,  groceries: 0,   attractions: 0,   parking: 0,  tips: 8,   unexpected: 15 },  // Denver hotel, evening arrival only
+  'day-2':  { accommodation: 40,  gas: 35,  food: 60,  groceries: 80,  attractions: 0,   parking: 0,  tips: 10 },                    // Bozeman→Gardiner, RV pickup, Walmart stock-up
+  'day-3':  { accommodation: 40,  gas: 30,  food: 60,  groceries: 30,  attractions: 35,  parking: 0 },                               // Yellowstone North (Mammoth, Lamar)
+  'day-4':  { accommodation: 40,  gas: 25,  food: 60,  groceries: 25,  attractions: 0,   parking: 0 },                               // Canyon of Yellowstone, waterfalls
+  'day-5':  { accommodation: 40,  gas: 35,  food: 60,  groceries: 25,  attractions: 0,   parking: 0 },                               // Geysers, Old Faithful, Grand Prismatic
+  'day-6':  { accommodation: 45,  gas: 55,  food: 70,  groceries: 20,  attractions: 15,  parking: 0 },                               // Jenny Lake, Grand Teton → Jackson
+  'day-7':  { accommodation: 45,  gas: 15,  food: 90,  groceries: 20,  attractions: 250, parking: 10, tips: 30, shopping: 30 },       // Jackson: rafting ($200) + gondola ($50)
+  'day-8':  { accommodation: 35,  gas: 120, food: 70,  groceries: 30,  attractions: 0,   parking: 0,  tips: 12, laundry: 15 },        // Long drive Jackson→Provo/Nephi (7hrs)
+  'day-9':  { accommodation: 35,  gas: 40,  food: 60,  groceries: 20,  attractions: 35,  parking: 0 },                               // Bryce Canyon hoodoos trail
+  'day-10': { accommodation: 40,  gas: 45,  food: 60,  groceries: 20,  attractions: 35,  parking: 0 },                               // Drive to Zion via Hwy 20
+  'day-11': { accommodation: 40,  gas: 10,  food: 70,  groceries: 25,  attractions: 0,   parking: 0,  tips: 15 },                    // Zion: Angels Landing + Narrows (free w/ park pass)
+  'day-12': { accommodation: 130, gas: 50,  food: 100, groceries: 0,   attractions: 30,  parking: 20, tips: 20, shopping: 25 },       // Drive to Vegas, Strip evening, hotel
+  'day-13': { accommodation: 130, gas: 0,   food: 120, groceries: 0,   attractions: 40,  parking: 25, tips: 25, shopping: 80, laundry: 15 }, // Vegas free day (rest & shopping)
+  'day-14': { accommodation: 35,  gas: 100, food: 60,  groceries: 40,  attractions: 0,   parking: 0 },                               // Drive Vegas→Mammoth Lakes (5.5hrs)
+  'day-15': { accommodation: 40,  gas: 40,  food: 60,  groceries: 25,  attractions: 35,  parking: 0 },                               // Enter Yosemite via Tioga Pass
+  'day-16': { accommodation: 40,  gas: 10,  food: 60,  groceries: 25,  attractions: 0,   parking: 0 },                               // Yosemite Valley: El Capitan, Half Dome views
+  'day-17': { accommodation: 40,  gas: 30,  food: 60,  groceries: 20,  attractions: 0,   parking: 0 },                               // Glacier Point & giant sequoias
+  'day-18': { accommodation: 45,  gas: 80,  food: 70,  groceries: 30,  attractions: 0,   parking: 0, laundry: 15 },                  // Drive toward SF, Anthony Chabot (4hrs)
+  'day-19': { accommodation: 50,  gas: 25,  food: 60,  groceries: 20,  attractions: 0,   parking: 0 },                               // Organize day, clean RV, Marin
+  'day-20': { accommodation: 200, gas: 15,  food: 90,  groceries: 0,   attractions: 20,  parking: 25, tips: 20, shopping: 30 },       // Return RV, move to SF hotel
+  'day-21': { accommodation: 0,   gas: 0,   food: 100, groceries: 0,   attractions: 50,  parking: 20, tips: 20, shopping: 40, unexpected: 30 }, // SF sightseeing, evening flight home
+}
+
+// Get the estimate for a specific day + category
+function getMotiEstimate(dayId: string, category: BudgetRowKey): number {
+  return DAY_OVERRIDES[dayId]?.[category] ?? MOTI_DAILY_DEFAULTS[category]
+}
+
+// Pre-trip estimates (USD) — updated with real booking data from emails
 const MOTI_PRETRIP_ESTIMATES: Record<PretripRowKey, number> = {
-  flights: 7500,       // Family of 5, TLV→DEN + SFO→TLV
-  rv_rental: 4200,     // Cruise America C30, ~20 days
-  insurance: 1500,     // Travel insurance family of 5
+  flights: 8081,       // United Airlines HQ51BY, 5 pax TLV→YYZ→DEN→BZN + SFO→MUC→TLV ($7,630.50 + $450.30 seats)
+  rv_rental: 5202,     // Bandana/Cruise America C-30, order 137724-1-0, Bozeman→Newark CA
+  insurance: 1500,     // Travel insurance family — pending purchase (PassportCard ~$8/day or Harel ~$6.5/day)
   esta: 105,           // $21 × 5 people
   gear: 500,           // Misc gear purchases
   sim_cards: 100,      // 2 prepaid SIM cards ~$50 each
-  campground_reservations: 300,  // Popular spots booked in advance
+  campground_reservations: 350,  // Grant Campground $52 + Indian Creek + others from Recreation.gov
 }
 
 interface CellData {
@@ -122,7 +152,7 @@ export function DailyBudgetTable() {
     for (const day of itineraryDays) {
       let dayTotal = 0
       for (const row of BUDGET_ROWS) {
-        const cell = getCellValue(`${day.id}-${row.key}`, MOTI_DAILY_ESTIMATES[row.key])
+        const cell = getCellValue(`${day.id}-${row.key}`, getMotiEstimate(day.id, row.key))
         dayTotal += cell.value
         categoryTotals[row.key] = (categoryTotals[row.key] || 0) + cell.value
       }
@@ -269,7 +299,7 @@ export function DailyBudgetTable() {
                     const cellKey = `${day.id}-${row.key}`
                     return (
                       <td key={day.id} className="py-1 px-1 text-center border-l border-black/[0.04]">
-                        {renderCell(cellKey, MOTI_DAILY_ESTIMATES[row.key])}
+                        {renderCell(cellKey, getMotiEstimate(day.id, row.key))}
                       </td>
                     )
                   })}

@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const DESTINATIONS = [
   'Denver',
+  'Bozeman',
   'Yellowstone',
   'Jackson Hole',
   'Bryce Canyon',
   'Zion',
   'Las Vegas',
+  'Mammoth Lakes',
   'Yosemite',
   'San Francisco',
 ]
@@ -154,12 +156,12 @@ export default function SplashScreen({ onFinished }: { onFinished: () => void })
 
           {/* Route preview (small text) */}
           <motion.p
-            className="mt-6 text-xs tracking-widest text-white/25"
+            className="mt-6 text-xs tracking-widest text-white/60"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            MT &bull; WY &bull; UT &bull; NV &bull; CA
+            CO &bull; MT &bull; WY &bull; UT &bull; NV &bull; CA
           </motion.p>
         </motion.div>
       )}
