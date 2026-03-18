@@ -70,7 +70,7 @@ export const sampleDocuments: Document[] = [
 
   // ── Flights ────────────────────────────────────────────────────────
   {
-    id: 'doc-flight-outbound',
+    id: 'booking-flight-outbound',
     title: 'כרטיסי טיסה TLV → YYZ → DEN → BZN',
     category: 'flights',
     file_url: '/documents/flight-tlv-den.pdf',
@@ -81,7 +81,7 @@ export const sampleDocuments: Document[] = [
     updated_at: '2025-11-27T19:37:00Z',
   },
   {
-    id: 'doc-flight-return',
+    id: 'booking-flight-return',
     title: 'כרטיסי טיסה SFO → MUC → TLV',
     category: 'flights',
     file_url: '/documents/flight-sfo-tlv.pdf',
@@ -92,7 +92,7 @@ export const sampleDocuments: Document[] = [
     updated_at: '2025-11-27T19:37:00Z',
   },
   {
-    id: 'doc-flight-internal',
+    id: 'booking-flight-internal',
     title: 'טיסה פנימית DEN → BZN',
     category: 'flights',
     file_url: '/documents/flight-den-bzn.pdf',
@@ -119,7 +119,7 @@ export const sampleDocuments: Document[] = [
 
   // ── Car Rental (RV) ───────────────────────────────────────────────
   {
-    id: 'doc-rv-rental',
+    id: 'booking-rv-rental',
     title: 'אישור השכרת קרוואן — Bandana / Cruise America C-30',
     category: 'car_rental',
     file_url: '/documents/rv-rental-confirmation.pdf',
@@ -132,7 +132,7 @@ export const sampleDocuments: Document[] = [
 
   // ── National Park Reservations ────────────────────────────────────
   {
-    id: 'doc-yellowstone-grant',
+    id: 'booking-yellowstone-grant',
     title: 'קמפינג Grant Campground — ילוסטון',
     category: 'attractions',
     file_url: '/documents/yellowstone-grant.pdf',
@@ -144,7 +144,7 @@ export const sampleDocuments: Document[] = [
     updated_at: '2026-03-13T18:01:00Z',
   },
   {
-    id: 'doc-yellowstone-rv-park',
+    id: 'booking-yellowstone-rv-park',
     title: 'Yellowstone RV Park — גרדינר',
     category: 'attractions',
     file_url: '/documents/yellowstone-rv-park.pdf',
@@ -156,7 +156,7 @@ export const sampleDocuments: Document[] = [
     updated_at: '2026-03-14T20:20:00Z',
   },
   {
-    id: 'doc-indian-creek',
+    id: 'booking-indian-creek',
     title: 'קמפינג Indian Creek — יוטה',
     category: 'attractions',
     file_url: '/documents/indian-creek-ut.pdf',

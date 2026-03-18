@@ -268,6 +268,8 @@ function ListRow({
               <span>{formatSize(doc.file_size)}</span>
             </>
           ) : null}
+          <span className="text-apple-tertiary">|</span>
+          <span>{new Date(doc.created_at).toLocaleDateString('he-IL')}</span>
         </div>
       </div>
 

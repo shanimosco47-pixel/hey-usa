@@ -85,7 +85,7 @@ function DetailRow({
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-apple-secondary" />
       <div className="min-w-0">
         <p className="text-xs text-apple-secondary">{label}</p>
-        <p className={cn('text-sm text-apple-primary', valueClassName)}>{value}</p>
+        <p className={cn('text-sm text-apple-primary break-words', valueClassName)}>{value}</p>
       </div>
     </div>
   )
@@ -105,7 +105,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content
-          className="fixed inset-2 z-50 flex flex-col overflow-hidden rounded-apple-lg bg-surface-primary shadow-2xl sm:inset-auto sm:start-[50%] sm:top-[50%] sm:h-[85vh] sm:w-full sm:max-w-3xl sm:translate-x-[50%] sm:-translate-y-[50%] rtl:sm:-translate-x-[50%]"
+          className="fixed inset-2 z-50 flex flex-col overflow-hidden rounded-apple-lg bg-surface-primary shadow-2xl sm:inset-auto sm:start-[50%] sm:top-[50%] sm:h-[85vh] sm:w-full sm:max-w-3xl sm:-translate-x-[50%] sm:-translate-y-[50%] rtl:sm:translate-x-[50%]"
           dir="rtl"
         >
           {/* Header */}
