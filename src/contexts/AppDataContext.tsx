@@ -508,7 +508,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const addDocument = useCallback((doc: Omit<Document, 'id' | 'created_at' | 'updated_at'>) => {
     const now = new Date().toISOString()
-    const newDoc: Document = { ...doc, id: `doc-${Date.now()}`, created_at: now, updated_at: now }
+    const newDoc: Document = { ...doc, id: `udoc-${Date.now()}`, created_at: now, updated_at: now }
     setDocuments((prev) => [newDoc, ...prev])
     db.upsertDocument(newDoc).catch(() => {})
   }, [])
