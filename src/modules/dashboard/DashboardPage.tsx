@@ -24,17 +24,17 @@ const TRIP_END = new Date(`${TRIP_END_DATE}T00:00:00`)
 /* ── Rotating Hero Scenes ── */
 const HERO_SCENES = [
   {
-    id: 'desert',
-    emoji: '🚐',
-    secondaryEmoji: '🌵',
-    text: 'בדרך להרפתקה!',
+    id: 'geyser',
+    emoji: '🌋',
+    secondaryEmoji: '💨',
+    text: 'יילוסטון מחכה לנו!',
     gradient: 'linear-gradient(135deg, #FF512F 0%, #DD2476 50%, #F09819 100%)',
   },
   {
     id: 'mountain',
-    emoji: '⛰️',
-    secondaryEmoji: '🌲',
-    text: 'יוסמיטי מחכה לנו!',
+    emoji: '🏔️',
+    secondaryEmoji: '🦌',
+    text: 'גרנד טיטון, wow!',
     gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 50%, #2193b0 100%)',
   },
   {
@@ -45,18 +45,25 @@ const HERO_SCENES = [
     gradient: 'linear-gradient(135deg, #8E2DE2 0%, #4A00E0 50%, #E040FB 100%)',
   },
   {
-    id: 'beach',
-    emoji: '🌊',
-    secondaryEmoji: '🌴',
-    text: 'חוף מערבי, פה אנחנו באים!',
+    id: 'yosemite',
+    emoji: '🌿',
+    secondaryEmoji: '🌲',
+    text: 'יוסמיטי, הנה אנחנו באים!',
     gradient: 'linear-gradient(135deg, #0ED2F7 0%, #00B4DB 50%, #009688 100%)',
   },
   {
     id: 'canyon',
-    emoji: '🏜️',
-    secondaryEmoji: '🌄',
-    text: 'גרנד קניון, wow!',
+    emoji: '🪨',
+    secondaryEmoji: '🏜️',
+    text: 'קניונים של יוטה!',
     gradient: 'linear-gradient(135deg, #F37335 0%, #FDC830 50%, #D32F2F 100%)',
+  },
+  {
+    id: 'cowboy',
+    emoji: '🤠',
+    secondaryEmoji: '🦬',
+    text: "ג'קסון הול, yeehaw!",
+    gradient: 'linear-gradient(135deg, #D4A574 0%, #8B6914 50%, #CD853F 100%)',
   },
 ]
 
@@ -346,10 +353,10 @@ export default function DashboardPage() {
                     {scene.text}
                   </p>
                   <p className="mt-1 text-[12px] text-white/60 font-medium">
-                    20 ימים | 5 מדינות | 1 קרוואן
+                    21 ימים | 6 מדינות | 1 קרוואן
                   </p>
                   <p className="mt-0.5 text-[11px] text-white/40">
-                    11 בספטמבר 2026 — ארה״ב
+                    10 בספטמבר 2026 — ארה״ב
                   </p>
                 </div>
 
@@ -428,72 +435,103 @@ export default function DashboardPage() {
             </div>
             <div className="overflow-x-auto -mx-1 px-1 pb-1">
               <div className="flex items-center gap-0 min-w-max">
-                {itineraryDays.map((day, i) => {
-                  const isCurrent = tripDayIndex === i
-                  const isPast = tripDayIndex !== null && i < tripDayIndex
-                  const isFuture = tripDayIndex === null || i > tripDayIndex
-                  const cityShort = day.city?.split('→')[0]?.trim()?.split(',')[0]?.trim()?.slice(0, 10) || ''
-                  return (
-                    <div key={day.id} className="flex items-center">
-                      <div className="flex flex-col items-center" style={{ width: 38 }}>
-                        {/* Dot */}
-                        <div
-                          className="relative flex items-center justify-center rounded-full transition-all"
-                          style={{
-                            width: isCurrent ? 20 : 10,
-                            height: isCurrent ? 20 : 10,
-                            backgroundColor: isPast ? '#34C759' : isCurrent ? '#007AFF' : '#E5E5EA',
-                            boxShadow: isCurrent ? '0 0 0 4px rgba(0,122,255,0.2)' : 'none',
-                          }}
-                        >
-                          {isCurrent && (
-                            <motion.div
-                              animate={{ scale: [1, 1.4, 1] }}
-                              transition={{ duration: 2, repeat: Infinity }}
-                              className="absolute inset-0 rounded-full"
-                              style={{ backgroundColor: 'rgba(0,122,255,0.25)' }}
-                            />
-                          )}
-                          {isPast && (
-                            <svg viewBox="0 0 10 10" width={6} height={6}>
-                              <path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                          {isCurrent && <span className="text-[8px]">📍</span>}
-                        </div>
-                        {/* Day label */}
-                        <span
-                          className="text-[9px] mt-1 font-medium text-center leading-tight"
-                          style={{
-                            color: isCurrent ? '#007AFF' : isPast ? '#34C759' : '#8E8E93',
-                            fontWeight: isCurrent ? 700 : 500,
-                          }}
-                        >
-                          {i + 1}
-                        </span>
-                        {/* City name */}
-                        {cityShort && (
-                          <span
-                            className="text-[7px] text-center leading-tight truncate max-w-[38px]"
-                            style={{ color: isCurrent ? '#007AFF' : isFuture ? '#C7C7CC' : '#8E8E93' }}
+                {(() => {
+                  // Desert palette gradient for pre-trip visualization
+                  const ROUTE_COLORS = [
+                    '#8B6F47', // Denver — earth brown
+                    '#5B8C5A', // Montana — forest green
+                    '#6B8E6B', // Yellowstone — sage
+                    '#7BA07B', // Yellowstone — moss
+                    '#4A7C59', // Yellowstone — deep green
+                    '#C4956A', // Jackson — warm sand
+                    '#D4A574', // Jackson — golden sand
+                    '#D4956B', // Provo — desert orange
+                    '#C2664A', // Bryce — terracotta
+                    '#B85C3F', // Zion — red rock
+                    '#A84E35', // Zion — canyon red
+                    '#D4A843', // Vegas — gold
+                    '#E5B94E', // Vegas — bright gold
+                    '#7B9EB8', // Mammoth — mountain blue
+                    '#5D8AA8', // Yosemite — sky blue
+                    '#4A7C96', // Yosemite — lake blue
+                    '#3D6B5E', // Wawona — sequoia green
+                    '#6B9B8A', // Anthony Chabot — bay green
+                    '#8CAAB4', // Marin — ocean mist
+                    '#2B6CB0', // SF — pacific blue
+                    '#1E5A9E', // SF flight — deep blue
+                  ]
+                  const allFuture = tripDayIndex === null
+                  return itineraryDays.map((day, i) => {
+                    const isCurrent = tripDayIndex === i
+                    const isPast = tripDayIndex !== null && i < tripDayIndex
+                    const cityShort = day.city?.split('→')[0]?.trim()?.split(',')[0]?.trim()?.slice(0, 10) || ''
+                    // Color logic: during trip = green/blue/gray, pre-trip = desert gradient
+                    const dotColor = isPast ? '#34C759' : isCurrent ? '#007AFF' : allFuture ? ROUTE_COLORS[i % ROUTE_COLORS.length] : '#E5E5EA'
+                    const dayNumColor = isCurrent ? '#007AFF' : isPast ? '#34C759' : allFuture ? ROUTE_COLORS[i % ROUTE_COLORS.length] : '#8E8E93'
+                    const cityColor = isCurrent ? '#007AFF' : isPast ? '#8E8E93' : allFuture ? '#6B6B6B' : '#C7C7CC'
+                    const lineColor = isPast ? '#34C759' : allFuture ? `${ROUTE_COLORS[i % ROUTE_COLORS.length]}60` : '#E5E5EA'
+                    return (
+                      <div key={day.id} className="flex items-center">
+                        <div className="flex flex-col items-center" style={{ width: 38 }}>
+                          {/* Dot */}
+                          <div
+                            className="relative flex items-center justify-center rounded-full transition-all"
+                            style={{
+                              width: isCurrent ? 20 : 10,
+                              height: isCurrent ? 20 : 10,
+                              backgroundColor: dotColor,
+                              boxShadow: isCurrent ? '0 0 0 4px rgba(0,122,255,0.2)' : 'none',
+                            }}
                           >
-                            {cityShort}
+                            {isCurrent && (
+                              <motion.div
+                                animate={{ scale: [1, 1.4, 1] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                                className="absolute inset-0 rounded-full"
+                                style={{ backgroundColor: 'rgba(0,122,255,0.25)' }}
+                              />
+                            )}
+                            {isPast && (
+                              <svg viewBox="0 0 10 10" width={6} height={6}>
+                                <path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            )}
+                            {isCurrent && <span className="text-[8px]">📍</span>}
+                          </div>
+                          {/* Day label */}
+                          <span
+                            className="text-[9px] mt-1 font-medium text-center leading-tight"
+                            style={{
+                              color: dayNumColor,
+                              fontWeight: isCurrent ? 700 : allFuture ? 600 : 500,
+                            }}
+                          >
+                            {i + 1}
                           </span>
+                          {/* City name */}
+                          {cityShort && (
+                            <span
+                              className="text-[7px] text-center leading-tight truncate max-w-[38px]"
+                              style={{ color: cityColor, fontWeight: allFuture ? 500 : 400 }}
+                            >
+                              {cityShort}
+                            </span>
+                          )}
+                        </div>
+                        {/* Connector line */}
+                        {i < itineraryDays.length - 1 && (
+                          <div
+                            className="h-[2px] flex-shrink-0"
+                            style={{
+                              width: 8,
+                              backgroundColor: lineColor,
+                            }}
+                          />
                         )}
                       </div>
-                      {/* Connector line */}
-                      {i < itineraryDays.length - 1 && (
-                        <div
-                          className="h-[2px] flex-shrink-0"
-                          style={{
-                            width: 8,
-                            backgroundColor: isPast ? '#34C759' : '#E5E5EA',
-                          }}
-                        />
-                      )}
-                    </div>
-                  )
-                })}
+                    )
+                  })
+                })()}
               </div>
             </div>
           </div>

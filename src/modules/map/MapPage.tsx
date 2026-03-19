@@ -127,52 +127,57 @@ export default function MapPage() {
   const zoom = selectedDay !== null ? 8 : 5
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <h1 className="text-2xl font-bold text-apple-primary">
-          <Map className="ml-2 inline h-6 w-6" />
-          מפת המסלול
-        </h1>
+    <div className="flex h-[calc(100vh-4rem)] flex-col">
+      {/* Compact header with inline stats */}
+      <div className="flex items-center justify-between px-3 py-1.5">
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-bold text-apple-primary">
+            <Map className="ml-1.5 inline h-5 w-5" />
+            מפת המסלול
+          </h1>
+          <span className="text-[11px] text-apple-tertiary font-medium">
+            {ITINERARY_DAYS.length} ימים · {allPoints.length} עצירות
+          </span>
+        </div>
         <button
           onClick={() => setShowLabels(!showLabels)}
           className={cn(
-            'rounded-xl px-3 py-1.5 text-xs font-medium transition-colors',
+            'rounded-lg px-2 py-1 text-[11px] font-medium transition-colors',
             showLabels ? 'bg-ios-blue text-white' : 'glass text-apple-secondary',
           )}
         >
-          <Layers className="ml-1 inline h-3.5 w-3.5" />
+          <Layers className="ml-1 inline h-3 w-3" />
           תוויות
         </button>
       </div>
 
-      {/* Day filter */}
-      <div className="flex gap-2 overflow-x-auto px-4 pb-2">
+      {/* Compact day filter */}
+      <div className="flex gap-1.5 overflow-x-auto px-3 pb-1.5">
         <button
           onClick={() => setSelectedDay(null)}
           className={cn(
-            'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
+            'shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
             selectedDay === null
               ? 'bg-apple-primary text-white'
               : 'glass text-apple-secondary',
           )}
         >
-          <Navigation className="ml-1 inline h-3 w-3" />
-          כל המסלול
+          <Navigation className="ml-1 inline h-2.5 w-2.5" />
+          הכל
         </button>
         {ITINERARY_DAYS.map((day, idx) => (
           <button
             key={day.id}
             onClick={() => setSelectedDay(selectedDay === idx ? null : idx)}
             className={cn(
-              'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap',
+              'shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors whitespace-nowrap',
               selectedDay === idx
                 ? 'text-white'
                 : 'glass text-apple-secondary',
             )}
             style={selectedDay === idx ? { backgroundColor: DAY_COLORS[idx % DAY_COLORS.length] } : undefined}
           >
-            יום {idx + 1}
+            {idx + 1}
           </button>
         ))}
       </div>
@@ -236,23 +241,7 @@ export default function MapPage() {
         </MapContainer>
       </div>
 
-      {/* Stats bar */}
-      <div className="flex items-center justify-around glass-nav px-4 py-2 text-center">
-        <div>
-          <p className="text-lg font-bold text-apple-primary">{ITINERARY_DAYS.length}</p>
-          <p className="text-xs text-apple-secondary">ימים</p>
-        </div>
-        <div>
-          <p className="text-lg font-bold text-ios-teal">{allPoints.length}</p>
-          <p className="text-xs text-apple-secondary">עצירות</p>
-        </div>
-        <div>
-          <p className="text-lg font-bold text-ios-blue">
-            {selectedDay !== null ? filteredPoints.length : allPoints.length}
-          </p>
-          <p className="text-xs text-apple-secondary">מוצגות</p>
-        </div>
-      </div>
+      {/* Stats moved to header — more map space */}
     </div>
   )
 }

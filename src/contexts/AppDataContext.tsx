@@ -221,7 +221,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const [
           budgetData,
           expenseData,
-          itineraryData,
+          _itineraryData,
           taskData,
           packingData,
           blogData,
@@ -248,7 +248,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
         if (budgetData) setBudgetSettings(budgetData)
         if (expenseData.length) setExpenses(expenseData)
-        if (itineraryData.length) setItineraryDays(itineraryData)
+        // Itinerary: always use local ITINERARY_DAYS as source of truth
+        // Supabase may contain old route data — skip override
+        // if (itineraryData.length) setItineraryDays(itineraryData)
         if (taskData.length) setTasks(taskData)
         if (packingData.length) setPackingItems(packingData)
         if (blogData.length) setBlogPosts(blogData)
@@ -506,7 +508,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const addDocument = useCallback((doc: Omit<Document, 'id' | 'created_at' | 'updated_at'>) => {
     const now = new Date().toISOString()
-    const newDoc: Document = { ...doc, id: `doc-${Date.now()}`, created_at: now, updated_at: now }
+    const newDoc: Document = { ...doc, id: `udoc-${Date.now()}`, created_at: now, updated_at: now }
     setDocuments((prev) => [newDoc, ...prev])
     db.upsertDocument(newDoc).catch(() => {})
   }, [])

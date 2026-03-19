@@ -3,9 +3,9 @@ import type { LocationNote } from '@/lib/types'
 export const SAMPLE_LOCATION_NOTES: LocationNote[] = [
   {
     id: 'note-1',
-    locationId: 'zion',
-    text: 'לא לשכוח קרם הגנה! השמש חזקה מאוד בקניון 🌞',
-    author: 'ima',
+    locationId: 'yellowstone',
+    text: 'לא לשכוח דוחה דובים (Bear Spray)! אפשר לשכור בגרדינר 🐻',
+    author: 'aba',
     color: 'yellow',
     pinned: true,
     created_at: '2026-08-15T10:00:00Z',
@@ -13,8 +13,8 @@ export const SAMPLE_LOCATION_NOTES: LocationNote[] = [
   },
   {
     id: 'note-2',
-    locationId: 'grand-canyon',
-    text: 'נקודת התצפית הכי טובה לשקיעה - Mather Point. להגיע חצי שעה לפני!',
+    locationId: 'yellowstone',
+    text: 'נקודת התצפית הכי טובה לשקיעה - Grand Prismatic Overlook. להגיע חצי שעה לפני!',
     author: 'aba',
     color: 'orange',
     pinned: true,
@@ -53,8 +53,8 @@ export const SAMPLE_LOCATION_NOTES: LocationNote[] = [
   },
   {
     id: 'note-6',
-    locationId: 'monument-valley',
-    text: 'לצלם תמונה משפחתית בזריחה ליד ה-Mittens! מומלץ לקום ב-5:30',
+    locationId: 'grand-teton',
+    text: 'לקום מוקדם ל-Oxbow Bend — שם רואים את הלוסים בזריחה! מומלץ 6:00 בבוקר',
     author: 'aba',
     color: 'orange',
     pinned: false,
@@ -63,8 +63,8 @@ export const SAMPLE_LOCATION_NOTES: LocationNote[] = [
   },
   {
     id: 'note-7',
-    locationId: 'page',
-    text: 'הזמנו סיור ב-Antelope Canyon ב-10:00 בבוקר. לא לאחר!',
+    locationId: 'jackson',
+    text: 'הזמנו ראפטינג ב-10:00 בבוקר ב-Snake River. לא לאחר!',
     author: 'ima',
     color: 'purple',
     pinned: true,
@@ -73,8 +73,8 @@ export const SAMPLE_LOCATION_NOTES: LocationNote[] = [
   },
   {
     id: 'note-8',
-    locationId: 'moab',
-    text: 'מים מים מים! לפחות 3 ליטר לכל אחד ביום. חום מדברי קיצוני 🌡️',
+    locationId: 'zion',
+    text: 'מים מים מים! לפחות 3 ליטר לכל אחד ביום. חם מאוד בקניון 🌡️',
     author: 'aba',
     color: 'yellow',
     pinned: true,

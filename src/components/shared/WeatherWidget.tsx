@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Cloud, Thermometer } from 'lucide-react'
+import { Cloud, MapPin, Thermometer } from 'lucide-react'
 import {
   fetchTripWeather,
   getWeatherForDate,
@@ -59,38 +59,65 @@ export default function WeatherWidget({ mode = 'dashboard', date }: WeatherWidge
     )
   }
 
-  // Dashboard mode: show a 3-day forecast strip for the next 3 unique destinations
+  // Dashboard mode: show 3-day forecast for current location + next destination
   const tripStart = new Date('2026-09-11')
   const today = new Date()
   const isTripTime = today >= tripStart && today <= new Date('2026-09-30')
 
-  // Pick destinations to show
-  let previewDests: { city: string; date: string; weather: DayWeather }[] = []
+  // Find current location and next destination
+  type ForecastItem = { city: string; date: string; weather: DayWeather; dayLabel: string }
+  let currentForecast: ForecastItem[] = []
+  let nextDestination: ForecastItem | null = null
 
   if (isTripTime) {
-    // During trip: show today + next 2 days
+    // During trip: 3-day forecast for where we are now
+    const todayStr = today.toISOString().split('T')[0]
+    const currentDest = TRIP_DESTINATIONS.find((d) =>
+      (d.days as readonly string[]).includes(todayStr),
+    )
+
     for (let i = 0; i < 3; i++) {
       const d = new Date(today)
       d.setDate(d.getDate() + i)
       const dateStr = d.toISOString().split('T')[0]
       const w = getWeatherForDate(weatherData, dateStr)
-      if (w) previewDests.push({ city: w.city, date: dateStr, weather: w })
+      if (w) {
+        const labels = ['היום', 'מחר', 'מחרתיים']
+        currentForecast.push({ city: w.city, date: dateStr, weather: w, dayLabel: labels[i] })
+      }
+    }
+
+    // Find next destination (different city from current)
+    if (currentDest) {
+      const nextDest = TRIP_DESTINATIONS.find(
+        (d) => d.city !== currentDest.city && d.days[0] > todayStr,
+      )
+      if (nextDest) {
+        const w = getWeatherForDate(weatherData, nextDest.days[0])
+        if (w) nextDestination = { city: nextDest.city, date: nextDest.days[0], weather: w, dayLabel: nextDest.days[0].slice(5) }
+      }
     }
   } else {
-    // Before trip: show first 3 unique destination days
-    const seen = new Set<string>()
-    for (const dest of TRIP_DESTINATIONS) {
-      if (seen.size >= 3) break
-      if (seen.has(dest.city)) continue
-      const w = getWeatherForDate(weatherData, dest.days[0])
+    // Before trip: show first 3 days of the trip
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(tripStart)
+      d.setDate(d.getDate() + i)
+      const dateStr = d.toISOString().split('T')[0]
+      const w = getWeatherForDate(weatherData, dateStr)
       if (w) {
-        previewDests.push({ city: dest.city, date: dest.days[0], weather: w })
-        seen.add(dest.city)
+        const dayNum = i + 1
+        currentForecast.push({ city: w.city, date: dateStr, weather: w, dayLabel: `יום ${dayNum}` })
       }
+    }
+    // Show a later destination as "next"
+    const laterDest = TRIP_DESTINATIONS.find((d) => d.days[0] > '2026-09-13')
+    if (laterDest) {
+      const w = getWeatherForDate(weatherData, laterDest.days[0])
+      if (w) nextDestination = { city: laterDest.city, date: laterDest.days[0], weather: w, dayLabel: laterDest.days[0].slice(5) }
     }
   }
 
-  if (previewDests.length === 0) return null
+  if (currentForecast.length === 0) return null
 
   return (
     <motion.div
@@ -103,24 +130,49 @@ export default function WeatherWidget({ mode = 'dashboard', date }: WeatherWidge
       }}
     >
       <div className="px-4 py-3">
+        {/* Current location - 3 day forecast */}
         <div className="flex items-center gap-1.5 mb-2.5">
           <Thermometer className="h-3.5 w-3.5 text-white/70" />
           <span className="text-[11px] font-semibold text-white/70 uppercase tracking-wider">
-            {isTripTime ? 'מזג אוויר היום' : 'תחזית לטיול'}
+            {isTripTime ? `📍 ${currentForecast[0]?.city}` : 'תחזית לטיול'}
           </span>
         </div>
         <div className="grid grid-cols-3 gap-2">
-          {previewDests.map(({ city, date: d, weather: w }) => (
+          {currentForecast.map(({ city, date: d, weather: w, dayLabel }) => (
             <div key={d} className="text-center">
+              <p className="text-[10px] text-white/50 mb-0.5">{dayLabel}</p>
               <p className="text-lg leading-none">{w.weatherEmoji}</p>
               <p className="text-white font-bold text-sm mt-1">
                 {w.tempMax}°
                 <span className="text-white/50 font-normal text-xs">/{w.tempMin}°</span>
               </p>
               <p className="text-[10px] text-white/60 mt-0.5 truncate">{city}</p>
+              {w.precipitationProbability > 20 && (
+                <p className="text-[9px] text-sky-200">🌧 {w.precipitationProbability}%</p>
+              )}
             </div>
           ))}
         </div>
+
+        {/* Next destination */}
+        {nextDestination && (
+          <>
+            <div className="border-t border-white/10 my-2.5" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <MapPin className="h-3 w-3 text-white/50" />
+                <span className="text-[10px] text-white/50">היעד הבא:</span>
+                <span className="text-[11px] text-white/80 font-medium">{nextDestination.city}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm">{nextDestination.weather.weatherEmoji}</span>
+                <span className="text-white/90 text-xs font-medium">
+                  {nextDestination.weather.tempMax}°/{nextDestination.weather.tempMin}°
+                </span>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </motion.div>
   )

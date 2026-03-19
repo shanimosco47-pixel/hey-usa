@@ -4,7 +4,7 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
   accommodation: ['hotel', 'hostel', 'airbnb', 'booking', 'מלון', 'לינה', 'camp', 'rv park', 'motel'],
   flights: ['flight', 'טיסה', 'airline', 'boarding', 'eticket', 'e-ticket', 'itinerary'],
   car_rental: ['car rental', 'cruise america', 'rv', 'rental', 'השכרת רכב', 'קרוואן'],
-  attractions: ['ticket', 'כרטיס', 'entrance', 'pass', 'disney', 'national park', 'yosemite', 'grand canyon', 'zion'],
+  attractions: ['ticket', 'כרטיס', 'entrance', 'pass', 'national park', 'yellowstone', 'yosemite', 'bryce', 'zion'],
   insurance: ['insurance', 'ביטוח', 'policy', 'פוליסה'],
   passport: ['passport', 'דרכון'],
   visa: ['visa', 'ויזה', 'esta'],

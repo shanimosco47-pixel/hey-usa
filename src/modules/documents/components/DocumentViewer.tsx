@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { X, Download, FileText, Image, File, ExternalLink, Calendar, Tag, User, StickyNote, HardDrive, AlertTriangle, MapPin } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS } from '@/constants'
 import { DOCUMENT_CATEGORIES } from '@/lib/constants'
 import { getLocationById } from '@/data/locations'
+import { isSampleData } from '@/lib/sampleData'
 import type { Document } from '@/types'
 
 interface DocumentViewerProps {
@@ -33,7 +35,21 @@ function isExpiringWithin6Months(dateStr?: string): boolean {
   return expiry > now && expiry <= sixMonths
 }
 
-function FilePreview({ doc }: { doc: Document }) {
+function Toast({ message, onClose }: { message: string; onClose: () => void }) {
+  return (
+    <div className="fixed bottom-6 start-1/2 -translate-x-1/2 rtl:translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4 duration-300">
+      <div className="flex items-center gap-2 rounded-xl bg-gray-800 px-4 py-3 text-sm text-white shadow-lg">
+        <span>📄</span>
+        <span>{message}</span>
+        <button type="button" onClick={onClose} className="mr-2 text-white/60 hover:text-white">
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
   if (doc.file_type?.includes('image')) {
     return (
       <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-sky-50">
@@ -52,11 +68,7 @@ function FilePreview({ doc }: { doc: Document }) {
           <FileText className="h-16 w-16 text-red-300" />
           <button
             type="button"
-            onClick={() => {
-              if (doc.file_url) {
-                window.open(doc.file_url, '_blank', 'noopener,noreferrer')
-              }
-            }}
+            onClick={onOpen}
             className="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
           >
             <ExternalLink className="h-4 w-4" />
@@ -90,13 +102,15 @@ function DetailRow({
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-apple-secondary" />
       <div className="min-w-0">
         <p className="text-xs text-apple-secondary">{label}</p>
-        <p className={cn('text-sm text-apple-primary', valueClassName)}>{value}</p>
+        <p className={cn('text-sm text-apple-primary break-words', valueClassName)}>{value}</p>
       </div>
     </div>
   )
 }
 
 export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentViewerProps) {
+  const [toast, setToast] = useState<string | null>(null)
+
   if (!doc) return null
 
   const categoryLabel = DOCUMENT_CATEGORIES[doc.category]?.label ?? doc.category
@@ -104,13 +118,28 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
   const expired = isExpired(doc.expiry_date)
   const expiringSoon = !expired && isExpiringWithin6Months(doc.expiry_date)
   const location = doc.locationId ? getLocationById(doc.locationId) : null
+  const sample = isSampleData(doc.id)
+
+  const handleOpenFile = () => {
+    if (sample) {
+      setToast('זוהי דוגמה מאת מוטי — יש להעלות מסמך אמיתי')
+      setTimeout(() => setToast(null), 3500)
+      return
+    }
+    if (!doc.file_url) {
+      setToast('הקובץ טרם הועלה')
+      setTimeout(() => setToast(null), 3500)
+      return
+    }
+    window.open(doc.file_url, '_blank', 'noopener')
+  }
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content
-          className="fixed inset-2 z-50 flex flex-col overflow-hidden rounded-apple-lg bg-surface-primary shadow-2xl sm:inset-auto sm:start-[50%] sm:top-[50%] sm:h-[85vh] sm:w-full sm:max-w-3xl sm:translate-x-[50%] sm:-translate-y-[50%] rtl:sm:-translate-x-[50%]"
+          className="fixed inset-2 z-50 flex flex-col overflow-hidden rounded-apple-lg bg-surface-primary shadow-2xl sm:inset-auto sm:start-[50%] sm:top-[50%] sm:h-[85vh] sm:w-full sm:max-w-3xl sm:-translate-x-[50%] sm:-translate-y-[50%] rtl:sm:translate-x-[50%]"
           dir="rtl"
         >
           {/* Header */}
@@ -121,20 +150,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  if (!doc.file_url) {
-                    alert('קובץ לא זמין להורדה')
-                    return
-                  }
-                  const link = document.createElement('a')
-                  link.href = doc.file_url
-                  link.download = doc.title + (doc.file_type?.includes('pdf') ? '.pdf' : doc.file_type?.includes('image') ? '.jpg' : '')
-                  link.target = '_blank'
-                  link.rel = 'noopener noreferrer'
-                  document.body.appendChild(link)
-                  link.click()
-                  document.body.removeChild(link)
-                }}
+                onClick={handleOpenFile}
                 className="flex items-center gap-1.5 rounded-lg bg-ios-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
               >
                 <Download className="h-4 w-4" />
@@ -156,7 +172,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
           <div className="flex flex-1 flex-col overflow-y-auto sm:flex-row">
             {/* Preview */}
             <div className="flex items-center justify-center bg-white/30 p-6 sm:flex-1">
-              <FilePreview doc={doc} />
+              <FilePreview doc={doc} onOpen={handleOpenFile} />
             </div>
 
             {/* Details sidebar */}
@@ -241,6 +257,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
           </div>
         </Dialog.Content>
       </Dialog.Portal>
+      {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </Dialog.Root>
   )
 }
