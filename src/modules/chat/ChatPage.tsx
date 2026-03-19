@@ -6,6 +6,7 @@ import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, initConversation
 import { useAppData } from '@/contexts/AppDataContext'
 import { MotiAvatar } from '@/components/shared/MotiRobot'
 import * as db from '@/lib/database'
+import { TRIP_START_DATE } from '@/lib/constants'
 
 interface Message {
   id: string
@@ -125,7 +126,7 @@ export default function ChatPage() {
   const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0)
   const budgetPercent = budgetSettings.total_budget > 0 ? Math.round((totalSpent / budgetSettings.total_budget) * 100) : 0
   const daysUntilTrip = Math.max(0, Math.ceil(
-    (new Date('2026-09-11').getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    (new Date(TRIP_START_DATE).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   ))
 
   const suggestions = useMemo(() => getSmartSuggestions({

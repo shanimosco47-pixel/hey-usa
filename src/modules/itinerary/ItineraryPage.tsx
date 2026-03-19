@@ -180,7 +180,7 @@ export default function ItineraryPage() {
             {theme.photo && (
               <img
                 src={theme.photo}
-                alt=""
+                alt={`${currentDay.city} — תמונת רקע`}
                 className="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
               />
