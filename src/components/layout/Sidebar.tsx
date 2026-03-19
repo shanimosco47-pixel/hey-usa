@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { NAV_ITEMS } from '@/constants'
+import { APP_VERSION, buildTimeFormatted } from '@/lib/version'
 import type { LucideIcon } from 'lucide-react'
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -74,6 +75,11 @@ export function Sidebar() {
           )
         })}
       </nav>
+      <div className="px-4 py-3 border-t border-black/[0.04] text-[10px] text-apple-tertiary text-center leading-relaxed">
+        <span>גרסה {APP_VERSION}</span>
+        <span className="mx-1">·</span>
+        <span>עודכן {buildTimeFormatted()}</span>
+      </div>
     </aside>
   )
 }

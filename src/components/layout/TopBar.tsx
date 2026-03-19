@@ -2,6 +2,7 @@ import { DualClock } from '@/components/shared/DualClock'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/cn'
+import { APP_VERSION, buildTimeFormatted } from '@/lib/version'
 
 export function TopBar() {
   const { currentMember } = useAuth()
@@ -27,10 +28,13 @@ export function TopBar() {
         <DualClock />
       </div>
 
-      <div className="flex items-center gap-1.5 shrink-0">
+      <div className="flex flex-col items-end shrink-0">
         <h1 className="text-[15px] sm:text-[17px] font-bold tracking-tight text-apple-primary whitespace-nowrap">
           Hey USA
         </h1>
+        <span className="text-[9px] text-apple-tertiary font-medium tabular-nums whitespace-nowrap">
+          v{APP_VERSION} • {buildTimeFormatted()}
+        </span>
       </div>
     </header>
   )
