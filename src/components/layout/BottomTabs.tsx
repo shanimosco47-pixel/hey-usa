@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { BOTTOM_TAB_ITEMS, MORE_MENU_ITEMS } from '@/constants'
+import { APP_VERSION, buildTimeFormatted } from '@/lib/version'
 import type { LucideIcon } from 'lucide-react'
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -90,6 +91,11 @@ export function BottomTabs() {
                   </motion.button>
                 )
               })}
+            </div>
+            <div className="px-4 pb-3 text-[10px] text-apple-tertiary text-center leading-relaxed">
+              <span>גרסה {APP_VERSION}</span>
+              <span className="mx-1">·</span>
+              <span>עודכן {buildTimeFormatted()}</span>
             </div>
           </motion.div>
         )}
