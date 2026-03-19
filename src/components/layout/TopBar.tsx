@@ -3,19 +3,6 @@ import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/cn'
 
-declare const __BUILD_TIME__: string
-
-const buildInfo = (() => {
-  try {
-    const d = new Date(__BUILD_TIME__)
-    const time = d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
-    const date = d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' })
-    return `${date} ${time}`
-  } catch {
-    return ''
-  }
-})()
-
 export function TopBar() {
   const { currentMember } = useAuth()
 
