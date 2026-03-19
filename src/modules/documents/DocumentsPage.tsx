@@ -1,11 +1,12 @@
 import { useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import * as Tabs from '@radix-ui/react-tabs'
-import { FileText, Plus, Search, LayoutGrid, List, FolderOpen } from 'lucide-react'
+import { FileText, Plus, Search, LayoutGrid, List, FolderOpen, Calendar } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { DOCUMENT_CATEGORIES } from '@/lib/constants'
 import { useAppData } from '@/contexts/AppDataContext'
+import { isSampleData } from '@/lib/sampleData'
 import { DocumentCard } from './components/DocumentCard'
 import { UploadDialog } from './components/UploadDialog'
 import { DocumentViewer } from './components/DocumentViewer'
@@ -268,8 +269,6 @@ function ListRow({
               <span>{formatSize(doc.file_size)}</span>
             </>
           ) : null}
-          <span className="text-apple-tertiary">|</span>
-          <span>{new Date(doc.created_at).toLocaleDateString('he-IL')}</span>
         </div>
       </div>
 
@@ -284,6 +283,16 @@ function ListRow({
           {isExpired ? 'פג תוקף' : 'תוקף מתקרב'}
         </span>
       )}
+
+      {/* Upload date column — hidden for sample data */}
+      <div className="shrink-0 w-20 text-left">
+        {!isSampleData(doc.id) && (
+          <div className="flex items-center gap-1 text-[11px] text-apple-secondary">
+            <Calendar className="h-3 w-3" />
+            <span>{new Date(doc.created_at).toLocaleDateString('he-IL')}</span>
+          </div>
+        )}
+      </div>
     </button>
   )
 }

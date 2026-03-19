@@ -37,6 +37,48 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Pre-React splash: eliminates gray flash while JS loads -->
+    <div id="pre-splash" style="
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #e94560 100%);
+      transition: opacity 0.3s ease-out;
+    ">
+      <h1 style="
+        font-size: 3.5rem; font-weight: 900; color: white;
+        letter-spacing: -0.02em; margin: 0;
+        font-family: system-ui, -apple-system, sans-serif;
+      ">Hey USA</h1>
+      <p style="
+        font-size: 1.15rem; color: rgba(255,255,255,0.6);
+        margin-top: 4px; font-family: system-ui, sans-serif;
+      ">&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F467;&#x200D;&#x1F466; משפחה בדרכים</p>
+      <div style="margin-top: 32px; font-size: 2.5rem;">&#x1F690;</div>
+      <p style="
+        margin-top: 24px; font-size: 0.7rem;
+        letter-spacing: 0.15em; color: rgba(255,255,255,0.5);
+      ">CO &bull; MT &bull; WY &bull; UT &bull; NV &bull; CA</p>
+    </div>
+    <script>
+      // Remove pre-splash once React mounts (SplashScreen takes over)
+      var observer = new MutationObserver(function() {
+        var root = document.getElementById('root');
+        if (root && root.children.length > 0) {
+          var pre = document.getElementById('pre-splash');
+          if (pre) {
+            pre.style.opacity = '0';
+            setTimeout(function() { pre.remove(); }, 300);
+          }
+          observer.disconnect();
+        }
+      });
+      observer.observe(document.getElementById('root'), { childList: true });
+      // Fallback: remove after 5s even if observer fails
+      setTimeout(function() {
+        var pre = document.getElementById('pre-splash');
+        if (pre) { pre.style.opacity = '0'; setTimeout(function() { pre.remove(); }, 300); }
+      }, 5000);
+    </script>
     <script>
       // Force-kill old service workers and clear caches on first load
       if ('serviceWorker' in navigator) {

@@ -27,6 +27,7 @@ import { useAppData } from '@/contexts/AppDataContext'
 import type { Expense } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
 import { DailyBudgetTable } from './components/DailyBudgetTable'
+import { DailyBudgetView } from './components/DailyBudgetView'
 import {
   PieChart,
   Pie,
@@ -617,8 +618,16 @@ export default function BudgetPage() {
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.2 }}
+          className="space-y-6"
         >
           <DailyBudgetTable />
+          <div>
+            <h3 className="text-sm font-bold text-apple-primary mb-3 flex items-center gap-2">
+              <CalendarDays className="h-4 w-4 text-ios-blue" />
+              סיכום יומי — מתוכנן מול בפועל
+            </h3>
+            <DailyBudgetView />
+          </div>
         </motion.div>
       )}
     </div>

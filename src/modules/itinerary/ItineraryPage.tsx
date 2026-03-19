@@ -28,6 +28,9 @@ const CITY_THEMES: Record<string, { gradient: string; emoji: string; photo?: str
   'San Francisco': { gradient: 'from-red-500 to-orange-400', emoji: '🌉', photo: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80' },
   'Provo': { gradient: 'from-slate-500 to-gray-600', emoji: '🛣️' },
   'Nephi': { gradient: 'from-slate-500 to-gray-600', emoji: '🛣️' },
+  'Wawona': { gradient: 'from-green-700 to-emerald-600', emoji: '🌲', photo: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=800&q=80' },
+  'Anthony Chabot': { gradient: 'from-teal-500 to-cyan-600', emoji: '🏕️' },
+  'Marin': { gradient: 'from-sky-400 to-blue-500', emoji: '🌊' },
 }
 
 function getCityTheme(city?: string): { gradient: string; emoji: string; photo?: string } {
@@ -125,7 +128,7 @@ export default function ItineraryPage() {
             <div>
               <h1 className="text-xl font-bold text-apple-primary">לוח זמנים</h1>
               <p className="text-xs text-apple-secondary">
-                20 ימים במערב ארה"ב | ספטמבר 2026
+                21 ימים במערב ארה"ב | ספטמבר 2026
               </p>
             </div>
           </div>
