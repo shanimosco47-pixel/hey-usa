@@ -52,6 +52,11 @@ function FilePreview({ doc }: { doc: Document }) {
           <FileText className="h-16 w-16 text-red-300" />
           <button
             type="button"
+            onClick={() => {
+              if (doc.file_url) {
+                window.open(doc.file_url, '_blank', 'noopener,noreferrer')
+              }
+            }}
             className="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
           >
             <ExternalLink className="h-4 w-4" />
@@ -116,6 +121,20 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                onClick={() => {
+                  if (!doc.file_url) {
+                    alert('קובץ לא זמין להורדה')
+                    return
+                  }
+                  const link = document.createElement('a')
+                  link.href = doc.file_url
+                  link.download = doc.title + (doc.file_type?.includes('pdf') ? '.pdf' : doc.file_type?.includes('image') ? '.jpg' : '')
+                  link.target = '_blank'
+                  link.rel = 'noopener noreferrer'
+                  document.body.appendChild(link)
+                  link.click()
+                  document.body.removeChild(link)
+                }}
                 className="flex items-center gap-1.5 rounded-lg bg-ios-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
               >
                 <Download className="h-4 w-4" />
