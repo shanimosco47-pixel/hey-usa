@@ -80,6 +80,7 @@ export interface Document {
   notes?: string;
   expiry_date?: string;
   locationId?: string;
+  source_email_id?: string;
   created_at: string;
   updated_at: string;
 }

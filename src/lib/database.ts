@@ -842,3 +842,29 @@ export async function seedAllData(): Promise<void> {
 
   console.log('[Hey USA] Seed data loaded into Supabase')
 }
+
+// ─── Email Accounts ─────────────────────────────────────────────────
+
+export async function fetchEmailAccounts() {
+  const sb = assertSupabase()
+  const { data, error } = await sb.from('email_accounts').select('*').order('created_at')
+  if (error) { console.warn('fetchEmailAccounts error:', error); return [] }
+  return data ?? []
+}
+
+export async function insertEmailAccount(account: { email: string; label: string; refresh_token: string }) {
+  const sb = assertSupabase()
+  const { error } = await sb.from('email_accounts').insert(account)
+  if (error) throw error
+}
+
+export async function deleteEmailAccount(id: string) {
+  const sb = assertSupabase()
+  const { error } = await sb.from('email_accounts').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function updateEmailAccountLastScan(id: string) {
+  const sb = assertSupabase()
+  await sb.from('email_accounts').update({ last_scan_at: new Date().toISOString() }).eq('id', id)
+}
