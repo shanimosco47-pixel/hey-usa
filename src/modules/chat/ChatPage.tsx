@@ -6,6 +6,7 @@ import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, initConversation
 import { useAppData } from '@/contexts/AppDataContext'
 import { MotiAvatar } from '@/components/shared/MotiRobot'
 import * as db from '@/lib/database'
+import { triggerEmailScan } from '@/lib/emailScan'
 
 interface Message {
   id: string
@@ -259,6 +260,28 @@ export default function ChatPage() {
       if (response.actions.length > 0) {
         for (const action of response.actions) {
           if (action.type === 'ASK_CLARIFICATION') continue // question is in the text
+          if (action.type === 'SEARCH_EMAIL') {
+            // Fire email scan in background; Edge Function posts Moti notification to chat_messages
+            triggerEmailScan('targeted', action.query)
+              .then(() => {
+                // Refresh chat messages so Moti's notification appears
+                db.fetchChatMessages(200).then((history) => {
+                  if (history.length > 0) {
+                    setMessages(
+                      history.map((msg) => ({
+                        id: msg.id,
+                        text: msg.content,
+                        sender: msg.role === 'user' ? 'user' : 'bot',
+                        timestamp: new Date(msg.created_at),
+                        hasAction: msg.has_action,
+                      })),
+                    )
+                  }
+                }).catch(() => {})
+              })
+              .catch(() => {})
+            continue
+          }
           const error = executeMotiAction(action)
           if (error) {
             response.text += `\n\n⚠️ ${error}`

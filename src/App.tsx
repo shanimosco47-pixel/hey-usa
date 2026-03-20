@@ -43,6 +43,7 @@ const EntertainmentPage = lazy(
 const PackingPage = lazy(() => import('@/modules/packing/PackingPage'))
 const ChatPage = lazy(() => import('@/modules/chat/ChatPage'))
 const MotiLogPage = lazy(() => import('@/modules/chat/MotiLogPage'))
+const OAuthCallbackPage = lazy(() => import('@/modules/auth/OAuthCallbackPage'))
 const LocationsPage = lazy(() => import('@/modules/locations/LocationsPage'))
 const LocationHubPage = lazy(() => import('@/modules/locations/LocationHubPage'))
 const NotesPage = lazy(() => import('@/modules/notes/NotesPage'))
@@ -94,6 +95,7 @@ function AppInner() {
             {/* Auth routes */}
             <Route path="/auth" element={<PinScreen />} />
             <Route path="/auth/select" element={<FamilySelectScreen />} />
+            <Route path="oauth/callback" element={<OAuthCallbackPage />} />
 
             {/* Protected app routes */}
             <Route
