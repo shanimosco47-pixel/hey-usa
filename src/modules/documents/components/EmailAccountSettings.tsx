@@ -37,7 +37,8 @@ export function EmailAccountSettings() {
   }, [expanded, load])
 
   function handleConnect() {
-    const redirectUri = `${window.location.origin}/oauth/callback`
+    const base = import.meta.env.BASE_URL || '/'
+    const redirectUri = `${window.location.origin}${base}oauth/callback`
     const url = getGoogleOAuthUrl(redirectUri)
     window.location.href = url
   }
