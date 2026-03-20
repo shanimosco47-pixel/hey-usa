@@ -238,7 +238,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
                   />
                 )}
 
-                {hasRealFile(doc) && doc.file_size > 0 && (
+                {hasRealFile(doc) && (doc.file_size ?? 0) > 0 && (
                   <DetailRow
                     icon={HardDrive}
                     label="גודל קובץ"
