@@ -103,17 +103,30 @@ export async function classifyEmail(
   subject: string,
   bodySnippet: string,
 ): Promise<ClassifyResult> {
-  const prompt = `You are a travel document classifier. Determine whether the following email is related to a travel booking or trip document (flight, hotel, car rental, RV rental, campsite, travel insurance, attraction ticket, etc.).
+  const prompt = `You are a travel document classifier for a specific family trip: a summer 2026 trip to the USA (approximately June–August 2026).
+
+The trip destinations are: Denver, Bozeman, Yellowstone, Grand Teton, Jackson, Bryce Canyon, Zion, Las Vegas, Mammoth Lakes, Yosemite, San Francisco.
+
+Determine whether the following email is a travel document RELEVANT TO THIS SPECIFIC TRIP.
 
 Subject: ${subject}
 Body snippet: ${bodySnippet.slice(0, 800)}
 
-If the email IS travel-related, respond with a JSON object like:
+REJECT (respond with {"category": null}) if the email is:
+- About a PAST trip (travel dates before June 2026)
+- About a trip to a DIFFERENT country (not the USA)
+- About destinations clearly unrelated to the itinerary above
+- A newsletter, marketing email, or loyalty program update
+- A generic travel tip, survey, or feedback request
+
+ACCEPT only if the email is a booking confirmation, reservation, ticket, insurance document, or receipt that is plausibly for the USA summer 2026 trip.
+
+If accepted, respond with a JSON object like:
 {"category": "flight_booking"}
 
 Valid categories: flight_booking, hotel_booking, car_rental, rv_rental, campsite_reservation, travel_insurance, attraction_ticket, itinerary, receipt, other_travel
 
-If the email is NOT travel-related (newsletter, marketing, unrelated), respond with:
+If rejected, respond with:
 {"category": null}
 
 Respond ONLY with the JSON object, no other text.`;
@@ -148,7 +161,9 @@ export async function extractDocumentMeta(
   const attachmentsStr =
     attachmentNames.length > 0 ? attachmentNames.join(", ") : "none";
 
-  const prompt = `You are a travel document metadata extractor. Extract structured metadata from the following email.
+  const prompt = `You are a travel document metadata extractor for a family trip to the USA in summer 2026 (June–August). Destinations: Denver, Bozeman, Yellowstone, Grand Teton, Jackson, Bryce Canyon, Zion, Las Vegas, Mammoth Lakes, Yosemite, San Francisco.
+
+Extract structured metadata from the following email. If the document is clearly about a different/past trip (travel dates before June 2026, different country), set notes to "SKIP: not relevant to USA 2026 trip" and use default values for other fields.
 
 From: ${sender}
 Subject: ${subject}

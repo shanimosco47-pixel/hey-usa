@@ -248,6 +248,21 @@ Deno.serve(async (req) => {
           attachmentNames,
         );
 
+        // Skip documents with travel dates in the past (old trips)
+        if (meta.expiry_date) {
+          const expiryDate = new Date(meta.expiry_date);
+          if (expiryDate < new Date("2026-05-01")) {
+            console.log(`[email-scan] Skipping old document (expiry ${meta.expiry_date}): ${subject}`);
+            continue;
+          }
+        }
+
+        // Skip if AI flagged as irrelevant via notes sentinel
+        if (meta.notes.startsWith("SKIP:")) {
+          console.log(`[email-scan] AI flagged as irrelevant: ${subject}`);
+          continue;
+        }
+
         // Import document into database
         const result = await importDocument(supabase, {
           title: meta.title,

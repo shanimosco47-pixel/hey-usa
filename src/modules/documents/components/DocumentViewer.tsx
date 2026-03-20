@@ -74,6 +74,20 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
     )
   }
 
+  if (doc.file_type?.includes('html') && realFile) {
+    return (
+      <div className="w-full rounded-xl bg-white overflow-hidden" style={{ height: '60vh' }}>
+        <iframe
+          src={doc.file_url!}
+          title={doc.title}
+          sandbox="allow-same-origin"
+          className="w-full h-full border-0"
+          style={{ backgroundColor: 'white' }}
+        />
+      </div>
+    )
+  }
+
   if (doc.file_type?.includes('image') && realFile) {
     return (
       <div className="w-full rounded-xl bg-sky-50 overflow-hidden">
@@ -171,24 +185,10 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
       return
     }
 
-    // HTML files: force download instead of opening raw HTML in browser
+    // HTML files: open in new tab for full-page viewing (inline preview is in the dialog)
     const isHtml = doc.file_type?.includes('html') || doc.file_url.endsWith('.html')
     if (isHtml) {
-      try {
-        const res = await fetch(doc.file_url)
-        const blob = await res.blob()
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = doc.title + '.html'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
-      } catch {
-        setToast('שגיאה בהורדת הקובץ')
-        setTimeout(() => setToast(null), 3500)
-      }
+      window.open(doc.file_url, '_blank', 'noopener')
       return
     }
 
@@ -215,8 +215,17 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
                   onClick={handleOpenFile}
                   className="flex items-center gap-1.5 rounded-lg bg-ios-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
                 >
-                  <Download className="h-4 w-4" />
-                  הורד
+                  {doc.file_type?.includes('html') ? (
+                    <>
+                      <ExternalLink className="h-4 w-4" />
+                      פתח
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4" />
+                      הורד
+                    </>
+                  )}
                 </button>
               )}
               <Dialog.Close asChild>
