@@ -187,6 +187,47 @@ export interface LocationNote {
   updated_at: string;
 }
 
+// ─── Campsite Bookings ─────────────────────────────────────────────
+
+export type CampsiteNightStatus = 'searching' | 'booked' | 'skipped'
+export type BookingPlatform = 'recreation_gov' | 'reserve_america' | 'private' | 'other'
+export type BookingStatus = 'not_yet_open' | 'open' | 'booked' | 'sold_out' | 'skipped'
+
+export interface CampsiteNight {
+  id: string
+  check_in_date: string
+  check_out_date: string
+  itinerary_day_id?: string
+  location_name: string
+  status: CampsiteNightStatus
+  booked_option_id?: string
+  notes?: string
+  created_at: string
+  updated_at: string
+  options?: CampsiteOption[]
+}
+
+export interface CampsiteOption {
+  id: string
+  night_id: string
+  name: string
+  platform?: BookingPlatform
+  platform_url?: string
+  facility_id?: string
+  price_per_night?: number
+  rv_friendly: boolean
+  hookups?: string
+  max_rv_length?: number
+  booking_opens_at?: string
+  alert_sent: boolean
+  booking_status: BookingStatus
+  family_rating?: number
+  priority: number
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
 // ─── Sync ───────────────────────────────────────────────────────────
 
 export interface SyncQueueItem {

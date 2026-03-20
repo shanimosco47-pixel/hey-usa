@@ -44,7 +44,7 @@ export function getGoogleOAuthUrl(redirectUri: string): string {
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: redirectUri,
     response_type: 'code',
-    scope: 'https://www.googleapis.com/auth/gmail.readonly',
+    scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send',
     access_type: 'offline',
     prompt: 'consent',
   })

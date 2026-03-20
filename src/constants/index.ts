@@ -95,6 +95,7 @@ export const NAV_ITEMS = [
   { path: '/packing', label: 'אריזה', icon: 'Luggage' },
   { path: '/notes', label: 'פתקים', icon: 'StickyNote' },
   { path: '/locations', label: 'יעדים', icon: 'MapPin' },
+  { path: '/bookings', label: 'הזמנות', icon: 'Tent' },
   { path: '/chat', label: 'מוטי', icon: 'Bot' },
 ] as const
 
@@ -114,5 +115,6 @@ export const MORE_MENU_ITEMS = [
   { path: '/packing', label: 'אריזה', icon: 'Luggage' },
   { path: '/notes', label: 'פתקים', icon: 'StickyNote' },
   { path: '/locations', label: 'יעדים', icon: 'MapPin' },
+  { path: '/bookings', label: 'הזמנות', icon: 'Tent' },
   { path: '/chat', label: 'מוטי', icon: 'Bot' },
 ] as const

@@ -47,6 +47,7 @@ const OAuthCallbackPage = lazy(() => import('@/modules/auth/OAuthCallbackPage'))
 const LocationsPage = lazy(() => import('@/modules/locations/LocationsPage'))
 const LocationHubPage = lazy(() => import('@/modules/locations/LocationHubPage'))
 const NotesPage = lazy(() => import('@/modules/notes/NotesPage'))
+const BookingsPage = lazy(() => import('@/modules/bookings/BookingsPage'))
 
 function LoadingFallback() {
   return (
@@ -119,6 +120,7 @@ function AppInner() {
               <Route path="entertainment" element={<EntertainmentPage />} />
               <Route path="packing" element={<PackingPage />} />
               <Route path="notes" element={<NotesPage />} />
+              <Route path="bookings" element={<BookingsPage />} />
               <Route path="locations" element={<LocationsPage />} />
               <Route path="locations/:locationId" element={<LocationHubPage />} />
               <Route path="chat" element={<ChatPage />} />

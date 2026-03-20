@@ -24,6 +24,9 @@ import type {
   LocationNote,
   FamilyMemberId,
   NoteColor,
+  CampsiteNight,
+  CampsiteOption,
+  BookingStatus,
 } from '@/lib/types'
 import { EXPENSE_CATEGORIES } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
@@ -164,6 +167,14 @@ interface AppDataContextType {
   updateLocationNote: (id: string, changes: Partial<LocationNote>) => void
   deleteLocationNote: (id: string) => void
 
+  // Campsite Bookings
+  campsiteNights: CampsiteNight[]
+  addCampsiteOption: (option: Omit<CampsiteOption, 'id' | 'created_at' | 'updated_at'>) => void
+  updateCampsiteOption: (id: string, changes: Partial<CampsiteOption>) => void
+  deleteCampsiteOption: (id: string) => void
+  markNightBooked: (nightId: string, optionId: string) => void
+  updateNightStatus: (nightId: string, status: CampsiteNight['status']) => void
+
   // Moti
   executeMotiAction: (action: MotiAction) => string | null
   buildMotiContext: () => string
@@ -199,6 +210,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [documents, setDocuments] = useState<Document[]>(SAMPLE_DOCUMENTS)
   const [playlistItems, setPlaylistItems] = useState<PlaylistItem[]>(SAMPLE_PLAYLIST)
   const [locationNotes, setLocationNotes] = useState<LocationNote[]>(SAMPLE_LOCATION_NOTES)
+  const [campsiteNights, setCampsiteNights] = useState<CampsiteNight[]>([])
   const [changeLog, setChangeLog] = useState<MotiChangeLogEntry[]>([])
 
   // ─── Load from Supabase on mount ────────────────────────────────
@@ -233,6 +245,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           playlistData,
           changeLogData,
           locationNoteData,
+          campsiteData,
         ] = await Promise.all([
           db.fetchBudgetSettings(),
           db.fetchExpenses(),
@@ -245,6 +258,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           db.fetchPlaylistItems(),
           db.fetchMotiChangeLog(),
           db.fetchLocationNotes(),
+          db.fetchCampsiteNights(),
         ])
 
         if (cancelled) return
@@ -261,6 +275,25 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         if (documentData.length) setDocuments(documentData)
         if (playlistData.length) setPlaylistItems(playlistData)
         if (locationNoteData.length) setLocationNotes(locationNoteData)
+
+        // Campsite bookings: seed if empty, otherwise use DB data
+        if (campsiteData.length) {
+          setCampsiteNights(campsiteData)
+        } else {
+          // Seed campsite data
+          const { CAMPSITE_NIGHTS, CAMPSITE_OPTIONS } = await import('@/data/campsiteSeeds')
+          for (const night of CAMPSITE_NIGHTS) {
+            await db.upsertCampsiteNight(night)
+          }
+          for (const option of CAMPSITE_OPTIONS) {
+            await db.upsertCampsiteOption(option)
+          }
+          // Re-fetch to get joined data
+          const seededData = await db.fetchCampsiteNights()
+          setCampsiteNights(seededData)
+          console.log('[Hey USA] Campsite seed data loaded')
+        }
+
         if (changeLogData.length) {
           setChangeLog(
             changeLogData.map((e) => ({
@@ -581,6 +614,72 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     db.deleteLocationNoteById(id).catch(() => {})
   }, [])
 
+  // ─── Campsite Bookings ────────────────────────────────────────
+
+  const addCampsiteOption = useCallback((option: Omit<CampsiteOption, 'id' | 'created_at' | 'updated_at'>) => {
+    const now = new Date().toISOString()
+    const newOption: CampsiteOption = { ...option, id: `co-${Date.now()}`, created_at: now, updated_at: now }
+    setCampsiteNights((prev) =>
+      prev.map((n) => {
+        if (n.id !== option.night_id) return n
+        return { ...n, options: [...(n.options || []), newOption] }
+      }),
+    )
+    db.upsertCampsiteOption(newOption).catch(() => {})
+  }, [])
+
+  const updateCampsiteOption = useCallback((id: string, changes: Partial<CampsiteOption>) => {
+    setCampsiteNights((prev) =>
+      prev.map((n) => ({
+        ...n,
+        options: (n.options || []).map((o) => {
+          if (o.id !== id) return o
+          const updated = { ...o, ...changes, updated_at: new Date().toISOString() }
+          db.upsertCampsiteOption(updated).catch(() => {})
+          return updated
+        }),
+      })),
+    )
+  }, [])
+
+  const deleteCampsiteOptionFn = useCallback((id: string) => {
+    setCampsiteNights((prev) =>
+      prev.map((n) => ({
+        ...n,
+        options: (n.options || []).filter((o) => o.id !== id),
+      })),
+    )
+    db.deleteCampsiteOption(id).catch(() => {})
+  }, [])
+
+  const markNightBookedFn = useCallback((nightId: string, optionId: string) => {
+    setCampsiteNights((prev) =>
+      prev.map((n) => {
+        if (n.id !== nightId) return n
+        return {
+          ...n,
+          status: 'booked' as const,
+          booked_option_id: optionId,
+          options: (n.options || []).map((o) =>
+            o.id === optionId ? { ...o, booking_status: 'booked' as BookingStatus } : o,
+          ),
+        }
+      }),
+    )
+    db.markNightBooked(nightId, optionId).catch(() => {})
+  }, [])
+
+  const updateNightStatus = useCallback((nightId: string, status: CampsiteNight['status']) => {
+    setCampsiteNights((prev) =>
+      prev.map((n) => {
+        if (n.id !== nightId) return n
+        const updated = { ...n, status, updated_at: new Date().toISOString() }
+        db.upsertCampsiteNight(updated).catch(() => {})
+        return updated
+      }),
+    )
+  }, [])
+
   // ─── Undo ───────────────────────────────────────────────────────
 
   const undoLastChange = useCallback((): boolean => {
@@ -826,6 +925,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         addLocationNote,
         updateLocationNote,
         deleteLocationNote,
+        campsiteNights,
+        addCampsiteOption,
+        updateCampsiteOption,
+        deleteCampsiteOption: deleteCampsiteOptionFn,
+        markNightBooked: markNightBookedFn,
+        updateNightStatus,
         executeMotiAction,
         changeLog,
         undoLastChange,

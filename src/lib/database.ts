@@ -14,6 +14,8 @@ import type {
   Document,
   PlaylistItem,
   LocationNote,
+  CampsiteNight,
+  CampsiteOption,
 } from './types'
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -841,6 +843,121 @@ export async function seedAllData(): Promise<void> {
   }
 
   console.log('[Hey USA] Seed data loaded into Supabase')
+}
+
+// ─── Campsite Bookings ──────────────────────────────────────────────
+
+export async function fetchCampsiteNights(): Promise<CampsiteNight[]> {
+  const sb = assertSupabase()
+  const { data: nights, error } = await sb
+    .from('campsite_nights')
+    .select('*')
+    .order('check_in_date', { ascending: true })
+  if (error || !nights) return []
+
+  const { data: options } = await sb
+    .from('campsite_options')
+    .select('*')
+    .order('priority', { ascending: true })
+
+  const optionsMap = new Map<string, CampsiteOption[]>()
+  for (const o of options || []) {
+    const list = optionsMap.get(o.night_id) || []
+    list.push({
+      id: o.id,
+      night_id: o.night_id,
+      name: o.name,
+      platform: o.platform || undefined,
+      platform_url: o.platform_url || undefined,
+      facility_id: o.facility_id || undefined,
+      price_per_night: o.price_per_night ? Number(o.price_per_night) : undefined,
+      rv_friendly: o.rv_friendly,
+      hookups: o.hookups || undefined,
+      max_rv_length: o.max_rv_length || undefined,
+      booking_opens_at: o.booking_opens_at || undefined,
+      alert_sent: o.alert_sent,
+      booking_status: o.booking_status,
+      family_rating: o.family_rating || undefined,
+      priority: o.priority,
+      notes: o.notes || undefined,
+      created_at: o.created_at,
+      updated_at: o.updated_at,
+    })
+    optionsMap.set(o.night_id, list)
+  }
+
+  return nights.map((n) => ({
+    id: n.id,
+    check_in_date: n.check_in_date,
+    check_out_date: n.check_out_date,
+    itinerary_day_id: n.itinerary_day_id || undefined,
+    location_name: n.location_name,
+    status: n.status,
+    booked_option_id: n.booked_option_id || undefined,
+    notes: n.notes || undefined,
+    created_at: n.created_at,
+    updated_at: n.updated_at,
+    options: optionsMap.get(n.id) || [],
+  }))
+}
+
+export async function upsertCampsiteNight(night: CampsiteNight): Promise<void> {
+  const sb = assertSupabase()
+  await sb.from('campsite_nights').upsert({
+    id: night.id,
+    check_in_date: night.check_in_date,
+    check_out_date: night.check_out_date,
+    itinerary_day_id: night.itinerary_day_id || null,
+    location_name: night.location_name,
+    status: night.status,
+    booked_option_id: night.booked_option_id || null,
+    notes: night.notes || null,
+    created_at: night.created_at,
+    updated_at: new Date().toISOString(),
+  })
+}
+
+export async function upsertCampsiteOption(option: CampsiteOption): Promise<void> {
+  const sb = assertSupabase()
+  await sb.from('campsite_options').upsert({
+    id: option.id,
+    night_id: option.night_id,
+    name: option.name,
+    platform: option.platform || null,
+    platform_url: option.platform_url || null,
+    facility_id: option.facility_id || null,
+    price_per_night: option.price_per_night || null,
+    rv_friendly: option.rv_friendly,
+    hookups: option.hookups || null,
+    max_rv_length: option.max_rv_length || null,
+    booking_opens_at: option.booking_opens_at || null,
+    alert_sent: option.alert_sent,
+    booking_status: option.booking_status,
+    family_rating: option.family_rating || null,
+    priority: option.priority,
+    notes: option.notes || null,
+    created_at: option.created_at,
+    updated_at: new Date().toISOString(),
+  })
+}
+
+export async function deleteCampsiteOption(id: string): Promise<void> {
+  const sb = assertSupabase()
+  await sb.from('campsite_options').delete().eq('id', id)
+}
+
+export async function markNightBooked(nightId: string, optionId: string): Promise<void> {
+  const sb = assertSupabase()
+  const now = new Date().toISOString()
+  await sb.from('campsite_nights').update({
+    status: 'booked',
+    booked_option_id: optionId,
+    updated_at: now,
+  }).eq('id', nightId)
+  await sb.from('campsite_options').update({
+    booking_status: 'booked',
+    updated_at: now,
+  }).eq('id', optionId)
 }
 
 // ─── Email Accounts ─────────────────────────────────────────────────
