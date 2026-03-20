@@ -238,21 +238,25 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
                   />
                 )}
 
-                <DetailRow
-                  icon={HardDrive}
-                  label="גודל קובץ"
-                  value={formatFileSize(doc.file_size)}
-                />
+                {hasRealFile(doc) && doc.file_size > 0 && (
+                  <DetailRow
+                    icon={HardDrive}
+                    label="גודל קובץ"
+                    value={formatFileSize(doc.file_size)}
+                  />
+                )}
 
-                <DetailRow
-                  icon={Calendar}
-                  label="תאריך העלאה"
-                  value={new Date(doc.created_at).toLocaleDateString('he-IL', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                />
+                {hasRealFile(doc) && (
+                  <DetailRow
+                    icon={Calendar}
+                    label="תאריך העלאה"
+                    value={new Date(doc.created_at).toLocaleDateString('he-IL', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  />
+                )}
 
                 {doc.expiry_date && (
                   <div className="flex items-start gap-3">
@@ -290,7 +294,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
                   </div>
                 )}
 
-                {doc.notes && (
+                {doc.notes && hasRealFile(doc) && (
                   <DetailRow icon={StickyNote} label="הערות" value={doc.notes} />
                 )}
               </div>
