@@ -1,12 +1,13 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Select from '@radix-ui/react-select'
-import { Upload, X, FileText, ChevronDown, Check, Receipt } from 'lucide-react'
+import { Upload, X, FileText, ChevronDown, Check, Receipt, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS } from '@/constants'
 import { DOCUMENT_CATEGORIES } from '@/lib/constants'
 import { LOCATIONS } from '@/data/locations'
 import { suggestDocumentMeta } from '../utils/suggestDocumentMeta'
+import { supabase } from '@/lib/supabase'
 import type { Document, FamilyMemberId, Expense } from '@/types'
 
 interface UploadDialogProps {
@@ -107,8 +108,32 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
     setIsDragging(false)
   }, [])
 
-  const handleSubmit = useCallback(() => {
+  const [uploading, setUploading] = useState(false)
+
+  const handleSubmit = useCallback(async () => {
     if (!title.trim() || !category) return
+
+    setUploading(true)
+
+    let fileUrl: string | undefined
+    try {
+      // Upload file to Supabase Storage if selected
+      if (selectedFile && supabase) {
+        const ext = selectedFile.name.split('.').pop() || 'pdf'
+        const fileName = `${Date.now()}-${title.trim().replace(/\s+/g, '-').slice(0, 40)}.${ext}`
+        const { error } = await supabase.storage
+          .from('documents')
+          .upload(fileName, selectedFile, { contentType: selectedFile.type })
+        if (!error) {
+          const { data: urlData } = supabase.storage.from('documents').getPublicUrl(fileName)
+          fileUrl = urlData.publicUrl
+        } else {
+          console.warn('Upload failed:', error.message)
+        }
+      }
+    } catch (err) {
+      console.warn('Upload error:', err)
+    }
 
     const doc: Omit<Document, 'id' | 'created_at' | 'updated_at'> = {
       title: title.trim(),
@@ -117,7 +142,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
       notes: notes.trim() || undefined,
       expiry_date: expiryDate || undefined,
       locationId: locationId || undefined,
-      file_url: selectedFile ? `/documents/${selectedFile.name}` : undefined,
+      file_url: fileUrl,
       file_type: selectedFile?.type || 'application/pdf',
       file_size: selectedFile?.size || 0,
     }
@@ -137,6 +162,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
       })
     }
 
+    setUploading(false)
     resetForm()
     onOpenChange(false)
   }, [title, category, memberId, notes, expiryDate, locationId, selectedFile, onUpload, resetForm, onOpenChange, alsoLogExpense, onAddExpense, expenseAmount, expensePaidBy])
@@ -469,10 +495,17 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={!title.trim() || !category}
-              className="flex-1 rounded-xl bg-ios-blue px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ios-blue/80 disabled:cursor-not-allowed disabled:opacity-40"
+              disabled={!title.trim() || !category || uploading}
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-ios-blue px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ios-blue/80 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              העלה מסמך
+              {uploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  מעלה...
+                </>
+              ) : (
+                'העלה מסמך'
+              )}
             </button>
             <Dialog.Close asChild>
               <button

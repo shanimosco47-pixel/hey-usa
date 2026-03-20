@@ -74,6 +74,14 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
     )
   }
 
+  if (doc.file_type?.includes('image') && realFile) {
+    return (
+      <div className="w-full rounded-xl bg-sky-50 overflow-hidden">
+        <img src={doc.file_url!} alt={doc.title} className="w-full h-auto object-contain max-h-[60vh]" />
+      </div>
+    )
+  }
+
   if (doc.file_type?.includes('image')) {
     return (
       <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-sky-50">
