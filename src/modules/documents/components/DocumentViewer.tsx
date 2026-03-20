@@ -152,7 +152,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
   const location = doc.locationId ? getLocationById(doc.locationId) : null
   const sample = isSampleData(doc.id)
 
-  const handleOpenFile = () => {
+  const handleOpenFile = async () => {
     if (sample) {
       setToast('זוהי דוגמה מאת מוטי — יש להעלות מסמך אמיתי')
       setTimeout(() => setToast(null), 3500)
@@ -170,6 +170,28 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
       setTimeout(() => setToast(null), 3500)
       return
     }
+
+    // HTML files: force download instead of opening raw HTML in browser
+    const isHtml = doc.file_type?.includes('html') || doc.file_url.endsWith('.html')
+    if (isHtml) {
+      try {
+        const res = await fetch(doc.file_url)
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = doc.title + '.html'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      } catch {
+        setToast('שגיאה בהורדת הקובץ')
+        setTimeout(() => setToast(null), 3500)
+      }
+      return
+    }
+
     window.open(doc.file_url, '_blank', 'noopener')
   }
 
