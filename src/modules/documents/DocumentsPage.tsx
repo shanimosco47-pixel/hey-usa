@@ -10,6 +10,8 @@ import { isSampleData } from '@/lib/sampleData'
 import { DocumentCard } from './components/DocumentCard'
 import { UploadDialog } from './components/UploadDialog'
 import { DocumentViewer } from './components/DocumentViewer'
+import { EmailScanButton } from './components/EmailScanButton'
+import { EmailAccountSettings } from './components/EmailAccountSettings'
 import type { Document } from '@/types'
 
 const CATEGORY_TABS: { value: string; label: string }[] = [
@@ -82,10 +84,13 @@ export default function DocumentsPage() {
             </p>
           </div>
         </div>
-        <Button onClick={() => setUploadOpen(true)}>
-          <Plus className="h-4 w-4" />
-          העלה מסמך
-        </Button>
+        <div className="flex items-center gap-2">
+          <EmailScanButton />
+          <Button onClick={() => setUploadOpen(true)}>
+            <Plus className="h-4 w-4" />
+            העלה מסמך
+          </Button>
+        </div>
       </motion.div>
 
       {/* Search + view toggle */}
@@ -129,6 +134,9 @@ export default function DocumentsPage() {
           </button>
         </div>
       </div>
+
+      {/* Email account settings */}
+      <EmailAccountSettings />
 
       {/* Category tabs */}
       <Tabs.Root
