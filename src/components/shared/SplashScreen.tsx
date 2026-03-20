@@ -15,8 +15,16 @@ const DESTINATIONS = [
   'San Francisco',
 ]
 
-export default function SplashScreen({ onFinished }: { onFinished: () => void }) {
+interface SplashScreenProps {
+  onFinished: () => void
+  /** When true, the splash is allowed to begin its exit animation.
+   *  When false (data still loading), the splash keeps looping. */
+  dataReady?: boolean
+}
+
+export default function SplashScreen({ onFinished, dataReady = true }: SplashScreenProps) {
   const [destinationIndex, setDestinationIndex] = useState(0)
+  const [timerElapsed, setTimerElapsed] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
 
   // Cycle through destinations
@@ -27,13 +35,18 @@ export default function SplashScreen({ onFinished }: { onFinished: () => void })
     return () => clearInterval(interval)
   }, [])
 
-  // Trigger exit after 2 seconds
+  // Mark that the minimum display time (2.5s) has passed
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsExiting(true)
-    }, 2500)
+    const timer = setTimeout(() => setTimerElapsed(true), 2500)
     return () => clearTimeout(timer)
   }, [])
+
+  // Begin exit only when BOTH timer has elapsed AND data is ready
+  useEffect(() => {
+    if (timerElapsed && dataReady && !isExiting) {
+      setIsExiting(true)
+    }
+  }, [timerElapsed, dataReady, isExiting])
 
   // Call onFinished after exit animation completes
   useEffect(() => {
@@ -154,6 +167,18 @@ export default function SplashScreen({ onFinished }: { onFinished: () => void })
               </motion.div>
             </AnimatePresence>
           </div>
+
+          {/* Loading indicator when timer done but still loading data */}
+          {timerElapsed && !dataReady && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-6 flex items-center gap-2"
+            >
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
+              <span className="text-xs text-white/50">טוען נתונים...</span>
+            </motion.div>
+          )}
 
           {/* Route preview (small text) */}
           <motion.p

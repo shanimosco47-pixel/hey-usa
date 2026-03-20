@@ -226,7 +226,7 @@ export default function MapPage() {
                       const loc = getPrimaryLocationForCity(point.city)
                       return loc ? (
                         <a
-                          href={`/hey-usa/locations/${loc.id}`}
+                          href={`/locations/${loc.id}`}
                           className="inline-block mt-1.5 text-xs font-medium text-blue-600 hover:underline"
                         >
                           📍 {loc.nameHe} — הערות ומסמכים
