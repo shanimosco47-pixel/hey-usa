@@ -131,6 +131,13 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
       setTimeout(() => setToast(null), 3500)
       return
     }
+    // Local placeholder paths (e.g. /documents/file.pdf) don't have actual files —
+    // only external URLs (https://) or data: URIs are real uploaded files
+    if (doc.file_url.startsWith('/')) {
+      setToast('הקובץ טרם הועלה — הפרטים מופיעים בהערות')
+      setTimeout(() => setToast(null), 3500)
+      return
+    }
     window.open(doc.file_url, '_blank', 'noopener')
   }
 
