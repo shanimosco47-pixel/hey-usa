@@ -49,7 +49,31 @@ function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   )
 }
 
+/** Whether the file_url points to an actual downloadable file (external URL or data URI) */
+function hasRealFile(doc: Document): boolean {
+  if (!doc.file_url) return false
+  return doc.file_url.startsWith('http') || doc.file_url.startsWith('data:')
+}
+
 function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
+  const realFile = hasRealFile(doc)
+
+  // No real file — show notes/booking details as the main content
+  if (!realFile && doc.notes) {
+    return (
+      <div className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]" dir="rtl">
+        <div className="flex items-center gap-2 mb-3">
+          <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
+          <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
+        </div>
+        <p className="text-sm text-apple-primary whitespace-pre-wrap leading-relaxed">{doc.notes}</p>
+        <p className="mt-4 text-xs text-amber-600 font-medium">
+          📎 הקובץ טרם הועלה — ניתן להעלות דרך כפתור ״העלה מסמך״
+        </p>
+      </div>
+    )
+  }
+
   if (doc.file_type?.includes('image')) {
     return (
       <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-sky-50">
@@ -155,14 +179,16 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
               {doc.title}
             </Dialog.Title>
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleOpenFile}
-                className="flex items-center gap-1.5 rounded-lg bg-ios-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
-              >
-                <Download className="h-4 w-4" />
-                הורד
-              </button>
+              {hasRealFile(doc) && (
+                <button
+                  type="button"
+                  onClick={handleOpenFile}
+                  className="flex items-center gap-1.5 rounded-lg bg-ios-blue px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
+                >
+                  <Download className="h-4 w-4" />
+                  הורד
+                </button>
+              )}
               <Dialog.Close asChild>
                 <button
                   type="button"
