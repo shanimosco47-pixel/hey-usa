@@ -1,0 +1,21 @@
+-- Enable pg_cron and pg_net for scheduled email scanning
+-- NOTE: These extensions must be enabled in the Supabase dashboard first
+-- (Database → Extensions → Enable pg_cron and pg_net)
+
+-- This migration is a reference — run manually via Supabase SQL Editor
+-- after enabling the extensions:
+
+-- SELECT cron.schedule(
+--   'email-scan-6h',
+--   '0 */6 * * *',
+--   $$
+--   SELECT net.http_post(
+--     url := current_setting('app.settings.supabase_url') || '/functions/v1/email-scan',
+--     headers := jsonb_build_object(
+--       'Content-Type', 'application/json',
+--       'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key')
+--     ),
+--     body := '{"mode": "full"}'::jsonb
+--   );
+--   $$
+-- );

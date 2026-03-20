@@ -196,6 +196,18 @@ export function parseActions(message: string): MotiAction[] {
     }
   }
 
+  // ── Search email ──────────────────────────────────────────────────
+  const searchEmailMatch = lower.match(
+    /(?:תחפש|חפש|תמצא|מצא|תביא|הבא|תשלוף|תחפשי|חפשי)\s+(?:באימייל|במייל|מהמייל|מאימייל|את\s+ה)?\s*(.+)/,
+  )
+  if (searchEmailMatch) {
+    const query = searchEmailMatch[1].trim()
+    if (query.length > 3) {
+      actions.push({ type: 'SEARCH_EMAIL', query })
+      return actions
+    }
+  }
+
   return actions
 }
 

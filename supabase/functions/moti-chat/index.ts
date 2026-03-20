@@ -234,6 +234,17 @@ const TOOLS = [
       required: ['question'],
     },
   },
+  {
+    name: 'search_email',
+    description: 'Search connected Gmail accounts for a specific booking, receipt, or document. Use when user asks to find a specific email or booking confirmation.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        query: { type: 'string', description: 'Search query describing what to find (e.g. "yellowstone campground reservation", "RV rental confirmation", "United Airlines tickets")' },
+      },
+      required: ['query'],
+    },
+  },
 ]
 
 Deno.serve(async (req) => {
