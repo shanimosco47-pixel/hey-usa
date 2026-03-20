@@ -39,7 +39,7 @@ export async function isAlreadyImported(
   }
 
   // ------------------------------------------------------------------
-  // Check 2: booking reference overlap in notes
+  // Check 2: booking reference overlap in notes (only email-imported docs)
   // ------------------------------------------------------------------
   const refs = extractBookingRefs(emailBodyText);
 
@@ -48,6 +48,7 @@ export async function isAlreadyImported(
       const { data: byRef, error: refError } = await supabase
         .from("documents")
         .select("id")
+        .not("source_email_id", "is", null)
         .ilike("notes", `%${ref}%`)
         .limit(1);
 
@@ -63,7 +64,7 @@ export async function isAlreadyImported(
   }
 
   // ------------------------------------------------------------------
-  // Check 3: cleaned subject title similarity
+  // Check 3: cleaned subject title similarity (only email-imported docs)
   // ------------------------------------------------------------------
   const cleanedSubject = emailSubject
     .replace(/^(re|fwd?|fw)\s*:\s*/gi, "")
@@ -73,6 +74,7 @@ export async function isAlreadyImported(
     const { data: byTitle, error: titleError } = await supabase
       .from("documents")
       .select("id")
+      .not("source_email_id", "is", null)
       .ilike("title", `%${cleanedSubject}%`)
       .limit(1);
 

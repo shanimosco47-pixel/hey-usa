@@ -68,6 +68,8 @@ export interface ItineraryDay {
 
 // ─── Documents ──────────────────────────────────────────────────────
 
+export type DocumentStatus = 'reserved' | 'waitlist' | 'both';
+
 export interface Document {
   id: string;
   title: string;
@@ -81,6 +83,8 @@ export interface Document {
   expiry_date?: string;
   locationId?: string;
   source_email_id?: string;
+  status?: DocumentStatus;
+  visit_date?: string;
   created_at: string;
   updated_at: string;
 }

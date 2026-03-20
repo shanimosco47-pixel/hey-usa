@@ -39,7 +39,7 @@ export async function triggerEmailScan(
   return res.json() as Promise<ScanResult>
 }
 
-export function getGoogleOAuthUrl(redirectUri: string): string {
+export function getGoogleOAuthUrl(redirectUri: string, loginHint?: string): string {
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
     redirect_uri: redirectUri,
@@ -48,6 +48,9 @@ export function getGoogleOAuthUrl(redirectUri: string): string {
     access_type: 'offline',
     prompt: 'consent',
   })
+  if (loginHint) {
+    params.set('login_hint', loginHint)
+  }
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
 }
 

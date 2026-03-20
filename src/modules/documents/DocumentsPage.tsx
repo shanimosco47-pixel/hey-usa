@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import * as Tabs from '@radix-ui/react-tabs'
-import { FileText, Plus, Search, LayoutGrid, List, FolderOpen, Calendar } from 'lucide-react'
+import { FileText, Plus, Search, LayoutGrid, List, FolderOpen, Calendar, ArrowUpDown, CheckCircle2, Clock, Paperclip } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { DOCUMENT_CATEGORIES } from '@/lib/constants'
@@ -26,6 +26,7 @@ export default function DocumentsPage() {
   const { documents: allDocuments, addDocument, addExpense } = useAppData()
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState<'upload' | 'visit'>('upload')
 
   const documents = useMemo(() => {
     let result = allDocuments
@@ -44,8 +45,22 @@ export default function DocumentsPage() {
       )
     }
 
+    // Sort
+    result = [...result].sort((a, b) => {
+      if (sortBy === 'visit') {
+        const aDate = a.visit_date || ''
+        const bDate = b.visit_date || ''
+        // Documents without visit_date go to the end
+        if (!aDate && bDate) return 1
+        if (aDate && !bDate) return -1
+        return aDate.localeCompare(bDate)
+      }
+      // Default: sort by upload/created date, newest first
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+
     return result
-  }, [allDocuments, activeCategory, searchQuery])
+  }, [allDocuments, activeCategory, searchQuery, sortBy])
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -105,6 +120,16 @@ export default function DocumentsPage() {
             className="w-full rounded-xl border border-black/[0.06] glass py-2.5 pe-3 ps-9 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
           />
         </div>
+        {/* Sort toggle */}
+        <button
+          type="button"
+          onClick={() => setSortBy((s) => (s === 'upload' ? 'visit' : 'upload'))}
+          className="flex items-center gap-1.5 rounded-lg border border-black/[0.06] glass px-2.5 py-2 text-xs font-medium text-apple-secondary transition-colors hover:bg-black/[0.04]"
+          title={sortBy === 'upload' ? 'ממוין לפי תאריך העלאה' : 'ממוין לפי תאריך ביקור'}
+        >
+          <ArrowUpDown className="h-3.5 w-3.5" />
+          <span>{sortBy === 'upload' ? 'העלאה' : 'ביקור'}</span>
+        </button>
         <div className="flex overflow-hidden rounded-lg border border-black/[0.06]">
           <button
             type="button"
@@ -220,6 +245,30 @@ export default function DocumentsPage() {
   )
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────
+
+function hasRealFile(doc: Document): boolean {
+  if (!doc.file_url) return false
+  return doc.file_url.startsWith('http') || doc.file_url.startsWith('data:')
+}
+
+const STATUS_CONFIG = {
+  reserved: { label: 'מאושר', icon: CheckCircle2, className: 'bg-ios-green/15 text-ios-green' },
+  waitlist: { label: 'המתנה', icon: Clock, className: 'bg-amber-100 text-amber-700' },
+  both: { label: 'חלקי', icon: Clock, className: 'bg-ios-blue/15 text-ios-blue' },
+} as const
+
+function StatusBadge({ status }: { status: 'reserved' | 'waitlist' | 'both' }) {
+  const config = STATUS_CONFIG[status]
+  const Icon = config.icon
+  return (
+    <span className={cn('shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold', config.className)}>
+      <Icon className="h-3 w-3" />
+      {config.label}
+    </span>
+  )
+}
+
 // ── Compact list-view row ────────────────────────────────────────────
 
 function ListRow({
@@ -279,6 +328,18 @@ function ListRow({
           ) : null}
         </div>
       </div>
+
+      {/* Status badge */}
+      {doc.status && (
+        <StatusBadge status={doc.status} />
+      )}
+
+      {/* File indicator */}
+      {hasRealFile(doc) ? (
+        <Paperclip className="h-3.5 w-3.5 shrink-0 text-ios-green" />
+      ) : (
+        <Paperclip className="h-3.5 w-3.5 shrink-0 text-apple-tertiary/40" />
+      )}
 
       {/* Expiry badge */}
       {(isExpired || isExpiringSoon) && (
