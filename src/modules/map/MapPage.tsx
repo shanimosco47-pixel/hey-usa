@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
 import { Icon } from 'leaflet'
 import { Map, Layers, Navigation } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { DAY_COLORS } from '@/constants'
 import { ITINERARY_DAYS } from '@/data/itinerary'
 import { getPrimaryLocationForCity } from '@/data/locations'
 import 'leaflet/dist/leaflet.css'
@@ -17,13 +18,6 @@ const defaultIcon = new Icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
 })
-
-const DAY_COLORS = [
-  '#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6',
-  '#FF2D55', '#5AC8FA', '#AF52DE', '#FFCC00', '#8E8E93',
-  '#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6',
-  '#FF2D55', '#5AC8FA', '#AF52DE', '#FFCC00', '#8E8E93',
-]
 
 interface MapPoint {
   lat: number

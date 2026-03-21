@@ -1,6 +1,8 @@
 import type { FamilyMemberId, FamilyMember } from '@/lib/types'
 import type { StatusConfig } from '@/types'
 
+export { PIE_COLORS, DAY_COLORS, ROUTE_COLORS } from './chartColors'
+
 export const APP_PIN = '1234'
 
 // ─── Family Members ─────────────────────────────────────────────────

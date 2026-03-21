@@ -6,8 +6,8 @@ import AppShell from '@/components/layout/AppShell'
 import SplashScreen from '@/components/shared/SplashScreen'
 
 // Auth screens (small, loaded eagerly for fast first paint)
-import PinScreen from '@/screens/PinScreen'
-import FamilySelectScreen from '@/screens/FamilySelectScreen'
+import { PinScreen } from '@/modules/auth/PinScreen'
+import { FamilySelectScreen } from '@/modules/auth/FamilySelectScreen'
 
 // Error boundary for lazy-loaded chunks that fail to load
 class ChunkErrorBoundary extends Component<
