@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { visualizer } from 'rollup-plugin-visualizer'
 import path from 'path'
 import { readFileSync } from 'fs'
 
@@ -65,6 +66,9 @@ export default defineConfig({
         ],
       },
     }),
+    ...(process.env.ANALYZE
+      ? [visualizer({ open: true, filename: 'dist/bundle-stats.html', gzipSize: true })]
+      : []),
   ],
   build: {
     sourcemap: false,

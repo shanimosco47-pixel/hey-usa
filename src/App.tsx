@@ -5,6 +5,7 @@ import { AppDataProvider, useAppData } from '@/contexts/AppDataContext'
 import AppShell from '@/components/layout/AppShell'
 import SplashScreen from '@/components/shared/SplashScreen'
 import NotFoundPage from '@/components/shared/NotFoundPage'
+import { PageErrorBoundary } from '@/components/shared/PageErrorBoundary'
 
 // Auth screens (small, loaded eagerly for fast first paint)
 import { PinScreen } from '@/modules/auth/PinScreen'
@@ -90,9 +91,30 @@ function AppInner() {
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             {/* Auth routes */}
-            <Route path="/auth" element={<PinScreen />} />
-            <Route path="/auth/select" element={<FamilySelectScreen />} />
-            <Route path="oauth/callback" element={<OAuthCallbackPage />} />
+            <Route
+              path="/auth"
+              element={
+                <PageErrorBoundary>
+                  <PinScreen />
+                </PageErrorBoundary>
+              }
+            />
+            <Route
+              path="/auth/select"
+              element={
+                <PageErrorBoundary>
+                  <FamilySelectScreen />
+                </PageErrorBoundary>
+              }
+            />
+            <Route
+              path="oauth/callback"
+              element={
+                <PageErrorBoundary>
+                  <OAuthCallbackPage />
+                </PageErrorBoundary>
+              }
+            />
 
             {/* Protected app routes */}
             <Route

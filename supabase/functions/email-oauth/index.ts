@@ -2,6 +2,7 @@
 // Exchanges authorization code for tokens and stores account in email_accounts table
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { encrypt } from '../_shared/crypto.ts'
 
 const ALLOWED_ORIGIN = Deno.env.get('ALLOWED_ORIGIN') || 'https://shanimosco47-pixel.github.io'
 
@@ -32,8 +33,15 @@ Deno.serve(async (req) => {
   const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   const googleClientId = Deno.env.get('GOOGLE_CLIENT_ID')
   const googleClientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET')
+  const tokenEncryptionKey = Deno.env.get('TOKEN_ENCRYPTION_KEY')
 
-  if (!supabaseUrl || !supabaseServiceRoleKey || !googleClientId || !googleClientSecret) {
+  if (
+    !supabaseUrl ||
+    !supabaseServiceRoleKey ||
+    !googleClientId ||
+    !googleClientSecret ||
+    !tokenEncryptionKey
+  ) {
     return new Response(JSON.stringify({ error: 'Missing required environment variables' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
@@ -129,7 +137,7 @@ Deno.serve(async (req) => {
       {
         email,
         label: accountLabel,
-        refresh_token: tokens.refresh_token,
+        refresh_token: await encrypt(tokens.refresh_token, tokenEncryptionKey),
         is_approved: true,
       },
       { onConflict: 'email' },

@@ -3,6 +3,7 @@
 //               capture → storage upload → metadata extraction → document import
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { decrypt } from '../_shared/crypto.ts'
 
 import {
   refreshAccessToken,
@@ -73,13 +74,15 @@ Deno.serve(async (req) => {
   const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')
   const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
   const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')
+  const TOKEN_ENCRYPTION_KEY = Deno.env.get('TOKEN_ENCRYPTION_KEY')
 
   if (
     !SUPABASE_URL ||
     !SUPABASE_SERVICE_ROLE_KEY ||
     !ANTHROPIC_API_KEY ||
     !GOOGLE_CLIENT_ID ||
-    !GOOGLE_CLIENT_SECRET
+    !GOOGLE_CLIENT_SECRET ||
+    !TOKEN_ENCRYPTION_KEY
   ) {
     return corsResponse(JSON.stringify({ error: 'Missing required environment variables' }), {
       status: 500,
@@ -136,11 +139,8 @@ Deno.serve(async (req) => {
 
     let accessToken: string
     try {
-      accessToken = await refreshAccessToken(
-        account.refresh_token,
-        GOOGLE_CLIENT_ID,
-        GOOGLE_CLIENT_SECRET,
-      )
+      const refreshToken = await decrypt(account.refresh_token, TOKEN_ENCRYPTION_KEY)
+      accessToken = await refreshAccessToken(refreshToken, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
     } catch (err) {
       console.error(`[email-scan] Token refresh failed for ${account.email}:`, err)
       continue

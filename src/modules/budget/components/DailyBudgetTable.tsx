@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback } from 'react'
 import { cn } from '@/lib/cn'
 import { useAppData } from '@/contexts/AppDataContext'
-import { Check, Pencil } from 'lucide-react'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { Check, Pencil, ChevronDown, ChevronLeft } from 'lucide-react'
 
 // Budget categories for the table rows
 const BUDGET_ROWS = [
@@ -35,43 +36,132 @@ type PretripRowKey = (typeof PRETRIP_ROWS)[number]['key']
 
 // Moti's default daily costs for family of 5 in RV (USD)
 const MOTI_DAILY_DEFAULTS: Record<BudgetRowKey, number> = {
-  accommodation: 45,   // RV campground/hookup avg ($30-60/night)
-  gas: 50,             // RV fuel ~10-12 mpg, avg driving day
-  food: 70,            // Eating out: ~$14/person/meal, ~1 meal/day out
-  groceries: 40,       // Supermarket for RV cooking: breakfast+lunch+snacks
-  attractions: 35,     // National parks $35/vehicle entry amortized
-  shopping: 15,        // Souvenirs, small purchases
-  communication: 3,    // T-Mobile prepaid SIM amortized daily
-  laundry: 0,          // Only on laundry days
-  tips: 12,            // Restaurant/service tips ~18-20%
-  parking: 0,          // Free at campgrounds/parks, paid in cities
-  unexpected: 20,      // Buffer for unplanned expenses
+  accommodation: 45, // RV campground/hookup avg ($30-60/night)
+  gas: 50, // RV fuel ~10-12 mpg, avg driving day
+  food: 70, // Eating out: ~$14/person/meal, ~1 meal/day out
+  groceries: 40, // Supermarket for RV cooking: breakfast+lunch+snacks
+  attractions: 35, // National parks $35/vehicle entry amortized
+  shopping: 15, // Souvenirs, small purchases
+  communication: 3, // T-Mobile prepaid SIM amortized daily
+  laundry: 0, // Only on laundry days
+  tips: 12, // Restaurant/service tips ~18-20%
+  parking: 0, // Free at campgrounds/parks, paid in cities
+  unexpected: 20, // Buffer for unplanned expenses
 }
 
 // Per-day overrides based on actual route & activities
 // Day IDs: day-1 (Sep 10 Denver) through day-21 (Sep 30 SF→home)
 const DAY_OVERRIDES: Record<string, Partial<Record<BudgetRowKey, number>>> = {
-  'day-1':  { accommodation: 150, gas: 0,   food: 50,  groceries: 0,   attractions: 0,   parking: 0,  tips: 8,   unexpected: 15 },  // Denver hotel, evening arrival only
-  'day-2':  { accommodation: 40,  gas: 35,  food: 60,  groceries: 80,  attractions: 0,   parking: 0,  tips: 10 },                    // Bozeman→Gardiner, RV pickup, Walmart stock-up
-  'day-3':  { accommodation: 40,  gas: 30,  food: 60,  groceries: 30,  attractions: 35,  parking: 0 },                               // Yellowstone North (Mammoth, Lamar)
-  'day-4':  { accommodation: 40,  gas: 25,  food: 60,  groceries: 25,  attractions: 0,   parking: 0 },                               // Canyon of Yellowstone, waterfalls
-  'day-5':  { accommodation: 40,  gas: 35,  food: 60,  groceries: 25,  attractions: 0,   parking: 0 },                               // Geysers, Old Faithful, Grand Prismatic
-  'day-6':  { accommodation: 45,  gas: 55,  food: 70,  groceries: 20,  attractions: 15,  parking: 0 },                               // Jenny Lake, Grand Teton → Jackson
-  'day-7':  { accommodation: 45,  gas: 15,  food: 90,  groceries: 20,  attractions: 250, parking: 10, tips: 30, shopping: 30 },       // Jackson: rafting ($200) + gondola ($50)
-  'day-8':  { accommodation: 35,  gas: 120, food: 70,  groceries: 30,  attractions: 0,   parking: 0,  tips: 12, laundry: 15 },        // Long drive Jackson→Provo/Nephi (7hrs)
-  'day-9':  { accommodation: 35,  gas: 40,  food: 60,  groceries: 20,  attractions: 35,  parking: 0 },                               // Bryce Canyon hoodoos trail
-  'day-10': { accommodation: 40,  gas: 45,  food: 60,  groceries: 20,  attractions: 35,  parking: 0 },                               // Drive to Zion via Hwy 20
-  'day-11': { accommodation: 40,  gas: 10,  food: 70,  groceries: 25,  attractions: 0,   parking: 0,  tips: 15 },                    // Zion: Angels Landing + Narrows (free w/ park pass)
-  'day-12': { accommodation: 130, gas: 50,  food: 100, groceries: 0,   attractions: 30,  parking: 20, tips: 20, shopping: 25 },       // Drive to Vegas, Strip evening, hotel
-  'day-13': { accommodation: 130, gas: 0,   food: 120, groceries: 0,   attractions: 40,  parking: 25, tips: 25, shopping: 80, laundry: 15 }, // Vegas free day (rest & shopping)
-  'day-14': { accommodation: 35,  gas: 100, food: 60,  groceries: 40,  attractions: 0,   parking: 0 },                               // Drive Vegas→Mammoth Lakes (5.5hrs)
-  'day-15': { accommodation: 40,  gas: 40,  food: 60,  groceries: 25,  attractions: 35,  parking: 0 },                               // Enter Yosemite via Tioga Pass
-  'day-16': { accommodation: 40,  gas: 10,  food: 60,  groceries: 25,  attractions: 0,   parking: 0 },                               // Yosemite Valley: El Capitan, Half Dome views
-  'day-17': { accommodation: 40,  gas: 30,  food: 60,  groceries: 20,  attractions: 0,   parking: 0 },                               // Glacier Point & giant sequoias
-  'day-18': { accommodation: 45,  gas: 80,  food: 70,  groceries: 30,  attractions: 0,   parking: 0, laundry: 15 },                  // Drive toward SF, Anthony Chabot (4hrs)
-  'day-19': { accommodation: 50,  gas: 25,  food: 60,  groceries: 20,  attractions: 0,   parking: 0 },                               // Organize day, clean RV, Marin
-  'day-20': { accommodation: 200, gas: 15,  food: 90,  groceries: 0,   attractions: 20,  parking: 25, tips: 20, shopping: 30 },       // Return RV, move to SF hotel
-  'day-21': { accommodation: 0,   gas: 0,   food: 100, groceries: 0,   attractions: 50,  parking: 20, tips: 20, shopping: 40, unexpected: 30 }, // SF sightseeing, evening flight home
+  'day-1': {
+    accommodation: 150,
+    gas: 0,
+    food: 50,
+    groceries: 0,
+    attractions: 0,
+    parking: 0,
+    tips: 8,
+    unexpected: 15,
+  }, // Denver hotel, evening arrival only
+  'day-2': {
+    accommodation: 40,
+    gas: 35,
+    food: 60,
+    groceries: 80,
+    attractions: 0,
+    parking: 0,
+    tips: 10,
+  }, // Bozeman→Gardiner, RV pickup, Walmart stock-up
+  'day-3': { accommodation: 40, gas: 30, food: 60, groceries: 30, attractions: 35, parking: 0 }, // Yellowstone North (Mammoth, Lamar)
+  'day-4': { accommodation: 40, gas: 25, food: 60, groceries: 25, attractions: 0, parking: 0 }, // Canyon of Yellowstone, waterfalls
+  'day-5': { accommodation: 40, gas: 35, food: 60, groceries: 25, attractions: 0, parking: 0 }, // Geysers, Old Faithful, Grand Prismatic
+  'day-6': { accommodation: 45, gas: 55, food: 70, groceries: 20, attractions: 15, parking: 0 }, // Jenny Lake, Grand Teton → Jackson
+  'day-7': {
+    accommodation: 45,
+    gas: 15,
+    food: 90,
+    groceries: 20,
+    attractions: 250,
+    parking: 10,
+    tips: 30,
+    shopping: 30,
+  }, // Jackson: rafting ($200) + gondola ($50)
+  'day-8': {
+    accommodation: 35,
+    gas: 120,
+    food: 70,
+    groceries: 30,
+    attractions: 0,
+    parking: 0,
+    tips: 12,
+    laundry: 15,
+  }, // Long drive Jackson→Provo/Nephi (7hrs)
+  'day-9': { accommodation: 35, gas: 40, food: 60, groceries: 20, attractions: 35, parking: 0 }, // Bryce Canyon hoodoos trail
+  'day-10': { accommodation: 40, gas: 45, food: 60, groceries: 20, attractions: 35, parking: 0 }, // Drive to Zion via Hwy 20
+  'day-11': {
+    accommodation: 40,
+    gas: 10,
+    food: 70,
+    groceries: 25,
+    attractions: 0,
+    parking: 0,
+    tips: 15,
+  }, // Zion: Angels Landing + Narrows (free w/ park pass)
+  'day-12': {
+    accommodation: 130,
+    gas: 50,
+    food: 100,
+    groceries: 0,
+    attractions: 30,
+    parking: 20,
+    tips: 20,
+    shopping: 25,
+  }, // Drive to Vegas, Strip evening, hotel
+  'day-13': {
+    accommodation: 130,
+    gas: 0,
+    food: 120,
+    groceries: 0,
+    attractions: 40,
+    parking: 25,
+    tips: 25,
+    shopping: 80,
+    laundry: 15,
+  }, // Vegas free day (rest & shopping)
+  'day-14': { accommodation: 35, gas: 100, food: 60, groceries: 40, attractions: 0, parking: 0 }, // Drive Vegas→Mammoth Lakes (5.5hrs)
+  'day-15': { accommodation: 40, gas: 40, food: 60, groceries: 25, attractions: 35, parking: 0 }, // Enter Yosemite via Tioga Pass
+  'day-16': { accommodation: 40, gas: 10, food: 60, groceries: 25, attractions: 0, parking: 0 }, // Yosemite Valley: El Capitan, Half Dome views
+  'day-17': { accommodation: 40, gas: 30, food: 60, groceries: 20, attractions: 0, parking: 0 }, // Glacier Point & giant sequoias
+  'day-18': {
+    accommodation: 45,
+    gas: 80,
+    food: 70,
+    groceries: 30,
+    attractions: 0,
+    parking: 0,
+    laundry: 15,
+  }, // Drive toward SF, Anthony Chabot (4hrs)
+  'day-19': { accommodation: 50, gas: 25, food: 60, groceries: 20, attractions: 0, parking: 0 }, // Organize day, clean RV, Marin
+  'day-20': {
+    accommodation: 200,
+    gas: 15,
+    food: 90,
+    groceries: 0,
+    attractions: 20,
+    parking: 25,
+    tips: 20,
+    shopping: 30,
+  }, // Return RV, move to SF hotel
+  'day-21': {
+    accommodation: 0,
+    gas: 0,
+    food: 100,
+    groceries: 0,
+    attractions: 50,
+    parking: 20,
+    tips: 20,
+    shopping: 40,
+    unexpected: 30,
+  }, // SF sightseeing, evening flight home
 }
 
 // Get the estimate for a specific day + category
@@ -81,13 +171,13 @@ function getMotiEstimate(dayId: string, category: BudgetRowKey): number {
 
 // Pre-trip estimates (USD) — updated with real booking data from emails
 const MOTI_PRETRIP_ESTIMATES: Record<PretripRowKey, number> = {
-  flights: 8081,       // United Airlines HQ51BY, 5 pax TLV→YYZ→DEN→BZN + SFO→MUC→TLV ($7,630.50 + $450.30 seats)
-  rv_rental: 5202,     // Bandana/Cruise America C-30, order 137724-1-0, Bozeman→Newark CA
-  insurance: 1500,     // Travel insurance family — pending purchase (PassportCard ~$8/day or Harel ~$6.5/day)
-  esta: 105,           // $21 × 5 people
-  gear: 500,           // Misc gear purchases
-  sim_cards: 100,      // 2 prepaid SIM cards ~$50 each
-  campground_reservations: 350,  // Grant Campground $52 + Indian Creek + others from Recreation.gov
+  flights: 8081, // United Airlines HQ51BY, 5 pax TLV→YYZ→DEN→BZN + SFO→MUC→TLV ($7,630.50 + $450.30 seats)
+  rv_rental: 5202, // Bandana/Cruise America C-30, order 137724-1-0, Bozeman→Newark CA
+  insurance: 1500, // Travel insurance family — pending purchase (PassportCard ~$8/day or Harel ~$6.5/day)
+  esta: 105, // $21 × 5 people
+  gear: 500, // Misc gear purchases
+  sim_cards: 100, // 2 prepaid SIM cards ~$50 each
+  campground_reservations: 350, // Grant Campground $52 + Indian Creek + others from Recreation.gov
 }
 
 interface CellData {
@@ -110,28 +200,38 @@ function loadSavedData(): Record<string, CellData> {
 function saveCellData(data: Record<string, CellData>) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 export function DailyBudgetTable() {
   const { itineraryDays, budgetSettings } = useAppData()
   const currency = budgetSettings.currency
+  const isDesktop = useMediaQuery('(min-width: 640px)')
 
   const [cellOverrides, setCellOverrides] = useState<Record<string, CellData>>(loadSavedData)
   const [editingCell, setEditingCell] = useState<string | null>(null)
   const [editValue, setEditValue] = useState('')
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(() => new Set())
 
   // Get cell value: user override or Moti estimate
-  const getCellValue = useCallback((cellKey: string, defaultValue: number): CellData => {
-    if (cellOverrides[cellKey]) return cellOverrides[cellKey]
-    return { value: defaultValue, isUserSet: false }
-  }, [cellOverrides])
+  const getCellValue = useCallback(
+    (cellKey: string, defaultValue: number): CellData => {
+      if (cellOverrides[cellKey]) return cellOverrides[cellKey]
+      return { value: defaultValue, isUserSet: false }
+    },
+    [cellOverrides],
+  )
 
-  const setCellValue = useCallback((cellKey: string, value: number) => {
-    const updated = { ...cellOverrides, [cellKey]: { value, isUserSet: true } }
-    setCellOverrides(updated)
-    saveCellData(updated)
-  }, [cellOverrides])
+  const setCellValue = useCallback(
+    (cellKey: string, value: number) => {
+      const updated = { ...cellOverrides, [cellKey]: { value, isUserSet: true } }
+      setCellOverrides(updated)
+      saveCellData(updated)
+    },
+    [cellOverrides],
+  )
 
   // Computed totals
   const { dayTotals, categoryTotals, grandTotal, pretripTotal } = useMemo(() => {
@@ -254,8 +354,12 @@ export function DailyBudgetTable() {
               })}
               <tr className="bg-black/[0.02]">
                 <td className="py-1.5 px-2 text-xs font-bold text-apple-primary">סה״כ טרום-טיול</td>
-                <td className="py-1.5 px-2 text-left text-xs font-bold text-apple-primary" dir="ltr">
-                  {currency}{pretripTotal.toLocaleString()}
+                <td
+                  className="py-1.5 px-2 text-left text-xs font-bold text-apple-primary"
+                  dir="ltr"
+                >
+                  {currency}
+                  {pretripTotal.toLocaleString()}
                 </td>
               </tr>
             </tbody>
@@ -267,88 +371,196 @@ export function DailyBudgetTable() {
       <div className="glass rounded-apple-lg shadow-sm overflow-hidden">
         <div className="px-3 py-2 border-b border-black/[0.06] bg-ios-green/5">
           <h3 className="text-sm font-bold text-apple-primary">📅 תקציב יומי</h3>
-          <p className="text-[10px] text-apple-secondary">גללו ימינה לראות את כל הימים</p>
+          {isDesktop && (
+            <p className="text-[10px] text-apple-secondary">גללו ימינה לראות את כל הימים</p>
+          )}
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs border-collapse min-w-[800px]">
-            <thead>
-              <tr className="bg-black/[0.02]">
-                <th className="sticky right-0 z-10 bg-white/90 backdrop-blur-sm py-2 px-2 text-right text-[11px] font-bold text-apple-primary border-l border-black/[0.06] min-w-[100px]">
-                  קטגוריה
-                </th>
-                {itineraryDays.map((day, i) => (
-                  <th key={day.id} className="py-2 px-1.5 text-center min-w-[60px] border-l border-black/[0.04]">
-                    <div className="text-[10px] font-bold text-apple-primary">יום {i + 1}</div>
-                    <div className="text-[9px] text-apple-tertiary truncate max-w-[60px]" title={day.city}>
-                      {day.city?.split('→')[0]?.trim()?.slice(0, 8) || ''}
-                    </div>
+
+        {isDesktop ? (
+          /* Desktop: full table */
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs border-collapse min-w-[800px]">
+              <thead>
+                <tr className="bg-black/[0.02]">
+                  <th className="sticky right-0 z-10 bg-white/90 backdrop-blur-sm py-2 px-2 text-right text-[11px] font-bold text-apple-primary border-l border-black/[0.06] min-w-[100px]">
+                    קטגוריה
                   </th>
+                  {itineraryDays.map((day, i) => (
+                    <th
+                      key={day.id}
+                      className="py-2 px-1.5 text-center min-w-[60px] border-l border-black/[0.04]"
+                    >
+                      <div className="text-[10px] font-bold text-apple-primary">יום {i + 1}</div>
+                      <div
+                        className="text-[9px] text-apple-tertiary truncate max-w-[60px]"
+                        title={day.city}
+                      >
+                        {day.city?.split('→')[0]?.trim()?.slice(0, 8) || ''}
+                      </div>
+                    </th>
+                  ))}
+                  <th className="py-2 px-2 text-center min-w-[70px] bg-black/[0.03] border-r border-black/[0.06]">
+                    <div className="text-[10px] font-bold text-apple-primary">סה״כ</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {BUDGET_ROWS.map((row) => (
+                  <tr key={row.key} className="border-b border-black/[0.03]">
+                    <td className="sticky right-0 z-10 bg-white/90 backdrop-blur-sm py-1.5 px-2 text-right text-[11px] font-medium text-apple-primary whitespace-nowrap border-l border-black/[0.06]">
+                      {row.emoji} {row.label}
+                    </td>
+                    {itineraryDays.map((day) => {
+                      const cellKey = `${day.id}-${row.key}`
+                      return (
+                        <td
+                          key={day.id}
+                          className="py-1 px-1 text-center border-l border-black/[0.04]"
+                        >
+                          {renderCell(cellKey, getMotiEstimate(day.id, row.key))}
+                        </td>
+                      )
+                    })}
+                    <td className="py-1.5 px-2 text-center font-bold text-apple-primary bg-black/[0.03] border-r border-black/[0.06]">
+                      {currency}
+                      {(categoryTotals[row.key] || 0).toLocaleString()}
+                    </td>
+                  </tr>
                 ))}
-                <th className="py-2 px-2 text-center min-w-[70px] bg-black/[0.03] border-r border-black/[0.06]">
-                  <div className="text-[10px] font-bold text-apple-primary">סה״כ</div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {BUDGET_ROWS.map((row) => (
-                <tr key={row.key} className="border-b border-black/[0.03]">
-                  <td className="sticky right-0 z-10 bg-white/90 backdrop-blur-sm py-1.5 px-2 text-right text-[11px] font-medium text-apple-primary whitespace-nowrap border-l border-black/[0.06]">
-                    {row.emoji} {row.label}
+                {/* Daily totals row */}
+                <tr className="bg-black/[0.02] border-t border-black/[0.08]">
+                  <td className="sticky right-0 z-10 bg-gray-50/90 backdrop-blur-sm py-2 px-2 text-right text-[11px] font-bold text-apple-primary border-l border-black/[0.06]">
+                    סה״כ יומי
                   </td>
-                  {itineraryDays.map((day) => {
-                    const cellKey = `${day.id}-${row.key}`
-                    return (
-                      <td key={day.id} className="py-1 px-1 text-center border-l border-black/[0.04]">
-                        {renderCell(cellKey, getMotiEstimate(day.id, row.key))}
-                      </td>
-                    )
-                  })}
-                  <td className="py-1.5 px-2 text-center font-bold text-apple-primary bg-black/[0.03] border-r border-black/[0.06]">
-                    {currency}{(categoryTotals[row.key] || 0).toLocaleString()}
+                  {itineraryDays.map((day) => (
+                    <td
+                      key={day.id}
+                      className="py-2 px-1 text-center text-[11px] font-bold text-apple-primary border-l border-black/[0.04]"
+                    >
+                      {currency}
+                      {(dayTotals[day.id] || 0).toLocaleString()}
+                    </td>
+                  ))}
+                  <td className="py-2 px-2 text-center text-[11px] font-bold text-ios-blue bg-black/[0.03] border-r border-black/[0.06]">
+                    {currency}
+                    {(grandTotal - pretripTotal).toLocaleString()}
                   </td>
                 </tr>
-              ))}
-              {/* Daily totals row */}
-              <tr className="bg-black/[0.02] border-t border-black/[0.08]">
-                <td className="sticky right-0 z-10 bg-gray-50/90 backdrop-blur-sm py-2 px-2 text-right text-[11px] font-bold text-apple-primary border-l border-black/[0.06]">
-                  סה״כ יומי
-                </td>
-                {itineraryDays.map((day) => (
-                  <td key={day.id} className="py-2 px-1 text-center text-[11px] font-bold text-apple-primary border-l border-black/[0.04]">
-                    {currency}{(dayTotals[day.id] || 0).toLocaleString()}
-                  </td>
-                ))}
-                <td className="py-2 px-2 text-center text-[11px] font-bold text-ios-blue bg-black/[0.03] border-r border-black/[0.06]">
-                  {currency}{(grandTotal - pretripTotal).toLocaleString()}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          /* Mobile: card-based day view */
+          <div className="flex flex-col gap-2 p-2">
+            {itineraryDays.map((day, i) => {
+              const dayTotal = dayTotals[day.id] || 0
+              const isExpanded = expandedDays.has(day.id)
+              return (
+                <div key={day.id} className="rounded-lg border border-black/[0.06] overflow-hidden">
+                  {/* Day card header */}
+                  <button
+                    onClick={() => {
+                      setExpandedDays((prev) => {
+                        const next = new Set(prev)
+                        if (next.has(day.id)) {
+                          next.delete(day.id)
+                        } else {
+                          next.add(day.id)
+                        }
+                        return next
+                      })
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2.5 bg-black/[0.02] active:bg-black/[0.04]"
+                  >
+                    <span className="text-xs font-bold text-apple-primary">יום {i + 1}</span>
+                    {day.city && (
+                      <span className="text-[11px] text-apple-secondary truncate max-w-[120px]">
+                        {day.city.split('→')[0]?.trim() || ''}
+                      </span>
+                    )}
+                    <span className="mr-auto text-xs font-bold text-ios-blue" dir="ltr">
+                      {currency}
+                      {dayTotal.toLocaleString()}
+                    </span>
+                    {isExpanded ? (
+                      <ChevronDown className="h-4 w-4 text-apple-secondary flex-shrink-0" />
+                    ) : (
+                      <ChevronLeft className="h-4 w-4 text-apple-secondary flex-shrink-0" />
+                    )}
+                  </button>
+
+                  {/* Expanded category breakdown */}
+                  {isExpanded && (
+                    <div className="divide-y divide-black/[0.03]">
+                      {BUDGET_ROWS.map((row) => {
+                        const cellKey = `${day.id}-${row.key}`
+                        const estimate = getMotiEstimate(day.id, row.key)
+                        return (
+                          <div
+                            key={row.key}
+                            className="flex items-center justify-between px-3 py-1.5"
+                          >
+                            <span className="text-[11px] text-apple-primary">
+                              {row.emoji} {row.label}
+                            </span>
+                            <div dir="ltr">{renderCell(cellKey, estimate)}</div>
+                          </div>
+                        )
+                      })}
+                      <div className="flex items-center justify-between px-3 py-2 bg-black/[0.02]">
+                        <span className="text-[11px] font-bold text-apple-primary">סה״כ</span>
+                        <span className="text-xs font-bold text-ios-blue" dir="ltr">
+                          {currency}
+                          {dayTotal.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+            {/* Mobile daily total summary */}
+            <div className="flex items-center justify-between rounded-lg bg-black/[0.03] px-3 py-2 mt-1">
+              <span className="text-xs font-bold text-apple-primary">סה״כ ימי טיול</span>
+              <span className="text-xs font-bold text-ios-blue" dir="ltr">
+                {currency}
+                {(grandTotal - pretripTotal).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Grand total */}
       <div className="glass rounded-apple-lg p-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-apple-primary">סה״כ כללי (טרום-טיול + ימי טיול)</span>
-          <span className={cn(
-            'text-lg font-bold',
-            grandTotal > budgetSettings.total_budget ? 'text-ios-red' : 'text-ios-green',
-          )}>
-            {currency}{grandTotal.toLocaleString()}
+          <span className="text-sm font-bold text-apple-primary">
+            סה״כ כללי (טרום-טיול + ימי טיול)
+          </span>
+          <span
+            className={cn(
+              'text-lg font-bold',
+              grandTotal > budgetSettings.total_budget ? 'text-ios-red' : 'text-ios-green',
+            )}
+          >
+            {currency}
+            {grandTotal.toLocaleString()}
           </span>
         </div>
         <div className="flex items-center justify-between mt-1">
           <span className="text-xs text-apple-secondary">תקציב מאושר</span>
           <span className="text-xs font-medium text-apple-secondary">
-            {currency}{budgetSettings.total_budget.toLocaleString()}
+            {currency}
+            {budgetSettings.total_budget.toLocaleString()}
           </span>
         </div>
         {grandTotal !== budgetSettings.total_budget && (
-          <p className={cn(
-            'text-xs mt-2 font-medium',
-            grandTotal > budgetSettings.total_budget ? 'text-ios-red' : 'text-ios-green',
-          )}>
+          <p
+            className={cn(
+              'text-xs mt-2 font-medium',
+              grandTotal > budgetSettings.total_budget ? 'text-ios-red' : 'text-ios-green',
+            )}
+          >
             {grandTotal > budgetSettings.total_budget
               ? `⚠️ חריגה של ${currency}${(grandTotal - budgetSettings.total_budget).toLocaleString()} מהתקציב`
               : `✅ רזרבה של ${currency}${(budgetSettings.total_budget - grandTotal).toLocaleString()}`}
