@@ -56,6 +56,7 @@ export type MotiAction =
   | { type: 'ADD_NOTE'; note: { text: string; author: FamilyMemberId; color: NoteColor; locationId: string | null; pinned: boolean } }
   | { type: 'TOGGLE_PACKING_ITEM'; itemName: string }
   | { type: 'ASK_CLARIFICATION'; question: string }
+  | { type: 'SEARCH_EMAIL'; query: string }
 
 // ─── Change Log ─────────────────────────────────────────────────────
 
@@ -96,6 +97,8 @@ function describeAction(action: MotiAction): string {
       return `שינוי סטטוס אריזה: ${action.itemName}`
     case 'ASK_CLARIFICATION':
       return `שאלת הבהרה`
+    case 'SEARCH_EMAIL':
+      return `חיפוש אימייל: ${action.query}`
   }
 }
 
@@ -769,6 +772,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }
         case 'ASK_CLARIFICATION':
           return null
+        case 'SEARCH_EMAIL': {
+          // Handled by ChatPage — return null to signal no error
+          return null
+        }
         default:
           return 'לא הצלחתי לבצע את הפעולה'
       }

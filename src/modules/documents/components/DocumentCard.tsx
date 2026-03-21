@@ -1,4 +1,4 @@
-import { FileText, Image, File, AlertTriangle } from 'lucide-react'
+import { FileText, Image, File, AlertTriangle, CheckCircle2, Clock } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS } from '@/constants'
 import { DOCUMENT_CATEGORIES } from '@/lib/constants'
@@ -131,6 +131,9 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
               {formatFileSize(doc.file_size)}
             </span>
           )}
+          {doc.status && (
+            <CardStatusBadge status={doc.status} />
+          )}
         </div>
 
         {/* Family member + expiry row */}
@@ -168,5 +171,22 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
         )}
       </div>
     </button>
+  )
+}
+
+const STATUS_CONFIG = {
+  reserved: { label: 'מאושר', icon: CheckCircle2, className: 'bg-ios-green/15 text-ios-green' },
+  waitlist: { label: 'המתנה', icon: Clock, className: 'bg-amber-100 text-amber-700' },
+  both: { label: 'חלקי', icon: Clock, className: 'bg-ios-blue/15 text-ios-blue' },
+} as const
+
+function CardStatusBadge({ status }: { status: 'reserved' | 'waitlist' | 'both' }) {
+  const config = STATUS_CONFIG[status]
+  const Icon = config.icon
+  return (
+    <span className={cn('inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-medium', config.className)}>
+      <Icon className="h-3 w-3" />
+      {config.label}
+    </span>
   )
 }

@@ -16,6 +16,11 @@ export type {
   PlaylistItem,
   PlaylistVote,
   SyncQueueItem,
+  AccommodationType,
+  BookingStatus,
+  BookingPriority,
+  BookingChangeEntry,
+  CampsiteBooking,
 } from '@/lib/types'
 
 // Re-export FamilyMember under an alias to avoid conflicts with local UI definition

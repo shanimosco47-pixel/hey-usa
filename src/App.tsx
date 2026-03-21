@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState, useCallback, Component, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
-import { AppDataProvider } from '@/contexts/AppDataContext'
+import { AppDataProvider, useAppData } from '@/contexts/AppDataContext'
 import AppShell from '@/components/layout/AppShell'
 import SplashScreen from '@/components/shared/SplashScreen'
 
@@ -43,9 +43,11 @@ const EntertainmentPage = lazy(
 const PackingPage = lazy(() => import('@/modules/packing/PackingPage'))
 const ChatPage = lazy(() => import('@/modules/chat/ChatPage'))
 const MotiLogPage = lazy(() => import('@/modules/chat/MotiLogPage'))
+const OAuthCallbackPage = lazy(() => import('@/modules/auth/OAuthCallbackPage'))
 const LocationsPage = lazy(() => import('@/modules/locations/LocationsPage'))
 const LocationHubPage = lazy(() => import('@/modules/locations/LocationHubPage'))
 const NotesPage = lazy(() => import('@/modules/notes/NotesPage'))
+const CampsitesPage = lazy(() => import('@/modules/campsites/CampsitesPage'))
 
 function LoadingFallback() {
   return (
@@ -69,21 +71,32 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-export default function App() {
-  const [showSplash, setShowSplash] = useState(true)
-  const handleSplashFinished = useCallback(() => setShowSplash(false), [])
+/**
+ * Inner app — rendered inside AppDataProvider so it can read isLoading.
+ *
+ * Routes always render behind the splash (so lazy chunks pre-load).
+ * The splash overlay stays on screen until BOTH:
+ *   1. The 2.5s animation timer has elapsed
+ *   2. Supabase data has finished loading
+ *
+ * The SplashScreen component receives `dataReady` — when false it
+ * keeps looping the animation instead of triggering exit.
+ */
+function AppInner() {
+  const { isLoading } = useAppData()
+  const [splashDone, setSplashDone] = useState(false)
+  const handleSplashFinished = useCallback(() => setSplashDone(true), [])
 
   return (
-    <BrowserRouter basename="/hey-usa">
-      <AuthProvider>
-        <AppDataProvider>
-        {showSplash && <SplashScreen onFinished={handleSplashFinished} />}
-        <ChunkErrorBoundary>
+    <>
+      {/* Routes render behind splash so lazy chunks start loading */}
+      <ChunkErrorBoundary>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             {/* Auth routes */}
             <Route path="/auth" element={<PinScreen />} />
             <Route path="/auth/select" element={<FamilySelectScreen />} />
+            <Route path="oauth/callback" element={<OAuthCallbackPage />} />
 
             {/* Protected app routes */}
             <Route
@@ -97,6 +110,7 @@ export default function App() {
               <Route path="tasks" element={<TasksPage />} />
               <Route path="itinerary" element={<ItineraryPage />} />
               <Route path="itinerary/:day" element={<ItineraryPage />} />
+              <Route path="campsites" element={<CampsitesPage />} />
               <Route path="documents" element={<DocumentsPage />} />
               <Route path="map" element={<MapPage />} />
               <Route path="photos" element={<PhotosPage />} />
@@ -117,7 +131,22 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
-        </ChunkErrorBoundary>
+      </ChunkErrorBoundary>
+
+      {/* Splash overlay — stays until data is ready */}
+      {!splashDone && (
+        <SplashScreen onFinished={handleSplashFinished} dataReady={!isLoading} />
+      )}
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter basename="/hey-usa">
+      <AuthProvider>
+        <AppDataProvider>
+          <AppInner />
         </AppDataProvider>
       </AuthProvider>
     </BrowserRouter>
