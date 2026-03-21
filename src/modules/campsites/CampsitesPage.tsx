@@ -25,17 +25,6 @@ const PRIORITY_LABELS: Record<BookingPriority, string> = {
   backup: 'גיבוי',
 }
 
-function formatDateRange(checkIn: string, checkOut: string) {
-  const d1 = new Date(checkIn)
-  const d2 = new Date(checkOut)
-  const day1 = d1.getDate().toString().padStart(2, '0')
-  const mon1 = (d1.getMonth() + 1).toString().padStart(2, '0')
-  const day2 = d2.getDate().toString().padStart(2, '0')
-  const mon2 = (d2.getMonth() + 1).toString().padStart(2, '0')
-  if (mon1 === mon2) return `${day1}-${day2}/${mon1}`
-  return `${day1}/${mon1}-${day2}/${mon2}`
-}
-
 // ── Editable Cell ─────────────────────────────────────────────────
 function EditableCell({
   value,
