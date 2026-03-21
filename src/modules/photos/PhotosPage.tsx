@@ -13,7 +13,7 @@ import {
   LayoutList,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { getFamilyMember, FAMILY_MEMBERS } from '@/lib/constants'
+import { getFamilyMember, FAMILY_MEMBERS_LIST } from '@/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Photo, FamilyMemberId } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'

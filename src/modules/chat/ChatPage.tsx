@@ -6,7 +6,7 @@ import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, initConversation
 import { useAppData } from '@/contexts/AppDataContext'
 import { MotiAvatar } from '@/components/shared/MotiRobot'
 import * as db from '@/lib/database'
-import { TRIP_START_DATE } from '@/lib/constants'
+import { TRIP_START_DATE } from '@/constants'
 import { triggerEmailScan } from '@/lib/emailScan'
 import DOMPurify from 'dompurify'
 

@@ -1,7 +1,6 @@
 import { FileText, Image, File, AlertTriangle, CheckCircle2, Clock } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { FAMILY_MEMBERS } from '@/constants'
-import { DOCUMENT_CATEGORIES } from '@/lib/constants'
+import { FAMILY_MEMBERS, DOCUMENT_CATEGORIES } from '@/constants'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import { getLocationById } from '@/data/locations'
 import type { Document, FamilyMemberId } from '@/types'
