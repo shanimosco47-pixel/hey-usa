@@ -1,14 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { motion } from 'framer-motion'
-import {
-  Plus,
-  Search,
-  Table2,
-  Columns3,
-  GanttChart,
-  X,
-} from 'lucide-react'
+import { Plus, Search, Table2, Columns3, GanttChart, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { FAMILY_MEMBERS, STATUS_MAP } from '@/constants'
@@ -114,7 +107,12 @@ export default function TasksPage() {
   }, [filteredTasks])
 
   const filteredByStatus = useMemo(() => {
-    const grouped = { todo: [] as Task[], in_progress: [] as Task[], done: [] as Task[], waiting: [] as Task[] }
+    const grouped = {
+      todo: [] as Task[],
+      in_progress: [] as Task[],
+      done: [] as Task[],
+      waiting: [] as Task[],
+    }
     for (const task of filteredTasks) {
       grouped[task.status].push(task)
     }
@@ -235,9 +233,7 @@ export default function TasksPage() {
             {doneCount} מתוך {taskCount} הושלמו
           </p>
           {motivationalLine && (
-            <p className="mt-1 text-xs font-medium text-ios-blue">
-              {motivationalLine}
-            </p>
+            <p className="mt-1 text-xs font-medium text-ios-blue">{motivationalLine}</p>
           )}
         </div>
         <Button onClick={handleAddClick} className="shrink-0">
@@ -368,9 +364,7 @@ export default function TasksPage() {
                   onClick={() => toggleAssigneeFilter(member.id)}
                   className={cn(
                     'flex h-7 w-7 items-center justify-center rounded-full text-sm transition-all',
-                    active
-                      ? 'shadow-sm'
-                      : 'opacity-40 hover:opacity-70',
+                    active ? 'shadow-sm' : 'opacity-40 hover:opacity-70',
                   )}
                   style={{
                     backgroundColor: `${member.color}20`,
@@ -379,6 +373,7 @@ export default function TasksPage() {
                     ...(active ? { boxShadow: `0 0 0 2px ${member.color}` } : {}),
                   }}
                   title={member.name}
+                  aria-label={`סינון לפי ${member.name}`}
                 >
                   {member.emoji}
                 </button>
@@ -406,10 +401,7 @@ export default function TasksPage() {
         </Tabs.Content>
 
         <Tabs.Content value="timeline" className="focus:outline-none">
-          <TimelineView
-            tasks={filteredTasks}
-            onTaskClick={handleTaskClick}
-          />
+          <TimelineView tasks={filteredTasks} onTaskClick={handleTaskClick} />
         </Tabs.Content>
       </Tabs.Root>
 
