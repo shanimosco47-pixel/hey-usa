@@ -17,6 +17,7 @@ import { useAppData } from '@/contexts/AppDataContext'
 import type { BlogPost, FamilyMemberId } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
 import { isSampleData } from '@/lib/sampleData'
+import DOMPurify from 'dompurify'
 
 // Moti's writing prompt suggestions
 const MOTI_PROMPTS = [
@@ -222,7 +223,7 @@ export default function BlogPage() {
           )}
           <div
             className="mt-6 text-sm text-apple-primary leading-relaxed [&_p]:mb-3 [&_strong]:font-bold [&_ul]:mr-4 [&_ul]:list-disc [&_li]:mb-1"
-            dangerouslySetInnerHTML={{ __html: selectedPost.content }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedPost.content) }}
           />
         </div>
         <div className="flex gap-2">
