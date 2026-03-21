@@ -80,17 +80,6 @@
         if (pre) { pre.style.opacity = '0'; setTimeout(function() { pre.remove(); }, 300); }
       }, 5000);
     </script>
-    <script>
-      // Force-kill old service workers and clear caches on first load
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(regs) {
-          regs.forEach(function(reg) { reg.unregister(); });
-        });
-        caches.keys().then(function(names) {
-          names.forEach(function(name) { caches.delete(name); });
-        });
-      }
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

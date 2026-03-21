@@ -8,6 +8,7 @@ import { MotiAvatar } from '@/components/shared/MotiRobot'
 import * as db from '@/lib/database'
 import { TRIP_START_DATE } from '@/lib/constants'
 import { triggerEmailScan } from '@/lib/emailScan'
+import DOMPurify from 'dompurify'
 
 interface Message {
   id: string
@@ -413,10 +414,12 @@ export default function ChatPage() {
                 <p
                   className="text-[15px] leading-relaxed whitespace-pre-line"
                   dangerouslySetInnerHTML={{
-                    __html: msg.text
-                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                      .replace(/\n/g, '<br/>'),
+                    __html: DOMPurify.sanitize(
+                      msg.text
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br/>'),
+                    ),
                   }}
                 />
               </div>
