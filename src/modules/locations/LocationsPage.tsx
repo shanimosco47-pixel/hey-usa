@@ -43,9 +43,7 @@ export default function LocationsPage() {
                 {LOCATIONS.length} יעדים
               </span>
             </div>
-            <h1 className="text-hero text-white drop-shadow-lg mb-1">
-              🗺️ היעדים שלנו
-            </h1>
+            <h1 className="text-2xl sm:text-hero text-white drop-shadow-lg mb-1">🗺️ היעדים שלנו</h1>
             <p className="text-[15px] text-white/80 font-medium">
               לחצו על יעד כדי לראות הערות, מסמכים ותכנון
             </p>

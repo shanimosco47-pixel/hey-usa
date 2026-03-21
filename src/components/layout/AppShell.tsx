@@ -6,6 +6,7 @@ import { TopBar } from '@/components/layout/TopBar'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomTabs } from '@/components/layout/BottomTabs'
 import { OfflineBanner } from '@/components/shared/OfflineBanner'
+import { PageErrorBoundary } from '@/components/shared/PageErrorBoundary'
 import { cn } from '@/lib/cn'
 
 export function AppShell() {
@@ -26,22 +27,24 @@ export function AppShell() {
             isDesktop ? 'mr-56' : 'pb-16',
           )}
         >
-          <Suspense
-            fallback={
-              <div className="flex min-h-[50vh] items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-black/[0.06] border-t-ios-blue" />
-              </div>
-            }
-          >
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.2 }}
+          <PageErrorBoundary>
+            <Suspense
+              fallback={
+                <div className="flex min-h-[50vh] items-center justify-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-black/[0.06] border-t-ios-blue" />
+                </div>
+              }
             >
-              <Outlet />
-            </motion.div>
-          </Suspense>
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Outlet />
+              </motion.div>
+            </Suspense>
+          </PageErrorBoundary>
         </main>
       </div>
 

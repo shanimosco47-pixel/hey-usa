@@ -58,7 +58,9 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
 
   const getBarPosition = (dueDate: string) => {
     const date = new Date(dueDate)
-    const daysSinceStart = Math.ceil((date.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24))
+    const daysSinceStart = Math.ceil(
+      (date.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24),
+    )
     const percentage = Math.max(0, Math.min(100, (daysSinceStart / totalDays) * 100))
     return percentage
   }
@@ -70,144 +72,173 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <div style={{ minWidth: 700 }}>
-        {/* Legend */}
-        <div className="mb-4 flex items-center gap-4">
-          {(Object.keys(GROUP_COLORS) as TaskGroup[]).map((group) => (
-            <div key={group} className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: GROUP_COLORS[group] }} />
-              <span className="text-xs text-apple-secondary">{GROUP_LABELS[group]}</span>
-            </div>
-          ))}
-          <div className="flex items-center gap-1.5">
-            <div className="h-3 w-3 rounded-sm bg-red-400 opacity-60" />
-            <span className="text-xs text-apple-secondary">באיחור</span>
-          </div>
-        </div>
-
-        {/* Month headers */}
-        <div className="mb-1 flex border-b border-black/[0.06]">
-          <div className="w-48 shrink-0" />
-          <div className="relative flex flex-1">
-            {months.map((month, i) => (
-              <div
-                key={i}
-                className="text-center text-[11px] font-medium text-apple-secondary"
-                style={{ width: `${100 / months.length}%` }}
-              >
-                {month.label}
+    <div>
+      <p className="text-[10px] text-apple-secondary mb-1 sm:hidden">
+        גללו ימינה לראות את כל ציר הזמן
+      </p>
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: 700 }}>
+          {/* Legend */}
+          <div className="mb-4 flex items-center gap-4">
+            {(Object.keys(GROUP_COLORS) as TaskGroup[]).map((group) => (
+              <div key={group} className="flex items-center gap-1.5">
+                <div
+                  className="h-3 w-3 rounded-sm"
+                  style={{ backgroundColor: GROUP_COLORS[group] }}
+                />
+                <span className="text-xs text-apple-secondary">{GROUP_LABELS[group]}</span>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Grid lines + tasks */}
-        <div className="relative">
-          {/* Vertical grid lines */}
-          <div className="pointer-events-none absolute inset-0 flex" style={{ right: 192 }}>
-            {months.map((_, i) => (
-              <div
-                key={i}
-                className="border-r border-black/[0.04]"
-                style={{ width: `${100 / months.length}%` }}
-              />
-            ))}
+            <div className="flex items-center gap-1.5">
+              <div className="h-3 w-3 rounded-sm bg-red-400 opacity-60" />
+              <span className="text-xs text-apple-secondary">באיחור</span>
+            </div>
           </div>
 
-          {/* Today line */}
-          {(() => {
-            const todayPos = getBarPosition(new Date().toISOString().split('T')[0])
-            return (
-              <div className="pointer-events-none absolute inset-0 flex" style={{ zIndex: 10 }}>
-                <div className="w-48 shrink-0" />
-                <div className="relative flex-1">
-                  <div
-                    className="absolute top-0 bottom-0 w-px bg-ios-red"
-                    style={{ right: `${todayPos}%` }}
-                  >
-                    <div className="absolute -top-1 -translate-x-1/2 rounded bg-ios-red px-1 py-0.5 text-[9px] font-bold text-white">
-                      היום
+          {/* Month headers */}
+          <div className="mb-1 flex border-b border-black/[0.06]">
+            <div className="w-48 shrink-0" />
+            <div className="relative flex flex-1">
+              {months.map((month, i) => (
+                <div
+                  key={i}
+                  className="text-center text-[11px] font-medium text-apple-secondary"
+                  style={{ width: `${100 / months.length}%` }}
+                >
+                  {month.label}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Grid lines + tasks */}
+          <div className="relative">
+            {/* Vertical grid lines */}
+            <div className="pointer-events-none absolute inset-0 flex" style={{ right: 192 }}>
+              {months.map((_, i) => (
+                <div
+                  key={i}
+                  className="border-r border-black/[0.04]"
+                  style={{ width: `${100 / months.length}%` }}
+                />
+              ))}
+            </div>
+
+            {/* Today line */}
+            {(() => {
+              const todayPos = getBarPosition(new Date().toISOString().split('T')[0])
+              return (
+                <div className="pointer-events-none absolute inset-0 flex" style={{ zIndex: 10 }}>
+                  <div className="w-48 shrink-0" />
+                  <div className="relative flex-1">
+                    <div
+                      className="absolute top-0 bottom-0 w-px bg-ios-red"
+                      style={{ right: `${todayPos}%` }}
+                    >
+                      <div className="absolute -top-1 -translate-x-1/2 rounded bg-ios-red px-1 py-0.5 text-[9px] font-bold text-white">
+                        היום
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )
-          })()}
+              )
+            })()}
 
-          {/* Tasks with dates */}
-          {tasksWithDates.map((task) => {
-            const pos = getBarPosition(task.due_date!)
-            const overdue = isOverdue(task.due_date!, task.status)
-            const groupColor = GROUP_COLORS[task.group]
+            {/* Tasks with dates */}
+            {tasksWithDates.map((task) => {
+              const pos = getBarPosition(task.due_date!)
+              const overdue = isOverdue(task.due_date!, task.status)
+              const groupColor = GROUP_COLORS[task.group]
 
-            return (
-              <div
-                key={task.id}
-                className="group flex items-center border-b border-black/[0.02] py-1.5 cursor-pointer hover:bg-white/30 transition-colors"
-                onClick={() => onTaskClick(task)}
-              >
-                {/* Task label */}
-                <div className="w-48 shrink-0 truncate px-2 text-xs font-medium text-apple-primary" title={task.title}>
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: groupColor }} />
-                    <span className={cn('truncate', task.status === 'done' && 'line-through opacity-50')}>
-                      {task.title}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Timeline bar */}
-                <div className="relative flex-1">
-                  <div
-                    className={cn(
-                      'absolute h-5 rounded-md transition-all group-hover:h-6 group-hover:-translate-y-0.5',
-                      overdue && 'animate-pulse',
-                    )}
-                    style={{
-                      right: `${Math.max(0, pos - 3)}%`,
-                      width: '3%',
-                      minWidth: 12,
-                      backgroundColor: overdue ? '#e17055' : groupColor,
-                      opacity: task.status === 'done' ? 0.4 : 0.8,
-                    }}
-                    title={`${task.title} - ${new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'short' }).format(new Date(task.due_date!))}`}
-                  />
-                </div>
-              </div>
-            )
-          })}
-
-          {/* Tasks without dates */}
-          {tasksWithoutDates.length > 0 && (
-            <>
-              <div className="border-t-2 border-dashed border-black/[0.04] mt-2 pt-2 px-2">
-                <span className="text-[11px] font-medium text-apple-secondary/60">ללא תאריך יעד</span>
-              </div>
-              {tasksWithoutDates.map((task) => (
+              return (
                 <div
                   key={task.id}
-                  className="flex items-center border-b border-black/[0.02] py-1.5 cursor-pointer hover:bg-white/30 transition-colors"
+                  className="group flex items-center border-b border-black/[0.02] py-1.5 cursor-pointer hover:bg-white/30 transition-colors"
                   onClick={() => onTaskClick(task)}
                 >
-                  <div className="w-48 shrink-0 truncate px-2 text-xs font-medium text-apple-primary" title={task.title}>
+                  {/* Task label */}
+                  <div
+                    className="w-48 shrink-0 truncate px-2 text-xs font-medium text-apple-primary"
+                    title={task.title}
+                  >
                     <div className="flex items-center gap-1.5">
                       <div
                         className="h-2 w-2 shrink-0 rounded-full"
-                        style={{ backgroundColor: GROUP_COLORS[task.group] }}
+                        style={{ backgroundColor: groupColor }}
                       />
-                      <span className={cn('truncate', task.status === 'done' && 'line-through opacity-50')}>
+                      <span
+                        className={cn(
+                          'truncate',
+                          task.status === 'done' && 'line-through opacity-50',
+                        )}
+                      >
                         {task.title}
                       </span>
                     </div>
                   </div>
-                  <div className="flex flex-1 items-center px-4">
-                    <span className="text-[11px] text-apple-secondary/40">-</span>
+
+                  {/* Timeline bar */}
+                  <div className="relative flex-1">
+                    <div
+                      className={cn(
+                        'absolute h-5 rounded-md transition-all group-hover:h-6 group-hover:-translate-y-0.5',
+                        overdue && 'animate-pulse',
+                      )}
+                      style={{
+                        right: `${Math.max(0, pos - 3)}%`,
+                        width: '3%',
+                        minWidth: 12,
+                        backgroundColor: overdue ? '#e17055' : groupColor,
+                        opacity: task.status === 'done' ? 0.4 : 0.8,
+                      }}
+                      title={`${task.title} - ${new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'short' }).format(new Date(task.due_date!))}`}
+                    />
                   </div>
                 </div>
-              ))}
-            </>
-          )}
+              )
+            })}
+
+            {/* Tasks without dates */}
+            {tasksWithoutDates.length > 0 && (
+              <>
+                <div className="border-t-2 border-dashed border-black/[0.04] mt-2 pt-2 px-2">
+                  <span className="text-[11px] font-medium text-apple-secondary/60">
+                    ללא תאריך יעד
+                  </span>
+                </div>
+                {tasksWithoutDates.map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center border-b border-black/[0.02] py-1.5 cursor-pointer hover:bg-white/30 transition-colors"
+                    onClick={() => onTaskClick(task)}
+                  >
+                    <div
+                      className="w-48 shrink-0 truncate px-2 text-xs font-medium text-apple-primary"
+                      title={task.title}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="h-2 w-2 shrink-0 rounded-full"
+                          style={{ backgroundColor: GROUP_COLORS[task.group] }}
+                        />
+                        <span
+                          className={cn(
+                            'truncate',
+                            task.status === 'done' && 'line-through opacity-50',
+                          )}
+                        >
+                          {task.title}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-1 items-center px-4">
+                      <span className="text-[11px] text-apple-secondary/40">-</span>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

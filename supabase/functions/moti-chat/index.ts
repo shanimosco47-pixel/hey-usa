@@ -107,11 +107,25 @@ interface ChatMessage {
 const TOOLS = [
   {
     name: 'update_budget_category',
-    description: 'Update budget for a specific expense category. Categories: flights, accommodation, food, transport, attractions, shopping, communication, insurance, other',
+    description:
+      'Update budget for a specific expense category. Categories: flights, accommodation, food, transport, attractions, shopping, communication, insurance, other',
     input_schema: {
       type: 'object' as const,
       properties: {
-        category: { type: 'string', enum: ['flights', 'accommodation', 'food', 'transport', 'attractions', 'shopping', 'communication', 'insurance', 'other'] },
+        category: {
+          type: 'string',
+          enum: [
+            'flights',
+            'accommodation',
+            'food',
+            'transport',
+            'attractions',
+            'shopping',
+            'communication',
+            'insurance',
+            'other',
+          ],
+        },
         amount: { type: 'number', description: 'Amount in ILS' },
       },
       required: ['category', 'amount'],
@@ -147,7 +161,20 @@ const TOOLS = [
       properties: {
         title: { type: 'string' },
         amount: { type: 'number', description: 'Amount in ILS' },
-        category: { type: 'string', enum: ['flights', 'accommodation', 'food', 'transport', 'attractions', 'shopping', 'communication', 'insurance', 'other'] },
+        category: {
+          type: 'string',
+          enum: [
+            'flights',
+            'accommodation',
+            'food',
+            'transport',
+            'attractions',
+            'shopping',
+            'communication',
+            'insurance',
+            'other',
+          ],
+        },
         paid_by: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] },
         date: { type: 'string', description: 'YYYY-MM-DD' },
       },
@@ -164,7 +191,10 @@ const TOOLS = [
         description: { type: 'string' },
         priority: { type: 'string', enum: ['low', 'medium', 'high', 'urgent'] },
         group: { type: 'string', enum: ['pre_trip', 'during_trip', 'post_trip'] },
-        assigned_to: { type: 'array', items: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] } },
+        assigned_to: {
+          type: 'array',
+          items: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] },
+        },
         due_date: { type: 'string', description: 'YYYY-MM-DD' },
       },
       required: ['title'],
@@ -190,7 +220,10 @@ const TOOLS = [
         text: { type: 'string' },
         author: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] },
         color: { type: 'string', enum: ['yellow', 'pink', 'blue', 'green', 'orange', 'purple'] },
-        location_id: { type: 'string', description: 'e.g. "grand-canyon", "yosemite", "las-vegas"' },
+        location_id: {
+          type: 'string',
+          description: 'e.g. "grand-canyon", "yosemite", "las-vegas"',
+        },
         pinned: { type: 'boolean' },
       },
       required: ['text'],
@@ -216,7 +249,10 @@ const TOOLS = [
         day_id: { type: 'string', description: '"day-1" through "day-20"' },
         title: { type: 'string' },
         description: { type: 'string' },
-        category: { type: 'string', enum: ['activity', 'food', 'drive', 'camp', 'photo_op', 'shopping'] },
+        category: {
+          type: 'string',
+          enum: ['activity', 'food', 'drive', 'camp', 'photo_op', 'shopping'],
+        },
         start_time: { type: 'string', description: 'HH:MM' },
       },
       required: ['day_id', 'title'],
@@ -224,7 +260,8 @@ const TOOLS = [
   },
   {
     name: 'ask_clarification',
-    description: 'Ask the user a clarifying question when you need more info to complete an action. Use instead of guessing.',
+    description:
+      'Ask the user a clarifying question when you need more info to complete an action. Use instead of guessing.',
     input_schema: {
       type: 'object' as const,
       properties: {
@@ -236,27 +273,36 @@ const TOOLS = [
   },
   {
     name: 'search_email',
-    description: 'Search connected Gmail accounts for a specific booking, receipt, or document. Use when user asks to find a specific email or booking confirmation.',
+    description:
+      'Search connected Gmail accounts for a specific booking, receipt, or document. Use when user asks to find a specific email or booking confirmation.',
     input_schema: {
       type: 'object' as const,
       properties: {
-        query: { type: 'string', description: 'Search query describing what to find (e.g. "yellowstone campground reservation", "RV rental confirmation", "United Airlines tickets")' },
+        query: {
+          type: 'string',
+          description:
+            'Search query describing what to find (e.g. "yellowstone campground reservation", "RV rental confirmation", "United Airlines tickets")',
+        },
       },
       required: ['query'],
     },
   },
 ]
 
+const ALLOWED_ORIGIN = Deno.env.get('ALLOWED_ORIGIN') || 'https://shanimosco47-pixel.github.io'
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-client-info',
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-client-info',
-      },
+      headers: CORS_HEADERS,
     })
   }
 
@@ -266,10 +312,10 @@ Deno.serve(async (req) => {
 
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
   if (!apiKey) {
-    return new Response(
-      JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } },
-    )
+    return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
 
   try {
@@ -291,9 +337,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: summarize ? 256 : 1024,
-        system: summarize
-          ? 'אתה עוזר שמסכם שיחות. סכם בקצרה ב-3-4 משפטים בעברית.'
-          : systemPrompt,
+        system: summarize ? 'אתה עוזר שמסכם שיחות. סכם בקצרה ב-3-4 משפטים בעברית.' : systemPrompt,
         messages,
         ...(summarize ? {} : { tools: TOOLS }),
       }),
@@ -302,16 +346,10 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text()
       console.error('Anthropic API error:', response.status, errorText)
-      return new Response(
-        JSON.stringify({ error: 'AI service error', status: response.status }),
-        {
-          status: 502,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        },
-      )
+      return new Response(JSON.stringify({ error: 'AI service error', status: response.status }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      })
     }
 
     const data = await response.json()
@@ -335,27 +373,15 @@ Deno.serve(async (req) => {
       text = 'בוצע! ✅'
     }
 
-    return new Response(
-      JSON.stringify({ text: text.trim(), actions }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      },
-    )
+    return new Response(JSON.stringify({ text: text.trim(), actions }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+    })
   } catch (err) {
     console.error('Edge function error:', err)
-    return new Response(
-      JSON.stringify({ error: 'Internal error' }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      },
-    )
+    return new Response(JSON.stringify({ error: 'Internal error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+    })
   }
 })

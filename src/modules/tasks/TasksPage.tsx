@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { motion } from 'framer-motion'
-import { Plus, Search, Table2, Columns3, GanttChart, X } from 'lucide-react'
+import { Plus, Search, Table2, Columns3, GanttChart, X, ListTodo } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { FAMILY_MEMBERS, STATUS_MAP } from '@/constants'
@@ -383,26 +383,35 @@ export default function TasksPage() {
         </div>
 
         {/* Views */}
-        <Tabs.Content value="table" className="focus:outline-none">
-          <TableView
-            tasksByGroup={filteredByGroup}
-            onToggleDone={handleToggleDone}
-            onCycleStatus={handleCycleStatus}
-            onTaskClick={handleTaskClick}
-          />
-        </Tabs.Content>
+        {filteredTasks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
+            <ListTodo className="h-12 w-12 text-apple-secondary/30" />
+            <p className="mt-4 text-apple-secondary">אין משימות להצגה</p>
+          </div>
+        ) : (
+          <>
+            <Tabs.Content value="table" className="focus:outline-none">
+              <TableView
+                tasksByGroup={filteredByGroup}
+                onToggleDone={handleToggleDone}
+                onCycleStatus={handleCycleStatus}
+                onTaskClick={handleTaskClick}
+              />
+            </Tabs.Content>
 
-        <Tabs.Content value="kanban" className="focus:outline-none">
-          <KanbanView
-            tasksByStatus={filteredByStatus}
-            onUpdateStatus={handleUpdateStatus}
-            onTaskClick={handleTaskClick}
-          />
-        </Tabs.Content>
+            <Tabs.Content value="kanban" className="focus:outline-none">
+              <KanbanView
+                tasksByStatus={filteredByStatus}
+                onUpdateStatus={handleUpdateStatus}
+                onTaskClick={handleTaskClick}
+              />
+            </Tabs.Content>
 
-        <Tabs.Content value="timeline" className="focus:outline-none">
-          <TimelineView tasks={filteredTasks} onTaskClick={handleTaskClick} />
-        </Tabs.Content>
+            <Tabs.Content value="timeline" className="focus:outline-none">
+              <TimelineView tasks={filteredTasks} onTaskClick={handleTaskClick} />
+            </Tabs.Content>
+          </>
+        )}
       </Tabs.Root>
 
       {/* Task Dialog */}

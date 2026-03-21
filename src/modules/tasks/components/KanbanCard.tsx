@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { AlertTriangle, ChevronUp, Minus, ChevronDown, Clock, GripVertical } from 'lucide-react'
@@ -12,7 +13,10 @@ interface KanbanCardProps {
   onClick: (task: Task) => void
 }
 
-const PRIORITY_CONFIG: Record<TaskPriority, { icon: typeof ChevronUp; label: string; className: string; bgClass: string }> = {
+const PRIORITY_CONFIG: Record<
+  TaskPriority,
+  { icon: typeof ChevronUp; label: string; className: string; bgClass: string }
+> = {
   urgent: { icon: AlertTriangle, label: 'דחוף', className: 'text-red-500', bgClass: 'bg-red-50' },
   high: { icon: ChevronUp, label: 'גבוה', className: 'text-orange-500', bgClass: 'bg-orange-50' },
   medium: { icon: Minus, label: 'בינוני', className: 'text-yellow-600', bgClass: 'bg-yellow-50' },
@@ -21,7 +25,9 @@ const PRIORITY_CONFIG: Record<TaskPriority, { icon: typeof ChevronUp; label: str
 
 function isOverdue(dueDate?: string, status?: string): boolean {
   if (!dueDate || status === 'done') return false
-  return new Date(dueDate) < new Date() && new Date(dueDate).toDateString() !== new Date().toDateString()
+  return (
+    new Date(dueDate) < new Date() && new Date(dueDate).toDateString() !== new Date().toDateString()
+  )
 }
 
 function formatDate(dateStr?: string): string {
@@ -30,15 +36,11 @@ function formatDate(dateStr?: string): string {
   return new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'short' }).format(date)
 }
 
-export function KanbanCard({ task, onClick }: KanbanCardProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: task.id, data: { task } })
+export const KanbanCard = memo(function KanbanCard({ task, onClick }: KanbanCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: task.id,
+    data: { task },
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -62,7 +64,11 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
       {/* Drag handle + Priority badge */}
       <div className="mb-2 flex items-center justify-between">
         <div
-          className={cn('flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium', priorityConfig.bgClass, priorityConfig.className)}
+          className={cn(
+            'flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium',
+            priorityConfig.bgClass,
+            priorityConfig.className,
+          )}
         >
           <PriorityIcon className="h-3 w-3" />
           {priorityConfig.label}
@@ -83,7 +89,11 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
           task.status === 'done' && 'line-through opacity-60',
         )}
       >
-        {isSampleData(task.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}
+        {isSampleData(task.id) && (
+          <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">
+            🤖
+          </span>
+        )}
         {task.title}
       </p>
 
@@ -94,13 +104,7 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
           {task.assigned_to.slice(0, 3).map((memberId: FamilyMemberId) => {
             const member = FAMILY_MEMBERS[memberId]
             if (!member) return null
-            return (
-              <FamilyAvatar
-                key={memberId}
-                memberId={memberId}
-                size="sm"
-              />
-            )
+            return <FamilyAvatar key={memberId} memberId={memberId} size="sm" />
           })}
           {task.assigned_to.length > 3 && (
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-[10px] font-bold text-apple-secondary">
@@ -124,4 +128,4 @@ export function KanbanCard({ task, onClick }: KanbanCardProps) {
       </div>
     </div>
   )
-}
+})

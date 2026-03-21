@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { StickyNote as StickyNoteIcon, FileText } from 'lucide-react'
@@ -21,7 +22,14 @@ interface LocationCardProps {
   index: number
 }
 
-export function LocationCard({ location, dateRange, noteCount, docCount, stopCount, index }: LocationCardProps) {
+export const LocationCard = memo(function LocationCard({
+  location,
+  dateRange,
+  noteCount,
+  docCount,
+  stopCount,
+  index,
+}: LocationCardProps) {
   const rotation = getRotation(location.id)
 
   return (
@@ -66,12 +74,12 @@ export function LocationCard({ location, dateRange, noteCount, docCount, stopCou
               className="w-full h-full object-cover"
             />
             {/* Gradient overlay */}
-            <div className={cn('absolute inset-0 bg-gradient-to-t opacity-40', location.gradient)} />
+            <div
+              className={cn('absolute inset-0 bg-gradient-to-t opacity-40', location.gradient)}
+            />
 
             {/* Emoji floating */}
-            <span className="absolute top-2 right-2 text-2xl drop-shadow-lg">
-              {location.emoji}
-            </span>
+            <span className="absolute top-2 right-2 text-2xl drop-shadow-lg">{location.emoji}</span>
 
             {/* Badge counts */}
             <div className="absolute bottom-2 left-2 flex gap-1.5">
@@ -90,25 +98,15 @@ export function LocationCard({ location, dateRange, noteCount, docCount, stopCou
 
           {/* Name + info */}
           <div className="px-1 text-center">
-            <h3 className="text-[15px] font-bold text-gray-800 leading-tight">
-              {location.nameHe}
-            </h3>
-            <p className="text-[11px] text-gray-500 mt-0.5 font-medium">
-              {location.name}
-            </p>
-            {dateRange && (
-              <p className="text-[10px] text-gray-400 mt-1">
-                {dateRange}
-              </p>
-            )}
+            <h3 className="text-[15px] font-bold text-gray-800 leading-tight">{location.nameHe}</h3>
+            <p className="text-[11px] text-gray-500 mt-0.5 font-medium">{location.name}</p>
+            {dateRange && <p className="text-[10px] text-gray-400 mt-1">{dateRange}</p>}
             {stopCount > 0 && (
-              <p className="text-[10px] text-ios-blue mt-0.5 font-medium">
-                {stopCount} עצירות
-              </p>
+              <p className="text-[10px] text-ios-blue mt-0.5 font-medium">{stopCount} עצירות</p>
             )}
           </div>
         </div>
       </Link>
     </motion.div>
   )
-}
+})

@@ -13,7 +13,7 @@ import {
   LayoutList,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { getFamilyMember } from '@/constants'
+import { FAMILY_MEMBERS_LIST, getFamilyMember } from '@/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Photo, FamilyMemberId } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
@@ -95,6 +95,7 @@ export default function PhotosPage() {
             src={selectedPhoto.url}
             alt={selectedPhoto.caption || ''}
             className="max-h-[70vh] max-w-full rounded-lg object-contain"
+            loading="lazy"
           />
           <button
             onClick={() => navigatePhoto('prev')}
@@ -193,7 +194,7 @@ export default function PhotosPage() {
         >
           כולם
         </button>
-        {FAMILY_MEMBERS.map((m) => (
+        {FAMILY_MEMBERS_LIST.map((m) => (
           <button
             key={m.id}
             onClick={() => setFilterMember(m.id)}

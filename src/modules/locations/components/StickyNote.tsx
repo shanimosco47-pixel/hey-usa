@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Pin, Trash2, Pencil } from 'lucide-react'
 import type { LocationNote } from '@/lib/types'
@@ -32,7 +32,12 @@ interface StickyNoteProps {
   onTogglePin: (id: string, pinned: boolean) => void
 }
 
-export function StickyNote({ note, onEdit, onDelete, onTogglePin }: StickyNoteProps) {
+export const StickyNote = memo(function StickyNote({
+  note,
+  onEdit,
+  onDelete,
+  onTogglePin,
+}: StickyNoteProps) {
   const [showActions, setShowActions] = useState(false)
   const rotation = getRotation(note.id)
 
@@ -80,21 +85,35 @@ export function StickyNote({ note, onEdit, onDelete, onTogglePin }: StickyNotePr
           className="absolute top-2 left-2 flex gap-1"
         >
           <button
-            onClick={(e) => { e.stopPropagation(); onEdit(note) }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit(note)
+            }}
             className="p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors"
             title="ערוך"
           >
             <Pencil className="h-3.5 w-3.5 text-gray-600" />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); onTogglePin(note.id, !note.pinned) }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onTogglePin(note.id, !note.pinned)
+            }}
             className="p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors"
             title={note.pinned ? 'בטל הצמדה' : 'הצמד'}
           >
-            <Pin className={cn('h-3.5 w-3.5', note.pinned ? 'text-red-500 fill-red-500' : 'text-gray-600')} />
+            <Pin
+              className={cn(
+                'h-3.5 w-3.5',
+                note.pinned ? 'text-red-500 fill-red-500' : 'text-gray-600',
+              )}
+            />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); onDelete(note.id) }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete(note.id)
+            }}
             className="p-1.5 rounded-full bg-white/80 hover:bg-red-50 shadow-sm transition-colors"
             title="מחק"
           >
@@ -104,4 +123,4 @@ export function StickyNote({ note, onEdit, onDelete, onTogglePin }: StickyNotePr
       )}
     </motion.div>
   )
-}
+})

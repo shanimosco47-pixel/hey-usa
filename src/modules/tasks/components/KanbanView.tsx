@@ -10,13 +10,12 @@ import {
   type DragEndEvent,
   type DragOverEvent,
 } from '@dnd-kit/core'
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
 import { useState } from 'react'
+import { ChevronDown, ChevronLeft } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 import type { Task, TaskStatus } from '@/types'
 import { KanbanCard } from './KanbanCard'
 
@@ -79,9 +78,7 @@ function KanbanColumn({
               <span className="text-xs text-apple-secondary/50">גרור משימות לכאן</span>
             </div>
           ) : (
-            tasks.map((task) => (
-              <KanbanCard key={task.id} task={task} onClick={onTaskClick} />
-            ))
+            tasks.map((task) => <KanbanCard key={task.id} task={task} onClick={onTaskClick} />)
           )}
         </SortableContext>
       </div>
@@ -89,8 +86,85 @@ function KanbanColumn({
   )
 }
 
+function MobileKanbanColumn({
+  status,
+  label,
+  color,
+  tasks,
+  isExpanded,
+  onToggle,
+  onTaskClick,
+}: {
+  status: TaskStatus
+  label: string
+  color: string
+  tasks: Task[]
+  isExpanded: boolean
+  onToggle: () => void
+  onTaskClick: (task: Task) => void
+}) {
+  const { setNodeRef } = useDroppable({ id: status })
+
+  return (
+    <div className="rounded-xl border border-black/[0.06] bg-black/[0.03] overflow-hidden">
+      {/* Collapsible header */}
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center gap-2 px-3 py-3 active:bg-black/[0.04]"
+      >
+        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
+        <span className="text-sm font-bold text-apple-primary">{label}</span>
+        <span
+          className="rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white"
+          style={{ backgroundColor: color }}
+        >
+          {tasks.length}
+        </span>
+        <span className="mr-auto">
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4 text-apple-secondary" />
+          ) : (
+            <ChevronLeft className="h-4 w-4 text-apple-secondary" />
+          )}
+        </span>
+      </button>
+
+      {/* Expanded cards */}
+      {isExpanded && (
+        <div ref={setNodeRef} className="flex flex-col gap-2 px-2 pb-2">
+          <SortableContext items={tasks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+            {tasks.length === 0 ? (
+              <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-black/[0.06] py-6">
+                <span className="text-xs text-apple-secondary/50">גרור משימות לכאן</span>
+              </div>
+            ) : (
+              tasks.map((task) => <KanbanCard key={task.id} task={task} onClick={onTaskClick} />)
+            )}
+          </SortableContext>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function KanbanView({ tasksByStatus, onUpdateStatus, onTaskClick }: KanbanViewProps) {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const isDesktop = useMediaQuery('(min-width: 640px)')
+  const [expandedColumns, setExpandedColumns] = useState<Set<TaskStatus>>(
+    () => new Set([COLUMN_CONFIG[0].status]),
+  )
+
+  const toggleColumn = useCallback((status: TaskStatus) => {
+    setExpandedColumns((prev) => {
+      const next = new Set(prev)
+      if (next.has(status)) {
+        next.delete(status)
+      } else {
+        next.add(status)
+      }
+      return next
+    })
+  }, [])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -120,7 +194,9 @@ export function KanbanView({ tasksByStatus, onUpdateStatus, onTaskClick }: Kanba
       // Check if dropped on a column
       const targetStatus = COLUMN_CONFIG.find((c) => c.status === overId)?.status
       if (targetStatus) {
-        const task = Object.values(tasksByStatus).flat().find((t) => t.id === taskId)
+        const task = Object.values(tasksByStatus)
+          .flat()
+          .find((t) => t.id === taskId)
         if (task && task.status !== targetStatus) {
           onUpdateStatus(taskId, targetStatus)
         }
@@ -131,7 +207,9 @@ export function KanbanView({ tasksByStatus, onUpdateStatus, onTaskClick }: Kanba
       for (const [status, tasks] of Object.entries(tasksByStatus)) {
         const targetCard = tasks.find((t) => t.id === overId)
         if (targetCard) {
-          const task = Object.values(tasksByStatus).flat().find((t) => t.id === taskId)
+          const task = Object.values(tasksByStatus)
+            .flat()
+            .find((t) => t.id === taskId)
           if (task && task.status !== status) {
             onUpdateStatus(taskId, status as TaskStatus)
           }
@@ -157,7 +235,9 @@ export function KanbanView({ tasksByStatus, onUpdateStatus, onTaskClick }: Kanba
       // If dragging over a card in a different column
       for (const [status, tasks] of Object.entries(tasksByStatus)) {
         if (tasks.find((t) => t.id === overId)) {
-          const sourceTask = Object.values(tasksByStatus).flat().find((t) => t.id === taskId)
+          const sourceTask = Object.values(tasksByStatus)
+            .flat()
+            .find((t) => t.id === taskId)
           if (sourceTask && sourceTask.status !== status) {
             onUpdateStatus(taskId, status as TaskStatus)
           }
@@ -176,18 +256,37 @@ export function KanbanView({ tasksByStatus, onUpdateStatus, onTaskClick }: Kanba
       onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
     >
-      <div className="flex gap-4 overflow-x-auto pb-4" style={{ minHeight: 400 }}>
-        {COLUMN_CONFIG.map(({ status, label, color }) => (
-          <KanbanColumn
-            key={status}
-            status={status}
-            label={label}
-            color={color}
-            tasks={tasksByStatus[status]}
-            onTaskClick={onTaskClick}
-          />
-        ))}
-      </div>
+      {isDesktop ? (
+        /* Desktop: horizontal columns */
+        <div className="flex gap-4 overflow-x-auto pb-4" style={{ minHeight: 400 }}>
+          {COLUMN_CONFIG.map(({ status, label, color }) => (
+            <KanbanColumn
+              key={status}
+              status={status}
+              label={label}
+              color={color}
+              tasks={tasksByStatus[status]}
+              onTaskClick={onTaskClick}
+            />
+          ))}
+        </div>
+      ) : (
+        /* Mobile: vertical collapsible stack */
+        <div className="flex flex-col gap-3 pb-4">
+          {COLUMN_CONFIG.map(({ status, label, color }) => (
+            <MobileKanbanColumn
+              key={status}
+              status={status}
+              label={label}
+              color={color}
+              tasks={tasksByStatus[status]}
+              isExpanded={expandedColumns.has(status)}
+              onToggle={() => toggleColumn(status)}
+              onTaskClick={onTaskClick}
+            />
+          ))}
+        </div>
+      )}
 
       <DragOverlay>
         {activeTask ? (

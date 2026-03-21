@@ -1,6 +1,20 @@
 import { useState } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, Download, FileText, Image, File, ExternalLink, Calendar, Tag, User, StickyNote, HardDrive, AlertTriangle, MapPin } from 'lucide-react'
+import {
+  X,
+  Download,
+  FileText,
+  Image,
+  File,
+  ExternalLink,
+  Calendar,
+  Tag,
+  User,
+  StickyNote,
+  HardDrive,
+  AlertTriangle,
+  MapPin,
+} from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS, DOCUMENT_CATEGORIES } from '@/constants'
 import { getLocationById } from '@/data/locations'
@@ -65,7 +79,9 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
           <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
           <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
         </div>
-        <p className="text-sm text-apple-primary whitespace-pre-wrap leading-relaxed">{doc.notes}</p>
+        <p className="text-sm text-apple-primary whitespace-pre-wrap leading-relaxed">
+          {doc.notes}
+        </p>
         <p className="mt-4 text-xs text-amber-600 font-medium">
           📎 הקובץ טרם הועלה — ניתן להעלות דרך כפתור ״העלה מסמך״
         </p>
@@ -76,7 +92,12 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
   if (doc.file_type?.includes('image') && realFile) {
     return (
       <div className="w-full rounded-xl bg-sky-50 overflow-hidden">
-        <img src={doc.file_url!} alt={doc.title} className="w-full h-auto object-contain max-h-[60vh]" />
+        <img
+          src={doc.file_url!}
+          alt={doc.title}
+          className="w-full h-auto object-contain max-h-[60vh]"
+          loading="lazy"
+        />
       </div>
     )
   }
@@ -259,7 +280,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
 
                 {doc.expiry_date && (
                   <div className="flex items-start gap-3">
-                    {(expired || expiringSoon) ? (
+                    {expired || expiringSoon ? (
                       <AlertTriangle
                         className={cn(
                           'mt-0.5 h-4 w-4 shrink-0',

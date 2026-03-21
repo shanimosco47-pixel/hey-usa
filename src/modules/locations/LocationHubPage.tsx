@@ -3,8 +3,14 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format, parseISO } from 'date-fns'
 import {
-  ArrowRight, MapPin, StickyNote as StickyNoteIcon, Calendar,
-  FileText, Plus, Clock, ExternalLink,
+  ArrowRight,
+  MapPin,
+  StickyNote as StickyNoteIcon,
+  Calendar,
+  FileText,
+  Plus,
+  Clock,
+  ExternalLink,
 } from 'lucide-react'
 import { useAppData } from '@/contexts/AppDataContext'
 import { getLocationById, getDaysForLocation, getLocationDateRange } from '@/data/locations'
@@ -36,8 +42,12 @@ export default function LocationHubPage() {
   const { locationId } = useParams<{ locationId: string }>()
   const navigate = useNavigate()
   const {
-    itineraryDays, locationNotes, documents,
-    addLocationNote, updateLocationNote, deleteLocationNote,
+    itineraryDays,
+    locationNotes,
+    documents,
+    addLocationNote,
+    updateLocationNote,
+    deleteLocationNote,
   } = useAppData()
 
   const [activeTab, setActiveTab] = useState<Tab>('notes')
@@ -78,7 +88,12 @@ export default function LocationHubPage() {
     )
   }
 
-  function handleSaveNote(data: { text: string; color: NoteColor; pinned: boolean; author: FamilyMemberId }) {
+  function handleSaveNote(data: {
+    text: string
+    color: NoteColor
+    pinned: boolean
+    author: FamilyMemberId
+  }) {
     if (editingNote) {
       updateLocationNote(editingNote.id, data)
     } else {
@@ -109,10 +124,7 @@ export default function LocationHubPage() {
           className="absolute inset-0 w-full h-full object-cover"
         />
         {/* Gradient overlay */}
-        <div className={cn(
-          'absolute inset-0 bg-gradient-to-b opacity-70',
-          location.gradient,
-        )} />
+        <div className={cn('absolute inset-0 bg-gradient-to-b opacity-70', location.gradient)} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
         {/* Floating emoji */}
@@ -159,18 +171,17 @@ export default function LocationHubPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <h1 className="text-hero text-white drop-shadow-lg mb-1">
+            <h1 className="text-2xl sm:text-hero text-white drop-shadow-lg mb-1">
               {location.emoji} {location.nameHe}
             </h1>
-            <p className="text-[15px] text-white/80 font-medium mb-3">
-              {location.name}
-            </p>
+            <p className="text-[15px] text-white/80 font-medium mb-3">{location.name}</p>
             <div className="flex flex-wrap gap-2">
               {dateRange && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-[12px] text-white font-medium">
                   <Clock className="h-3 w-3" />
                   {format(parseISO(dateRange.start), 'dd/MM')}
-                  {dateRange.start !== dateRange.end && ` – ${format(parseISO(dateRange.end), 'dd/MM')}`}
+                  {dateRange.start !== dateRange.end &&
+                    ` – ${format(parseISO(dateRange.end), 'dd/MM')}`}
                 </span>
               )}
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-[12px] text-white font-medium">
@@ -192,7 +203,9 @@ export default function LocationHubPage() {
               <div className="flex items-start gap-2">
                 <span className="text-lg shrink-0">🤖</span>
                 <div>
-                  <p className="text-[13px] text-apple-primary leading-relaxed">{location.summary}</p>
+                  <p className="text-[13px] text-apple-primary leading-relaxed">
+                    {location.summary}
+                  </p>
                   <p className="text-[10px] text-apple-tertiary mt-1 font-medium">— מוטי</p>
                 </div>
               </div>
@@ -247,7 +260,10 @@ export default function LocationHubPage() {
                 <motion.button
                   whileHover={{ scale: 1.03, rotate: 0 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => { setEditingNote(null); setEditorOpen(true) }}
+                  onClick={() => {
+                    setEditingNote(null)
+                    setEditorOpen(true)
+                  }}
                   className={cn(
                     'sticky-note sticky-yellow',
                     'min-h-[140px] p-5',
@@ -300,11 +316,14 @@ export default function LocationHubPage() {
                       to={`/itinerary/${day.id.replace('day-', '')}`}
                       className="flex items-center gap-3 group"
                     >
-                      <div className={cn(
-                        'flex items-center gap-2 px-3 py-1.5 rounded-full',
-                        'bg-gradient-to-r', location.gradient,
-                        'text-white text-subhead font-semibold shadow-sm',
-                      )}>
+                      <div
+                        className={cn(
+                          'flex items-center gap-2 px-3 py-1.5 rounded-full',
+                          'bg-gradient-to-r',
+                          location.gradient,
+                          'text-white text-subhead font-semibold shadow-sm',
+                        )}
+                      >
                         <Calendar className="h-3.5 w-3.5" />
                         {day.title}
                       </div>
@@ -389,9 +408,7 @@ export default function LocationHubPage() {
               {locationDocs.length === 0 ? (
                 <div className="text-center py-12">
                   <span className="text-4xl block mb-3">📂</span>
-                  <p className="text-body text-apple-secondary">
-                    אין מסמכים מקושרים ליעד הזה
-                  </p>
+                  <p className="text-body text-apple-secondary">אין מסמכים מקושרים ליעד הזה</p>
                   <Link
                     to="/documents"
                     className="inline-flex items-center gap-1 mt-3 text-ios-blue text-subhead font-medium hover:underline"
@@ -409,13 +426,16 @@ export default function LocationHubPage() {
                     className="glass rounded-apple-lg px-4 py-3.5 card-hover"
                   >
                     <div className="flex items-start gap-3">
-                      <div className={cn(
-                        'w-10 h-10 rounded-apple flex items-center justify-center shrink-0',
-                        doc.category === 'attractions' && 'bg-purple-100 text-purple-600',
-                        doc.category === 'accommodation' && 'bg-blue-100 text-blue-600',
-                        doc.category === 'car_rental' && 'bg-green-100 text-green-600',
-                        !['attractions', 'accommodation', 'car_rental'].includes(doc.category) && 'bg-gray-100 text-gray-600',
-                      )}>
+                      <div
+                        className={cn(
+                          'w-10 h-10 rounded-apple flex items-center justify-center shrink-0',
+                          doc.category === 'attractions' && 'bg-purple-100 text-purple-600',
+                          doc.category === 'accommodation' && 'bg-blue-100 text-blue-600',
+                          doc.category === 'car_rental' && 'bg-green-100 text-green-600',
+                          !['attractions', 'accommodation', 'car_rental'].includes(doc.category) &&
+                            'bg-gray-100 text-gray-600',
+                        )}
+                      >
                         <FileText className="h-5 w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -450,7 +470,10 @@ export default function LocationHubPage() {
       {/* Note Editor Dialog */}
       <NoteEditor
         isOpen={editorOpen}
-        onClose={() => { setEditorOpen(false); setEditingNote(null) }}
+        onClose={() => {
+          setEditorOpen(false)
+          setEditingNote(null)
+        }}
         onSave={handleSaveNote}
         editingNote={editingNote}
       />

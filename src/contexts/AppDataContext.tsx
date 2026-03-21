@@ -8,6 +8,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useMemo,
   type ReactNode,
 } from 'react'
 import type {
@@ -50,10 +51,31 @@ export type MotiAction =
   | { type: 'ADD_EXPENSE'; expense: Omit<Expense, 'id' | 'created_at'> }
   | { type: 'UPDATE_ITINERARY_STOP_NOTES'; dayId: string; stopId: string; notes: string }
   | { type: 'UPDATE_ITINERARY_DAY_NOTES'; dayId: string; notes: string }
-  | { type: 'ADD_ITINERARY_STOP'; dayId: string; stop: { title: string; description?: string; location?: string; start_time?: string; end_time?: string; category?: string; notes?: string } }
+  | {
+      type: 'ADD_ITINERARY_STOP'
+      dayId: string
+      stop: {
+        title: string
+        description?: string
+        location?: string
+        start_time?: string
+        end_time?: string
+        category?: string
+        notes?: string
+      }
+    }
   | { type: 'ADD_TASK'; task: Omit<Task, 'id' | 'created_at' | 'updated_at' | 'order'> }
   | { type: 'COMPLETE_TASK'; taskTitle: string }
-  | { type: 'ADD_NOTE'; note: { text: string; author: FamilyMemberId; color: NoteColor; locationId: string | null; pinned: boolean } }
+  | {
+      type: 'ADD_NOTE'
+      note: {
+        text: string
+        author: FamilyMemberId
+        color: NoteColor
+        locationId: string | null
+        pinned: boolean
+      }
+    }
   | { type: 'TOGGLE_PACKING_ITEM'; itemName: string }
   | { type: 'ASK_CLARIFICATION'; question: string }
   | { type: 'SEARCH_EMAIL'; query: string }
@@ -119,7 +141,18 @@ interface AppDataContextType {
   // Itinerary
   itineraryDays: ItineraryDay[]
   updateItineraryDayNotes: (dayId: string, notes: string) => void
-  addItineraryStop: (dayId: string, stop: { title: string; description?: string; location?: string; start_time?: string; end_time?: string; category?: string; notes?: string }) => void
+  addItineraryStop: (
+    dayId: string,
+    stop: {
+      title: string
+      description?: string
+      location?: string
+      start_time?: string
+      end_time?: string
+      category?: string
+      notes?: string
+    },
+  ) => void
 
   // Tasks
   tasks: Task[]
@@ -174,13 +207,14 @@ interface AppDataContextType {
 
 const AppDataContext = createContext<AppDataContextType | null>(null)
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAppData() {
   const ctx = useContext(AppDataContext)
   if (!ctx) throw new Error('useAppData must be used within AppDataProvider')
   return ctx
 }
 
-// Re-export as useTripData for backward compatibility
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTripData = useAppData
 
 // ─── Provider ───────────────────────────────────────────────────────
@@ -224,7 +258,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const [
           budgetData,
           expenseData,
-          _itineraryData,
+          _itineraryData, // eslint-disable-line @typescript-eslint/no-unused-vars
           taskData,
           packingData,
           blogData,
@@ -286,7 +320,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
 
     loadData()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   // ─── Change Log helper ──────────────────────────────────────────
@@ -308,75 +344,109 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       description: entry.description,
       previous_value: previousValue,
       new_value: newValue,
-    }).catch(() => {})
+    }).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   // ─── Budget ─────────────────────────────────────────────────────
 
-  const updateBudgetCategory = useCallback((category: string, amount: number) => {
-    setBudgetSettings((prev) => {
-      const oldAmount = prev.category_budgets[category]
-      const next = {
-        ...prev,
-        category_budgets: { ...prev.category_budgets, [category]: amount },
+  const updateBudgetCategory = useCallback(
+    (category: string, amount: number) => {
+      setBudgetSettings((prev) => {
+        const oldAmount = prev.category_budgets[category]
+        const next = {
+          ...prev,
+          category_budgets: { ...prev.category_budgets, [category]: amount },
+        }
+        addToLog({ type: 'UPDATE_BUDGET_CATEGORY', category, amount }, oldAmount, amount)
+        db.upsertBudgetSettings(next).catch((err) =>
+          console.error('[AppData] Operation failed:', err),
+        )
+        return next
+      })
+    },
+    [addToLog],
+  )
+
+  const updateTotalBudget = useCallback(
+    (amount: number) => {
+      setBudgetSettings((prev) => {
+        addToLog({ type: 'UPDATE_TOTAL_BUDGET', amount }, prev.total_budget, amount)
+        const next = { ...prev, total_budget: amount }
+        db.upsertBudgetSettings(next).catch((err) =>
+          console.error('[AppData] Operation failed:', err),
+        )
+        return next
+      })
+    },
+    [addToLog],
+  )
+
+  const updateDailyBudget = useCallback(
+    (amount: number) => {
+      setBudgetSettings((prev) => {
+        addToLog({ type: 'UPDATE_DAILY_BUDGET', amount }, prev.daily_budget, amount)
+        const next = { ...prev, daily_budget: amount }
+        db.upsertBudgetSettings(next).catch((err) =>
+          console.error('[AppData] Operation failed:', err),
+        )
+        return next
+      })
+    },
+    [addToLog],
+  )
+
+  const addExpense = useCallback(
+    (expense: Omit<Expense, 'id' | 'created_at'>) => {
+      const newExpense: Expense = {
+        ...expense,
+        id: `exp-${Date.now()}`,
+        created_at: new Date().toISOString(),
       }
-      addToLog({ type: 'UPDATE_BUDGET_CATEGORY', category, amount }, oldAmount, amount)
-      db.upsertBudgetSettings(next).catch(() => {})
-      return next
-    })
-  }, [addToLog])
-
-  const updateTotalBudget = useCallback((amount: number) => {
-    setBudgetSettings((prev) => {
-      addToLog({ type: 'UPDATE_TOTAL_BUDGET', amount }, prev.total_budget, amount)
-      const next = { ...prev, total_budget: amount }
-      db.upsertBudgetSettings(next).catch(() => {})
-      return next
-    })
-  }, [addToLog])
-
-  const updateDailyBudget = useCallback((amount: number) => {
-    setBudgetSettings((prev) => {
-      addToLog({ type: 'UPDATE_DAILY_BUDGET', amount }, prev.daily_budget, amount)
-      const next = { ...prev, daily_budget: amount }
-      db.upsertBudgetSettings(next).catch(() => {})
-      return next
-    })
-  }, [addToLog])
-
-  const addExpense = useCallback((expense: Omit<Expense, 'id' | 'created_at'>) => {
-    const newExpense: Expense = {
-      ...expense,
-      id: `exp-${Date.now()}`,
-      created_at: new Date().toISOString(),
-    }
-    setExpenses((prev) => {
-      addToLog({ type: 'ADD_EXPENSE', expense }, null, newExpense)
-      return [newExpense, ...prev]
-    })
-    db.insertExpense(newExpense).catch(() => {})
-  }, [addToLog])
+      setExpenses((prev) => {
+        addToLog({ type: 'ADD_EXPENSE', expense }, null, newExpense)
+        return [newExpense, ...prev]
+      })
+      db.insertExpense(newExpense).catch((err) => console.error('[AppData] Operation failed:', err))
+    },
+    [addToLog],
+  )
 
   const deleteExpense = useCallback((id: string) => {
     setExpenses((prev) => prev.filter((e) => e.id !== id))
-    db.deleteExpenseById(id).catch(() => {})
+    db.deleteExpenseById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   // ─── Itinerary ──────────────────────────────────────────────────
 
-  const updateItineraryDayNotes = useCallback((dayId: string, notes: string) => {
-    setItineraryDays((prev) =>
-      prev.map((day) => {
-        if (day.id !== dayId) return day
-        addToLog({ type: 'UPDATE_ITINERARY_DAY_NOTES', dayId, notes }, day.notes, notes)
-        return { ...day, notes }
-      }),
-    )
-    db.updateItineraryDay(dayId, { notes }).catch(() => {})
-  }, [addToLog])
+  const updateItineraryDayNotes = useCallback(
+    (dayId: string, notes: string) => {
+      setItineraryDays((prev) =>
+        prev.map((day) => {
+          if (day.id !== dayId) return day
+          addToLog({ type: 'UPDATE_ITINERARY_DAY_NOTES', dayId, notes }, day.notes, notes)
+          return { ...day, notes }
+        }),
+      )
+      db.updateItineraryDay(dayId, { notes }).catch((err) =>
+        console.error('[AppData] Operation failed:', err),
+      )
+    },
+    [addToLog],
+  )
 
   const addItineraryStop = useCallback(
-    (dayId: string, stop: { title: string; description?: string; location?: string; start_time?: string; end_time?: string; category?: string; notes?: string }) => {
+    (
+      dayId: string,
+      stop: {
+        title: string
+        description?: string
+        location?: string
+        start_time?: string
+        end_time?: string
+        category?: string
+        notes?: string
+      },
+    ) => {
       const stopId = `stop-${Date.now()}`
       setItineraryDays((prev) =>
         prev.map((day) => {
@@ -386,7 +456,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           return { ...day, stops: [...day.stops, newStop] }
         }),
       )
-      db.insertItineraryStop(dayId, { ...stop, id: stopId, order: 0 }).catch(() => {})
+      db.insertItineraryStop(dayId, { ...stop, id: stopId, order: 0 }).catch((err) =>
+        console.error('[AppData] Operation failed:', err),
+      )
     },
     [addToLog],
   )
@@ -397,7 +469,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const now = new Date().toISOString()
     const newTask: Task = { ...task, id: `task-${Date.now()}`, created_at: now, updated_at: now }
     setTasks((prev) => [...prev, newTask])
-    db.upsertTask(newTask).catch(() => {})
+    db.upsertTask(newTask).catch((err) => console.error('[AppData] Operation failed:', err))
     return newTask
   }, [])
 
@@ -412,7 +484,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         if (changes.status && changes.status !== 'done') {
           updated.completed_at = undefined
         }
-        db.upsertTask(updated).catch(() => {})
+        db.upsertTask(updated).catch((err) => console.error('[AppData] Operation failed:', err))
         return updated
       }),
     )
@@ -420,15 +492,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deleteTask = useCallback((id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id))
-    db.deleteTaskById(id).catch(() => {})
+    db.deleteTaskById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   const reorderTask = useCallback((id: string, newOrder: number, newGroup?: TaskGroup) => {
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id !== id) return t
-        const updated = { ...t, order: newOrder, group: newGroup ?? t.group, updated_at: new Date().toISOString() }
-        db.upsertTask(updated).catch(() => {})
+        const updated = {
+          ...t,
+          order: newOrder,
+          group: newGroup ?? t.group,
+          updated_at: new Date().toISOString(),
+        }
+        db.upsertTask(updated).catch((err) => console.error('[AppData] Operation failed:', err))
         return updated
       }),
     )
@@ -439,7 +516,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const addPackingItem = useCallback((item: Omit<PackingItem, 'id'>) => {
     const newItem: PackingItem = { ...item, id: `p-${Date.now()}` }
     setPackingItems((prev) => [...prev, newItem])
-    db.upsertPackingItem(newItem).catch(() => {})
+    db.upsertPackingItem(newItem).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   const updatePackingItem = useCallback((id: string, changes: Partial<PackingItem>) => {
@@ -447,7 +524,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((p) => {
         if (p.id !== id) return p
         const updated = { ...p, ...changes }
-        db.upsertPackingItem(updated).catch(() => {})
+        db.upsertPackingItem(updated).catch((err) =>
+          console.error('[AppData] Operation failed:', err),
+        )
         return updated
       }),
     )
@@ -455,16 +534,21 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deletePackingItem = useCallback((id: string) => {
     setPackingItems((prev) => prev.filter((p) => p.id !== id))
-    db.deletePackingItemById(id).catch(() => {})
+    db.deletePackingItemById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   // ─── Blog ───────────────────────────────────────────────────────
 
   const addBlogPost = useCallback((post: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'>) => {
     const now = new Date().toISOString()
-    const newPost: BlogPost = { ...post, id: `post-${Date.now()}`, created_at: now, updated_at: now }
+    const newPost: BlogPost = {
+      ...post,
+      id: `post-${Date.now()}`,
+      created_at: now,
+      updated_at: now,
+    }
     setBlogPosts((prev) => [newPost, ...prev])
-    db.upsertBlogPost(newPost).catch(() => {})
+    db.upsertBlogPost(newPost).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   const updateBlogPost = useCallback((id: string, changes: Partial<BlogPost>) => {
@@ -472,7 +556,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((p) => {
         if (p.id !== id) return p
         const updated = { ...p, ...changes, updated_at: new Date().toISOString() }
-        db.upsertBlogPost(updated).catch(() => {})
+        db.upsertBlogPost(updated).catch((err) => console.error('[AppData] Operation failed:', err))
         return updated
       }),
     )
@@ -480,15 +564,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deleteBlogPost = useCallback((id: string) => {
     setBlogPosts((prev) => prev.filter((p) => p.id !== id))
-    db.deleteBlogPostById(id).catch(() => {})
+    db.deleteBlogPostById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   // ─── Photos ─────────────────────────────────────────────────────
 
   const addPhoto = useCallback((photo: Omit<Photo, 'id' | 'created_at'>) => {
-    const newPhoto: Photo = { ...photo, id: `photo-${Date.now()}`, created_at: new Date().toISOString() }
+    const newPhoto: Photo = {
+      ...photo,
+      id: `photo-${Date.now()}`,
+      created_at: new Date().toISOString(),
+    }
     setPhotos((prev) => [newPhoto, ...prev])
-    db.upsertPhoto(newPhoto).catch(() => {})
+    db.upsertPhoto(newPhoto).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   const updatePhoto = useCallback((id: string, changes: Partial<Photo>) => {
@@ -496,7 +584,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((p) => {
         if (p.id !== id) return p
         const updated = { ...p, ...changes }
-        db.upsertPhoto(updated).catch(() => {})
+        db.upsertPhoto(updated).catch((err) => console.error('[AppData] Operation failed:', err))
         return updated
       }),
     )
@@ -504,7 +592,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deletePhoto = useCallback((id: string) => {
     setPhotos((prev) => prev.filter((p) => p.id !== id))
-    db.deletePhotoById(id).catch(() => {})
+    db.deletePhotoById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   // ─── Documents ──────────────────────────────────────────────────
@@ -513,7 +601,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const now = new Date().toISOString()
     const newDoc: Document = { ...doc, id: `udoc-${Date.now()}`, created_at: now, updated_at: now }
     setDocuments((prev) => [newDoc, ...prev])
-    db.upsertDocument(newDoc).catch(() => {})
+    db.upsertDocument(newDoc).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   const updateDocument = useCallback((id: string, changes: Partial<Document>) => {
@@ -521,7 +609,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((d) => {
         if (d.id !== id) return d
         const updated = { ...d, ...changes, updated_at: new Date().toISOString() }
-        db.upsertDocument(updated).catch(() => {})
+        db.upsertDocument(updated).catch((err) => console.error('[AppData] Operation failed:', err))
         return updated
       }),
     )
@@ -529,15 +617,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deleteDocument = useCallback((id: string) => {
     setDocuments((prev) => prev.filter((d) => d.id !== id))
-    db.deleteDocumentById(id).catch(() => {})
+    db.deleteDocumentById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   // ─── Playlist ───────────────────────────────────────────────────
 
   const addPlaylistItem = useCallback((item: Omit<PlaylistItem, 'id' | 'created_at'>) => {
-    const newItem: PlaylistItem = { ...item, id: `song-${Date.now()}`, created_at: new Date().toISOString() }
+    const newItem: PlaylistItem = {
+      ...item,
+      id: `song-${Date.now()}`,
+      created_at: new Date().toISOString(),
+    }
     setPlaylistItems((prev) => [newItem, ...prev])
-    db.upsertPlaylistItem(newItem).catch(() => {})
+    db.upsertPlaylistItem(newItem).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   const updatePlaylistItem = useCallback((id: string, changes: Partial<PlaylistItem>) => {
@@ -545,7 +637,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((p) => {
         if (p.id !== id) return p
         const updated = { ...p, ...changes }
-        db.upsertPlaylistItem(updated).catch(() => {})
+        db.upsertPlaylistItem(updated).catch((err) =>
+          console.error('[AppData] Operation failed:', err),
+        )
         return updated
       }),
     )
@@ -553,24 +647,36 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deletePlaylistItem = useCallback((id: string) => {
     setPlaylistItems((prev) => prev.filter((p) => p.id !== id))
-    db.deletePlaylistItem(id).catch(() => {})
+    db.deletePlaylistItem(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   // ─── Location Notes ────────────────────────────────────────────
 
-  const addLocationNote = useCallback((note: Omit<LocationNote, 'id' | 'created_at' | 'updated_at'>) => {
-    const now = new Date().toISOString()
-    const newNote: LocationNote = { ...note, id: `note-${Date.now()}`, created_at: now, updated_at: now }
-    setLocationNotes((prev) => [newNote, ...prev])
-    db.upsertLocationNote(newNote).catch(() => {})
-  }, [])
+  const addLocationNote = useCallback(
+    (note: Omit<LocationNote, 'id' | 'created_at' | 'updated_at'>) => {
+      const now = new Date().toISOString()
+      const newNote: LocationNote = {
+        ...note,
+        id: `note-${Date.now()}`,
+        created_at: now,
+        updated_at: now,
+      }
+      setLocationNotes((prev) => [newNote, ...prev])
+      db.upsertLocationNote(newNote).catch((err) =>
+        console.error('[AppData] Operation failed:', err),
+      )
+    },
+    [],
+  )
 
   const updateLocationNote = useCallback((id: string, changes: Partial<LocationNote>) => {
     setLocationNotes((prev) =>
       prev.map((n) => {
         if (n.id !== id) return n
         const updated = { ...n, ...changes, updated_at: new Date().toISOString() }
-        db.upsertLocationNote(updated).catch(() => {})
+        db.upsertLocationNote(updated).catch((err) =>
+          console.error('[AppData] Operation failed:', err),
+        )
         return updated
       }),
     )
@@ -578,7 +684,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deleteLocationNote = useCallback((id: string) => {
     setLocationNotes((prev) => prev.filter((n) => n.id !== id))
-    db.deleteLocationNoteById(id).catch(() => {})
+    db.deleteLocationNoteById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   // ─── Undo ───────────────────────────────────────────────────────
@@ -594,9 +700,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           setBudgetSettings((s) => {
             const next = {
               ...s,
-              category_budgets: { ...s.category_budgets, [latest.action.type === 'UPDATE_BUDGET_CATEGORY' ? (latest.action as { category: string }).category : '']: prev },
+              category_budgets: {
+                ...s.category_budgets,
+                [latest.action.type === 'UPDATE_BUDGET_CATEGORY'
+                  ? (latest.action as { category: string }).category
+                  : '']: prev,
+              },
             }
-            db.upsertBudgetSettings(next).catch(() => {})
+            db.upsertBudgetSettings(next).catch((err) =>
+              console.error('[AppData] Operation failed:', err),
+            )
             return next
           })
         }
@@ -607,7 +720,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         if (prev) {
           setBudgetSettings((s) => {
             const next = { ...s, total_budget: prev }
-            db.upsertBudgetSettings(next).catch(() => {})
+            db.upsertBudgetSettings(next).catch((err) =>
+              console.error('[AppData] Operation failed:', err),
+            )
             return next
           })
         }
@@ -618,7 +733,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         if (prev) {
           setBudgetSettings((s) => {
             const next = { ...s, daily_budget: prev }
-            db.upsertBudgetSettings(next).catch(() => {})
+            db.upsertBudgetSettings(next).catch((err) =>
+              console.error('[AppData] Operation failed:', err),
+            )
             return next
           })
         }
@@ -628,7 +745,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const added = latest.newValue as Expense
         if (added?.id) {
           setExpenses((prev) => prev.filter((e) => e.id !== added.id))
-          db.deleteExpenseById(added.id).catch(() => {})
+          db.deleteExpenseById(added.id).catch((err) =>
+            console.error('[AppData] Operation failed:', err),
+          )
         }
         break
       }
@@ -638,7 +757,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         setItineraryDays((days) =>
           days.map((d) => (d.id === dayId ? { ...d, notes: prev || '' } : d)),
         )
-        db.updateItineraryDay(dayId, { notes: prev || '' }).catch(() => {})
+        db.updateItineraryDay(dayId, { notes: prev || '' }).catch((err) =>
+          console.error('[AppData] Operation failed:', err),
+        )
         break
       }
       case 'ADD_ITINERARY_STOP': {
@@ -647,9 +768,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         if (added?.id) {
           setItineraryDays((days) =>
             days.map((d) =>
-              d.id === dayId
-                ? { ...d, stops: d.stops.filter((s) => s.id !== added.id) }
-                : d,
+              d.id === dayId ? { ...d, stops: d.stops.filter((s) => s.id !== added.id) } : d,
             ),
           )
         }
@@ -663,7 +782,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const clearChangeLog = useCallback(() => {
     setChangeLog([])
-    db.deleteMotiChangeLog().catch(() => {})
+    db.deleteMotiChangeLog().catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
   // ─── Build Moti Context ─────────────────────────────────────────
@@ -681,12 +800,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const packingPercent = totalPacking > 0 ? Math.round((packedCount / totalPacking) * 100) : 0
 
     const daysUntilTrip = Math.ceil(
-      (new Date('2026-09-11').getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      (new Date('2026-09-11').getTime() - Date.now()) / (1000 * 60 * 60 * 24),
     )
 
-    const recentExpenses = expenses.slice(0, 5).map(
-      (e) => `${e.title}: ₪${e.amount}`
-    ).join(', ')
+    const recentExpenses = expenses
+      .slice(0, 5)
+      .map((e) => `${e.title}: ₪${e.amount}`)
+      .join(', ')
 
     const lines = [
       `ימים לטיול: ${daysUntilTrip}`,
@@ -696,9 +816,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       `אריזה: ${packingPercent}% ארוז (${packedCount}/${totalPacking})`,
       `פתקים: ${locationNotes.length}`,
       recentExpenses ? `הוצאות אחרונות: ${recentExpenses}` : '',
-      urgentTasks.length > 0
-        ? `משימות דחופות: ${urgentTasks.map((t) => t.title).join(', ')}`
-        : '',
+      urgentTasks.length > 0 ? `משימות דחופות: ${urgentTasks.map((t) => t.title).join(', ')}` : '',
     ]
 
     return lines.filter(Boolean).join('\n')
@@ -741,8 +859,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }
         case 'COMPLETE_TASK': {
           const searchTitle = action.taskTitle.toLowerCase()
-          const task = tasks.find((t) =>
-            t.title.toLowerCase().includes(searchTitle) && t.status !== 'done'
+          const task = tasks.find(
+            (t) => t.title.toLowerCase().includes(searchTitle) && t.status !== 'done',
           )
           if (!task) return `לא מצאתי משימה פתוחה שמתאימה ל: ${action.taskTitle}`
           updateTask(task.id, { status: 'done', completed_at: new Date().toISOString() })
@@ -762,9 +880,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }
         case 'TOGGLE_PACKING_ITEM': {
           const searchName = action.itemName.toLowerCase()
-          const item = packingItems.find((p) =>
-            p.name.toLowerCase().includes(searchName)
-          )
+          const item = packingItems.find((p) => p.name.toLowerCase().includes(searchName))
           if (!item) return `לא מצאתי פריט אריזה שמתאים ל: ${action.itemName}`
           updatePackingItem(item.id, { is_packed: !item.is_packed })
           addToLog(action, item.is_packed, !item.is_packed)
@@ -780,60 +896,119 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           return 'לא הצלחתי לבצע את הפעולה'
       }
     },
-    [updateBudgetCategory, updateTotalBudget, updateDailyBudget, addExpense, updateItineraryDayNotes, addItineraryStop, tasks, packingItems, updateTask, updatePackingItem, addTask, addLocationNote, addToLog],
+    [
+      updateBudgetCategory,
+      updateTotalBudget,
+      updateDailyBudget,
+      addExpense,
+      updateItineraryDayNotes,
+      addItineraryStop,
+      tasks,
+      packingItems,
+      updateTask,
+      updatePackingItem,
+      addTask,
+      addLocationNote,
+      addToLog,
+    ],
   )
 
-  return (
-    <AppDataContext.Provider
-      value={{
-        isLoading,
-        budgetSettings,
-        expenses,
-        updateBudgetCategory,
-        updateTotalBudget,
-        updateDailyBudget,
-        addExpense,
-        deleteExpense,
-        itineraryDays,
-        updateItineraryDayNotes,
-        addItineraryStop,
-        tasks,
-        addTask,
-        updateTask,
-        deleteTask,
-        reorderTask,
-        packingItems,
-        addPackingItem,
-        updatePackingItem,
-        deletePackingItem,
-        blogPosts,
-        addBlogPost,
-        updateBlogPost,
-        deleteBlogPost,
-        photos,
-        addPhoto,
-        updatePhoto,
-        deletePhoto,
-        documents,
-        addDocument,
-        updateDocument,
-        deleteDocument,
-        playlistItems,
-        addPlaylistItem,
-        updatePlaylistItem,
-        deletePlaylistItem,
-        locationNotes,
-        addLocationNote,
-        updateLocationNote,
-        deleteLocationNote,
-        executeMotiAction,
-        changeLog,
-        undoLastChange,
-        clearChangeLog,
-        buildMotiContext,
-      }}
-    >
-      {children}
-    </AppDataContext.Provider>
+  const contextValue = useMemo<AppDataContextType>(
+    () => ({
+      isLoading,
+      budgetSettings,
+      expenses,
+      updateBudgetCategory,
+      updateTotalBudget,
+      updateDailyBudget,
+      addExpense,
+      deleteExpense,
+      itineraryDays,
+      updateItineraryDayNotes,
+      addItineraryStop,
+      tasks,
+      addTask,
+      updateTask,
+      deleteTask,
+      reorderTask,
+      packingItems,
+      addPackingItem,
+      updatePackingItem,
+      deletePackingItem,
+      blogPosts,
+      addBlogPost,
+      updateBlogPost,
+      deleteBlogPost,
+      photos,
+      addPhoto,
+      updatePhoto,
+      deletePhoto,
+      documents,
+      addDocument,
+      updateDocument,
+      deleteDocument,
+      playlistItems,
+      addPlaylistItem,
+      updatePlaylistItem,
+      deletePlaylistItem,
+      locationNotes,
+      addLocationNote,
+      updateLocationNote,
+      deleteLocationNote,
+      executeMotiAction,
+      changeLog,
+      undoLastChange,
+      clearChangeLog,
+      buildMotiContext,
+    }),
+    [
+      isLoading,
+      budgetSettings,
+      expenses,
+      updateBudgetCategory,
+      updateTotalBudget,
+      updateDailyBudget,
+      addExpense,
+      deleteExpense,
+      itineraryDays,
+      updateItineraryDayNotes,
+      addItineraryStop,
+      tasks,
+      addTask,
+      updateTask,
+      deleteTask,
+      reorderTask,
+      packingItems,
+      addPackingItem,
+      updatePackingItem,
+      deletePackingItem,
+      blogPosts,
+      addBlogPost,
+      updateBlogPost,
+      deleteBlogPost,
+      photos,
+      addPhoto,
+      updatePhoto,
+      deletePhoto,
+      documents,
+      addDocument,
+      updateDocument,
+      deleteDocument,
+      playlistItems,
+      addPlaylistItem,
+      updatePlaylistItem,
+      deletePlaylistItem,
+      locationNotes,
+      addLocationNote,
+      updateLocationNote,
+      deleteLocationNote,
+      executeMotiAction,
+      changeLog,
+      undoLastChange,
+      clearChangeLog,
+      buildMotiContext,
+    ],
   )
+
+  return <AppDataContext.Provider value={contextValue}>{children}</AppDataContext.Provider>
 }

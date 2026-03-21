@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Check, AlertTriangle, Clock, ChevronUp, ChevronDown, Minus } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS, STATUS_MAP } from '@/constants'
@@ -14,7 +15,10 @@ interface TaskRowProps {
 
 const STATUS_ORDER: TaskStatus[] = ['todo', 'in_progress', 'waiting', 'done']
 
-const PRIORITY_CONFIG: Record<TaskPriority, { icon: typeof ChevronUp; label: string; className: string }> = {
+const PRIORITY_CONFIG: Record<
+  TaskPriority,
+  { icon: typeof ChevronUp; label: string; className: string }
+> = {
   urgent: { icon: AlertTriangle, label: 'דחוף', className: 'text-red-500' },
   high: { icon: ChevronUp, label: 'גבוה', className: 'text-orange-500' },
   medium: { icon: Minus, label: 'בינוני', className: 'text-yellow-600' },
@@ -23,7 +27,9 @@ const PRIORITY_CONFIG: Record<TaskPriority, { icon: typeof ChevronUp; label: str
 
 function isOverdue(dueDate?: string): boolean {
   if (!dueDate) return false
-  return new Date(dueDate) < new Date() && new Date(dueDate).toDateString() !== new Date().toDateString()
+  return (
+    new Date(dueDate) < new Date() && new Date(dueDate).toDateString() !== new Date().toDateString()
+  )
 }
 
 function formatDate(dateStr?: string): string {
@@ -32,7 +38,12 @@ function formatDate(dateStr?: string): string {
   return new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'short' }).format(date)
 }
 
-export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowProps) {
+export const TaskRow = memo(function TaskRow({
+  task,
+  onToggleDone,
+  onCycleStatus,
+  onClick,
+}: TaskRowProps) {
   const isDone = task.status === 'done'
   const overdue = !isDone && isOverdue(task.due_date)
   const priorityConfig = PRIORITY_CONFIG[task.priority]
@@ -83,7 +94,11 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
           isDone && 'line-through text-apple-secondary',
         )}
       >
-        {isSampleData(task.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}
+        {isSampleData(task.id) && (
+          <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">
+            🤖
+          </span>
+        )}
         {task.title}
       </span>
 
@@ -101,7 +116,10 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
       </button>
 
       {/* Priority - hidden on mobile */}
-      <div className={cn('shrink-0 hidden sm:block', priorityConfig.className)} title={priorityConfig.label}>
+      <div
+        className={cn('shrink-0 hidden sm:block', priorityConfig.className)}
+        title={priorityConfig.label}
+      >
         <PriorityIcon className="h-4 w-4" />
       </div>
 
@@ -110,13 +128,7 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
         {task.assigned_to.slice(0, 2).map((memberId: FamilyMemberId) => {
           const member = FAMILY_MEMBERS[memberId]
           if (!member) return null
-          return (
-            <FamilyAvatar
-              key={memberId}
-              memberId={memberId}
-              size="xs"
-            />
-          )
+          return <FamilyAvatar key={memberId} memberId={memberId} size="xs" />
         })}
         {task.assigned_to.length > 2 && (
           <div className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-black/[0.04] text-[9px] sm:text-[10px] font-bold text-apple-secondary">
@@ -143,4 +155,4 @@ export function TaskRow({ task, onToggleDone, onCycleStatus, onClick }: TaskRowP
       </div>
     </div>
   )
-}
+})
