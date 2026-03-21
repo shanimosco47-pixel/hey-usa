@@ -14,23 +14,24 @@ import { getPrimaryLocationForCity } from '@/data/locations'
 
 // City-themed gradients, emojis & hero photos for visual flair
 const CITY_THEMES: Record<string, { gradient: string; emoji: string; photo?: string }> = {
-  'Denver': { gradient: 'from-blue-500 to-indigo-500', emoji: '🏔️', photo: 'https://images.unsplash.com/photo-1546156929-a4c0ac411f47?w=800&q=80' },
   'Bozeman': { gradient: 'from-emerald-500 to-teal-600', emoji: '🦬', photo: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80' },
   'Gardiner': { gradient: 'from-emerald-500 to-teal-600', emoji: '🦬', photo: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80' },
   'Yellowstone': { gradient: 'from-yellow-500 to-orange-600', emoji: '🌋', photo: 'https://images.unsplash.com/photo-1533419790775-85dff57b5a3e?w=800&q=80' },
+  'Canyon': { gradient: 'from-yellow-500 to-orange-600', emoji: '🌋', photo: 'https://images.unsplash.com/photo-1533419790775-85dff57b5a3e?w=800&q=80' },
+  'Madison': { gradient: 'from-yellow-500 to-orange-600', emoji: '🌋', photo: 'https://images.unsplash.com/photo-1533419790775-85dff57b5a3e?w=800&q=80' },
   'Grand Teton': { gradient: 'from-sky-500 to-blue-700', emoji: '🏔️', photo: 'https://images.unsplash.com/photo-1536183922588-166604504d5e?w=800&q=80' },
-  'Jackson': { gradient: 'from-amber-500 to-yellow-600', emoji: '🤠', photo: 'https://images.unsplash.com/photo-1577083552431-6e5fd01988ec?w=800&q=80' },
+  'Salt Lake City': { gradient: 'from-slate-500 to-blue-600', emoji: '🏛️', photo: 'https://images.unsplash.com/photo-1617575521317-d2974f3b56d2?w=800&q=80' },
   'Bryce': { gradient: 'from-orange-500 to-red-600', emoji: '🪨', photo: 'https://images.unsplash.com/photo-1472396961693-142e6e269027?w=800&q=80' },
   'Zion': { gradient: 'from-red-500 to-orange-500', emoji: '🏔️', photo: 'https://images.unsplash.com/photo-1462651567147-aa679fd1cfaf?w=800&q=80' },
   'Las Vegas': { gradient: 'from-purple-500 to-pink-500', emoji: '🎰', photo: 'https://images.unsplash.com/photo-1605833556294-ea5c7a74f57d?w=800&q=80' },
   'Mammoth': { gradient: 'from-blue-500 to-indigo-600', emoji: '🎿', photo: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80' },
   'Yosemite': { gradient: 'from-green-600 to-emerald-500', emoji: '🌿', photo: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=800&q=80' },
-  'San Francisco': { gradient: 'from-red-500 to-orange-400', emoji: '🌉', photo: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80' },
-  'Provo': { gradient: 'from-slate-500 to-gray-600', emoji: '🛣️' },
-  'Nephi': { gradient: 'from-slate-500 to-gray-600', emoji: '🛣️' },
   'Wawona': { gradient: 'from-green-700 to-emerald-600', emoji: '🌲', photo: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=800&q=80' },
-  'Anthony Chabot': { gradient: 'from-teal-500 to-cyan-600', emoji: '🏕️' },
+  'Santa Cruz': { gradient: 'from-cyan-500 to-blue-500', emoji: '🏖️' },
+  'Monterey': { gradient: 'from-cyan-500 to-blue-500', emoji: '🐋' },
+  'Big Sur': { gradient: 'from-cyan-600 to-blue-700', emoji: '🌊', photo: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80' },
   'Marin': { gradient: 'from-sky-400 to-blue-500', emoji: '🌊' },
+  'San Francisco': { gradient: 'from-red-500 to-orange-400', emoji: '🌉', photo: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=800&q=80' },
 }
 
 function getCityTheme(city?: string): { gradient: string; emoji: string; photo?: string } {
