@@ -107,13 +107,18 @@ function EditableCell({
     )
   }
 
+  // Format date values for display (YYYY-MM-DD → DD/MM)
+  const displayValue = type === 'date' && value
+    ? (() => { const d = new Date(value); return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}` })()
+    : value
+
   return (
     <span
       onClick={startEdit}
       className={`cursor-pointer hover:bg-gray-100 rounded px-1 py-0.5 block min-h-[1.5em] ${className}`}
       title="לחץ לעריכה"
     >
-      {value || <span className="text-gray-300">—</span>}
+      {displayValue || <span className="text-gray-300">—</span>}
     </span>
   )
 }
@@ -445,9 +450,21 @@ export default function CampsitesPage() {
                         className={`text-xs ${isBackup ? 'text-amber-600 font-medium' : ''}`}
                       />
                     </td>
-                    {/* Dates */}
+                    {/* Dates — check_in */}
                     <td className="px-2 py-1.5 text-xs font-mono" style={{ width: colWidths.dates }}>
-                      {formatDateRange(b.check_in, b.check_out)}
+                      <div className="flex items-center gap-0.5">
+                        <EditableCell
+                          value={b.check_in}
+                          type="date"
+                          onChange={(v) => updateBooking(b.id, { check_in: v })}
+                        />
+                        <span className="text-gray-300 shrink-0">→</span>
+                        <EditableCell
+                          value={b.check_out}
+                          type="date"
+                          onChange={(v) => updateBooking(b.id, { check_out: v })}
+                        />
+                      </div>
                     </td>
                     {/* Registration opens */}
                     <td className="px-2 py-1.5" style={{ width: colWidths.regOpens }}>
