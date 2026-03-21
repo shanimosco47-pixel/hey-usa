@@ -441,7 +441,7 @@ export default function CampsitesPage() {
                     </td>
                     {/* Dates — check_in */}
                     <td className="px-2 py-1.5 text-xs font-mono" style={{ width: colWidths.dates }}>
-                      <div className="flex items-center gap-0.5">
+                      <div className="flex items-center gap-0.5" dir="ltr">
                         <EditableCell
                           value={b.check_in}
                           type="date"
