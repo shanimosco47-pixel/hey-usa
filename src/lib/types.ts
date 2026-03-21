@@ -33,8 +33,11 @@ export interface FamilyMember {
   id: FamilyMemberId;
   name: string;
   name_en: string;
+  emoji: string;
   avatar_emoji: string;
+  initials: string;
   color: string;
+  colorEnd?: string;
 }
 
 // ─── Itinerary ──────────────────────────────────────────────────────

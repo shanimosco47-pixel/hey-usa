@@ -11,7 +11,7 @@ import {
   Eye,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { getFamilyMember } from '@/lib/constants'
+import { getFamilyMember } from '@/constants'
 import { isSampleData } from '@/lib/sampleData'
 import {
   ROAD_TRIP_GAMES,

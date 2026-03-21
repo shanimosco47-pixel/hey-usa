@@ -9,10 +9,9 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Task } from '@/lib/types'
-import { FAMILY_MEMBERS } from '@/constants'
+import { FAMILY_MEMBERS, TRIP_START_DATE, TRIP_END_DATE, ROUTE_COLORS } from '@/constants'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import type { FamilyMemberId } from '@/lib/types'
-import { TRIP_START_DATE, TRIP_END_DATE } from '@/lib/constants'
 import WeatherWidget from '@/components/shared/WeatherWidget'
 import { MotiRobot } from '@/components/shared/MotiRobot'
 import { getAvatarPhoto } from '@/lib/avatarStorage'
@@ -436,30 +435,6 @@ export default function DashboardPage() {
             <div className="overflow-x-auto -mx-1 px-1 pb-1">
               <div className="flex items-center gap-0 min-w-max">
                 {(() => {
-                  // Desert palette gradient for pre-trip visualization
-                  const ROUTE_COLORS = [
-                    '#8B6F47', // Denver — earth brown
-                    '#5B8C5A', // Montana — forest green
-                    '#6B8E6B', // Yellowstone — sage
-                    '#7BA07B', // Yellowstone — moss
-                    '#4A7C59', // Yellowstone — deep green
-                    '#C4956A', // Jackson — warm sand
-                    '#D4A574', // Jackson — golden sand
-                    '#D4956B', // Provo — desert orange
-                    '#C2664A', // Bryce — terracotta
-                    '#B85C3F', // Zion — red rock
-                    '#A84E35', // Zion — canyon red
-                    '#D4A843', // Vegas — gold
-                    '#E5B94E', // Vegas — bright gold
-                    '#7B9EB8', // Mammoth — mountain blue
-                    '#5D8AA8', // Yosemite — sky blue
-                    '#4A7C96', // Yosemite — lake blue
-                    '#3D6B5E', // Wawona — sequoia green
-                    '#6B9B8A', // Anthony Chabot — bay green
-                    '#8CAAB4', // Marin — ocean mist
-                    '#2B6CB0', // SF — pacific blue
-                    '#1E5A9E', // SF flight — deep blue
-                  ]
                   const allFuture = tripDayIndex === null
                   return itineraryDays.map((day, i) => {
                     const isCurrent = tripDayIndex === i

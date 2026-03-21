@@ -20,7 +20,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
-import { PACKING_CATEGORIES, FAMILY_MEMBERS, getFamilyMember } from '@/lib/constants'
+import { PACKING_CATEGORIES, FAMILY_MEMBERS_LIST, getFamilyMember } from '@/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { FamilyMemberId } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'

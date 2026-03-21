@@ -4,7 +4,7 @@
 
 import type { MotiAction } from '@/contexts/AppDataContext'
 import type { FamilyMemberId } from '@/lib/types'
-import { EXPENSE_CATEGORIES } from '@/lib/constants'
+import { EXPENSE_CATEGORIES } from '@/constants'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'

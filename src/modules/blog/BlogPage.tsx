@@ -11,7 +11,7 @@ import {
   ArrowRight,
   Sparkles,
 } from 'lucide-react'
-import { getFamilyMember } from '@/lib/constants'
+import { getFamilyMember } from '@/constants'
 import { Button } from '@/components/ui/button'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { BlogPost, FamilyMemberId } from '@/lib/types'

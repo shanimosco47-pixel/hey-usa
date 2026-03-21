@@ -1,6 +1,7 @@
 // Re-export core types from the canonical location
 export type {
   FamilyMemberId,
+  FamilyMember,
   TaskStatus,
   TaskPriority,
   TaskGroup,
@@ -22,21 +23,6 @@ export type {
   BookingChangeEntry,
   CampsiteBooking,
 } from '@/lib/types'
-
-// Re-export FamilyMember under an alias to avoid conflicts with local UI definition
-export type { FamilyMember as FamilyMemberRecord } from '@/lib/types'
-
-import type { FamilyMemberId } from '@/lib/types'
-
-/** UI-oriented family member shape used by avatar and selection components */
-export interface FamilyMember {
-  id: FamilyMemberId
-  name: string
-  emoji: string
-  initials: string
-  color: string
-  colorEnd?: string
-}
 
 /** Status badge configuration */
 export interface StatusConfig {

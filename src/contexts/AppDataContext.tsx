@@ -25,7 +25,7 @@ import type {
   FamilyMemberId,
   NoteColor,
 } from '@/lib/types'
-import { EXPENSE_CATEGORIES } from '@/lib/constants'
+import { EXPENSE_CATEGORIES } from '@/constants'
 import { supabase } from '@/lib/supabase'
 import * as db from '@/lib/database'
 import { hydrateAvatarsFromSupabase } from '@/lib/avatarStorage'

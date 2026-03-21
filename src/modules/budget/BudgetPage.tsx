@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import {
   DollarSign,
@@ -21,38 +21,15 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
-import { EXPENSE_CATEGORIES } from '@/lib/constants'
-import { FAMILY_MEMBERS, getFamilyMember } from '@/lib/constants'
+import { EXPENSE_CATEGORIES, FAMILY_MEMBERS_LIST, getFamilyMember } from '@/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Expense } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
 import { DailyBudgetTable } from './components/DailyBudgetTable'
 import { DailyBudgetView } from './components/DailyBudgetView'
-import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
 
-function GlassTooltip({ active, payload, label, currency }: { active?: boolean; payload?: Array<{ name: string; value: number }>; label?: string; currency: string }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div className="glass rounded-apple px-3 py-2 shadow-glass-hover border border-black/[0.06]">
-      {label && <p className="text-xs text-apple-secondary mb-1">{label}</p>}
-      {payload.map((entry, i) => (
-        <p key={i} className="text-sm font-medium text-apple-primary">
-          {entry.name}: {currency}{Number(entry.value).toLocaleString()}
-        </p>
-      ))}
-    </div>
-  )
-}
+const BudgetBarChart = lazy(() => import('./components/Charts').then(mod => ({ default: mod.BudgetBarChart })))
+const BudgetPieChart = lazy(() => import('./components/Charts').then(mod => ({ default: mod.BudgetPieChart })))
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
   flights: Plane,
@@ -65,11 +42,6 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   insurance: Shield,
   other: MoreHorizontal,
 }
-
-const PIE_COLORS = [
-  '#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6',
-  '#FF2D55', '#5AC8FA', '#AF52DE', '#FFCC00',
-]
 
 type BudgetTab = 'planning' | 'actual' | 'daily'
 
@@ -429,25 +401,9 @@ export default function BudgetPage() {
           {/* Bar Chart: Budget vs Actual */}
           <div className="glass rounded-apple-lg p-4 shadow-sm">
             <h3 className="mb-2 text-sm font-bold text-apple-primary">תקציב מול הוצאות</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={barData} layout="vertical">
-                <XAxis type="number" hide />
-                <YAxis type="category" dataKey="name" width={60} tick={{ fontSize: 11 }} />
-                <Tooltip content={<GlassTooltip currency={settings.currency} />} />
-                <Bar dataKey="budget" name="תקציב" fill="#d1d1d6" radius={[0, 4, 4, 0]} barSize={12} />
-                <Bar dataKey="spent" name="הוצאות" fill="#007AFF" radius={[0, 4, 4, 0]} barSize={12} />
-              </BarChart>
-            </ResponsiveContainer>
-            <div className="mt-2 flex justify-center gap-4 text-xs text-apple-secondary">
-              <div className="flex items-center gap-1">
-                <div className="h-2.5 w-2.5 rounded-full bg-[#d1d1d6]" />
-                תקציב מתוכנן
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="h-2.5 w-2.5 rounded-full bg-ios-blue" />
-                הוצאות בפועל
-              </div>
-            </div>
+            <Suspense fallback={<div className="h-[200px] flex items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-black/[0.06] border-t-ios-blue" /></div>}>
+              <BudgetBarChart data={barData} currency={settings.currency} />
+            </Suspense>
           </div>
         </motion.div>
       )}
@@ -529,32 +485,9 @@ export default function BudgetPage() {
           {pieData.length > 0 && (
             <div className="glass rounded-apple-lg p-4 shadow-sm">
               <h3 className="mb-2 text-sm font-bold text-apple-primary">חלוקת הוצאות בפועל</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {pieData.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<GlassTooltip currency={settings.currency} />} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-2 flex flex-wrap gap-2 justify-center">
-                {pieData.map((entry, i) => (
-                  <div key={entry.name} className="flex items-center gap-1 text-xs text-apple-secondary">
-                    <div className="h-2.5 w-2.5 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
-                    {entry.name}
-                  </div>
-                ))}
-              </div>
+              <Suspense fallback={<div className="h-[200px] flex items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-black/[0.06] border-t-ios-blue" /></div>}>
+                <BudgetPieChart data={pieData} currency={settings.currency} />
+              </Suspense>
             </div>
           )}
 
