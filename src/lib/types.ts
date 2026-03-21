@@ -191,6 +191,38 @@ export interface LocationNote {
   updated_at: string;
 }
 
+// ─── Campsite Bookings ─────────────────────────────────────────────
+
+export type AccommodationType = 'campground' | 'rv_park' | 'hotel' | 'overnight_parking' | 'unknown'
+export type BookingStatus = 'confirmed' | 'pending' | 'not_open' | 'waitlist' | 'cancelled'
+export type BookingPriority = 'primary' | 'backup'
+
+export interface BookingChangeEntry {
+  field: string
+  old_value: string
+  new_value: string
+  changed_at: string
+}
+
+export interface CampsiteBooking {
+  id: string
+  check_in: string
+  check_out: string
+  location: string
+  area: string
+  type: AccommodationType
+  priority: BookingPriority
+  registration_opens?: string
+  status: BookingStatus
+  confirmation?: string
+  booking_url?: string
+  cost?: number
+  notes?: string
+  changelog: BookingChangeEntry[]
+  created_at: string
+  updated_at: string
+}
+
 // ─── Sync ───────────────────────────────────────────────────────────
 
 export interface SyncQueueItem {

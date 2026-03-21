@@ -47,6 +47,7 @@ const OAuthCallbackPage = lazy(() => import('@/modules/auth/OAuthCallbackPage'))
 const LocationsPage = lazy(() => import('@/modules/locations/LocationsPage'))
 const LocationHubPage = lazy(() => import('@/modules/locations/LocationHubPage'))
 const NotesPage = lazy(() => import('@/modules/notes/NotesPage'))
+const CampsitesPage = lazy(() => import('@/modules/campsites/CampsitesPage'))
 
 function LoadingFallback() {
   return (
@@ -109,6 +110,7 @@ function AppInner() {
               <Route path="tasks" element={<TasksPage />} />
               <Route path="itinerary" element={<ItineraryPage />} />
               <Route path="itinerary/:day" element={<ItineraryPage />} />
+              <Route path="campsites" element={<CampsitesPage />} />
               <Route path="documents" element={<DocumentsPage />} />
               <Route path="map" element={<MapPage />} />
               <Route path="photos" element={<PhotosPage />} />

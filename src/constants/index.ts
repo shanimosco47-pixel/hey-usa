@@ -86,6 +86,7 @@ export const NAV_ITEMS = [
   { path: '/', label: 'בית', icon: 'Home' },
   { path: '/tasks', label: 'משימות', icon: 'ClipboardCheck' },
   { path: '/itinerary', label: 'לוח זמנים', icon: 'CalendarDays' },
+  { path: '/campsites', label: 'לינות', icon: 'Tent' },
   { path: '/documents', label: 'מסמכים', icon: 'FolderOpen' },
   { path: '/map', label: 'מפה', icon: 'MapPinned' },
   { path: '/photos', label: 'תמונות', icon: 'ImagePlus' },
@@ -107,6 +108,7 @@ export const BOTTOM_TAB_ITEMS = [
 
 export const MORE_MENU_ITEMS = [
   { path: '/itinerary', label: 'לוח זמנים', icon: 'CalendarDays' },
+  { path: '/campsites', label: 'לינות', icon: 'Tent' },
   { path: '/documents', label: 'מסמכים', icon: 'FolderOpen' },
   { path: '/blog', label: 'בלוג', icon: 'Notebook' },
   { path: '/budget', label: 'תקציב', icon: 'Wallet' },
