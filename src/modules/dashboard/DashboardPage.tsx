@@ -2,9 +2,18 @@ import { useMemo, useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  CheckCircle2, CalendarRange, FolderClosed, Map,
-  Camera, PenLine, CreditCard, Music, Briefcase,
-  MapPin, AlertTriangle, Mail,
+  CheckCircle2,
+  CalendarRange,
+  FolderClosed,
+  Map,
+  Camera,
+  PenLine,
+  CreditCard,
+  Music,
+  Briefcase,
+  MapPin,
+  AlertTriangle,
+  Mail,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAppData } from '@/contexts/AppDataContext'
@@ -135,17 +144,17 @@ export default function DashboardPage() {
   const tasksDone = tasks.filter((t) => t.status === 'done').length
   const tasksTotal = tasks.length
   const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0)
-  const budgetPercent = budgetSettings.total_budget > 0
-    ? Math.round((totalSpent / budgetSettings.total_budget) * 100)
-    : 0
+  const budgetPercent =
+    budgetSettings.total_budget > 0
+      ? Math.round((totalSpent / budgetSettings.total_budget) * 100)
+      : 0
   const packedCount = packingItems.filter((p) => p.is_packed).length
   const packingTotal = packingItems.length
   const packingPercent = packingTotal > 0 ? Math.round((packedCount / packingTotal) * 100) : 0
 
   // --- Next destination ---
-  const nextDay = tripDayIndex !== null
-    ? itineraryDays[tripDayIndex] || itineraryDays[0]
-    : itineraryDays[0]
+  const nextDay =
+    tripDayIndex !== null ? itineraryDays[tripDayIndex] || itineraryDays[0] : itineraryDays[0]
 
   // --- Counts for module badges ---
   const badgeCounts: Record<string, number> = {
@@ -176,7 +185,11 @@ export default function DashboardPage() {
       }
       // Urgent/high priority
       if (t.priority === 'urgent' || t.priority === 'high') {
-        items.push({ task: t, reason: t.priority === 'urgent' ? 'דחוף' : 'עדיפות גבוהה', color: t.priority === 'urgent' ? '#FF3B30' : '#FF9500' })
+        items.push({
+          task: t,
+          reason: t.priority === 'urgent' ? 'דחוף' : 'עדיפות גבוהה',
+          color: t.priority === 'urgent' ? '#FF3B30' : '#FF9500',
+        })
       }
     }
 
@@ -195,13 +208,21 @@ export default function DashboardPage() {
 
   // --- Email reminder ---
   const [reminderEmail, setReminderEmail] = useState(() => {
-    try { return localStorage.getItem('hey-usa-reminder-email') || '' } catch { return '' }
+    try {
+      return localStorage.getItem('hey-usa-reminder-email') || ''
+    } catch {
+      return ''
+    }
   })
   const [showReminderPanel, setShowReminderPanel] = useState(false)
 
   const saveReminderEmail = useCallback((email: string) => {
     setReminderEmail(email)
-    try { localStorage.setItem('hey-usa-reminder-email', email) } catch { /* noop */ }
+    try {
+      localStorage.setItem('hey-usa-reminder-email', email)
+    } catch {
+      /* noop */
+    }
   }, [])
 
   const buildReminderMailto = useCallback(() => {
@@ -213,7 +234,8 @@ export default function DashboardPage() {
 
     const overdue = tasks.filter((t) => t.status !== 'done' && t.due_date && t.due_date < todayStr)
     const dueThisWeek = tasks.filter(
-      (t) => t.status !== 'done' && t.due_date && t.due_date >= todayStr && t.due_date <= endOfWeekStr,
+      (t) =>
+        t.status !== 'done' && t.due_date && t.due_date >= todayStr && t.due_date <= endOfWeekStr,
     )
     const openTasks = tasks.filter((t) => t.status !== 'done').length
 
@@ -241,7 +263,9 @@ export default function DashboardPage() {
     lines.push('---')
     lines.push('נשלח מאפליקציית Hey USA')
 
-    const subject = encodeURIComponent(`Hey USA - ${daysLeft} ימים לטיול! (${openTasks} משימות פתוחות)`)
+    const subject = encodeURIComponent(
+      `Hey USA - ${daysLeft} ימים לטיול! (${openTasks} משימות פתוחות)`,
+    )
     const body = encodeURIComponent(lines.join('\n'))
     const to = encodeURIComponent(reminderEmail)
 
@@ -256,7 +280,8 @@ export default function DashboardPage() {
       <div
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: 'url(https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1920&q=85)',
+          backgroundImage:
+            'url(https://images.unsplash.com/photo-1472396961693-142e6e269027?w=1920&q=85)',
           backgroundSize: 'cover',
           backgroundPosition: 'center 40%',
         }}
@@ -264,561 +289,616 @@ export default function DashboardPage() {
       {/* Light overlay for readability */}
       <div className="fixed inset-0 z-0" style={{ backgroundColor: 'rgba(245, 245, 247, 0.82)' }} />
 
-    <div className="relative z-10 mx-auto max-w-lg px-5 pt-8 pb-28">
-      {/* Greeting */}
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="mb-6"
-      >
-        <p className="text-[13px] text-apple-secondary tracking-wide">{todayDate}</p>
-        <h1 className="mt-1 text-[28px] font-bold tracking-tight text-apple-primary leading-tight">
-          {memberData ? `שלום, ${memberData.name}` : 'שלום!'}
-        </h1>
-      </motion.div>
+      <div className="relative z-10 mx-auto max-w-lg px-5 pt-8 pb-28">
+        {/* Greeting */}
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="mb-6"
+        >
+          <p className="text-[13px] text-apple-secondary tracking-wide">{todayDate}</p>
+          <h1 className="mt-1 text-[28px] font-bold tracking-tight text-apple-primary leading-tight">
+            {memberData ? `שלום, ${memberData.name}` : 'שלום!'}
+          </h1>
+        </motion.div>
 
-      {/* Family strip */}
-      <motion.div
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.05 }}
-        className="mb-5 flex items-center justify-center gap-3"
-      >
-        {(['aba', 'ima', 'kid1', 'kid2', 'kid3', 'moti'] as FamilyMemberId[]).map((id, i) => (
-          <motion.div
-            key={id}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 + i * 0.06, type: 'spring', stiffness: 400, damping: 20 }}
-          >
-            <Link to={id === 'moti' ? '/chat' : '#'}>
-              <FamilyAvatar memberId={id} size="md" showRoleIcon />
-            </Link>
-          </motion.div>
-        ))}
-      </motion.div>
+        {/* Family strip */}
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.05 }}
+          className="mb-5 flex items-center justify-center gap-3"
+        >
+          {(['aba', 'ima', 'kid1', 'kid2', 'kid3', 'moti'] as FamilyMemberId[]).map((id, i) => (
+            <motion.div
+              key={id}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1 + i * 0.06, type: 'spring', stiffness: 400, damping: 20 }}
+            >
+              <Link to={id === 'moti' ? '/chat' : '#'}>
+                <FamilyAvatar memberId={id} size="md" showRoleIcon />
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
 
-      {/* ── Rotating Hero Card (replaces countdown) ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="mb-4 rounded-[20px] overflow-hidden relative"
-        style={{ minHeight: 200 }}
-      >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={scene.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8, ease: 'easeInOut' }}
-            className="relative rounded-[20px] overflow-hidden"
-            style={{ background: scene.gradient }}
-          >
-            {/* Ambient glow */}
-            <div
-              className="absolute top-0 right-0 w-56 h-56 opacity-20 pointer-events-none"
-              style={{
-                background: 'radial-gradient(circle at 80% 20%, white, transparent 60%)',
-              }}
-            />
-            <div
-              className="absolute bottom-0 left-0 w-40 h-40 opacity-15 pointer-events-none"
-              style={{
-                background: 'radial-gradient(circle at 20% 80%, white, transparent 60%)',
-              }}
-            />
+        {/* ── Rotating Hero Card (replaces countdown) ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="mb-4 rounded-[20px] overflow-hidden relative"
+          style={{ minHeight: 200 }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={scene.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: 'easeInOut' }}
+              className="relative rounded-[20px] overflow-hidden"
+              style={{ background: scene.gradient }}
+            >
+              {/* Ambient glow */}
+              <div
+                className="absolute top-0 right-0 w-56 h-56 opacity-20 pointer-events-none"
+                style={{
+                  background: 'radial-gradient(circle at 80% 20%, white, transparent 60%)',
+                }}
+              />
+              <div
+                className="absolute bottom-0 left-0 w-40 h-40 opacity-15 pointer-events-none"
+                style={{
+                  background: 'radial-gradient(circle at 20% 80%, white, transparent 60%)',
+                }}
+              />
 
-            <div className="relative px-6 py-6">
-              <div className="flex items-start justify-between">
-                {/* Countdown info */}
-                <div>
-                  <div className="flex items-baseline gap-3">
-                    <motion.span
-                      key={`${scene.id}-days`}
-                      initial={{ scale: 1.1, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                      className="text-[52px] font-bold text-white leading-none tracking-tighter"
-                      style={{ textShadow: '0 2px 12px rgba(0,0,0,0.2)' }}
-                    >
-                      {daysLeft}
-                    </motion.span>
-                    <span className="text-[17px] font-medium text-white/80">ימים</span>
+              <div className="relative px-6 py-6">
+                <div className="flex items-start justify-between">
+                  {/* Countdown info */}
+                  <div>
+                    <div className="flex items-baseline gap-3">
+                      <motion.span
+                        key={`${scene.id}-days`}
+                        initial={{ scale: 1.1, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                        className="text-[52px] font-bold text-white leading-none tracking-tighter"
+                        style={{ textShadow: '0 2px 12px rgba(0,0,0,0.2)' }}
+                      >
+                        {daysLeft}
+                      </motion.span>
+                      <span className="text-[17px] font-medium text-white/80">ימים</span>
+                    </div>
+                    <p className="mt-2 text-[14px] text-white/90 font-semibold">{scene.text}</p>
+                    <p className="mt-1 text-[12px] text-white/60 font-medium">
+                      21 ימים | 6 מדינות | 1 קרוואן
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-white/40">10 בספטמבר 2026 — ארה״ב</p>
                   </div>
-                  <p className="mt-2 text-[14px] text-white/90 font-semibold">
-                    {scene.text}
-                  </p>
-                  <p className="mt-1 text-[12px] text-white/60 font-medium">
-                    21 ימים | 6 מדינות | 1 קרוואן
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-white/40">
-                    10 בספטמבר 2026 — ארה״ב
-                  </p>
+
+                  {/* Emoji scene */}
+                  <motion.div
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+                    className="flex flex-col items-center gap-1 mt-1"
+                  >
+                    <span className="text-[48px] leading-none" role="img" aria-label="scene">
+                      {scene.emoji}
+                    </span>
+                    <span className="text-[28px] leading-none" role="img" aria-label="accent">
+                      {scene.secondaryEmoji}
+                    </span>
+                  </motion.div>
                 </div>
 
-                {/* Emoji scene */}
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-                  className="flex flex-col items-center gap-1 mt-1"
-                >
-                  <span className="text-[48px] leading-none" role="img" aria-label="scene">
-                    {scene.emoji}
-                  </span>
-                  <span className="text-[28px] leading-none" role="img" aria-label="accent">
-                    {scene.secondaryEmoji}
-                  </span>
-                </motion.div>
+                {/* Next destination teaser */}
+                {nextDay && (
+                  <div className="mt-3 flex items-center gap-2 text-white/70">
+                    <MapPin className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={2} />
+                    <span className="text-[12px] font-medium truncate">
+                      {tripDayIndex !== null ? 'היום:' : 'תחנה ראשונה:'}{' '}
+                      <span className="text-white/90">{nextDay.city || nextDay.title}</span>
+                    </span>
+                  </div>
+                )}
+
+                {/* Dot indicators */}
+                <div className="flex items-center justify-center gap-2 mt-4">
+                  {HERO_SCENES.map((s, i) => (
+                    <button
+                      key={s.id}
+                      onClick={() => setActiveScene(i)}
+                      className="transition-all duration-300"
+                      style={{
+                        width: i === activeScene ? 20 : 6,
+                        height: 6,
+                        borderRadius: 3,
+                        backgroundColor: i === activeScene ? 'white' : 'rgba(255,255,255,0.4)',
+                      }}
+                      aria-label={`סצנה ${i + 1}`}
+                    />
+                  ))}
+                </div>
               </div>
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
 
-              {/* Next destination teaser */}
-              {nextDay && (
-                <div className="mt-3 flex items-center gap-2 text-white/70">
-                  <MapPin className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={2} />
-                  <span className="text-[12px] font-medium truncate">
-                    {tripDayIndex !== null ? 'היום:' : 'תחנה ראשונה:'}{' '}
-                    <span className="text-white/90">{nextDay.city || nextDay.title}</span>
+        {/* ── Trip Route Progress ── */}
+        {itineraryDays.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="mb-4"
+          >
+            <div
+              className="rounded-[16px] bg-white px-4 py-3.5"
+              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[14px] font-semibold text-apple-primary">🛣️ מסלול הטיול</span>
+                {tripDayIndex !== null && (
+                  <span className="text-[11px] font-bold text-white bg-ios-green rounded-full px-2 py-0.5">
+                    יום {tripDayIndex + 1} מתוך {itineraryDays.length}
                   </span>
+                )}
+                {tripDayIndex === null && daysLeft > 0 && (
+                  <span className="text-[11px] font-medium text-apple-tertiary">
+                    עוד {daysLeft} ימים
+                  </span>
+                )}
+              </div>
+              <div className="overflow-x-auto -mx-1 px-1 pb-1">
+                <div className="flex items-center gap-0 min-w-max">
+                  {(() => {
+                    const allFuture = tripDayIndex === null
+                    return itineraryDays.map((day, i) => {
+                      const isCurrent = tripDayIndex === i
+                      const isPast = tripDayIndex !== null && i < tripDayIndex
+                      const cityShort =
+                        day.city?.split('→')[0]?.trim()?.split(',')[0]?.trim()?.slice(0, 10) || ''
+                      // Color logic: during trip = green/blue/gray, pre-trip = desert gradient
+                      const dotColor = isPast
+                        ? '#34C759'
+                        : isCurrent
+                          ? '#007AFF'
+                          : allFuture
+                            ? ROUTE_COLORS[i % ROUTE_COLORS.length]
+                            : '#E5E5EA'
+                      const dayNumColor = isCurrent
+                        ? '#007AFF'
+                        : isPast
+                          ? '#34C759'
+                          : allFuture
+                            ? ROUTE_COLORS[i % ROUTE_COLORS.length]
+                            : '#8E8E93'
+                      const cityColor = isCurrent
+                        ? '#007AFF'
+                        : isPast
+                          ? '#8E8E93'
+                          : allFuture
+                            ? '#6B6B6B'
+                            : '#C7C7CC'
+                      const lineColor = isPast
+                        ? '#34C759'
+                        : allFuture
+                          ? `${ROUTE_COLORS[i % ROUTE_COLORS.length]}60`
+                          : '#E5E5EA'
+                      return (
+                        <div key={day.id} className="flex items-center">
+                          <div className="flex flex-col items-center" style={{ width: 38 }}>
+                            {/* Dot */}
+                            <div
+                              className="relative flex items-center justify-center rounded-full transition-all"
+                              style={{
+                                width: isCurrent ? 20 : 10,
+                                height: isCurrent ? 20 : 10,
+                                backgroundColor: dotColor,
+                                boxShadow: isCurrent ? '0 0 0 4px rgba(0,122,255,0.2)' : 'none',
+                              }}
+                            >
+                              {isCurrent && (
+                                <motion.div
+                                  animate={{ scale: [1, 1.4, 1] }}
+                                  transition={{ duration: 2, repeat: Infinity }}
+                                  className="absolute inset-0 rounded-full"
+                                  style={{ backgroundColor: 'rgba(0,122,255,0.25)' }}
+                                />
+                              )}
+                              {isPast && (
+                                <svg viewBox="0 0 10 10" width={6} height={6}>
+                                  <path
+                                    d="M2 5 L4 7 L8 3"
+                                    stroke="white"
+                                    strokeWidth="2"
+                                    fill="none"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                              {isCurrent && <span className="text-[8px]">📍</span>}
+                            </div>
+                            {/* Day label */}
+                            <span
+                              className="text-[9px] mt-1 font-medium text-center leading-tight"
+                              style={{
+                                color: dayNumColor,
+                                fontWeight: isCurrent ? 700 : allFuture ? 600 : 500,
+                              }}
+                            >
+                              {i + 1}
+                            </span>
+                            {/* City name */}
+                            {cityShort && (
+                              <span
+                                className="text-[7px] text-center leading-tight truncate max-w-[38px]"
+                                style={{ color: cityColor, fontWeight: allFuture ? 500 : 400 }}
+                              >
+                                {cityShort}
+                              </span>
+                            )}
+                          </div>
+                          {/* Connector line */}
+                          {i < itineraryDays.length - 1 && (
+                            <div
+                              className="h-[2px] flex-shrink-0"
+                              style={{
+                                width: 8,
+                                backgroundColor: lineColor,
+                              }}
+                            />
+                          )}
+                        </div>
+                      )
+                    })
+                  })()}
                 </div>
-              )}
+              </div>
+            </div>
+          </motion.div>
+        )}
 
-              {/* Dot indicators */}
-              <div className="flex items-center justify-center gap-2 mt-4">
-                {HERO_SCENES.map((s, i) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setActiveScene(i)}
-                    className="transition-all duration-300"
-                    style={{
-                      width: i === activeScene ? 20 : 6,
-                      height: 6,
-                      borderRadius: 3,
-                      backgroundColor: i === activeScene ? 'white' : 'rgba(255,255,255,0.4)',
-                    }}
-                    aria-label={`Scene ${i + 1}`}
+        {/* Quick Stats Row */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="mb-6 flex gap-2"
+        >
+          <div
+            className="flex-1 rounded-[12px] bg-white px-3 py-2.5 text-center"
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+          >
+            <p className="text-[11px] text-apple-secondary font-medium">משימות</p>
+            <p className="text-[15px] font-bold" style={{ color: '#34C759' }}>
+              {tasksDone}/{tasksTotal}
+            </p>
+          </div>
+          <div
+            className="flex-1 rounded-[12px] bg-white px-3 py-2.5 text-center"
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+          >
+            <p className="text-[11px] text-apple-secondary font-medium">תקציב</p>
+            <p
+              className="text-[15px] font-bold"
+              style={{ color: budgetPercent > 80 ? '#FF3B30' : '#007AFF' }}
+            >
+              {budgetPercent}%
+            </p>
+          </div>
+          <div
+            className="flex-1 rounded-[12px] bg-white px-3 py-2.5 text-center"
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+          >
+            <p className="text-[11px] text-apple-secondary font-medium">אריזה</p>
+            <p className="text-[15px] font-bold" style={{ color: '#5AC8FA' }}>
+              {packingPercent}%
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Attention / Highlights */}
+        {attentionItems.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="mb-6"
+          >
+            <div
+              className="rounded-[16px] overflow-hidden"
+              style={{
+                boxShadow: '0 1px 4px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFFFF 100%)',
+                borderRight: '4px solid #FF9500',
+              }}
+            >
+              <div className="px-4 pt-3.5 pb-1 flex items-center gap-2">
+                <div
+                  className="flex h-7 w-7 items-center justify-center rounded-[8px]"
+                  style={{ backgroundColor: '#FF950015' }}
+                >
+                  <AlertTriangle
+                    className="h-4 w-4"
+                    style={{ color: '#FF9500' }}
+                    strokeWidth={2.2}
                   />
+                </div>
+                <h3 className="text-[14px] font-bold text-apple-primary">דורש תשומת לב</h3>
+                <span
+                  className="mr-auto text-[11px] font-semibold rounded-full px-2 py-0.5"
+                  style={{ backgroundColor: '#FF950018', color: '#FF9500' }}
+                >
+                  {attentionItems.length}
+                </span>
+              </div>
+              <div className="px-4 pb-3 pt-1">
+                {attentionItems.map((item, i) => (
+                  <Link to="/tasks" key={item.task.id}>
+                    <div
+                      className={`flex items-center gap-2.5 py-2 ${i < attentionItems.length - 1 ? 'border-b border-gray-100' : ''}`}
+                    >
+                      <span
+                        className="flex-shrink-0 text-[10px] font-bold rounded-full px-2 py-0.5 text-white"
+                        style={{ backgroundColor: item.color }}
+                      >
+                        {item.reason}
+                      </span>
+                      <span className="text-[13px] text-apple-primary truncate flex-1">
+                        {item.task.title}
+                      </span>
+                      {item.task.due_date && (
+                        <span className="text-[11px] text-apple-tertiary flex-shrink-0 font-medium tabular-nums">
+                          {new Date(item.task.due_date + 'T00:00:00').toLocaleDateString('he-IL', {
+                            day: 'numeric',
+                            month: 'short',
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
                 ))}
               </div>
             </div>
           </motion.div>
-        </AnimatePresence>
-      </motion.div>
+        )}
 
-      {/* ── Trip Route Progress ── */}
-      {itineraryDays.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.15 }}
-          className="mb-4"
-        >
-          <div
-            className="rounded-[16px] bg-white px-4 py-3.5"
-            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+        {/* Next Stop Preview */}
+        {nextDay && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="mb-6"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-[14px] font-semibold text-apple-primary">🛣️ מסלול הטיול</span>
-              {tripDayIndex !== null && (
-                <span className="text-[11px] font-bold text-white bg-ios-green rounded-full px-2 py-0.5">
-                  יום {tripDayIndex + 1} מתוך {itineraryDays.length}
-                </span>
-              )}
-              {tripDayIndex === null && daysLeft > 0 && (
-                <span className="text-[11px] font-medium text-apple-tertiary">
-                  עוד {daysLeft} ימים
-                </span>
-              )}
-            </div>
-            <div className="overflow-x-auto -mx-1 px-1 pb-1">
-              <div className="flex items-center gap-0 min-w-max">
-                {(() => {
-                  const allFuture = tripDayIndex === null
-                  return itineraryDays.map((day, i) => {
-                    const isCurrent = tripDayIndex === i
-                    const isPast = tripDayIndex !== null && i < tripDayIndex
-                    const cityShort = day.city?.split('→')[0]?.trim()?.split(',')[0]?.trim()?.slice(0, 10) || ''
-                    // Color logic: during trip = green/blue/gray, pre-trip = desert gradient
-                    const dotColor = isPast ? '#34C759' : isCurrent ? '#007AFF' : allFuture ? ROUTE_COLORS[i % ROUTE_COLORS.length] : '#E5E5EA'
-                    const dayNumColor = isCurrent ? '#007AFF' : isPast ? '#34C759' : allFuture ? ROUTE_COLORS[i % ROUTE_COLORS.length] : '#8E8E93'
-                    const cityColor = isCurrent ? '#007AFF' : isPast ? '#8E8E93' : allFuture ? '#6B6B6B' : '#C7C7CC'
-                    const lineColor = isPast ? '#34C759' : allFuture ? `${ROUTE_COLORS[i % ROUTE_COLORS.length]}60` : '#E5E5EA'
-                    return (
-                      <div key={day.id} className="flex items-center">
-                        <div className="flex flex-col items-center" style={{ width: 38 }}>
-                          {/* Dot */}
-                          <div
-                            className="relative flex items-center justify-center rounded-full transition-all"
-                            style={{
-                              width: isCurrent ? 20 : 10,
-                              height: isCurrent ? 20 : 10,
-                              backgroundColor: dotColor,
-                              boxShadow: isCurrent ? '0 0 0 4px rgba(0,122,255,0.2)' : 'none',
-                            }}
-                          >
-                            {isCurrent && (
-                              <motion.div
-                                animate={{ scale: [1, 1.4, 1] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                                className="absolute inset-0 rounded-full"
-                                style={{ backgroundColor: 'rgba(0,122,255,0.25)' }}
-                              />
-                            )}
-                            {isPast && (
-                              <svg viewBox="0 0 10 10" width={6} height={6}>
-                                <path d="M2 5 L4 7 L8 3" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                            )}
-                            {isCurrent && <span className="text-[8px]">📍</span>}
-                          </div>
-                          {/* Day label */}
-                          <span
-                            className="text-[9px] mt-1 font-medium text-center leading-tight"
-                            style={{
-                              color: dayNumColor,
-                              fontWeight: isCurrent ? 700 : allFuture ? 600 : 500,
-                            }}
-                          >
-                            {i + 1}
-                          </span>
-                          {/* City name */}
-                          {cityShort && (
-                            <span
-                              className="text-[7px] text-center leading-tight truncate max-w-[38px]"
-                              style={{ color: cityColor, fontWeight: allFuture ? 500 : 400 }}
-                            >
-                              {cityShort}
-                            </span>
-                          )}
-                        </div>
-                        {/* Connector line */}
-                        {i < itineraryDays.length - 1 && (
-                          <div
-                            className="h-[2px] flex-shrink-0"
-                            style={{
-                              width: 8,
-                              backgroundColor: lineColor,
-                            }}
-                          />
-                        )}
-                      </div>
-                    )
-                  })
-                })()}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Quick Stats Row */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="mb-6 flex gap-2"
-      >
-        <div className="flex-1 rounded-[12px] bg-white px-3 py-2.5 text-center"
-          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}>
-          <p className="text-[11px] text-apple-secondary font-medium">משימות</p>
-          <p className="text-[15px] font-bold" style={{ color: '#34C759' }}>
-            {tasksDone}/{tasksTotal}
-          </p>
-        </div>
-        <div className="flex-1 rounded-[12px] bg-white px-3 py-2.5 text-center"
-          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}>
-          <p className="text-[11px] text-apple-secondary font-medium">תקציב</p>
-          <p className="text-[15px] font-bold" style={{ color: budgetPercent > 80 ? '#FF3B30' : '#007AFF' }}>
-            {budgetPercent}%
-          </p>
-        </div>
-        <div className="flex-1 rounded-[12px] bg-white px-3 py-2.5 text-center"
-          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}>
-          <p className="text-[11px] text-apple-secondary font-medium">אריזה</p>
-          <p className="text-[15px] font-bold" style={{ color: '#5AC8FA' }}>
-            {packingPercent}%
-          </p>
-        </div>
-      </motion.div>
-
-      {/* Attention / Highlights */}
-      {attentionItems.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="mb-6"
-        >
-          <div
-            className="rounded-[16px] overflow-hidden"
-            style={{
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04)',
-              background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFFFF 100%)',
-              borderRight: '4px solid #FF9500',
-            }}
-          >
-            <div className="px-4 pt-3.5 pb-1 flex items-center gap-2">
+            <Link to="/itinerary">
               <div
-                className="flex h-7 w-7 items-center justify-center rounded-[8px]"
-                style={{ backgroundColor: '#FF950015' }}
+                className="rounded-[16px] bg-white p-4"
+                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
               >
-                <AlertTriangle className="h-4 w-4" style={{ color: '#FF9500' }} strokeWidth={2.2} />
-              </div>
-              <h3 className="text-[14px] font-bold text-apple-primary">דורש תשומת לב</h3>
-              <span className="mr-auto text-[11px] font-semibold rounded-full px-2 py-0.5"
-                style={{ backgroundColor: '#FF950018', color: '#FF9500' }}>
-                {attentionItems.length}
-              </span>
-            </div>
-            <div className="px-4 pb-3 pt-1">
-              {attentionItems.map((item, i) => (
-                <Link to="/tasks" key={item.task.id}>
-                  <div
-                    className={`flex items-center gap-2.5 py-2 ${i < attentionItems.length - 1 ? 'border-b border-gray-100' : ''}`}
-                  >
-                    <span
-                      className="flex-shrink-0 text-[10px] font-bold rounded-full px-2 py-0.5 text-white"
-                      style={{ backgroundColor: item.color }}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="flex h-8 w-8 items-center justify-center rounded-[8px]"
+                      style={{ backgroundColor: '#FF950010' }}
                     >
-                      {item.reason}
-                    </span>
-                    <span className="text-[13px] text-apple-primary truncate flex-1">{item.task.title}</span>
-                    {item.task.due_date && (
-                      <span className="text-[11px] text-apple-tertiary flex-shrink-0 font-medium tabular-nums">
-                        {new Date(item.task.due_date + 'T00:00:00').toLocaleDateString('he-IL', { day: 'numeric', month: 'short' })}
+                      <MapPin className="h-4 w-4" style={{ color: '#FF9500' }} strokeWidth={2} />
+                    </div>
+                    <div>
+                      <p className="text-[15px] font-semibold text-apple-primary">
+                        {nextDay.city || nextDay.title}
+                      </p>
+                      <p className="text-[11px] text-apple-secondary">
+                        {tripDayIndex !== null ? `יום ${tripDayIndex + 1}` : `יום 1`} —{' '}
+                        {nextDay.title}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] text-apple-tertiary font-medium">
+                    {nextDay.stops.length} עצירות
+                  </span>
+                </div>
+
+                {/* First 2 stops */}
+                {nextDay.stops.slice(0, 2).map((stop, i) => (
+                  <div key={stop.id || i} className="flex items-center gap-2 py-1.5">
+                    <div className="h-1.5 w-1.5 rounded-full bg-ios-orange flex-shrink-0" />
+                    <span className="text-[13px] text-apple-secondary truncate">{stop.title}</span>
+                    {stop.start_time && (
+                      <span className="text-[11px] text-apple-tertiary mr-auto">
+                        {stop.start_time}
                       </span>
                     )}
                   </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      )}
+                ))}
+                {nextDay.stops.length > 2 && (
+                  <p className="text-[11px] text-apple-tertiary mt-1">
+                    +{nextDay.stops.length - 2} עצירות נוספות
+                  </p>
+                )}
+              </div>
+            </Link>
+          </motion.div>
+        )}
 
-      {/* Next Stop Preview */}
-      {nextDay && (
+        {/* Weather */}
+        <div className="mb-6">
+          <WeatherWidget mode="dashboard" />
+        </div>
+
+        {/* ── Reminders Card ── */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+          transition={{ duration: 0.5, delay: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="mb-6"
         >
-          <Link to="/itinerary">
-            <div
-              className="rounded-[16px] bg-white p-4"
-              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+          <div
+            className="rounded-[16px] bg-white overflow-hidden"
+            style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+          >
+            <button
+              onClick={() => setShowReminderPanel((v) => !v)}
+              className="w-full flex items-center gap-3 px-4 py-3.5 text-right"
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-[8px]"
-                    style={{ backgroundColor: '#FF950010' }}>
-                    <MapPin className="h-4 w-4" style={{ color: '#FF9500' }} strokeWidth={2} />
-                  </div>
-                  <div>
-                    <p className="text-[15px] font-semibold text-apple-primary">
-                      {nextDay.city || nextDay.title}
-                    </p>
-                    <p className="text-[11px] text-apple-secondary">
-                      {tripDayIndex !== null ? `יום ${tripDayIndex + 1}` : `יום 1`} — {nextDay.title}
-                    </p>
-                  </div>
-                </div>
-                <span className="text-[11px] text-apple-tertiary font-medium">
-                  {nextDay.stops.length} עצירות
-                </span>
+              <div
+                className="flex h-9 w-9 items-center justify-center rounded-[10px] flex-shrink-0"
+                style={{ backgroundColor: '#5856D610' }}
+              >
+                <Mail
+                  className="h-[18px] w-[18px]"
+                  style={{ color: '#5856D6' }}
+                  strokeWidth={1.8}
+                />
               </div>
+              <div className="flex-1 text-right">
+                <p className="text-[14px] font-semibold text-apple-primary">תזכורות</p>
+                <p className="text-[11px] text-apple-secondary">שלח סיכום משימות במייל</p>
+              </div>
+              <motion.span
+                animate={{ rotate: showReminderPanel ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="text-apple-tertiary text-[14px]"
+              >
+                &#9662;
+              </motion.span>
+            </button>
 
-              {/* First 2 stops */}
-              {nextDay.stops.slice(0, 2).map((stop, i) => (
-                <div key={stop.id || i} className="flex items-center gap-2 py-1.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-ios-orange flex-shrink-0" />
-                  <span className="text-[13px] text-apple-secondary truncate">{stop.title}</span>
-                  {stop.start_time && (
-                    <span className="text-[11px] text-apple-tertiary mr-auto">{stop.start_time}</span>
-                  )}
-                </div>
-              ))}
-              {nextDay.stops.length > 2 && (
-                <p className="text-[11px] text-apple-tertiary mt-1">
-                  +{nextDay.stops.length - 2} עצירות נוספות
-                </p>
+            <AnimatePresence>
+              {showReminderPanel && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 pb-4 pt-1 border-t border-gray-50">
+                    <label className="block text-[12px] text-apple-secondary font-medium mb-1.5 mt-2">
+                      כתובת אימייל לתזכורת
+                    </label>
+                    <input
+                      type="email"
+                      dir="ltr"
+                      value={reminderEmail}
+                      onChange={(e) => saveReminderEmail(e.target.value)}
+                      placeholder="email@example.com"
+                      className="w-full rounded-[10px] border border-gray-200 bg-gray-50 px-3 py-2 text-[14px] text-apple-primary placeholder:text-apple-tertiary focus:border-[#5856D6] focus:ring-1 focus:ring-[#5856D6] outline-none transition-colors"
+                    />
+                    <a
+                      href={buildReminderMailto()}
+                      className="mt-3 flex items-center justify-center gap-2 w-full rounded-[10px] py-2.5 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 active:opacity-80"
+                      style={{ background: 'linear-gradient(135deg, #5856D6, #AF52DE)' }}
+                    >
+                      <Mail className="h-4 w-4" strokeWidth={2} />
+                      <span>שלח תזכורת</span>
+                    </a>
+                    <p className="text-[11px] text-apple-tertiary mt-2 text-center">
+                      ייפתח אפליקציית המייל עם סיכום המשימות
+                    </p>
+                  </div>
+                </motion.div>
               )}
-            </div>
-          </Link>
+            </AnimatePresence>
+          </div>
         </motion.div>
-      )}
 
-      {/* Weather */}
-      <div className="mb-6">
-        <WeatherWidget mode="dashboard" />
-      </div>
-
-      {/* ── Reminders Card ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="mb-6"
-      >
-        <div
-          className="rounded-[16px] bg-white overflow-hidden"
-          style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+        {/* Module grid */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.04, delayChildren: 0.3 } },
+          }}
+          className="grid grid-cols-3 gap-3"
         >
-          <button
-            onClick={() => setShowReminderPanel((v) => !v)}
-            className="w-full flex items-center gap-3 px-4 py-3.5 text-right"
-          >
-            <div
-              className="flex h-9 w-9 items-center justify-center rounded-[10px] flex-shrink-0"
-              style={{ backgroundColor: '#5856D610' }}
+          {MODULE_CARDS.map(({ path, icon: Icon, label, color, countKey }) => (
+            <motion.div
+              key={path}
+              variants={{
+                hidden: { opacity: 0, y: 12 },
+                visible: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
+                },
+              }}
             >
-              <Mail className="h-[18px] w-[18px]" style={{ color: '#5856D6' }} strokeWidth={1.8} />
-            </div>
-            <div className="flex-1 text-right">
-              <p className="text-[14px] font-semibold text-apple-primary">תזכורות</p>
-              <p className="text-[11px] text-apple-secondary">שלח סיכום משימות במייל</p>
-            </div>
-            <motion.span
-              animate={{ rotate: showReminderPanel ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-              className="text-apple-tertiary text-[14px]"
-            >
-              &#9662;
-            </motion.span>
-          </button>
-
-          <AnimatePresence>
-            {showReminderPanel && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25, ease: 'easeInOut' }}
-                className="overflow-hidden"
-              >
-                <div className="px-4 pb-4 pt-1 border-t border-gray-50">
-                  <label className="block text-[12px] text-apple-secondary font-medium mb-1.5 mt-2">
-                    כתובת אימייל לתזכורת
-                  </label>
-                  <input
-                    type="email"
-                    dir="ltr"
-                    value={reminderEmail}
-                    onChange={(e) => saveReminderEmail(e.target.value)}
-                    placeholder="email@example.com"
-                    className="w-full rounded-[10px] border border-gray-200 bg-gray-50 px-3 py-2 text-[14px] text-apple-primary placeholder:text-apple-tertiary focus:border-[#5856D6] focus:ring-1 focus:ring-[#5856D6] outline-none transition-colors"
-                  />
-                  <a
-                    href={buildReminderMailto()}
-                    className="mt-3 flex items-center justify-center gap-2 w-full rounded-[10px] py-2.5 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 active:opacity-80"
-                    style={{ background: 'linear-gradient(135deg, #5856D6, #AF52DE)' }}
-                  >
-                    <Mail className="h-4 w-4" strokeWidth={2} />
-                    <span>שלח תזכורת</span>
-                  </a>
-                  <p className="text-[11px] text-apple-tertiary mt-2 text-center">
-                    ייפתח אפליקציית המייל עם סיכום המשימות
-                  </p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-
-      {/* Module grid */}
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={{
-          hidden: {},
-          visible: { transition: { staggerChildren: 0.04, delayChildren: 0.3 } },
-        }}
-        className="grid grid-cols-3 gap-3"
-      >
-        {MODULE_CARDS.map(({ path, icon: Icon, label, color, countKey }) => (
-          <motion.div
-            key={path}
-            variants={{
-              hidden: { opacity: 0, y: 12 },
-              visible: {
-                opacity: 1,
-                y: 0,
-                transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] },
-              },
-            }}
-          >
-            <Link to={path}>
-              <motion.div
-                whileTap={{ scale: 0.96 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                className="relative flex flex-col items-center gap-3 rounded-[16px] bg-white py-5 px-2"
-                style={{
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
-                }}
-              >
-                {/* Count badge */}
-                {countKey && badgeCounts[countKey] > 0 && (
-                  <span
-                    className="absolute -top-1.5 -left-1.5 flex h-5 min-w-5 items-center justify-center rounded-full text-[10px] font-bold text-white px-1"
-                    style={{ backgroundColor: color }}
-                  >
-                    {badgeCounts[countKey]}
-                  </span>
-                )}
-                <div
-                  className="flex h-12 w-12 items-center justify-center rounded-[12px]"
+              <Link to={path}>
+                <motion.div
+                  whileTap={{ scale: 0.96 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  className="relative flex flex-col items-center gap-3 rounded-[16px] bg-white py-5 px-2"
                   style={{
-                    backgroundColor: `${color}10`,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
                   }}
                 >
-                  <Icon
-                    className="h-[22px] w-[22px]"
-                    style={{ color }}
-                    strokeWidth={1.8}
-                  />
-                </div>
-                <span className="text-[13px] font-medium text-apple-primary">{label}</span>
-              </motion.div>
-            </Link>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Floating chat button — Moti robot */}
-      <Link to="/chat">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{
-            opacity: { delay: 0.6 },
-            scale: { delay: 0.6, type: 'spring', stiffness: 300, damping: 20 },
-          }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          className="fixed bottom-20 left-5 z-20 flex h-14 w-14 items-center justify-center rounded-full overflow-hidden"
-          style={{
-            background: 'linear-gradient(145deg, #F5F5F7, #E5E5EA)',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(255,255,255,0.8)',
-            border: '1.5px solid rgba(0,0,0,0.06)',
-          }}
-        >
-          <motion.div
-            animate={{ y: [0, -3, 0], rotate: [0, 3, -3, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            {getAvatarPhoto('moti') ? (
-              <img src={getAvatarPhoto('moti')!} alt="מוטי" className="h-10 w-10 rounded-full object-cover" />
-            ) : (
-              <MotiRobot size={36} animated={false} />
-            )}
-          </motion.div>
+                  {/* Count badge */}
+                  {countKey && badgeCounts[countKey] > 0 && (
+                    <span
+                      className="absolute -top-1.5 -left-1.5 flex h-5 min-w-5 items-center justify-center rounded-full text-[10px] font-bold text-white px-1"
+                      style={{ backgroundColor: color }}
+                    >
+                      {badgeCounts[countKey]}
+                    </span>
+                  )}
+                  <div
+                    className="flex h-12 w-12 items-center justify-center rounded-[12px]"
+                    style={{
+                      backgroundColor: `${color}10`,
+                    }}
+                  >
+                    <Icon className="h-[22px] w-[22px]" style={{ color }} strokeWidth={1.8} />
+                  </div>
+                  <span className="text-[13px] font-medium text-apple-primary">{label}</span>
+                </motion.div>
+              </Link>
+            </motion.div>
+          ))}
         </motion.div>
-      </Link>
-    </div>
+
+        {/* Floating chat button — Moti robot */}
+        <Link to="/chat" aria-label="צ'אט עם מוטי">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              opacity: { delay: 0.6 },
+              scale: { delay: 0.6, type: 'spring', stiffness: 300, damping: 20 },
+            }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="fixed bottom-20 left-5 z-20 flex h-14 w-14 items-center justify-center rounded-full overflow-hidden"
+            style={{
+              background: 'linear-gradient(145deg, #F5F5F7, #E5E5EA)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(255,255,255,0.8)',
+              border: '1.5px solid rgba(0,0,0,0.06)',
+            }}
+          >
+            <motion.div
+              animate={{ y: [0, -3, 0], rotate: [0, 3, -3, 0] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              {getAvatarPhoto('moti') ? (
+                <img
+                  src={getAvatarPhoto('moti')!}
+                  alt="מוטי"
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              ) : (
+                <MotiRobot size={36} animated={false} />
+              )}
+            </motion.div>
+          </motion.div>
+        </Link>
+      </div>
     </div>
   )
 }

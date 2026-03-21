@@ -21,15 +21,19 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
-import { EXPENSE_CATEGORIES, FAMILY_MEMBERS_LIST, getFamilyMember } from '@/constants'
+import { EXPENSE_CATEGORIES, getFamilyMember } from '@/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Expense } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
 import { DailyBudgetTable } from './components/DailyBudgetTable'
 import { DailyBudgetView } from './components/DailyBudgetView'
 
-const BudgetBarChart = lazy(() => import('./components/Charts').then(mod => ({ default: mod.BudgetBarChart })))
-const BudgetPieChart = lazy(() => import('./components/Charts').then(mod => ({ default: mod.BudgetPieChart })))
+const BudgetBarChart = lazy(() =>
+  import('./components/Charts').then((mod) => ({ default: mod.BudgetBarChart })),
+)
+const BudgetPieChart = lazy(() =>
+  import('./components/Charts').then((mod) => ({ default: mod.BudgetPieChart })),
+)
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
   flights: Plane,
@@ -46,7 +50,15 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 type BudgetTab = 'planning' | 'actual' | 'daily'
 
 export default function BudgetPage() {
-  const { budgetSettings: settings, expenses, addExpense, deleteExpense, updateBudgetCategory, updateTotalBudget, itineraryDays } = useAppData()
+  const {
+    budgetSettings: settings,
+    expenses,
+    addExpense,
+    deleteExpense,
+    updateBudgetCategory,
+    updateTotalBudget,
+    itineraryDays,
+  } = useAppData()
   const [activeTab, setActiveTab] = useState<BudgetTab>('planning')
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingCategory, setEditingCategory] = useState<string | null>(null)
@@ -69,10 +81,7 @@ export default function BudgetPage() {
     day_id: '',
   })
 
-  const totalSpent = useMemo(
-    () => expenses.reduce((sum, e) => sum + e.amount, 0),
-    [expenses],
-  )
+  const totalSpent = useMemo(() => expenses.reduce((sum, e) => sum + e.amount, 0), [expenses])
 
   const remaining = settings.total_budget - totalSpent
   const spentPercent = settings.total_budget > 0 ? (totalSpent / settings.total_budget) * 100 : 0
@@ -94,9 +103,10 @@ export default function BudgetPage() {
   }, [expenses])
 
   const nonOtherPlanned = useMemo(
-    () => Object.entries(settings.category_budgets)
-      .filter(([cat]) => cat !== 'other')
-      .reduce((sum, [, v]) => sum + v, 0),
+    () =>
+      Object.entries(settings.category_budgets)
+        .filter(([cat]) => cat !== 'other')
+        .reduce((sum, [, v]) => sum + v, 0),
     [settings.category_budgets],
   )
 
@@ -142,7 +152,14 @@ export default function BudgetPage() {
       notes: newExpense.notes || undefined,
     }
     addExpense(expense)
-    setNewExpense({ title: '', amount: '', category: 'food', paid_by: 'aba', notes: '', day_id: '' })
+    setNewExpense({
+      title: '',
+      amount: '',
+      category: 'food',
+      paid_by: 'aba',
+      notes: '',
+      day_id: '',
+    })
     setShowAddForm(false)
   }
 
@@ -172,7 +189,8 @@ export default function BudgetPage() {
     setEditingTotal(false)
   }
 
-  const inputClass = "w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors"
+  const inputClass =
+    'w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors'
 
   return (
     <div className="space-y-4 p-4">
@@ -191,19 +209,27 @@ export default function BudgetPage() {
         <div className="glass rounded-apple-lg p-4 text-center shadow-sm">
           <p className="text-xs text-apple-secondary">תקציב כולל</p>
           <p className="mt-1 text-lg font-bold text-apple-primary">
-            {settings.currency}{settings.total_budget.toLocaleString()}
+            {settings.currency}
+            {settings.total_budget.toLocaleString()}
           </p>
         </div>
         <div className="glass rounded-apple-lg p-4 text-center shadow-sm">
           <p className="text-xs text-apple-secondary">הוצאות</p>
           <p className="mt-1 text-lg font-bold text-ios-red">
-            {settings.currency}{totalSpent.toLocaleString()}
+            {settings.currency}
+            {totalSpent.toLocaleString()}
           </p>
         </div>
         <div className="glass rounded-apple-lg p-4 text-center shadow-sm">
           <p className="text-xs text-apple-secondary">נותר</p>
-          <p className={cn('mt-1 text-lg font-bold', remaining >= 0 ? 'text-ios-green' : 'text-ios-red')}>
-            {settings.currency}{remaining.toLocaleString()}
+          <p
+            className={cn(
+              'mt-1 text-lg font-bold',
+              remaining >= 0 ? 'text-ios-green' : 'text-ios-red',
+            )}
+          >
+            {settings.currency}
+            {remaining.toLocaleString()}
           </p>
         </div>
       </div>
@@ -220,14 +246,16 @@ export default function BudgetPage() {
           <div
             className={cn(
               'h-full rounded-full transition-all',
-              spentPercent > 80 ? 'bg-ios-red' : spentPercent > 50 ? 'bg-ios-orange' : 'bg-ios-green',
+              spentPercent > 80
+                ? 'bg-ios-red'
+                : spentPercent > 50
+                  ? 'bg-ios-orange'
+                  : 'bg-ios-green',
             )}
             style={{ width: `${Math.min(spentPercent, 100)}%` }}
           />
         </div>
-        <p className="mt-2 text-center text-xs font-medium text-apple-secondary">
-          {spendingMood}
-        </p>
+        <p className="mt-2 text-center text-xs font-medium text-apple-secondary">{spendingMood}</p>
       </div>
 
       {/* Tab Switcher */}
@@ -314,7 +342,8 @@ export default function BudgetPage() {
               </div>
             ) : (
               <p className="text-2xl font-bold text-apple-primary">
-                {settings.currency}{settings.total_budget.toLocaleString()}
+                {settings.currency}
+                {settings.total_budget.toLocaleString()}
               </p>
             )}
           </div>
@@ -326,26 +355,58 @@ export default function BudgetPage() {
               {Object.entries(EXPENSE_CATEGORIES).map(([cat, { label }]) => {
                 const IconComp = CATEGORY_ICONS[cat] || DollarSign
                 const isOther = cat === 'other'
-                const planned = isOther ? otherBudgetRemainder : (settings.category_budgets[cat] || 0)
+                const planned = isOther ? otherBudgetRemainder : settings.category_budgets[cat] || 0
                 const spent = categoryTotals[cat] || 0
                 const catPercent = planned > 0 ? (spent / planned) * 100 : 0
                 const isEditing = editingCategory === cat
 
                 return (
-                  <div key={cat} className={cn('rounded-xl border p-3', isOther ? 'border-black/[0.08] bg-black/[0.02]' : 'border-black/[0.04]')}>
+                  <div
+                    key={cat}
+                    className={cn(
+                      'rounded-xl border p-3',
+                      isOther ? 'border-black/[0.08] bg-black/[0.02]' : 'border-black/[0.04]',
+                    )}
+                  >
                     <div className="flex items-center gap-3">
-                      <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', isOther ? 'bg-black/[0.06]' : 'bg-black/[0.04]')}>
-                        <IconComp className={cn('h-4 w-4', isOther ? 'text-apple-tertiary' : 'text-apple-secondary')} />
+                      <div
+                        className={cn(
+                          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                          isOther ? 'bg-black/[0.06]' : 'bg-black/[0.04]',
+                        )}
+                      >
+                        <IconComp
+                          className={cn(
+                            'h-4 w-4',
+                            isOther ? 'text-apple-tertiary' : 'text-apple-secondary',
+                          )}
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <span className={cn('text-sm font-medium', isOther ? 'text-apple-secondary' : 'text-apple-primary')}>
+                          <span
+                            className={cn(
+                              'text-sm font-medium',
+                              isOther ? 'text-apple-secondary' : 'text-apple-primary',
+                            )}
+                          >
                             {label}
-                            {isOther && <span className="text-[10px] text-apple-tertiary mr-1"> (יתרה אוטומטית)</span>}
+                            {isOther && (
+                              <span className="text-[10px] text-apple-tertiary mr-1">
+                                {' '}
+                                (יתרה אוטומטית)
+                              </span>
+                            )}
                           </span>
                           {isOther ? (
-                            <span className={cn('text-sm font-medium', planned < 0 ? 'text-ios-red' : 'text-apple-secondary')}>
-                              {settings.currency}{planned.toLocaleString()}
+                            <span
+                              className={cn(
+                                'text-sm font-medium',
+                                planned < 0 ? 'text-ios-red' : 'text-apple-secondary',
+                              )}
+                            >
+                              {settings.currency}
+                              {planned.toLocaleString()}
                             </span>
                           ) : isEditing ? (
                             <div className="flex items-center gap-1">
@@ -361,6 +422,7 @@ export default function BudgetPage() {
                               <button
                                 onClick={() => handleSaveCategory(cat)}
                                 className="rounded-lg p-1 text-ios-green hover:bg-ios-green/10"
+                                aria-label="שמירה"
                               >
                                 <Check className="h-4 w-4" />
                               </button>
@@ -370,7 +432,8 @@ export default function BudgetPage() {
                               onClick={() => handleEditCategory(cat)}
                               className="flex items-center gap-1 text-sm font-medium text-apple-primary hover:text-ios-blue"
                             >
-                              {settings.currency}{planned.toLocaleString()}
+                              {settings.currency}
+                              {planned.toLocaleString()}
                               <Pencil className="h-3 w-3 text-apple-tertiary" />
                             </button>
                           )}
@@ -381,13 +444,19 @@ export default function BudgetPage() {
                             <div
                               className={cn(
                                 'h-full rounded-full transition-all',
-                                catPercent > 100 ? 'bg-ios-red' : catPercent > 70 ? 'bg-ios-orange' : 'bg-ios-blue',
+                                catPercent > 100
+                                  ? 'bg-ios-red'
+                                  : catPercent > 70
+                                    ? 'bg-ios-orange'
+                                    : 'bg-ios-blue',
                               )}
                               style={{ width: `${Math.min(Math.max(catPercent, 0), 100)}%` }}
                             />
                           </div>
                           <span className="text-[10px] text-apple-tertiary whitespace-nowrap">
-                            {settings.currency}{spent.toLocaleString()} / {settings.currency}{planned.toLocaleString()}
+                            {settings.currency}
+                            {spent.toLocaleString()} / {settings.currency}
+                            {planned.toLocaleString()}
                           </span>
                         </div>
                       </div>
@@ -401,7 +470,13 @@ export default function BudgetPage() {
           {/* Bar Chart: Budget vs Actual */}
           <div className="glass rounded-apple-lg p-4 shadow-sm">
             <h3 className="mb-2 text-sm font-bold text-apple-primary">תקציב מול הוצאות</h3>
-            <Suspense fallback={<div className="h-[200px] flex items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-black/[0.06] border-t-ios-blue" /></div>}>
+            <Suspense
+              fallback={
+                <div className="h-[200px] flex items-center justify-center">
+                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-black/[0.06] border-t-ios-blue" />
+                </div>
+              }
+            >
               <BudgetBarChart data={barData} currency={settings.currency} />
             </Suspense>
           </div>
@@ -448,16 +523,25 @@ export default function BudgetPage() {
                 className={inputClass}
               >
                 {Object.entries(EXPENSE_CATEGORIES).map(([key, { label }]) => (
-                  <option key={key} value={key}>{label}</option>
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
                 ))}
               </select>
               <select
                 value={newExpense.paid_by}
-                onChange={(e) => setNewExpense((p) => ({ ...p, paid_by: e.target.value as 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3' }))}
+                onChange={(e) =>
+                  setNewExpense((p) => ({
+                    ...p,
+                    paid_by: e.target.value as 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3',
+                  }))
+                }
                 className={inputClass}
               >
                 {FAMILY_MEMBERS.map((m) => (
-                  <option key={m.id} value={m.id}>{m.avatar_emoji} {m.name}</option>
+                  <option key={m.id} value={m.id}>
+                    {m.avatar_emoji} {m.name}
+                  </option>
                 ))}
               </select>
               <select
@@ -467,7 +551,9 @@ export default function BudgetPage() {
               >
                 <option value="">יום בטיול (אופציונלי)</option>
                 {itineraryDays.map((d, i) => (
-                  <option key={d.id} value={d.id}>יום {i + 1} — {d.title}</option>
+                  <option key={d.id} value={d.id}>
+                    יום {i + 1} — {d.title}
+                  </option>
                 ))}
               </select>
               <div className="flex gap-2">
@@ -485,7 +571,13 @@ export default function BudgetPage() {
           {pieData.length > 0 && (
             <div className="glass rounded-apple-lg p-4 shadow-sm">
               <h3 className="mb-2 text-sm font-bold text-apple-primary">חלוקת הוצאות בפועל</h3>
-              <Suspense fallback={<div className="h-[200px] flex items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-black/[0.06] border-t-ios-blue" /></div>}>
+              <Suspense
+                fallback={
+                  <div className="h-[200px] flex items-center justify-center">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-black/[0.06] border-t-ios-blue" />
+                  </div>
+                }
+              >
                 <BudgetPieChart data={pieData} currency={settings.currency} />
               </Suspense>
             </div>
@@ -493,9 +585,7 @@ export default function BudgetPage() {
 
           {/* Expense List */}
           <div className="space-y-2">
-            <h3 className="text-sm font-bold text-apple-primary">
-              הוצאות ({expenses.length})
-            </h3>
+            <h3 className="text-sm font-bold text-apple-primary">הוצאות ({expenses.length})</h3>
             {expenses.length === 0 && (
               <div className="glass rounded-apple-lg p-6 text-center shadow-sm">
                 <Receipt className="mx-auto h-8 w-8 text-apple-tertiary mb-2" />
@@ -516,25 +606,38 @@ export default function BudgetPage() {
                     <IconComp className="h-5 w-5 text-apple-secondary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-apple-primary truncate">{isSampleData(expense.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}{expense.title}</p>
+                    <p className="text-sm font-medium text-apple-primary truncate">
+                      {isSampleData(expense.id) && (
+                        <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">
+                          🤖
+                        </span>
+                      )}
+                      {expense.title}
+                    </p>
                     <p className="text-xs text-apple-secondary">
                       {member.avatar_emoji} {member.name} · {expense.date}
                     </p>
                   </div>
                   <div className="text-left shrink-0">
                     <p className="text-sm font-bold text-ios-red">
-                      {expense.currency}{expense.amount.toLocaleString()}
+                      {expense.currency}
+                      {expense.amount.toLocaleString()}
                     </p>
                     <p className="text-xs text-apple-secondary">
                       {EXPENSE_CATEGORIES[expense.category]?.label}
                       {planned > 0 && (
-                        <span className="text-apple-tertiary"> / {expense.currency}{planned.toLocaleString()}</span>
+                        <span className="text-apple-tertiary">
+                          {' '}
+                          / {expense.currency}
+                          {planned.toLocaleString()}
+                        </span>
                       )}
                     </p>
                   </div>
                   <button
                     onClick={() => deleteExpense(expense.id)}
                     className="shrink-0 rounded-lg p-1.5 text-apple-tertiary hover:bg-ios-red/10 hover:text-ios-red"
+                    aria-label="מחיקה"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

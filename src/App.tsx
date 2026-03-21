@@ -4,16 +4,14 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { AppDataProvider, useAppData } from '@/contexts/AppDataContext'
 import AppShell from '@/components/layout/AppShell'
 import SplashScreen from '@/components/shared/SplashScreen'
+import NotFoundPage from '@/components/shared/NotFoundPage'
 
 // Auth screens (small, loaded eagerly for fast first paint)
 import { PinScreen } from '@/modules/auth/PinScreen'
 import { FamilySelectScreen } from '@/modules/auth/FamilySelectScreen'
 
 // Error boundary for lazy-loaded chunks that fail to load
-class ChunkErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean }
-> {
+class ChunkErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
   state = { hasError: false }
   static getDerivedStateFromError() {
     return { hasError: true }
@@ -37,9 +35,7 @@ const MapPage = lazy(() => import('@/modules/map/MapPage'))
 const PhotosPage = lazy(() => import('@/modules/photos/PhotosPage'))
 const BlogPage = lazy(() => import('@/modules/blog/BlogPage'))
 const BudgetPage = lazy(() => import('@/modules/budget/BudgetPage'))
-const EntertainmentPage = lazy(
-  () => import('@/modules/entertainment/EntertainmentPage'),
-)
+const EntertainmentPage = lazy(() => import('@/modules/entertainment/EntertainmentPage'))
 const PackingPage = lazy(() => import('@/modules/packing/PackingPage'))
 const ChatPage = lazy(() => import('@/modules/chat/ChatPage'))
 const MotiLogPage = lazy(() => import('@/modules/chat/MotiLogPage'))
@@ -127,16 +123,14 @@ function AppInner() {
               <Route path="chat/log" element={<MotiLogPage />} />
             </Route>
 
-            {/* Catch-all redirect */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* 404 page */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </ChunkErrorBoundary>
 
       {/* Splash overlay — stays until data is ready */}
-      {!splashDone && (
-        <SplashScreen onFinished={handleSplashFinished} dataReady={!isLoading} />
-      )}
+      {!splashDone && <SplashScreen onFinished={handleSplashFinished} dataReady={!isLoading} />}
     </>
   )
 }
