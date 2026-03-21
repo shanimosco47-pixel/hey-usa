@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import {
   Mountain,
   Car,
@@ -76,7 +77,7 @@ interface StopCardProps {
   index: number
 }
 
-export function StopCard({ stop, index }: StopCardProps) {
+export const StopCard = memo(function StopCard({ stop, index }: StopCardProps) {
   const config = CATEGORY_CONFIG[stop.category ?? 'activity'] ?? CATEGORY_CONFIG.activity
   const Icon = config.icon
 
@@ -84,7 +85,7 @@ export function StopCard({ stop, index }: StopCardProps) {
     if (stop.lat && stop.lng) {
       window.open(
         `https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lng}`,
-        '_blank'
+        '_blank',
       )
     }
   }
@@ -104,7 +105,7 @@ export function StopCard({ stop, index }: StopCardProps) {
         <div
           className={cn(
             'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl',
-            config.bgColor
+            config.bgColor,
           )}
         >
           <Icon className={cn('h-5 w-5', config.color)} />
@@ -143,9 +144,7 @@ export function StopCard({ stop, index }: StopCardProps) {
 
           {/* Description */}
           {stop.description && (
-            <p className="mt-2 text-xs leading-relaxed text-apple-secondary">
-              {stop.description}
-            </p>
+            <p className="mt-2 text-xs leading-relaxed text-apple-secondary">{stop.description}</p>
           )}
 
           {/* Meta row: cost, booking */}
@@ -169,7 +168,7 @@ export function StopCard({ stop, index }: StopCardProps) {
               className={cn(
                 'inline-flex items-center rounded-lg px-2 py-0.5 text-[11px] font-medium',
                 config.bgColor,
-                config.color
+                config.color,
               )}
             >
               {config.label}
@@ -180,9 +179,7 @@ export function StopCard({ stop, index }: StopCardProps) {
           {stop.notes && (
             <div className="mt-3 flex gap-2 rounded-lg bg-black/[0.03] p-2">
               <StickyNote className="mt-0.5 h-3 w-3 flex-shrink-0 text-ios-orange" />
-              <p className="text-[11px] leading-relaxed text-apple-secondary">
-                {stop.notes}
-              </p>
+              <p className="text-[11px] leading-relaxed text-apple-secondary">{stop.notes}</p>
             </div>
           )}
 
@@ -200,4 +197,4 @@ export function StopCard({ stop, index }: StopCardProps) {
       </div>
     </div>
   )
-}
+})

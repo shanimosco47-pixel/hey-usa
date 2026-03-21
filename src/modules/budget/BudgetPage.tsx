@@ -21,7 +21,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
-import { EXPENSE_CATEGORIES, getFamilyMember } from '@/constants'
+import { EXPENSE_CATEGORIES, FAMILY_MEMBERS_LIST, getFamilyMember } from '@/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Expense } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
@@ -538,7 +538,7 @@ export default function BudgetPage() {
                 }
                 className={inputClass}
               >
-                {FAMILY_MEMBERS.map((m) => (
+                {FAMILY_MEMBERS_LIST.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.avatar_emoji} {m.name}
                   </option>
@@ -587,10 +587,9 @@ export default function BudgetPage() {
           <div className="space-y-2">
             <h3 className="text-sm font-bold text-apple-primary">הוצאות ({expenses.length})</h3>
             {expenses.length === 0 && (
-              <div className="glass rounded-apple-lg p-6 text-center shadow-sm">
-                <Receipt className="mx-auto h-8 w-8 text-apple-tertiary mb-2" />
-                <p className="text-sm text-apple-secondary">עדיין אין הוצאות</p>
-                <p className="text-xs text-apple-tertiary mt-1">לחצו על "הוצאה חדשה" כדי להתחיל</p>
+              <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
+                <Receipt className="h-12 w-12 text-apple-secondary/30" />
+                <p className="mt-4 text-apple-secondary">אין הוצאות להצגה</p>
               </div>
             )}
             {expenses.map((expense) => {

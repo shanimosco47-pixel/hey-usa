@@ -125,7 +125,12 @@ export default function PackingPage() {
             <Package className="ml-1 inline h-4 w-4" />
             {packedItems} מתוך {totalItems} ארוזים
           </span>
-          <span className={cn('font-bold', packedPercent === 100 ? 'text-ios-green' : 'text-apple-primary')}>
+          <span
+            className={cn(
+              'font-bold',
+              packedPercent === 100 ? 'text-ios-green' : 'text-apple-primary',
+            )}
+          >
             {packedPercent.toFixed(0)}%
           </span>
         </div>
@@ -168,22 +173,18 @@ export default function PackingPage() {
           onClick={() => setFilterMember('all')}
           className={cn(
             'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
-            filterMember === 'all'
-              ? 'bg-apple-primary text-white'
-              : 'glass text-apple-secondary',
+            filterMember === 'all' ? 'bg-apple-primary text-white' : 'glass text-apple-secondary',
           )}
         >
           כולם
         </button>
-        {FAMILY_MEMBERS.map((m) => (
+        {FAMILY_MEMBERS_LIST.map((m) => (
           <button
             key={m.id}
             onClick={() => setFilterMember(m.id)}
             className={cn(
               'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
-              filterMember === m.id
-                ? 'bg-apple-primary text-white'
-                : 'glass text-apple-secondary',
+              filterMember === m.id ? 'bg-apple-primary text-white' : 'glass text-apple-secondary',
             )}
           >
             {m.avatar_emoji} {m.name}
@@ -209,16 +210,22 @@ export default function PackingPage() {
               className="rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
             >
               {Object.entries(PACKING_CATEGORIES).map(([key, { label }]) => (
-                <option key={key} value={key}>{label}</option>
+                <option key={key} value={key}>
+                  {label}
+                </option>
               ))}
             </select>
             <select
               value={newItem.assigned_to}
-              onChange={(e) => setNewItem((p) => ({ ...p, assigned_to: e.target.value as FamilyMemberId }))}
+              onChange={(e) =>
+                setNewItem((p) => ({ ...p, assigned_to: e.target.value as FamilyMemberId }))
+              }
               className="rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
             >
-              {FAMILY_MEMBERS.map((m) => (
-                <option key={m.id} value={m.id}>{m.avatar_emoji} {m.name}</option>
+              {FAMILY_MEMBERS_LIST.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.avatar_emoji} {m.name}
+                </option>
               ))}
             </select>
           </div>
@@ -242,96 +249,114 @@ export default function PackingPage() {
       )}
 
       {/* Category Groups */}
-      <motion.div
-        className="space-y-2"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.3 }}
-      >
-        {Object.entries(PACKING_CATEGORIES).map(([catKey, { label }]) => {
-          const catItems = groupedByCategory[catKey]
-          if (!catItems || catItems.length === 0) return null
-          const isExpanded = expandedCategories.has(catKey)
-          const catPacked = catItems.filter((i) => i.is_packed).length
-          const IconComp = CATEGORY_ICONS[catKey] || Package
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
+          <Package className="h-12 w-12 text-apple-secondary/30" />
+          <p className="mt-4 text-apple-secondary">אין פריטים להצגה</p>
+        </div>
+      ) : (
+        <motion.div
+          className="space-y-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.3 }}
+        >
+          {Object.entries(PACKING_CATEGORIES).map(([catKey, { label }]) => {
+            const catItems = groupedByCategory[catKey]
+            if (!catItems || catItems.length === 0) return null
+            const isExpanded = expandedCategories.has(catKey)
+            const catPacked = catItems.filter((i) => i.is_packed).length
+            const IconComp = CATEGORY_ICONS[catKey] || Package
 
-          return (
-            <div key={catKey} className="glass rounded-apple-lg shadow-sm overflow-hidden">
-              <button
-                onClick={() => toggleCategory(catKey)}
-                className="flex w-full items-center gap-3 p-3"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/[0.04]">
-                  <IconComp className="h-4 w-4 text-apple-secondary" />
-                </div>
-                <span className="flex-1 text-right text-sm font-bold text-apple-primary">
-                  {label} {catPacked === catItems.length && '✅'}
-                </span>
-                <span className="text-xs text-apple-secondary">
-                  {catPacked}/{catItems.length}
-                </span>
-                {isExpanded ? (
-                  <ChevronUp className="h-4 w-4 text-apple-secondary" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-apple-secondary" />
-                )}
-              </button>
+            return (
+              <div key={catKey} className="glass rounded-apple-lg shadow-sm overflow-hidden">
+                <button
+                  onClick={() => toggleCategory(catKey)}
+                  className="flex w-full items-center gap-3 p-3"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/[0.04]">
+                    <IconComp className="h-4 w-4 text-apple-secondary" />
+                  </div>
+                  <span className="flex-1 text-right text-sm font-bold text-apple-primary">
+                    {label} {catPacked === catItems.length && '✅'}
+                  </span>
+                  <span className="text-xs text-apple-secondary">
+                    {catPacked}/{catItems.length}
+                  </span>
+                  {isExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-apple-secondary" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-apple-secondary" />
+                  )}
+                </button>
 
-              {isExpanded && (
-                <div className="border-t border-black/[0.06] px-3 pb-2">
-                  {catItems.map((item) => {
-                    const member = getFamilyMember(item.assigned_to)
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex items-center gap-3 py-2 border-b border-black/[0.04] last:border-0"
-                      >
-                        <button
-                          onClick={() => togglePacked(item.id)}
-                          className={cn(
-                            'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 transition-colors',
-                            item.is_packed
-                              ? 'border-ios-green bg-ios-green text-white'
-                              : 'border-apple-tertiary/30 bg-transparent',
-                          )}
+                {isExpanded && (
+                  <div className="border-t border-black/[0.06] px-3 pb-2">
+                    {catItems.map((item) => {
+                      const member = getFamilyMember(item.assigned_to)
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-3 py-2 border-b border-black/[0.04] last:border-0"
                         >
-                          {item.is_packed && <Check className="h-3.5 w-3.5" />}
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <p
+                          <button
+                            onClick={() => togglePacked(item.id)}
                             className={cn(
-                              'text-sm',
-                              item.is_packed ? 'text-apple-secondary line-through' : 'text-apple-primary',
+                              'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 transition-colors',
+                              item.is_packed
+                                ? 'border-ios-green bg-ios-green text-white'
+                                : 'border-apple-tertiary/30 bg-transparent',
                             )}
                           >
-                            {isSampleData(item.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}
-                            {item.name}
-                            {item.quantity > 1 && (
-                              <span className="mr-1 text-xs text-apple-secondary">×{item.quantity}</span>
+                            {item.is_packed && <Check className="h-3.5 w-3.5" />}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className={cn(
+                                'text-sm',
+                                item.is_packed
+                                  ? 'text-apple-secondary line-through'
+                                  : 'text-apple-primary',
+                              )}
+                            >
+                              {isSampleData(item.id) && (
+                                <span
+                                  className="text-[10px] ml-1 opacity-60"
+                                  title="דוגמה מאת מוטי"
+                                >
+                                  🤖
+                                </span>
+                              )}
+                              {item.name}
+                              {item.quantity > 1 && (
+                                <span className="mr-1 text-xs text-apple-secondary">
+                                  ×{item.quantity}
+                                </span>
+                              )}
+                            </p>
+                            {item.notes && (
+                              <p className="text-xs text-apple-tertiary">{item.notes}</p>
                             )}
-                          </p>
-                          {item.notes && (
-                            <p className="text-xs text-apple-tertiary">{item.notes}</p>
-                          )}
+                          </div>
+                          <span className="text-xs" title={member.name}>
+                            {member.avatar_emoji}
+                          </span>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="shrink-0 rounded-lg p-1 text-apple-tertiary/30 hover:bg-ios-red/10 hover:text-ios-red"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
                         </div>
-                        <span className="text-xs" title={member.name}>
-                          {member.avatar_emoji}
-                        </span>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="shrink-0 rounded-lg p-1 text-apple-tertiary/30 hover:bg-ios-red/10 hover:text-ios-red"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </motion.div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </motion.div>
+      )}
     </div>
   )
 }

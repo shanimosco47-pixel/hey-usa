@@ -3,8 +3,10 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
+const ALLOWED_ORIGIN = Deno.env.get('ALLOWED_ORIGIN') || 'https://shanimosco47-pixel.github.io'
+
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-client-info',
 }
@@ -32,13 +34,10 @@ Deno.serve(async (req) => {
   const googleClientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET')
 
   if (!supabaseUrl || !supabaseServiceRoleKey || !googleClientId || !googleClientSecret) {
-    return new Response(
-      JSON.stringify({ error: 'Missing required environment variables' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-      },
-    )
+    return new Response(JSON.stringify({ error: 'Missing required environment variables' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+    })
   }
 
   try {
@@ -88,33 +87,24 @@ Deno.serve(async (req) => {
     const tokens = await tokenResponse.json()
 
     if (!tokens.access_token) {
-      return new Response(
-        JSON.stringify({ error: 'No access token returned from Google' }),
-        {
-          status: 502,
-          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-        },
-      )
+      return new Response(JSON.stringify({ error: 'No access token returned from Google' }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      })
     }
 
     // Step 2: Get user email from Gmail profile
-    const profileResponse = await fetch(
-      'https://www.googleapis.com/gmail/v1/users/me/profile',
-      {
-        headers: { Authorization: `Bearer ${tokens.access_token}` },
-      },
-    )
+    const profileResponse = await fetch('https://www.googleapis.com/gmail/v1/users/me/profile', {
+      headers: { Authorization: `Bearer ${tokens.access_token}` },
+    })
 
     if (!profileResponse.ok) {
       const errorText = await profileResponse.text()
       console.error('Gmail profile fetch error:', profileResponse.status, errorText)
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch Gmail profile' }),
-        {
-          status: 502,
-          headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-        },
-      )
+      return new Response(JSON.stringify({ error: 'Failed to fetch Gmail profile' }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      })
     }
 
     const profile = await profileResponse.json()
@@ -135,17 +125,15 @@ Deno.serve(async (req) => {
 
     const accountLabel = label || email.split('@')[0]
 
-    const { error: upsertError } = await supabase
-      .from('email_accounts')
-      .upsert(
-        {
-          email,
-          label: accountLabel,
-          refresh_token: tokens.refresh_token,
-          is_approved: true,
-        },
-        { onConflict: 'email' },
-      )
+    const { error: upsertError } = await supabase.from('email_accounts').upsert(
+      {
+        email,
+        label: accountLabel,
+        refresh_token: tokens.refresh_token,
+        is_approved: true,
+      },
+      { onConflict: 'email' },
+    )
 
     if (upsertError) {
       console.error('Supabase upsert error:', upsertError)
@@ -159,21 +147,15 @@ Deno.serve(async (req) => {
     }
 
     // Step 4: Return success
-    return new Response(
-      JSON.stringify({ email, label: accountLabel }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-      },
-    )
+    return new Response(JSON.stringify({ email, label: accountLabel }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+    })
   } catch (err) {
     console.error('Edge function error:', err)
-    return new Response(
-      JSON.stringify({ error: 'Internal error' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-      },
-    )
+    return new Response(JSON.stringify({ error: 'Internal error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+    })
   }
 })

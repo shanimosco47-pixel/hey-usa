@@ -84,19 +84,12 @@ export function PinScreen() {
           >
             <span className="text-3xl">🇺🇸</span>
           </motion.div>
-          <h1 className="text-hero text-apple-primary mb-2">
-            Hey USA
-          </h1>
+          <h1 className="text-2xl sm:text-hero text-apple-primary mb-2">Hey USA</h1>
           <p className="text-subhead text-apple-secondary">הכנס קוד משפחתי</p>
         </motion.div>
 
         {/* PIN Dots */}
-        <div
-          className={cn(
-            'flex gap-4 justify-center',
-            shaking && 'animate-shake',
-          )}
-        >
+        <div className={cn('flex gap-4 justify-center', shaking && 'animate-shake')}>
           {Array.from({ length: PIN_LENGTH }).map((_, i) => (
             <div
               key={i}
@@ -113,9 +106,7 @@ export function PinScreen() {
         </div>
 
         {/* Error message */}
-        {error && (
-          <p className="text-ios-red text-subhead -mt-4">קוד שגוי, נסה שוב</p>
-        )}
+        {error && <p className="text-ios-red text-subhead -mt-4">קוד שגוי, נסה שוב</p>}
 
         {/* Numeric keypad */}
         <motion.div
