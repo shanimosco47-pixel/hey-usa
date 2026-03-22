@@ -125,7 +125,7 @@ export async function uploadToStorage(
   supabase: SupabaseClient,
   file: CapturedFile,
 ): Promise<string | null> {
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from("documents")
     .upload(file.fileName, file.data, {
       contentType: file.contentType,

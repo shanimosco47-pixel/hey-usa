@@ -169,7 +169,7 @@ export function parseActions(message: string): MotiAction[] {
     if (dayId) {
       // Extract the description after the day reference
       const afterDay = lower.split(/יום\s+\d+|\d{1,2}\s*בספט/)[1] || ''
-      const title = afterDay.replace(/^[\s:—\-]+/, '').trim() || 'עצירה חדשה'
+      const title = afterDay.replace(/^[\s:—-]+/, '').trim() || 'עצירה חדשה'
       actions.push({
         type: 'ADD_ITINERARY_STOP',
         dayId,
@@ -188,7 +188,7 @@ export function parseActions(message: string): MotiAction[] {
     const dayId = findDayId(lower)
     if (dayId) {
       const afterDay = lower.split(/יום\s+\d+|\d{1,2}\s*בספט/)[1] || ''
-      const notes = afterDay.replace(/^[\s:—\-]+/, '').trim() || ''
+      const notes = afterDay.replace(/^[\s:—-]+/, '').trim() || ''
       if (notes) {
         actions.push({ type: 'UPDATE_ITINERARY_DAY_NOTES', dayId, notes })
         return actions

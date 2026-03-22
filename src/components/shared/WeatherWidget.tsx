@@ -66,7 +66,7 @@ export default function WeatherWidget({ mode = 'dashboard', date }: WeatherWidge
 
   // Find current location and next destination
   type ForecastItem = { city: string; date: string; weather: DayWeather; dayLabel: string }
-  let currentForecast: ForecastItem[] = []
+  const currentForecast: ForecastItem[] = []
   let nextDestination: ForecastItem | null = null
 
   if (isTripTime) {

@@ -52,7 +52,7 @@ export default function BlogPage() {
     setIsEditing(true)
   }
 
-  function usePrompt(prompt: typeof MOTI_PROMPTS[0]) {
+  function handlePrompt(prompt: typeof MOTI_PROMPTS[0]) {
     setEditTitle(prompt.title)
     setEditContent(prompt.starter)
     setEditTags(prompt.tags)
@@ -155,7 +155,7 @@ export default function BlogPage() {
                     {MOTI_PROMPTS.map((prompt) => (
                       <button
                         key={prompt.title}
-                        onClick={() => usePrompt(prompt)}
+                        onClick={() => handlePrompt(prompt)}
                         className="rounded-xl bg-white/80 p-2.5 text-right shadow-sm hover:shadow-md transition-shadow border border-black/[0.04]"
                       >
                         <span className="text-lg">{prompt.emoji}</span>
