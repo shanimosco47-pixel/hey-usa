@@ -32,7 +32,7 @@ export function TopBar() {
         <h1 className="text-[15px] sm:text-[17px] font-bold tracking-tight text-apple-primary whitespace-nowrap">
           Hey USA
         </h1>
-        <span className="text-[9px] text-apple-tertiary font-medium tabular-nums whitespace-nowrap">
+        <span className="text-[9px] font-bold text-black tabular-nums whitespace-nowrap">
           v{APP_VERSION} • {buildTimeFormatted()}
         </span>
       </div>
