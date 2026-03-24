@@ -121,7 +121,7 @@ export function EmailAccountSettings() {
                         <p className="truncate text-sm font-medium text-apple-primary">
                           {account.email}
                         </p>
-                        <div className="flex items-center gap-1.5 text-[11px] text-black">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-black">
                           {account.label && (
                             <>
                               <span>{account.label}</span>
