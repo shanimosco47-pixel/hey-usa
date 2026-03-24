@@ -109,9 +109,7 @@ export function EmailAccountSettings() {
                   <Loader2 className="h-5 w-5 animate-spin text-apple-secondary" />
                 </div>
               ) : accounts.length === 0 ? (
-                <p className="py-2 text-center text-sm text-apple-secondary">
-                  אין חשבונות מחוברים
-                </p>
+                <p className="py-2 text-center text-sm text-apple-secondary">אין חשבונות מחוברים</p>
               ) : (
                 <ul className="mb-3 flex flex-col gap-2">
                   {accounts.map((account) => (
@@ -123,7 +121,7 @@ export function EmailAccountSettings() {
                         <p className="truncate text-sm font-medium text-apple-primary">
                           {account.email}
                         </p>
-                        <div className="flex items-center gap-1.5 text-[11px] text-apple-secondary">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-black">
                           {account.label && (
                             <>
                               <span>{account.label}</span>
