@@ -247,7 +247,7 @@ Deno.serve(async (req) => {
         allResults.push(result)
         console.log(`[email-scan] Imported: ${result.title} (${result.documentId})`)
 
-        // Also create campsite booking for hotel/campsite emails
+        // Also create/enrich campsite booking for hotel/campsite emails
         await importCampsiteBooking(supabase, {
           title: meta.title,
           category: meta.category,
@@ -262,6 +262,7 @@ Deno.serve(async (req) => {
           checkInDate: meta.check_in_date,
           expiryDate: meta.expiry_date,
           familyMemberId: meta.family_member_id,
+          confirmation: meta.confirmation,
         })
       } catch (err) {
         console.error(`[email-scan] Failed to process message ${ref.id}:`, err)

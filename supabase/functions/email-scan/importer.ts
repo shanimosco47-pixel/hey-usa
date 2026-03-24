@@ -22,6 +22,7 @@ export interface ImportedDoc {
   checkInDate?: string | null
   expiryDate: string | null
   familyMemberId: string | null
+  confirmation?: string | null
 }
 
 export interface ImportResult {
@@ -195,11 +196,45 @@ export async function importCampsiteBooking(
     }
   }
 
-  // If a MANUAL booking exists → SKIP entirely (never overwrite)
+  // If a MANUAL booking exists → enrich with confirmation data (don't overwrite location/notes)
   if (existingBooking && existingBooking.source !== 'email_scan') {
-    console.log(
-      `[importer] Skipping — manual booking exists for ${searchDate} at ${existingBooking.location}`,
-    )
+    const updates: Record<string, unknown> = { updated_at: now }
+
+    // Update status to confirmed if we have a confirmation number
+    if (doc.confirmation && existingBooking.status !== 'confirmed') {
+      updates.status = 'confirmed'
+      updates.confirmation = doc.confirmation
+    }
+
+    // Fill in cost if missing
+    if (doc.amount && !existingBooking.cost) {
+      updates.cost = doc.amount
+    }
+
+    // Fill in cancellation_deadline if we have an expiry date and it's missing
+    if (doc.expiryDate && !existingBooking.cancellation_deadline) {
+      updates.cancellation_deadline = doc.expiryDate
+    }
+
+    // Only update if we have something new to add
+    if (Object.keys(updates).length > 1) {
+      const { error } = await supabase
+        .from('campsite_bookings')
+        .update(updates)
+        .eq('id', existingBooking.id)
+
+      if (error) {
+        console.error('[importer] Failed to enrich manual booking:', error.message)
+      } else {
+        console.log(
+          `[importer] Enriched manual booking ${existingBooking.id} at ${existingBooking.location}`,
+        )
+      }
+    } else {
+      console.log(
+        `[importer] Manual booking for ${searchDate} at ${existingBooking.location} — nothing new to add`,
+      )
+    }
     return
   }
 
@@ -236,8 +271,8 @@ export async function importCampsiteBooking(
     area: '',
     type: accommodationType,
     priority: 'primary',
-    status: 'pending',
-    confirmation: null,
+    status: doc.confirmation ? 'confirmed' : 'pending',
+    confirmation: doc.confirmation ?? null,
     cost: doc.amount,
     notes: doc.notes || null,
     source: 'email_scan',

@@ -20,6 +20,7 @@ export interface DocumentMeta {
   check_in_date: string | null
   expiry_date: string | null
   family_member_id: string | null
+  confirmation: string | null
   notes: string
 }
 
@@ -161,7 +162,8 @@ Return a JSON object with these fields:
 - check_in_date: string or null (ISO date YYYY-MM-DD, check-in or start date for hotel/campsite/rental)
 - expiry_date: string or null (ISO date YYYY-MM-DD, check-out date or ticket/insurance expiry)
 - family_member_id: string or null (name/identifier if clearly for a specific person)
-- notes: string (booking references, important details, 1-3 sentences max)
+- confirmation: string or null (booking confirmation/reference number, e.g. "#75307560", "AYQKIR")
+- notes: string (important details, 1-3 sentences max)
 
 Valid locationIds: ${validLocations}
 
@@ -176,6 +178,7 @@ Respond ONLY with the JSON object, no other text.`
     check_in_date: null,
     expiry_date: null,
     family_member_id: null,
+    confirmation: null,
     notes: '',
   }
 
@@ -221,6 +224,10 @@ Respond ONLY with the JSON object, no other text.`
       family_member_id:
         typeof parsed.family_member_id === 'string' && parsed.family_member_id.trim()
           ? parsed.family_member_id.trim()
+          : null,
+      confirmation:
+        typeof parsed.confirmation === 'string' && parsed.confirmation.trim()
+          ? parsed.confirmation.trim()
           : null,
       notes: typeof parsed.notes === 'string' ? parsed.notes.trim() : defaults.notes,
     }
