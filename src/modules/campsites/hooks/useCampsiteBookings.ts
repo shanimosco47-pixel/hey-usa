@@ -20,7 +20,7 @@ function saveToLocalStorage(data: CampsiteBooking[]) {
 
 export function useCampsiteBookings() {
   const [bookings, setBookings] = useState<CampsiteBooking[]>(
-    () => loadFromLocalStorage() ?? sampleCampsiteBookings
+    () => loadFromLocalStorage() ?? sampleCampsiteBookings,
   )
   const [loading, setLoading] = useState(true)
 
@@ -51,7 +51,10 @@ export function useCampsiteBookings() {
             confirmation: r.confirmation ?? undefined,
             booking_url: r.booking_url ?? undefined,
             cost: r.cost != null ? Number(r.cost) : undefined,
+            cancellation_deadline: r.cancellation_deadline ?? undefined,
+            refund_amount: r.refund_amount != null ? Number(r.refund_amount) : undefined,
             notes: r.notes ?? '',
+            source: r.source ?? 'manual',
             changelog: r.changelog ?? [],
             created_at: r.created_at,
             updated_at: r.updated_at,
@@ -108,7 +111,12 @@ export function useCampsiteBookings() {
               const oldVal = String((current as unknown as Record<string, unknown>)[key] ?? '')
               const newVal = String(val ?? '')
               if (oldVal !== newVal) {
-                newEntries.push({ field: key, old_value: oldVal, new_value: newVal, changed_at: now })
+                newEntries.push({
+                  field: key,
+                  old_value: oldVal,
+                  new_value: newVal,
+                  changed_at: now,
+                })
               }
             }
           }
@@ -126,7 +134,7 @@ export function useCampsiteBookings() {
         }
       }
     },
-    [bookings]
+    [bookings],
   )
 
   const addBooking = useCallback(
@@ -134,6 +142,7 @@ export function useCampsiteBookings() {
       const now = new Date().toISOString()
       const newBooking: CampsiteBooking = {
         ...booking,
+        source: 'manual',
         id: `camp-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         changelog: [],
         created_at: now,
@@ -142,7 +151,7 @@ export function useCampsiteBookings() {
 
       setBookings((prev) => {
         const updated = [...prev, newBooking].sort(
-          (a, b) => a.check_in.localeCompare(b.check_in) || a.priority.localeCompare(b.priority)
+          (a, b) => a.check_in.localeCompare(b.check_in) || a.priority.localeCompare(b.priority),
         )
         saveToLocalStorage(updated)
         return updated
@@ -150,7 +159,9 @@ export function useCampsiteBookings() {
 
       if (supabase) {
         try {
-          const { error } = await supabase.from('campsite_bookings').insert(newBooking as unknown as Record<string, unknown>)
+          const { error } = await supabase
+            .from('campsite_bookings')
+            .insert(newBooking as unknown as Record<string, unknown>)
           if (error) console.warn('Supabase insert failed:', error)
         } catch (err) {
           console.warn('Failed to sync insert to Supabase:', err)
@@ -159,15 +170,19 @@ export function useCampsiteBookings() {
 
       return newBooking
     },
-    []
+    [],
   )
 
   const sortedBookings = [...bookings].sort(
-    (a, b) => a.check_in.localeCompare(b.check_in) || a.priority.localeCompare(b.priority)
+    (a, b) => a.check_in.localeCompare(b.check_in) || a.priority.localeCompare(b.priority),
   )
 
-  const confirmedCount = bookings.filter((b) => b.status === 'confirmed' && b.priority === 'primary').length
-  const totalNights = new Set(bookings.filter((b) => b.priority === 'primary').map((b) => b.check_in)).size
+  const confirmedCount = bookings.filter(
+    (b) => b.status === 'confirmed' && b.priority === 'primary',
+  ).length
+  const totalNights = new Set(
+    bookings.filter((b) => b.priority === 'primary').map((b) => b.check_in),
+  ).size
 
   return {
     bookings: sortedBookings,

@@ -22,7 +22,13 @@ import { classifyEmail, extractDocumentMeta } from './classifier.ts'
 
 import { captureDocument, uploadToStorage } from './capture.ts'
 
-import { importDocument, buildMotiNotification, postMotiMessage, ImportResult } from './importer.ts'
+import {
+  importDocument,
+  importCampsiteBooking,
+  buildMotiNotification,
+  postMotiMessage,
+  ImportResult,
+} from './importer.ts'
 
 // ---------------------------------------------------------------------------
 // CORS headers (matching the moti-chat pattern)
@@ -240,6 +246,23 @@ Deno.serve(async (req) => {
 
         allResults.push(result)
         console.log(`[email-scan] Imported: ${result.title} (${result.documentId})`)
+
+        // Also create campsite booking for hotel/campsite emails
+        await importCampsiteBooking(supabase, {
+          title: meta.title,
+          category: meta.category,
+          locationId: meta.locationId,
+          amount: meta.amount,
+          currency: meta.currency,
+          fileUrl,
+          fileType,
+          fileSize,
+          notes: meta.notes,
+          sourceEmailId: message.id,
+          checkInDate: meta.check_in_date,
+          expiryDate: meta.expiry_date,
+          familyMemberId: meta.family_member_id,
+        })
       } catch (err) {
         console.error(`[email-scan] Failed to process message ${ref.id}:`, err)
         // Continue with next message
