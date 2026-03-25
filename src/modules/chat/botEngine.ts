@@ -447,7 +447,7 @@ export async function getBotResponseAsync(userMessage: string, appContext?: stri
   if (actions.length > 0) {
     const confirmText = generateActionConfirmation(actions)
     conversationHistory.push({ role: 'assistant', content: confirmText })
-    const card = detectCard(confirmText, actions, appContext)
+    const card = detectCard(confirmText, actions)
     const quickActions = detectQuickActions(confirmText, actions)
     return { text: confirmText, actions, card, quickActions }
   }
@@ -494,7 +494,7 @@ export async function getBotResponseAsync(userMessage: string, appContext?: stri
           const allActions = actions.length > 0 ? actions : aiActions
 
           // Attach rich cards and quick actions
-          const card = detectCard(assistantMessage, allActions, appContext)
+          const card = detectCard(assistantMessage, allActions)
           const quickActions = detectQuickActions(assistantMessage, allActions)
 
           return { text: assistantMessage, actions: allActions, card, quickActions }
@@ -509,7 +509,7 @@ export async function getBotResponseAsync(userMessage: string, appContext?: stri
   // Fallback to keyword engine
   const fallbackText = getKeywordResponse(userMessage)
   conversationHistory.push({ role: 'assistant', content: fallbackText })
-  const card = detectCard(fallbackText, [], appContext)
+  const card = detectCard(fallbackText, [])
   const quickActions = detectQuickActions(fallbackText, [])
   return { text: fallbackText, actions: [], card, quickActions }
 }
@@ -563,7 +563,7 @@ function generateActionConfirmation(actions: MotiAction[]): string {
 
 import { findDriveTime, formatDuration, formatDistance } from '@/data/driveTimes'
 
-function detectCard(text: string, actions: MotiAction[], _appContext?: string): MessageCard | undefined {
+function detectCard(text: string, actions: MotiAction[]): MessageCard | undefined {
   // Check for drive time actions
   for (const action of actions) {
     if ('type' in action && action.type === 'ESTIMATE_DRIVE_TIME') {
