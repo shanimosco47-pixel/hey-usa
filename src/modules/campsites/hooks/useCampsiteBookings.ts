@@ -62,6 +62,7 @@ export function useCampsiteBookings() {
             refund_amount: r.refund_amount != null ? Number(r.refund_amount) : undefined,
             notes: r.notes ?? '',
             source: r.source ?? 'manual',
+            document_id: r.document_id ?? undefined,
             changelog: r.changelog ?? [],
             created_at: r.created_at,
             updated_at: r.updated_at,

@@ -225,6 +225,7 @@ export interface CampsiteBooking {
   refund_amount?: number
   notes?: string
   source?: BookingSource
+  document_id?: string
   changelog: BookingChangeEntry[]
   created_at: string
   updated_at: string

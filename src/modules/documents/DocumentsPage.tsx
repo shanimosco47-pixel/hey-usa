@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import * as Tabs from '@radix-ui/react-tabs'
 import { FileText, Plus, Search, LayoutGrid, List, FolderOpen, Calendar, ArrowUpDown, CheckCircle2, Clock, Paperclip } from 'lucide-react'
@@ -66,6 +67,19 @@ export default function DocumentsPage() {
   const [uploadOpen, setUploadOpen] = useState(false)
   const [viewerDoc, setViewerDoc] = useState<Document | null>(null)
   const [viewerOpen, setViewerOpen] = useState(false)
+  const [searchParams] = useSearchParams()
+
+  // Auto-open document from query param (e.g. ?doc=scan-123)
+  useEffect(() => {
+    const docId = searchParams.get('doc')
+    if (docId && allDocuments.length > 0) {
+      const target = allDocuments.find((d) => d.id === docId)
+      if (target) {
+        setViewerDoc(target)
+        setViewerOpen(true)
+      }
+    }
+  }, [searchParams, allDocuments])
 
   const handleCardClick = useCallback((doc: Document) => {
     setViewerDoc(doc)

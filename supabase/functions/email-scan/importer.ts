@@ -23,6 +23,7 @@ export interface ImportedDoc {
   expiryDate: string | null
   familyMemberId: string | null
   confirmation?: string | null
+  documentId?: string | null
 }
 
 export interface ImportResult {
@@ -216,6 +217,11 @@ export async function importCampsiteBooking(
       updates.cancellation_deadline = doc.expiryDate
     }
 
+    // Link to document if not already linked
+    if (doc.documentId && !existingBooking.document_id) {
+      updates.document_id = doc.documentId
+    }
+
     // Only update if we have something new to add
     if (Object.keys(updates).length > 1) {
       const { error } = await supabase
@@ -247,6 +253,7 @@ export async function importCampsiteBooking(
         check_out: checkOut ?? existingBooking.check_out,
         cost: doc.amount ?? existingBooking.cost,
         notes: doc.notes || existingBooking.notes,
+        document_id: doc.documentId ?? existingBooking.document_id,
         updated_at: now,
       })
       .eq('id', existingBooking.id)
@@ -276,6 +283,7 @@ export async function importCampsiteBooking(
     cost: doc.amount,
     notes: doc.notes || null,
     source: 'email_scan',
+    document_id: doc.documentId ?? null,
     changelog: [],
     created_at: now,
     updated_at: now,

@@ -100,12 +100,13 @@ Deno.serve(async (req) => {
   // ------------------------------------------------------------------
   // Parse request body
   // ------------------------------------------------------------------
-  let mode: 'full' | 'targeted' = 'full'
+  let mode: 'full' | 'targeted' | 'rescan' = 'full'
   let queryOverride: string | undefined
 
   try {
     const body = await req.json()
-    mode = body.mode === 'targeted' ? 'targeted' : 'full'
+    if (body.mode === 'targeted') mode = 'targeted'
+    else if (body.mode === 'rescan') mode = 'rescan'
     queryOverride = body.query as string | undefined
   } catch {
     // Use defaults if body is missing/malformed
@@ -131,6 +132,96 @@ Deno.serve(async (req) => {
   if (!accounts || accounts.length === 0) {
     return corsResponse(
       JSON.stringify({ message: 'No approved email accounts found', results: [] }),
+      { status: 200 },
+    )
+  }
+
+  // ------------------------------------------------------------------
+  // Rescan mode: recover files for existing fileless documents
+  // ------------------------------------------------------------------
+  if (mode === 'rescan') {
+    const { data: filelessDocs, error: filelessError } = await supabase
+      .from('documents')
+      .select('id, source_email_id, title')
+      .is('file_url', null)
+      .not('source_email_id', 'is', null)
+
+    if (filelessError) {
+      console.error('[email-scan] Failed to query fileless documents:', filelessError.message)
+      return corsResponse(JSON.stringify({ error: 'Failed to query fileless documents' }), { status: 500 })
+    }
+
+    if (!filelessDocs || filelessDocs.length === 0) {
+      return corsResponse(
+        JSON.stringify({ message: 'No fileless documents found — nothing to fix.', fixed: 0 }),
+        { status: 200 },
+      )
+    }
+
+    console.log(`[email-scan] Rescan: found ${filelessDocs.length} fileless document(s)`)
+
+    // Build access tokens for all accounts
+    const accountTokens: { email: string; accessToken: string }[] = []
+    for (const account of accounts) {
+      try {
+        const refreshToken = await decrypt(account.refresh_token, TOKEN_ENCRYPTION_KEY)
+        const accessToken = await refreshAccessToken(refreshToken, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
+        accountTokens.push({ email: account.email, accessToken })
+      } catch (err) {
+        console.error(`[email-scan] Rescan: token refresh failed for ${account.email}:`, err)
+      }
+    }
+
+    let fixedCount = 0
+
+    for (const doc of filelessDocs) {
+      let captured: Awaited<ReturnType<typeof captureDocument>> = null
+
+      // Try each account to find the one that owns this email
+      for (const { email, accessToken } of accountTokens) {
+        try {
+          const message = await getMessage(accessToken, doc.source_email_id)
+          captured = await captureDocument(accessToken, doc.source_email_id, message)
+          if (captured) {
+            console.log(`[email-scan] Rescan: captured file for "${doc.title}" via ${email}`)
+            break
+          }
+        } catch {
+          // Message not found in this account — try next
+        }
+      }
+
+      if (!captured) {
+        console.warn(`[email-scan] Rescan: could not capture file for "${doc.title}" (${doc.source_email_id})`)
+        continue
+      }
+
+      const fileUrl = await uploadToStorage(supabase, captured)
+      if (!fileUrl) {
+        console.error(`[email-scan] Rescan: upload failed for "${doc.title}"`)
+        continue
+      }
+
+      const { error: updateError } = await supabase
+        .from('documents')
+        .update({
+          file_url: fileUrl,
+          file_type: captured.contentType,
+          file_size: captured.data.length,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', doc.id)
+
+      if (updateError) {
+        console.error(`[email-scan] Rescan: failed to update doc ${doc.id}:`, updateError.message)
+      } else {
+        fixedCount++
+        console.log(`[email-scan] Rescan: fixed "${doc.title}" — ${fileUrl}`)
+      }
+    }
+
+    return corsResponse(
+      JSON.stringify({ message: `Rescan complete. Fixed ${fixedCount} of ${filelessDocs.length} document(s).`, fixed: fixedCount }),
       { status: 200 },
     )
   }
@@ -218,6 +309,12 @@ Deno.serve(async (req) => {
           fileSize = capturedFile.data.length
         }
 
+        // Guard: never create a document without a file
+        if (!fileUrl) {
+          console.warn(`[email-scan] Skipping message ${ref.id} — no file could be captured`)
+          continue
+        }
+
         // Extract metadata via AI
         const attachmentNames = getAttachments(message).map((a) => a.filename)
         const meta = await extractDocumentMeta(
@@ -263,6 +360,7 @@ Deno.serve(async (req) => {
           expiryDate: meta.expiry_date,
           familyMemberId: meta.family_member_id,
           confirmation: meta.confirmation,
+          documentId: result.documentId,
         })
       } catch (err) {
         console.error(`[email-scan] Failed to process message ${ref.id}:`, err)

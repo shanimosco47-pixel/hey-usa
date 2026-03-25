@@ -6,6 +6,7 @@ import {
   getAttachments,
   getAttachment,
   getBodyHtml,
+  getBodyText,
 } from "./gmail.ts";
 
 // ---------------------------------------------------------------------------
@@ -108,7 +109,35 @@ ${html}
   }
 
   // ------------------------------------------------------------------
-  // Step 3: Nothing to capture
+  // Step 3: Fall back to plain-text body wrapped in HTML
+  // ------------------------------------------------------------------
+  const plainText = getBodyText(message);
+  if (plainText && plainText.trim().length > 0) {
+    const escaped = plainText
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    const wrapped = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+<pre style="white-space:pre-wrap;font-family:sans-serif">${escaped}</pre>
+</body>
+</html>`;
+    const data = new TextEncoder().encode(wrapped);
+    const fileName = `email-${messageId}.html`;
+    return {
+      fileName,
+      contentType: "text/html",
+      data,
+    };
+  }
+
+  // ------------------------------------------------------------------
+  // Step 4: Nothing to capture
   // ------------------------------------------------------------------
   return null;
 }

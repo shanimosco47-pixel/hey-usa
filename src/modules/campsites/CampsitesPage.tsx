@@ -9,7 +9,9 @@ import {
   AlertCircle,
   HelpCircle,
   GripVertical,
+  FileText,
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import type { CampsiteBooking, BookingStatus, AccommodationType, BookingPriority } from '@/types'
 import { useCampsiteBookings } from './hooks/useCampsiteBookings'
 
@@ -423,6 +425,7 @@ function AddRowDialog({
 export default function CampsitesPage() {
   const { bookings, loading, updateBooking, addBooking, confirmedCount, totalNights } =
     useCampsiteBookings()
+  const navigate = useNavigate()
   const [showAdd, setShowAdd] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState<string | null>(null)
 
@@ -583,6 +586,18 @@ export default function CampsitesPage() {
                           <span className="text-xs text-blue-400 shrink-0" title="יובא מאימייל">
                             📧
                           </span>
+                        )}
+                        {b.document_id && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              navigate(`/hey-usa/documents?doc=${b.document_id}`)
+                            }}
+                            className="text-ios-blue shrink-0 hover:text-ios-blue/70 transition-colors"
+                            title="צפה במסמך"
+                          >
+                            <FileText size={14} />
+                          </button>
                         )}
                       </div>
                     </td>
