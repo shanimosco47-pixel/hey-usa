@@ -5,6 +5,7 @@
 import type { MotiAction } from '@/contexts/AppDataContext'
 import type { FamilyMemberId } from '@/lib/types'
 import { EXPENSE_CATEGORIES } from '@/constants'
+import { convertCurrency } from '@/lib/currency'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
@@ -483,7 +484,7 @@ export async function getBotResponseAsync(userMessage: string, appContext?: stri
 
   // If we detected actions, generate a confirmation response
   if (actions.length > 0) {
-    const confirmText = generateActionConfirmation(actions)
+    const confirmText = await generateActionConfirmation(actions)
     conversationHistory.push({ role: 'assistant', content: confirmText })
     const card = detectCard(confirmText, actions)
     const quickActions = detectQuickActions(confirmText, actions)
@@ -554,7 +555,7 @@ export async function getBotResponseAsync(userMessage: string, appContext?: stri
 
 // ─── Action Confirmation Messages ──────────────────────────────────
 
-function generateActionConfirmation(actions: MotiAction[]): string {
+async function generateActionConfirmation(actions: MotiAction[]): Promise<string> {
   const parts: string[] = []
 
   for (const action of actions) {
@@ -592,16 +593,14 @@ function generateActionConfirmation(actions: MotiAction[]): string {
         )
         break
       case 'CONVERT_CURRENCY': {
-        const rate = 3.7 // Approximate fallback rate
-        const result = action.from === 'USD'
-          ? Math.round(action.amount * rate)
-          : Math.round(action.amount / rate * 100) / 100
+        const { result, rate } = await convertCurrency(action.amount, action.from, action.to)
         const fromSymbol = action.from === 'USD' ? '$' : '₪'
         const toSymbol = action.to === 'USD' ? '$' : '₪'
+        const displayRate = action.from === 'USD' ? rate : (1 / rate)
         parts.push(
-          `**${fromSymbol}${action.amount.toLocaleString()}** ≈ **${toSymbol}${result.toLocaleString()}**\n\n` +
-          `(לפי שער של ~₪${rate} לדולר)\n\n` +
-          `💡 *השער משוער — בדקו שער עדכני לפני הטיול.*`,
+          `**${fromSymbol}${action.amount.toLocaleString()}** = **${toSymbol}${result.toLocaleString()}**\n\n` +
+          `(לפי שער של ₪${displayRate.toFixed(2)} לדולר)\n\n` +
+          `💡 *השער מתעדכן אוטומטית מהאינטרנט.*`,
         )
         break
       }
@@ -948,15 +947,11 @@ const rules: MatchRule[] = [
   {
     keywords: ['דולר', 'שקל', 'dollar', 'shekel', 'המרה', 'currency', 'שער'],
     response: () => wrap(
-      `המרת מטבע — שער משוער: **₪3.7 = $1**\n\n` +
-      `כמה דוגמאות:\n` +
-      `• $10 ≈ ₪37\n` +
-      `• $50 ≈ ₪185\n` +
-      `• $100 ≈ ₪370\n` +
-      `• ₪100 ≈ $27\n` +
-      `• ₪500 ≈ $135\n\n` +
-      `💡 *רוצים המרה ספציפית? כתבו: "כמה זה 100 דולר בשקל"*\n\n` +
-      `⚠️ השער משוער! בדקו שער עדכני לפני הטיול.`,
+      `רוצים לדעת שער דולר-שקל? כתבו את הסכום ואני אבדוק **שער חי** מהאינטרנט!\n\n` +
+      `דוגמאות:\n` +
+      `• "כמה זה 100 דולר בשקל"\n` +
+      `• "כמה זה 500 שקל בדולר"\n\n` +
+      `💡 *השער מתעדכן אוטומטית ונשמר ב-cache ל-24 שעות.*`,
     ),
   },
   {

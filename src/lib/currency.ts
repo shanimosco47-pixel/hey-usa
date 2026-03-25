@@ -3,7 +3,7 @@
 
 const CACHE_KEY = 'hey-usa-exchange-rate'
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
-const FALLBACK_RATE = 3.7 // Approximate ILS per USD
+const FALLBACK_RATE = 3.57 // Approximate ILS per USD (March 2026)
 
 interface CachedRate {
   rate: number // USD → ILS
