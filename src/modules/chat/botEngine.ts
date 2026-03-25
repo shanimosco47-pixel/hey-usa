@@ -223,40 +223,60 @@ export function parseActions(message: string): MotiAction[] {
   }
 
   // ── Currency conversion ───────────────────────────────────────────
-  // "כמה זה 100 דולר בשקלים" / "המר 50 דולר לשקלים" / "100$ בשקלים"
-  const currencyMatch = lower.match(
-    /(?:כמה\s+(?:זה|הם|שווה|שווים)|המר|תמיר|convert)\s*(\d[\d,.]*)\s*(?:דולר|דולרים|\$|usd)\s*(?:ב|ל|ל-)?(?:שקל|שקלים|₪|ils)?/,
-  ) || lower.match(
-    /(\d[\d,.]*)\s*(?:דולר|דולרים|\$|usd)\s*(?:ב|ל|ל-|=|→)?(?:שקל|שקלים|₪|ils)/,
-  ) || lower.match(
-    /(?:כמה\s+(?:זה|הם|שווה|שווים)|המר|תמיר)\s*(\d[\d,.]*)\s*(?:שקל|שקלים|₪|ils)\s*(?:ב|ל|ל-)?(?:דולר|דולרים|\$|usd)/,
-  )
-  if (currencyMatch) {
-    const amount = Number(currencyMatch[1].replace(/,/g, ''))
-    if (amount > 0) {
-      // Detect direction
-      const isDollarFirst = /דולר|\$|usd/.test(lower.split(currencyMatch[1])[0] || '') ||
-        /דולר|\$|usd/.test(lower.slice(lower.indexOf(currencyMatch[1]) + currencyMatch[1].length, lower.indexOf(currencyMatch[1]) + currencyMatch[1].length + 15))
-      const fromCurrency = isDollarFirst ? 'USD' : 'ILS'
-      const toCurrency = isDollarFirst ? 'ILS' : 'USD'
-      actions.push({ type: 'CONVERT_CURRENCY', amount, from: fromCurrency as 'ILS' | 'USD', to: toCurrency as 'ILS' | 'USD' })
+  // Broad intent detection: any mention of dollar/shekel/rate/conversion
+  const isCurrencyTopic = /דולר|שקל|\$|₪|שער|המרה|currency|exchange|convert|usd|ils/.test(lower)
+  if (isCurrencyTopic) {
+    // Try to extract a specific amount
+    const amountPatterns = [
+      /(\d[\d,.]*)\s*(?:דולר|דולרים|\$|usd)/,
+      /(?:דולר|דולרים|\$|usd)\s*(\d[\d,.]*)/,
+      /(\d[\d,.]*)\s*(?:שקל|שקלים|₪|ils)/,
+      /(?:שקל|שקלים|₪|ils)\s*(\d[\d,.]*)/,
+      /(?:כמה\s+(?:זה|הם|שווה|שווים)|המר|תמיר)\s*(\d[\d,.]*)/,
+    ]
+    let amount: number | null = null
+    let isDollarSource = true
+    for (const pat of amountPatterns) {
+      const m = lower.match(pat)
+      if (m) {
+        amount = Number(m[1].replace(/,/g, ''))
+        // Check if shekel is the source currency
+        if (/שקל|שקלים|₪|ils/.test(lower.slice(0, lower.indexOf(m[1]) + m[1].length + 5))) {
+          isDollarSource = false
+        }
+        break
+      }
+    }
+
+    if (amount && amount > 0) {
+      // Specific conversion: "כמה זה 100 דולר בשקל"
+      const from = isDollarSource ? 'USD' : 'ILS'
+      const to = isDollarSource ? 'ILS' : 'USD'
+      actions.push({ type: 'CONVERT_CURRENCY', amount, from: from as 'ILS' | 'USD', to: to as 'ILS' | 'USD' })
+      return actions
+    } else {
+      // General question: "מה שער הדולר", "שער חליפין", "כמה שווה דולר"
+      actions.push({ type: 'CONVERT_CURRENCY', amount: 1, from: 'USD', to: 'ILS' })
       return actions
     }
   }
 
   // ── Drive time estimation ─────────────────────────────────────────
-  // "כמה זמן נסיעה מוגאס לגרנד קניון" / "כמה רחוק מיוסמיטי לסן פרנסיסקו"
-  const driveMatch = lower.match(
-    /(?:כמה\s+(?:זמן|שעות)|כמה\s+רחוק|מרחק|נסיעה|drive\s*time)\s*(?:נסיעה\s*)?(?:מ|from)\s*(.+?)\s+(?:ל|ל-|עד|to)\s+(.+?)[\s?!.,]*$/,
-  ) || lower.match(
-    /(?:כמה\s+(?:זמן|שעות)|כמה\s+רחוק)\s*(?:מ|from)\s*(.+?)\s+(?:ל|ל-|עד|to)\s+(.+?)[\s?!.,]*$/,
-  )
-  if (driveMatch) {
-    const from = driveMatch[1].trim()
-    const to = driveMatch[2].trim()
-    if (from.length > 1 && to.length > 1) {
-      actions.push({ type: 'ESTIMATE_DRIVE_TIME', from, to })
-      return actions
+  // Broad patterns: "כמה זמן מX לY", "נסיעה מX לY", "מרחק בין X ל Y", "X to Y drive"
+  const drivePatterns = [
+    /(?:כמה\s+(?:זמן|שעות)|כמה\s+רחוק|מרחק|נסיעה|drive|driving)\s*(?:נסיעה\s*)?(?:מ|מ-|from)\s*(.+?)\s+(?:ל|ל-|עד|to)\s+(.+?)[\s?!.,]*$/,
+    /(?:מ|מ-)(.+?)\s+(?:ל|ל-|עד)\s+(.+?)[\s?!.,]*(?:כמה|נסיעה|זמן|מרחק|drive)/,
+    /(?:בין)\s+(.+?)\s+(?:ל|ל-|לבין)\s+(.+?)[\s?!.,]*(?:כמה|נסיעה|זמן|מרחק)?/,
+  ]
+  for (const pat of drivePatterns) {
+    const m = lower.match(pat)
+    if (m) {
+      const from = m[1].trim()
+      const to = m[2].trim()
+      if (from.length > 1 && to.length > 1) {
+        actions.push({ type: 'ESTIMATE_DRIVE_TIME', from, to })
+        return actions
+      }
     }
   }
 
@@ -594,14 +614,30 @@ async function generateActionConfirmation(actions: MotiAction[]): Promise<string
         break
       case 'CONVERT_CURRENCY': {
         const { result, rate } = await convertCurrency(action.amount, action.from, action.to)
-        const fromSymbol = action.from === 'USD' ? '$' : '₪'
-        const toSymbol = action.to === 'USD' ? '$' : '₪'
         const displayRate = action.from === 'USD' ? rate : (1 / rate)
-        parts.push(
-          `**${fromSymbol}${action.amount.toLocaleString()}** = **${toSymbol}${result.toLocaleString()}**\n\n` +
-          `(לפי שער של ₪${displayRate.toFixed(2)} לדולר)\n\n` +
-          `💡 *השער מתעדכן אוטומטית מהאינטרנט.*`,
-        )
+        if (action.amount === 1 && action.from === 'USD') {
+          // General rate query: "מה שער הדולר"
+          parts.push(
+            `📊 **שער דולר-שקל עדכני: ₪${rate.toFixed(2)}**\n\n` +
+            `כמה דוגמאות מהירות:\n` +
+            `• $10 = ₪${(10 * rate).toFixed(0)}\n` +
+            `• $50 = ₪${(50 * rate).toFixed(0)}\n` +
+            `• $100 = ₪${(100 * rate).toFixed(0)}\n` +
+            `• ₪100 = $${(100 / rate).toFixed(1)}\n` +
+            `• ₪1,000 = $${(1000 / rate).toFixed(0)}\n\n` +
+            `💡 *השער נשלף מהאינטרנט ומתעדכן כל 24 שעות.*\n` +
+            `*רוצים המרה ספציפית? כתבו למשל: "כמה זה 250 דולר בשקל"*`,
+          )
+        } else {
+          // Specific conversion
+          const fromSymbol = action.from === 'USD' ? '$' : '₪'
+          const toSymbol = action.to === 'USD' ? '$' : '₪'
+          parts.push(
+            `**${fromSymbol}${action.amount.toLocaleString()}** = **${toSymbol}${result.toLocaleString()}**\n\n` +
+            `(לפי שער של ₪${displayRate.toFixed(2)} לדולר)\n\n` +
+            `💡 *השער נשלף מהאינטרנט ומתעדכן כל 24 שעות.*`,
+          )
+        }
         break
       }
       case 'ESTIMATE_DRIVE_TIME': {
@@ -945,13 +981,15 @@ const rules: MatchRule[] = [
     ),
   },
   {
+    // Note: currency keyword rule should rarely trigger — parseActions catches most currency intents
+    // This is only reached if parseActions somehow misses it
     keywords: ['דולר', 'שקל', 'dollar', 'shekel', 'המרה', 'currency', 'שער'],
     response: () => wrap(
-      `רוצים לדעת שער דולר-שקל? כתבו את הסכום ואני אבדוק **שער חי** מהאינטרנט!\n\n` +
-      `דוגמאות:\n` +
+      `אני יכול לבדוק שער דולר-שקל **חי** מהאינטרנט!\n\n` +
+      `נסו לכתוב:\n` +
+      `• "מה שער הדולר"\n` +
       `• "כמה זה 100 דולר בשקל"\n` +
-      `• "כמה זה 500 שקל בדולר"\n\n` +
-      `💡 *השער מתעדכן אוטומטית ונשמר ב-cache ל-24 שעות.*`,
+      `• "כמה שווים 500 שקל בדולר"`,
     ),
   },
   {
