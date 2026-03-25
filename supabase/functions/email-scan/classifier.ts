@@ -1,7 +1,7 @@
-// classifier.ts — AI-powered email classifier using Anthropic API
+// classifier.ts — AI-powered email classifier using OpenAI API
 
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
-const MODEL = 'claude-haiku-4-5-20251001'
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
+const MODEL = 'gpt-4o-mini'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -39,16 +39,15 @@ const VALID_LOCATION_IDS = [
 ]
 
 // ---------------------------------------------------------------------------
-// Anthropic API helper
+// OpenAI API helper
 // ---------------------------------------------------------------------------
 
-async function callClaude(apiKey: string, prompt: string, maxTokens = 512): Promise<string> {
-  const res = await fetch(ANTHROPIC_API_URL, {
+async function callLLM(apiKey: string, prompt: string, maxTokens = 512): Promise<string> {
+  const res = await fetch(OPENAI_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       model: MODEL,
@@ -59,15 +58,15 @@ async function callClaude(apiKey: string, prompt: string, maxTokens = 512): Prom
 
   if (!res.ok) {
     const err = await res.text()
-    throw new Error(`Anthropic API error (${res.status}): ${err}`)
+    throw new Error(`OpenAI API error (${res.status}): ${err}`)
   }
 
   const json = await res.json()
-  const content = json.content?.[0]
-  if (!content || content.type !== 'text') {
-    throw new Error('Unexpected Anthropic response shape')
+  const choice = json.choices?.[0]
+  if (!choice?.message?.content) {
+    throw new Error('Unexpected OpenAI response shape')
   }
-  return content.text as string
+  return choice.message.content as string
 }
 
 // ---------------------------------------------------------------------------
@@ -117,7 +116,7 @@ If the email is NOT travel-related (newsletter, marketing, unrelated), respond w
 Respond ONLY with the JSON object, no other text.`
 
   try {
-    const raw = await callClaude(apiKey, prompt, 128)
+    const raw = await callLLM(apiKey, prompt, 128)
     const parsed = extractJson(raw)
     const category = parsed.category as string | null | undefined
 
@@ -183,7 +182,7 @@ Respond ONLY with the JSON object, no other text.`
   }
 
   try {
-    const raw = await callClaude(apiKey, prompt, 512)
+    const raw = await callLLM(apiKey, prompt, 512)
     const parsed = extractJson(raw)
 
     const locationId =

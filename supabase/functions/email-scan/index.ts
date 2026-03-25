@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
   // ------------------------------------------------------------------
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY')
+  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')
   const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
   const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')
   const TOKEN_ENCRYPTION_KEY = Deno.env.get('TOKEN_ENCRYPTION_KEY')
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
   if (
     !SUPABASE_URL ||
     !SUPABASE_SERVICE_ROLE_KEY ||
-    !ANTHROPIC_API_KEY ||
+    !OPENAI_API_KEY ||
     !GOOGLE_CLIENT_ID ||
     !GOOGLE_CLIENT_SECRET ||
     !TOKEN_ENCRYPTION_KEY
@@ -288,7 +288,7 @@ Deno.serve(async (req) => {
 
         // AI classify if uncertain
         if (patternResult === 'uncertain') {
-          const { category } = await classifyEmail(ANTHROPIC_API_KEY, subject, bodyText)
+          const { category } = await classifyEmail(OPENAI_API_KEY, subject, bodyText)
           if (!category) {
             console.log(`[email-scan] AI classified as irrelevant: ${subject}`)
             continue
@@ -312,7 +312,7 @@ Deno.serve(async (req) => {
 
             // Use the inner .eml content for AI classification
             const emlMeta = await extractDocumentMeta(
-              ANTHROPIC_API_KEY,
+              OPENAI_API_KEY,
               emlDoc.parsed.subject,
               emlDoc.parsed.bodyText,
               emlDoc.parsed.from,
@@ -390,7 +390,7 @@ Deno.serve(async (req) => {
           // Extract metadata via AI
           const attachmentNames = getAttachments(message).map((a) => a.filename)
           const meta = await extractDocumentMeta(
-            ANTHROPIC_API_KEY,
+            OPENAI_API_KEY,
             subject,
             bodyText,
             from,
