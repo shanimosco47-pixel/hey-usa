@@ -678,7 +678,7 @@ export default function CampsitesPage() {
                     </td>
                     {/* Cancellation Deadline */}
                     <td
-                      className={cn('px-2 py-1.5', b.status === 'confirmed' && !b.cancellation_deadline && 'bg-red-50')}
+                      className={cn('px-2 py-1.5', b.status === 'confirmed' && !b.cancellation_deadline && 'bg-red-100')}
                       style={{ width: colWidths.cancellationDeadline }}
                     >
                       <EditableCell
@@ -692,7 +692,7 @@ export default function CampsitesPage() {
                     </td>
                     {/* Refund Amount */}
                     <td
-                      className={cn('px-2 py-1.5', b.status === 'confirmed' && b.refund_amount == null && !b.cancellation_deadline && 'bg-red-50')}
+                      className={cn('px-2 py-1.5', b.status === 'confirmed' && b.refund_amount == null && !b.cancellation_deadline && 'bg-red-100')}
                       style={{ width: colWidths.refundAmount }}
                     >
                       <EditableCell
