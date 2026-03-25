@@ -20,7 +20,7 @@ import { isAlreadyImported } from './dedup.ts'
 
 import { classifyEmail, extractDocumentMeta } from './classifier.ts'
 
-import { captureDocument, uploadToStorage } from './capture.ts'
+import { captureDocument, uploadToStorage, extractEmlDocuments } from './capture.ts'
 
 import {
   importDocument,
@@ -295,73 +295,144 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Capture document (attachment or HTML body)
-        const capturedFile = await captureDocument(accessToken, message.id, message)
+        // ---- Check for .eml attachments first ----
+        const emlDocs = await extractEmlDocuments(accessToken, message.id, message)
 
-        // Upload to Supabase storage
-        let fileUrl: string | null = null
-        let fileType: string | null = null
-        let fileSize: number | null = null
+        if (emlDocs.length > 0) {
+          // Process each .eml as a separate document
+          console.log(`[email-scan] Found ${emlDocs.length} .eml attachment(s) in: ${subject}`)
 
-        if (capturedFile) {
-          fileUrl = await uploadToStorage(supabase, capturedFile)
-          fileType = capturedFile.contentType
-          fileSize = capturedFile.data.length
+          for (let i = 0; i < emlDocs.length; i++) {
+            const emlDoc = emlDocs[i]
+            const emlFileUrl = await uploadToStorage(supabase, emlDoc.file)
+            if (!emlFileUrl) {
+              console.warn(`[email-scan] Failed to upload .eml file ${i} from: ${subject}`)
+              continue
+            }
+
+            // Use the inner .eml content for AI classification
+            const emlMeta = await extractDocumentMeta(
+              ANTHROPIC_API_KEY,
+              emlDoc.parsed.subject,
+              emlDoc.parsed.bodyText,
+              emlDoc.parsed.from,
+              [],
+            )
+
+            // Dedup: check if this inner .eml was already imported (by subject)
+            const emlAlreadyImported = await isAlreadyImported(
+              supabase,
+              `${message.id}-eml-${i}`,
+              emlDoc.parsed.bodyText,
+              emlDoc.parsed.subject,
+            )
+            if (emlAlreadyImported) {
+              console.log(`[email-scan] Skipping duplicate .eml: ${emlDoc.parsed.subject}`)
+              continue
+            }
+
+            const emlResult = await importDocument(supabase, {
+              title: emlMeta.title,
+              category: emlMeta.category,
+              locationId: emlMeta.locationId,
+              amount: emlMeta.amount,
+              currency: emlMeta.currency,
+              fileUrl: emlFileUrl,
+              fileType: emlDoc.file.contentType,
+              fileSize: emlDoc.file.data.length,
+              notes: emlMeta.notes,
+              sourceEmailId: `${message.id}-eml-${i}`,
+              expiryDate: emlMeta.expiry_date,
+              familyMemberId: emlMeta.family_member_id,
+            })
+
+            allResults.push(emlResult)
+            console.log(`[email-scan] Imported .eml: ${emlResult.title} (${emlResult.documentId})`)
+
+            await importCampsiteBooking(supabase, {
+              title: emlMeta.title,
+              category: emlMeta.category,
+              locationId: emlMeta.locationId,
+              amount: emlMeta.amount,
+              currency: emlMeta.currency,
+              fileUrl: emlFileUrl,
+              fileType: emlDoc.file.contentType,
+              fileSize: emlDoc.file.data.length,
+              notes: emlMeta.notes,
+              sourceEmailId: `${message.id}-eml-${i}`,
+              checkInDate: emlMeta.check_in_date,
+              expiryDate: emlMeta.expiry_date,
+              familyMemberId: emlMeta.family_member_id,
+              confirmation: emlMeta.confirmation,
+              documentId: emlResult.documentId,
+            })
+          }
+        } else {
+          // ---- Normal flow: capture from this email directly ----
+          const capturedFile = await captureDocument(accessToken, message.id, message)
+
+          let fileUrl: string | null = null
+          let fileType: string | null = null
+          let fileSize: number | null = null
+
+          if (capturedFile) {
+            fileUrl = await uploadToStorage(supabase, capturedFile)
+            fileType = capturedFile.contentType
+            fileSize = capturedFile.data.length
+          }
+
+          // Guard: never create a document without a file
+          if (!fileUrl) {
+            console.warn(`[email-scan] Skipping message ${ref.id} — no file could be captured`)
+            continue
+          }
+
+          // Extract metadata via AI
+          const attachmentNames = getAttachments(message).map((a) => a.filename)
+          const meta = await extractDocumentMeta(
+            ANTHROPIC_API_KEY,
+            subject,
+            bodyText,
+            from,
+            attachmentNames,
+          )
+
+          const result = await importDocument(supabase, {
+            title: meta.title,
+            category: meta.category,
+            locationId: meta.locationId,
+            amount: meta.amount,
+            currency: meta.currency,
+            fileUrl,
+            fileType,
+            fileSize,
+            notes: meta.notes,
+            sourceEmailId: message.id,
+            expiryDate: meta.expiry_date,
+            familyMemberId: meta.family_member_id,
+          })
+
+          allResults.push(result)
+          console.log(`[email-scan] Imported: ${result.title} (${result.documentId})`)
+
+          await importCampsiteBooking(supabase, {
+            title: meta.title,
+            category: meta.category,
+            locationId: meta.locationId,
+            amount: meta.amount,
+            currency: meta.currency,
+            fileUrl,
+            fileType,
+            fileSize,
+            notes: meta.notes,
+            sourceEmailId: message.id,
+            checkInDate: meta.check_in_date,
+            expiryDate: meta.expiry_date,
+            familyMemberId: meta.family_member_id,
+            confirmation: meta.confirmation,
+            documentId: result.documentId,
+          })
         }
-
-        // Guard: never create a document without a file
-        if (!fileUrl) {
-          console.warn(`[email-scan] Skipping message ${ref.id} — no file could be captured`)
-          continue
-        }
-
-        // Extract metadata via AI
-        const attachmentNames = getAttachments(message).map((a) => a.filename)
-        const meta = await extractDocumentMeta(
-          ANTHROPIC_API_KEY,
-          subject,
-          bodyText,
-          from,
-          attachmentNames,
-        )
-
-        // Import document into database
-        const result = await importDocument(supabase, {
-          title: meta.title,
-          category: meta.category,
-          locationId: meta.locationId,
-          amount: meta.amount,
-          currency: meta.currency,
-          fileUrl,
-          fileType,
-          fileSize,
-          notes: meta.notes,
-          sourceEmailId: message.id,
-          expiryDate: meta.expiry_date,
-          familyMemberId: meta.family_member_id,
-        })
-
-        allResults.push(result)
-        console.log(`[email-scan] Imported: ${result.title} (${result.documentId})`)
-
-        // Also create/enrich campsite booking for hotel/campsite emails
-        await importCampsiteBooking(supabase, {
-          title: meta.title,
-          category: meta.category,
-          locationId: meta.locationId,
-          amount: meta.amount,
-          currency: meta.currency,
-          fileUrl,
-          fileType,
-          fileSize,
-          notes: meta.notes,
-          sourceEmailId: message.id,
-          checkInDate: meta.check_in_date,
-          expiryDate: meta.expiry_date,
-          familyMemberId: meta.family_member_id,
-          confirmation: meta.confirmation,
-          documentId: result.documentId,
-        })
       } catch (err) {
         console.error(`[email-scan] Failed to process message ${ref.id}:`, err)
         // Continue with next message
