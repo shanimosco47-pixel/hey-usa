@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react'
+import { cn } from '@/lib/cn'
 import {
   Tent,
   Plus,
@@ -676,38 +677,32 @@ export default function CampsitesPage() {
                       />
                     </td>
                     {/* Cancellation Deadline */}
-                    <td className="px-2 py-1.5" style={{ width: colWidths.cancellationDeadline }}>
-                      {b.status === 'confirmed' && !b.cancellation_deadline ? (
-                        <span className="text-xs text-green-600 font-medium px-1 py-0.5 block">
-                          הזמנה מאושרת
-                        </span>
-                      ) : (
-                        <EditableCell
-                          value={b.cancellation_deadline ?? ''}
-                          type="date"
-                          onChange={(v) =>
-                            updateBooking(b.id, { cancellation_deadline: v || undefined })
-                          }
-                          className="text-xs"
-                        />
-                      )}
+                    <td
+                      className={cn('px-2 py-1.5', b.status === 'confirmed' && !b.cancellation_deadline && 'bg-red-50')}
+                      style={{ width: colWidths.cancellationDeadline }}
+                    >
+                      <EditableCell
+                        value={b.cancellation_deadline ?? ''}
+                        type="date"
+                        onChange={(v) =>
+                          updateBooking(b.id, { cancellation_deadline: v || undefined })
+                        }
+                        className="text-xs"
+                      />
                     </td>
                     {/* Refund Amount */}
-                    <td className="px-2 py-1.5" style={{ width: colWidths.refundAmount }}>
-                      {b.status === 'confirmed' &&
-                      b.refund_amount == null &&
-                      !b.cancellation_deadline ? (
-                        <span className="text-xs text-green-500 px-1 py-0.5 block">—</span>
-                      ) : (
-                        <EditableCell
-                          value={b.refund_amount != null ? String(b.refund_amount) : ''}
-                          type="number"
-                          onChange={(v) =>
-                            updateBooking(b.id, { refund_amount: v ? Number(v) : undefined })
-                          }
-                          className="text-xs font-mono"
-                        />
-                      )}
+                    <td
+                      className={cn('px-2 py-1.5', b.status === 'confirmed' && b.refund_amount == null && !b.cancellation_deadline && 'bg-red-50')}
+                      style={{ width: colWidths.refundAmount }}
+                    >
+                      <EditableCell
+                        value={b.refund_amount != null ? String(b.refund_amount) : ''}
+                        type="number"
+                        onChange={(v) =>
+                          updateBooking(b.id, { refund_amount: v ? Number(v) : undefined })
+                        }
+                        className="text-xs font-mono"
+                      />
                     </td>
                     {/* Notes */}
                     <td className="px-2 py-1.5" style={{ width: colWidths.notes }}>
