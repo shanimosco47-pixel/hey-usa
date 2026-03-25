@@ -1,14 +1,20 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Send, ArrowRight, Sparkles, WifiOff, Zap, History } from 'lucide-react'
+import { Send, ArrowRight, Sparkles, WifiOff, Zap, History, Mic, MicOff } from 'lucide-react'
 import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, initConversationFromDb } from './botEngine'
+import type { MessageCard } from './botEngine'
 import { useAppData } from '@/contexts/AppDataContext'
 import { MotiAvatar } from '@/components/shared/MotiRobot'
 import * as db from '@/lib/database'
 import { TRIP_START_DATE } from '@/constants'
 import { triggerEmailScan } from '@/lib/emailScan'
-import DOMPurify from 'dompurify'
+import { ChatMarkdown } from './components/ChatMarkdown'
+import { WeatherCard } from './components/WeatherCard'
+import { BudgetCard } from './components/BudgetCard'
+import { ItineraryCard } from './components/ItineraryCard'
+import { DriveCard } from './components/DriveCard'
+import { useVoiceInput } from './hooks/useVoiceInput'
 
 interface Message {
   id: string
@@ -16,6 +22,8 @@ interface Message {
   sender: 'user' | 'bot'
   timestamp: Date
   hasAction?: boolean
+  card?: MessageCard
+  quickActions?: string[]
 }
 
 function getSmartSuggestions(data: {
@@ -26,35 +34,46 @@ function getSmartSuggestions(data: {
   daysUntilTrip: number
 }): string[] {
   const suggestions: string[] = []
+  const d = data.daysUntilTrip
 
-  // Always include 1-2 action suggestions
-  suggestions.push('עדכן תקציב ביטוח ל-3000')
-
-  // Add contextual ones based on state
-  if (data.daysUntilTrip > 60) {
-    suggestions.push('מה הדבר הכי חשוב לסגור עכשיו?')
-  } else if (data.daysUntilTrip > 14) {
-    suggestions.push('מה עוד חסר לנו לפני הטיול?')
-  } else if (data.daysUntilTrip <= 14) {
+  // Timeline-aware suggestions
+  if (d <= 0) {
+    // During the trip
+    suggestions.push('מה התכנית להיום?')
+    suggestions.push('מה מזג האוויר היום?')
+    suggestions.push('תמליץ על מסעדה קרובה')
+    suggestions.push('כמה זמן נסיעה לעצירה הבאה?')
+  } else if (d <= 14) {
+    // Last 2 weeks
     suggestions.push('תעשה לי רשימת last minute!')
+    suggestions.push('מה עוד חסר לארוז?')
+    suggestions.push('תזכיר לי על המסמכים')
+  } else if (d <= 90) {
+    // 1-3 months
+    if (data.packingPercent < 50) suggestions.push('עזור לי עם רשימת האריזה')
+    if (data.budgetPercent > 70) suggestions.push('איפה אפשר לחסוך בתקציב?')
+    suggestions.push('מה עוד חסר לנו לפני הטיול?')
+  } else if (d <= 180) {
+    // 3-6 months
+    suggestions.push('מה צריך להזמין עכשיו?')
+    suggestions.push('תבדוק שהתקציב מאוזן')
+    suggestions.push('תוסיף עצירה ביום 5: ביקור במוזיאון')
+  } else {
+    // 6+ months
+    suggestions.push('מה הדבר הכי חשוב לסגור עכשיו?')
+    suggestions.push('תזכיר לי על ESTA ודרכונים')
+    suggestions.push('עדכן תקציב ביטוח ל-3000')
   }
 
-  if (data.packingPercent < 50) {
-    suggestions.push('עזור לי עם רשימת האריזה')
-  }
-
-  if (data.budgetPercent > 70) {
-    suggestions.push('איפה אפשר לחסוך בתקציב?')
-  }
-
-  if (data.tasksDone < data.tasksTotal) {
+  // State-based suggestions
+  if (data.tasksDone < data.tasksTotal && d > 0) {
     suggestions.push(`נשארו ${data.tasksTotal - data.tasksDone} משימות, מה הכי דחוף?`)
   }
 
-  // Always add some fun ones
+  // Always add some exploration options
   suggestions.push('תכנן לי יום מושלם ביוסמיטי')
+  suggestions.push('כמה זמן נסיעה מוגאס לגרנד קניון?')
   suggestions.push('מה המסלול המלא?')
-  suggestions.push('תוסיף עצירה ביום 5: ביקור במוזיאון')
 
   // Return first 6 unique
   return [...new Set(suggestions)].slice(0, 6)
@@ -117,6 +136,21 @@ function AIBadge() {
   )
 }
 
+function MessageCardRenderer({ card }: { card: MessageCard }) {
+  switch (card.type) {
+    case 'weather':
+      return <WeatherCard data={card.data} />
+    case 'budget':
+      return <BudgetCard data={card.data} />
+    case 'itinerary':
+      return <ItineraryCard data={card.data} />
+    case 'drive':
+      return <DriveCard data={card.data} />
+    default:
+      return null
+  }
+}
+
 export default function ChatPage() {
   const { executeMotiAction, buildMotiContext, changeLog, tasks, packingItems, expenses, budgetSettings } = useAppData()
   const navigate = useNavigate()
@@ -138,6 +172,8 @@ export default function ChatPage() {
     budgetPercent,
     daysUntilTrip,
   }), [tasksTotal, tasksDone, packingPercent, budgetPercent, daysUntilTrip])
+
+  const voice = useVoiceInput()
 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -225,6 +261,21 @@ export default function ChatPage() {
     scrollToBottom()
   }, [messages, isTyping, scrollToBottom])
 
+  // Pipe voice transcript into input
+  useEffect(() => {
+    if (voice.transcript) {
+      setInput(voice.transcript)
+    }
+  }, [voice.transcript])
+
+  // Auto-submit when voice recognition stops and there's a transcript
+  useEffect(() => {
+    if (!voice.isListening && voice.transcript) {
+      sendMessage(voice.transcript)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voice.isListening])
+
   // Instant scroll to bottom when history finishes loading
   useEffect(() => {
     if (!isLoadingHistory) {
@@ -297,6 +348,8 @@ export default function ChatPage() {
         sender: 'bot',
         timestamp: new Date(),
         hasAction: response.actions.length > 0,
+        card: response.card,
+        quickActions: response.quickActions,
       }
       setMessages((prev) => [...prev, botMsg])
 
@@ -411,17 +464,27 @@ export default function ChatPage() {
                     <span className="text-[10px] font-bold uppercase tracking-wide">פעולה בוצעה</span>
                   </div>
                 )}
-                <p
-                  className="text-[15px] leading-relaxed whitespace-pre-line"
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(
-                      msg.text
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                        .replace(/\n/g, '<br/>'),
-                    ),
-                  }}
-                />
+                {msg.sender === 'user' ? (
+                  <p className="text-[15px] leading-relaxed whitespace-pre-line">{msg.text}</p>
+                ) : (
+                  <ChatMarkdown text={msg.text} />
+                )}
+                {msg.card && <MessageCardRenderer card={msg.card} />}
+                {msg.quickActions && msg.quickActions.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-black/5">
+                    {msg.quickActions.map((qa) => (
+                      <motion.button
+                        key={qa}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => sendMessage(qa)}
+                        className="flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-[11px] font-medium text-purple-700 hover:bg-purple-100 transition-colors"
+                      >
+                        <Zap className="h-2.5 w-2.5" />
+                        {qa}
+                      </motion.button>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           ))}
@@ -489,6 +552,22 @@ export default function ChatPage() {
             className="flex-1 rounded-2xl bg-surface-primary px-4 py-2.5 text-[15px] text-apple-primary placeholder:text-apple-tertiary outline-none focus:ring-2 focus:ring-ios-blue/20 transition-shadow disabled:opacity-60 resize-none max-h-32 overflow-y-auto"
             style={{ minHeight: '40px' }}
           />
+          {voice.isSupported && (
+            <motion.button
+              type="button"
+              onClick={voice.toggle}
+              whileTap={{ scale: 0.9 }}
+              animate={voice.isListening ? { scale: [1, 1.1, 1] } : {}}
+              transition={voice.isListening ? { duration: 1, repeat: Infinity } : {}}
+              className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
+                voice.isListening
+                  ? 'bg-ios-red text-white'
+                  : 'bg-surface-primary text-apple-secondary hover:bg-black/[0.06]'
+              }`}
+            >
+              {voice.isListening ? <MicOff className="h-[18px] w-[18px]" /> : <Mic className="h-[18px] w-[18px]" />}
+            </motion.button>
+          )}
           <motion.button
             type="submit"
             disabled={!input.trim() || isTyping}

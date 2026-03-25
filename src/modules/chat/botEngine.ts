@@ -11,9 +11,22 @@ export interface ChatMessage {
   content: string
 }
 
+import type { WeatherCardData } from './components/WeatherCard'
+import type { BudgetCardData } from './components/BudgetCard'
+import type { ItineraryCardData } from './components/ItineraryCard'
+import type { DriveCardData } from './components/DriveCard'
+
+export type MessageCard =
+  | { type: 'weather'; data: WeatherCardData | WeatherCardData[] }
+  | { type: 'budget'; data: BudgetCardData }
+  | { type: 'itinerary'; data: ItineraryCardData }
+  | { type: 'drive'; data: DriveCardData }
+
 export interface BotResponse {
   text: string
   actions: MotiAction[]
+  card?: MessageCard
+  quickActions?: string[]
 }
 
 export const BOT_NAME = 'מוטי'
@@ -219,7 +232,7 @@ import { fetchTripWeather, getWeatherSummaryForMoti } from '@/lib/weather'
 let conversationHistory: ChatMessage[] = []
 let memorySummary = ''
 let weatherContext = ''
-const MAX_CONTEXT_MESSAGES = 15 // Last 15 messages sent verbatim to Claude
+const MAX_CONTEXT_MESSAGES = 20 // Last 20 messages sent verbatim to Claude
 
 export function resetConversation() {
   conversationHistory = []
@@ -379,6 +392,41 @@ function mapToolUseToActions(toolUses: Array<{ tool: string; input: Record<strin
       case 'ask_clarification':
         mapped.push({ type: 'ASK_CLARIFICATION', question: String(input.question) })
         break
+      case 'set_reminder':
+        // Map reminders to tasks with [תזכורת] prefix
+        mapped.push({
+          type: 'ADD_TASK',
+          task: {
+            title: `[תזכורת] ${String(input.text)}`,
+            status: 'todo',
+            priority: 'high',
+            group: input.trigger_date && String(input.trigger_date) >= '2026-09-11' ? 'during_trip' : 'pre_trip',
+            assigned_to: ['aba'],
+            due_date: input.trigger_date ? String(input.trigger_date) : undefined,
+          },
+        })
+        break
+      case 'convert_currency':
+        mapped.push({
+          type: 'CONVERT_CURRENCY',
+          amount: Number(input.amount),
+          from: String(input.from) as 'ILS' | 'USD',
+          to: String(input.to) as 'ILS' | 'USD',
+        })
+        break
+      case 'estimate_drive_time':
+        mapped.push({
+          type: 'ESTIMATE_DRIVE_TIME',
+          from: String(input.from),
+          to: String(input.to),
+        })
+        break
+      case 'get_daily_plan':
+        mapped.push({
+          type: 'GET_DAILY_PLAN',
+          dayNumber: Number(input.day_number),
+        })
+        break
     }
   }
 
@@ -399,7 +447,9 @@ export async function getBotResponseAsync(userMessage: string, appContext?: stri
   if (actions.length > 0) {
     const confirmText = generateActionConfirmation(actions)
     conversationHistory.push({ role: 'assistant', content: confirmText })
-    return { text: confirmText, actions }
+    const card = detectCard(confirmText, actions, appContext)
+    const quickActions = detectQuickActions(confirmText, actions)
+    return { text: confirmText, actions, card, quickActions }
   }
 
   // Try AI via direct fetch (more reliable than supabase.functions.invoke)
@@ -443,7 +493,11 @@ export async function getBotResponseAsync(userMessage: string, appContext?: stri
           const aiActions = mapToolUseToActions(data.actions || [])
           const allActions = actions.length > 0 ? actions : aiActions
 
-          return { text: assistantMessage, actions: allActions }
+          // Attach rich cards and quick actions
+          const card = detectCard(assistantMessage, allActions, appContext)
+          const quickActions = detectQuickActions(assistantMessage, allActions)
+
+          return { text: assistantMessage, actions: allActions, card, quickActions }
         }
       }
       console.warn('AI request failed with status:', response.status)
@@ -455,7 +509,9 @@ export async function getBotResponseAsync(userMessage: string, appContext?: stri
   // Fallback to keyword engine
   const fallbackText = getKeywordResponse(userMessage)
   conversationHistory.push({ role: 'assistant', content: fallbackText })
-  return { text: fallbackText, actions: [] }
+  const card = detectCard(fallbackText, [], appContext)
+  const quickActions = detectQuickActions(fallbackText, [])
+  return { text: fallbackText, actions: [], card, quickActions }
 }
 
 // ─── Action Confirmation Messages ──────────────────────────────────
@@ -501,6 +557,83 @@ function generateActionConfirmation(actions: MotiAction[]): string {
   }
 
   return parts.join('\n\n') + '\n\nעוד משהו לעדכן? אני פה. 😏'
+}
+
+// ─── Card & Quick Action Detection ──────────────────────────────────
+
+import { findDriveTime, formatDuration, formatDistance } from '@/data/driveTimes'
+
+function detectCard(text: string, actions: MotiAction[], _appContext?: string): MessageCard | undefined {
+  // Check for drive time actions
+  for (const action of actions) {
+    if ('type' in action && action.type === 'ESTIMATE_DRIVE_TIME') {
+      const a = action as { type: 'ESTIMATE_DRIVE_TIME'; from: string; to: string }
+      const result = findDriveTime(a.from, a.to)
+      if (result) {
+        return {
+          type: 'drive',
+          data: {
+            from: result.from,
+            to: result.to,
+            duration: formatDuration(result.durationMinutes),
+            distance: formatDistance(result.distanceKm),
+            tips: result.tips,
+          },
+        }
+      }
+    }
+  }
+
+  // Detect drive time mentions in text
+  const driveMatch = text.match(/(?:נסיעה|דרך|כביש).*?(?:מ|from)\s*(.+?)\s*(?:ל|ל-|to)\s*(.+?)[\s.!?،,]/i)
+  if (driveMatch) {
+    const result = findDriveTime(driveMatch[1].trim(), driveMatch[2].trim())
+    if (result) {
+      return {
+        type: 'drive',
+        data: {
+          from: result.from,
+          to: result.to,
+          duration: formatDuration(result.durationMinutes),
+          distance: formatDistance(result.distanceKm),
+          tips: result.tips,
+        },
+      }
+    }
+  }
+
+  return undefined
+}
+
+function detectQuickActions(_text: string, actions: MotiAction[]): string[] | undefined {
+  const quickActions: string[] = []
+
+  for (const action of actions) {
+    switch (action.type) {
+      case 'UPDATE_BUDGET_CATEGORY':
+      case 'UPDATE_TOTAL_BUDGET':
+      case 'UPDATE_DAILY_BUDGET':
+        quickActions.push('הצג תקציב מלא')
+        break
+      case 'ADD_ITINERARY_STOP':
+        quickActions.push('הצג מסלול מלא')
+        break
+      case 'ADD_TASK':
+        quickActions.push('מה המשימות הדחופות?')
+        break
+      case 'TOGGLE_PACKING_ITEM':
+        quickActions.push('מה עוד חסר לארוז?')
+        break
+    }
+  }
+
+  // If no actions, detect from text keywords
+  if (quickActions.length === 0) {
+    // Don't add quick actions for every message — only for topic-specific responses
+    return undefined
+  }
+
+  return [...new Set(quickActions)].slice(0, 3)
 }
 
 // ─── Keyword Fallback Engine ────────────────────────────────────────

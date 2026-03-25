@@ -79,6 +79,9 @@ export type MotiAction =
   | { type: 'TOGGLE_PACKING_ITEM'; itemName: string }
   | { type: 'ASK_CLARIFICATION'; question: string }
   | { type: 'SEARCH_EMAIL'; query: string }
+  | { type: 'CONVERT_CURRENCY'; amount: number; from: 'ILS' | 'USD'; to: 'ILS' | 'USD' }
+  | { type: 'ESTIMATE_DRIVE_TIME'; from: string; to: string }
+  | { type: 'GET_DAILY_PLAN'; dayNumber: number }
 
 // ─── Change Log ─────────────────────────────────────────────────────
 
@@ -121,6 +124,12 @@ function describeAction(action: MotiAction): string {
       return `שאלת הבהרה`
     case 'SEARCH_EMAIL':
       return `חיפוש אימייל: ${action.query}`
+    case 'CONVERT_CURRENCY':
+      return `המרת מטבע: ${action.amount} ${action.from} → ${action.to}`
+    case 'ESTIMATE_DRIVE_TIME':
+      return `הערכת זמן נסיעה: ${action.from} → ${action.to}`
+    case 'GET_DAILY_PLAN':
+      return `תכנית יום ${action.dayNumber}`
   }
 }
 
@@ -892,6 +901,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           // Handled by ChatPage — return null to signal no error
           return null
         }
+        case 'CONVERT_CURRENCY':
+        case 'ESTIMATE_DRIVE_TIME':
+        case 'GET_DAILY_PLAN':
+          // Info-only actions — handled by botEngine card system, no state mutation
+          return null
         default:
           return 'לא הצלחתי לבצע את הפעולה'
       }
