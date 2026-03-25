@@ -39,3 +39,11 @@ Hey USA — a family trip planner PWA for a 20-day USA road trip (September 2026
 - Prefer functional components with hooks
 - Use TypeScript strict mode
 - Write in Hebrew for user-facing text (RTL app)
+
+## Rules for Claude
+
+- Before creating any file, check if it already exists locally using Glob or ls
+- When checking if a file exists on GitHub, always specify the branch explicitly
+- Never assume the working environment is isolated from the user's desktop — ask if unclear
+- When the user states something about their own system, trust them
+- Never overwrite existing files without first reading and showing the current content
