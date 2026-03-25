@@ -7,7 +7,6 @@ import {
   getAttachment,
   getBodyHtml,
   getBodyText,
-  GmailAttachmentMeta,
 } from "./gmail.ts";
 
 // ---------------------------------------------------------------------------
