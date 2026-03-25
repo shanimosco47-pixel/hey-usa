@@ -78,26 +78,12 @@ Base path: `/hey-usa/` (configured in vite.config.ts and React Router)
 
 ## Rules for Claude
 
-### Before Any Fix
-- **Verify the full data flow** — check that the app connects to its data source (env vars, Supabase client) before updating data on the server side
-- **Identify what the user sees** — read the rendering code, not just the data layer. "X doesn't show" may mean the UI doesn't render it, not that the data is missing
-- **Read the request twice** — distinguish between "the data is wrong" and "the display is wrong"
-- **One PR per fix** — diagnose first, then ship one targeted change. No speculative fixes
+See global CLAUDE.md for universal rules (debugging, file safety, environment awareness, testing).
 
-### File Safety
-- **Before creating any file, check if it already exists** using Glob or ls in the working directory
-- **Before checking GitHub for a file, specify the branch** — don't assume master
-- **Never overwrite existing files** without first reading and showing the current content
-- **When the user says a file exists, trust them** — verify before contradicting
-
-### Environment Awareness
-- **Never assume environments are isolated** — ask how local and remote are connected if unclear
-- **After editing CLAUDE.md, always commit and push** — web sessions only see committed files
+### Project-Specific
 - **Sample data is the fallback** — if Supabase env vars aren't set, the app runs from hardcoded data. Keep sample data in sync with DB
-
-### Testing
-- **Verify changes visually before claiming done** — build, check the output, confirm the UI matches expectations
 - **Test the deployed result, not just the code** — PWA caching, service workers, and localStorage can mask changes
+- **Manual data is sacred** — never overwrite user-entered data with automated imports
 
 ## File Size Rule
 
