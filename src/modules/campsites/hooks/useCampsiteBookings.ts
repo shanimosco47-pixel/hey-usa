@@ -4,9 +4,15 @@ import { supabase } from '@/lib/supabase'
 import { sampleCampsiteBookings } from '../data/campsiteBookings'
 
 const LS_KEY = 'hey-usa-campsite-bookings'
+const LS_VERSION_KEY = 'hey-usa-campsite-bookings-v'
+const CACHE_VERSION = '2'
 
 function loadFromLocalStorage(): CampsiteBooking[] | null {
   try {
+    if (localStorage.getItem(LS_VERSION_KEY) !== CACHE_VERSION) {
+      localStorage.removeItem(LS_KEY)
+      return null
+    }
     const raw = localStorage.getItem(LS_KEY)
     return raw ? JSON.parse(raw) : null
   } catch {
@@ -16,6 +22,7 @@ function loadFromLocalStorage(): CampsiteBooking[] | null {
 
 function saveToLocalStorage(data: CampsiteBooking[]) {
   localStorage.setItem(LS_KEY, JSON.stringify(data))
+  localStorage.setItem(LS_VERSION_KEY, CACHE_VERSION)
 }
 
 export function useCampsiteBookings() {
