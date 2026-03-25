@@ -221,6 +221,44 @@ export function parseActions(message: string): MotiAction[] {
     }
   }
 
+  // ── Currency conversion ───────────────────────────────────────────
+  // "כמה זה 100 דולר בשקלים" / "המר 50 דולר לשקלים" / "100$ בשקלים"
+  const currencyMatch = lower.match(
+    /(?:כמה\s+(?:זה|הם|שווה|שווים)|המר|תמיר|convert)\s*(\d[\d,.]*)\s*(?:דולר|דולרים|\$|usd)\s*(?:ב|ל|ל-)?(?:שקל|שקלים|₪|ils)?/,
+  ) || lower.match(
+    /(\d[\d,.]*)\s*(?:דולר|דולרים|\$|usd)\s*(?:ב|ל|ל-|=|→)?(?:שקל|שקלים|₪|ils)/,
+  ) || lower.match(
+    /(?:כמה\s+(?:זה|הם|שווה|שווים)|המר|תמיר)\s*(\d[\d,.]*)\s*(?:שקל|שקלים|₪|ils)\s*(?:ב|ל|ל-)?(?:דולר|דולרים|\$|usd)/,
+  )
+  if (currencyMatch) {
+    const amount = Number(currencyMatch[1].replace(/,/g, ''))
+    if (amount > 0) {
+      // Detect direction
+      const isDollarFirst = /דולר|\$|usd/.test(lower.split(currencyMatch[1])[0] || '') ||
+        /דולר|\$|usd/.test(lower.slice(lower.indexOf(currencyMatch[1]) + currencyMatch[1].length, lower.indexOf(currencyMatch[1]) + currencyMatch[1].length + 15))
+      const fromCurrency = isDollarFirst ? 'USD' : 'ILS'
+      const toCurrency = isDollarFirst ? 'ILS' : 'USD'
+      actions.push({ type: 'CONVERT_CURRENCY', amount, from: fromCurrency as 'ILS' | 'USD', to: toCurrency as 'ILS' | 'USD' })
+      return actions
+    }
+  }
+
+  // ── Drive time estimation ─────────────────────────────────────────
+  // "כמה זמן נסיעה מוגאס לגרנד קניון" / "כמה רחוק מיוסמיטי לסן פרנסיסקו"
+  const driveMatch = lower.match(
+    /(?:כמה\s+(?:זמן|שעות)|כמה\s+רחוק|מרחק|נסיעה|drive\s*time)\s*(?:נסיעה\s*)?(?:מ|from)\s*(.+?)\s+(?:ל|ל-|עד|to)\s+(.+?)[\s?!.,]*$/,
+  ) || lower.match(
+    /(?:כמה\s+(?:זמן|שעות)|כמה\s+רחוק)\s*(?:מ|from)\s*(.+?)\s+(?:ל|ל-|עד|to)\s+(.+?)[\s?!.,]*$/,
+  )
+  if (driveMatch) {
+    const from = driveMatch[1].trim()
+    const to = driveMatch[2].trim()
+    if (from.length > 1 && to.length > 1) {
+      actions.push({ type: 'ESTIMATE_DRIVE_TIME', from, to })
+      return actions
+    }
+  }
+
   return actions
 }
 
@@ -553,6 +591,36 @@ function generateActionConfirmation(actions: MotiAction[]): string {
           `בוצע! הוספתי עצירה חדשה ל-**${action.dayId.replace('day-', 'יום ')}**: **${action.stop.title}**. ✅\n\nתבדקו בלוח הזמנים — הכל מעודכן.`,
         )
         break
+      case 'CONVERT_CURRENCY': {
+        const rate = 3.7 // Approximate fallback rate
+        const result = action.from === 'USD'
+          ? Math.round(action.amount * rate)
+          : Math.round(action.amount / rate * 100) / 100
+        const fromSymbol = action.from === 'USD' ? '$' : '₪'
+        const toSymbol = action.to === 'USD' ? '$' : '₪'
+        parts.push(
+          `**${fromSymbol}${action.amount.toLocaleString()}** ≈ **${toSymbol}${result.toLocaleString()}**\n\n` +
+          `(לפי שער של ~₪${rate} לדולר)\n\n` +
+          `💡 *השער משוער — בדקו שער עדכני לפני הטיול.*`,
+        )
+        break
+      }
+      case 'ESTIMATE_DRIVE_TIME': {
+        const driveResult = findDriveTime(action.from, action.to)
+        if (driveResult) {
+          parts.push(
+            `🚗 **${driveResult.from} → ${driveResult.to}**\n\n` +
+            `⏱️ זמן נסיעה: **${formatDuration(driveResult.durationMinutes)}**\n` +
+            `📏 מרחק: **${formatDistance(driveResult.distanceKm)}**\n\n` +
+            (driveResult.tips.length > 0 ? driveResult.tips.map((t) => `💡 ${t}`).join('\n') : ''),
+          )
+        } else {
+          parts.push(
+            `לא מצאתי מידע על נסיעה מ-**${action.from}** ל-**${action.to}**. 🤷\n\nנסו לשאול על תחנות במסלול: ילוסטון, ברייס, זאיון, וגאס, יוסמיטי, סן פרנסיסקו...`,
+          )
+        }
+        break
+      }
     }
   }
 
@@ -875,6 +943,37 @@ const rules: MatchRule[] = [
       `• Alcatraz — אם הזמנתם מראש (מומלץ!)\n` +
       `• Ghirardelli Square — שוקולד חינמי בחנות\n\n` +
       `וה-Fog? זה לא ערפל, זה אווירה. 😎`
+    ),
+  },
+  {
+    keywords: ['דולר', 'שקל', 'dollar', 'shekel', 'המרה', 'currency', 'שער'],
+    response: () => wrap(
+      `המרת מטבע — שער משוער: **₪3.7 = $1**\n\n` +
+      `כמה דוגמאות:\n` +
+      `• $10 ≈ ₪37\n` +
+      `• $50 ≈ ₪185\n` +
+      `• $100 ≈ ₪370\n` +
+      `• ₪100 ≈ $27\n` +
+      `• ₪500 ≈ $135\n\n` +
+      `💡 *רוצים המרה ספציפית? כתבו: "כמה זה 100 דולר בשקל"*\n\n` +
+      `⚠️ השער משוער! בדקו שער עדכני לפני הטיול.`,
+    ),
+  },
+  {
+    keywords: ['נסיעה', 'כמה זמן', 'כמה רחוק', 'מרחק', 'drive'],
+    response: () => wrap(
+      `זמני נסיעה מרכזיים במסלול (בקרוואן):\n\n` +
+      `🚗 **בוזמן → ילוסטון** — 2 שעות\n` +
+      `🚗 **ילוסטון → ג'קסון** — 1.5 שעות\n` +
+      `🚗 **ג'קסון → פרובו** — 5.5 שעות\n` +
+      `🚗 **פרובו → ברייס קניון** — 4 שעות\n` +
+      `🚗 **ברייס → זאיון** — 1:40 שעות\n` +
+      `🚗 **זאיון → לאס וגאס** — 3 שעות\n` +
+      `🚗 **לאס וגאס → גרנד קניון** — 4.5 שעות\n` +
+      `🚗 **וגאס → ממות לייקס** — 6 שעות\n` +
+      `🚗 **ממות לייקס → יוסמיטי** — 2 שעות\n` +
+      `🚗 **יוסמיטי → סן פרנסיסקו** — 4 שעות\n\n` +
+      `💡 *רוצים מסלול ספציפי? כתבו: "כמה זמן נסיעה מוגאס לגרנד קניון"*`,
     ),
   },
   {
