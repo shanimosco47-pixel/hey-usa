@@ -93,6 +93,17 @@ export async function captureDocument(
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 800px; margin: 20px auto; padding: 0 20px; color: #333; }
+    img { max-width: 100%; height: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    td, th { padding: 6px 10px; border: 1px solid #ddd; }
+    a { color: #0066cc; }
+    .gmail_quote { border-left: 3px solid #ccc; padding-left: 12px; margin: 12px 0; }
+    .gmail_attr { color: #666; font-size: 0.9em; margin-bottom: 8px; }
+    pre { white-space: pre-wrap; font-family: inherit; }
+    blockquote { border-left: 3px solid #ccc; padding-left: 12px; margin: 12px 0; color: #555; }
+  </style>
 </head>
 <body>
 ${html}
