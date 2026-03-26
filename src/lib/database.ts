@@ -848,7 +848,7 @@ export async function seedAllData(): Promise<void> {
 export async function fetchEmailAccounts() {
   const sb = assertSupabase()
   const { data, error } = await sb.from('email_accounts').select('*').order('created_at')
-  if (error) { console.warn('fetchEmailAccounts error:', error); return [] }
+  if (error) { console.warn('fetchEmailAccounts error:', JSON.stringify(error)); return [] }
   return data ?? []
 }
 
