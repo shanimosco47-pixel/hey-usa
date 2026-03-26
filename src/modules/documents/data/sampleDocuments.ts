@@ -143,7 +143,7 @@ export const sampleDocuments: Document[] = [
   {
     id: 'booking-mammoth-campground',
     title: 'קמפינג Mammoth Campground — ילוסטון',
-    category: 'attractions',
+    category: 'accommodation',
     file_url: '/documents/mammoth-campground.pdf',
     file_type: 'application/pdf',
     file_size: 380_000,
@@ -157,7 +157,7 @@ export const sampleDocuments: Document[] = [
   {
     id: 'booking-madison-campground-1',
     title: 'קמפינג Madison Campground — ילוסטון (לילה 1)',
-    category: 'attractions',
+    category: 'accommodation',
     file_url: '/documents/madison-campground-1.pdf',
     file_type: 'application/pdf',
     file_size: 350_000,
@@ -171,7 +171,7 @@ export const sampleDocuments: Document[] = [
   {
     id: 'booking-madison-campground-2',
     title: 'קמפינג Madison Campground — ילוסטון (לילה 2)',
-    category: 'attractions',
+    category: 'accommodation',
     file_url: '/documents/madison-campground-2.pdf',
     file_type: 'application/pdf',
     file_size: 350_000,
@@ -185,7 +185,7 @@ export const sampleDocuments: Document[] = [
   {
     id: 'doc-yosemite',
     title: 'הזמנת קמפינג - יוסמיטי',
-    category: 'attractions',
+    category: 'accommodation',
     file_url: '/documents/yosemite-reservation.pdf',
     file_type: 'application/pdf',
     file_size: 420_000,
