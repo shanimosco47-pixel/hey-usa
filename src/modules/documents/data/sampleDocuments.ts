@@ -199,7 +199,7 @@ export const sampleDocuments: Document[] = [
   {
     id: 'doc-zion',
     title: 'הזמנת שאטל - זאיון',
-    category: 'attractions',
+    category: 'accommodation',
     file_url: '/documents/zion-shuttle.pdf',
     file_type: 'application/pdf',
     file_size: 310_000,
