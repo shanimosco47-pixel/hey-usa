@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import {
   X,
@@ -68,6 +68,67 @@ function hasRealFile(doc: Document): boolean {
   return doc.file_url.startsWith('http') || doc.file_url.startsWith('data:')
 }
 
+/** Fetches HTML from Supabase (served as text/plain) and renders via blob URL so the browser treats it as HTML */
+function HtmlPreview({ url, title, onOpen }: { url: string; title: string; onOpen: () => void }) {
+  const [blobUrl, setBlobUrl] = useState<string | null>(null)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    let revoked = false
+    fetch(url)
+      .then((r) => r.text())
+      .then((html) => {
+        if (revoked) return
+        const blob = new Blob([html], { type: 'text/html' })
+        setBlobUrl(URL.createObjectURL(blob))
+      })
+      .catch(() => setError(true))
+    return () => {
+      revoked = true
+      if (blobUrl) URL.revokeObjectURL(blobUrl)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url])
+
+  if (error) {
+    return (
+      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-red-50">
+        <p className="text-sm text-red-400">שגיאה בטעינת המסמך</p>
+      </div>
+    )
+  }
+
+  if (!blobUrl) {
+    return (
+      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-surface-primary">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-ios-blue border-t-transparent" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="w-full rounded-xl bg-white overflow-hidden" style={{ minHeight: '40vh' }}>
+      <iframe
+        src={blobUrl}
+        title={title}
+        className="w-full border-0"
+        style={{ height: '55vh' }}
+        sandbox="allow-same-origin"
+      />
+      <div className="flex justify-center py-2 border-t border-gray-100">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex items-center gap-2 rounded-lg bg-ios-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
+        >
+          <ExternalLink className="h-4 w-4" />
+          פתח בחלון חדש
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
   const realFile = hasRealFile(doc)
 
@@ -111,6 +172,10 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
         </div>
       </div>
     )
+  }
+
+  if (doc.file_type?.includes('html') && realFile) {
+    return <HtmlPreview url={doc.file_url!} title={doc.title} onOpen={onOpen} />
   }
 
   if (doc.file_type?.includes('pdf')) {

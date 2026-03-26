@@ -196,7 +196,7 @@ Deno.serve(async (req) => {
         continue
       }
 
-      const fileUrl = await uploadToStorage(supabase, captured)
+      const fileUrl = await uploadToStorage(supabase, captured, true)
       if (!fileUrl) {
         console.error(`[email-scan] Rescan: upload failed for "${doc.title}"`)
         continue

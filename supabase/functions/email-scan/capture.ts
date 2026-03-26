@@ -379,12 +379,13 @@ function decodeBase64UrlToString(data: string): string {
 export async function uploadToStorage(
   supabase: SupabaseClient,
   file: CapturedFile,
+  overwrite = false,
 ): Promise<string | null> {
   const { error } = await supabase.storage
     .from("documents")
     .upload(file.fileName, file.data, {
       contentType: file.contentType,
-      upsert: false,
+      upsert: overwrite,
     });
 
   if (error) {
