@@ -1,8 +1,8 @@
 // Supabase Edge Function — Moti AI Chat Proxy
-// Calls Claude API with Moti's personality and trip context
-// Uses Claude Tool Use for structured actions
+// Calls OpenAI API with Moti's personality and trip context
+// Uses OpenAI Function Calling for structured actions
 
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
 
 const SYSTEM_PROMPT = `אתה מוטי — יועץ טיולים ציני, חכם ומצחיק. אתה מומחה לטיול משפחתי לארה"ב.
 
@@ -106,6 +106,9 @@ const SYSTEM_PROMPT = `אתה מוטי — יועץ טיולים ציני, חכ�
 - בנושאי תקציב: הצג פירוט בטבלה או רשימה מסודרת
 - לתשובות ארוכות: חלק לסעיפים עם כותרות
 
+## מידע משפחתי נוסף
+{{FAMILY_CONTEXT}}
+
 ## מצב נוכחי של האפליקציה
 {{APP_CONTEXT}}`
 
@@ -116,237 +119,282 @@ interface ChatMessage {
 
 const TOOLS = [
   {
-    name: 'update_budget_category',
-    description:
-      'Update budget for a specific expense category. Categories: flights, accommodation, food, transport, attractions, shopping, communication, insurance, other',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        category: {
-          type: 'string',
-          enum: [
-            'flights',
-            'accommodation',
-            'food',
-            'transport',
-            'attractions',
-            'shopping',
-            'communication',
-            'insurance',
-            'other',
-          ],
+    type: 'function' as const,
+    function: {
+      name: 'update_budget_category',
+      description:
+        'Update budget for a specific expense category. Categories: flights, accommodation, food, transport, attractions, shopping, communication, insurance, other',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          category: {
+            type: 'string',
+            enum: [
+              'flights',
+              'accommodation',
+              'food',
+              'transport',
+              'attractions',
+              'shopping',
+              'communication',
+              'insurance',
+              'other',
+            ],
+          },
+          amount: { type: 'number', description: 'Amount in ILS' },
         },
-        amount: { type: 'number', description: 'Amount in ILS' },
+        required: ['category', 'amount'],
       },
-      required: ['category', 'amount'],
     },
   },
   {
-    name: 'update_total_budget',
-    description: 'Update the total trip budget',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        amount: { type: 'number', description: 'Total budget in ILS' },
-      },
-      required: ['amount'],
-    },
-  },
-  {
-    name: 'update_daily_budget',
-    description: 'Update the daily spending budget',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        amount: { type: 'number', description: 'Daily budget in ILS' },
-      },
-      required: ['amount'],
-    },
-  },
-  {
-    name: 'add_expense',
-    description: 'Log a new expense. Always ask for amount if not provided.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        title: { type: 'string' },
-        amount: { type: 'number', description: 'Amount in ILS' },
-        category: {
-          type: 'string',
-          enum: [
-            'flights',
-            'accommodation',
-            'food',
-            'transport',
-            'attractions',
-            'shopping',
-            'communication',
-            'insurance',
-            'other',
-          ],
+    type: 'function' as const,
+    function: {
+      name: 'update_total_budget',
+      description: 'Update the total trip budget',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          amount: { type: 'number', description: 'Total budget in ILS' },
         },
-        paid_by: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] },
-        date: { type: 'string', description: 'YYYY-MM-DD' },
+        required: ['amount'],
       },
-      required: ['title', 'amount', 'category'],
     },
   },
   {
-    name: 'add_task',
-    description: 'Add a new task/reminder. Ask for due_date if time-sensitive.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        title: { type: 'string' },
-        description: { type: 'string' },
-        priority: { type: 'string', enum: ['low', 'medium', 'high', 'urgent'] },
-        group: { type: 'string', enum: ['pre_trip', 'during_trip', 'post_trip'] },
-        assigned_to: {
-          type: 'array',
-          items: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] },
+    type: 'function' as const,
+    function: {
+      name: 'update_daily_budget',
+      description: 'Update the daily spending budget',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          amount: { type: 'number', description: 'Daily budget in ILS' },
         },
-        due_date: { type: 'string', description: 'YYYY-MM-DD' },
+        required: ['amount'],
       },
-      required: ['title'],
     },
   },
   {
-    name: 'complete_task',
-    description: 'Mark a task as done by title. If ambiguous, ask which task.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        task_title: { type: 'string', description: 'Title or partial title to match' },
-      },
-      required: ['task_title'],
-    },
-  },
-  {
-    name: 'add_note',
-    description: 'Add a sticky note. Can optionally link to a location.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        text: { type: 'string' },
-        author: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] },
-        color: { type: 'string', enum: ['yellow', 'pink', 'blue', 'green', 'orange', 'purple'] },
-        location_id: {
-          type: 'string',
-          description: 'e.g. "grand-canyon", "yosemite", "las-vegas"',
+    type: 'function' as const,
+    function: {
+      name: 'add_expense',
+      description: 'Log a new expense. Always ask for amount if not provided.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          title: { type: 'string' },
+          amount: { type: 'number', description: 'Amount in ILS' },
+          category: {
+            type: 'string',
+            enum: [
+              'flights',
+              'accommodation',
+              'food',
+              'transport',
+              'attractions',
+              'shopping',
+              'communication',
+              'insurance',
+              'other',
+            ],
+          },
+          paid_by: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] },
+          date: { type: 'string', description: 'YYYY-MM-DD' },
         },
-        pinned: { type: 'boolean' },
+        required: ['title', 'amount', 'category'],
       },
-      required: ['text'],
     },
   },
   {
-    name: 'toggle_packing_item',
-    description: 'Check or uncheck a packing item by name. If ambiguous, ask.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        item_name: { type: 'string', description: 'Name or partial name to match' },
-      },
-      required: ['item_name'],
-    },
-  },
-  {
-    name: 'add_itinerary_stop',
-    description: 'Add a stop/activity to a trip day',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        day_id: { type: 'string', description: '"day-1" through "day-20"' },
-        title: { type: 'string' },
-        description: { type: 'string' },
-        category: {
-          type: 'string',
-          enum: ['activity', 'food', 'drive', 'camp', 'photo_op', 'shopping'],
+    type: 'function' as const,
+    function: {
+      name: 'add_task',
+      description: 'Add a new task/reminder. Ask for due_date if time-sensitive.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          title: { type: 'string' },
+          description: { type: 'string' },
+          priority: { type: 'string', enum: ['low', 'medium', 'high', 'urgent'] },
+          group: { type: 'string', enum: ['pre_trip', 'during_trip', 'post_trip'] },
+          assigned_to: {
+            type: 'array',
+            items: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] },
+          },
+          due_date: { type: 'string', description: 'YYYY-MM-DD' },
         },
-        start_time: { type: 'string', description: 'HH:MM' },
+        required: ['title'],
       },
-      required: ['day_id', 'title'],
     },
   },
   {
-    name: 'ask_clarification',
-    description:
-      'Ask the user a clarifying question when you need more info to complete an action. Use instead of guessing.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        question: { type: 'string', description: 'The question in Hebrew' },
-        context: { type: 'string', description: 'What action you are trying to complete' },
-      },
-      required: ['question'],
-    },
-  },
-  {
-    name: 'search_email',
-    description:
-      'Search connected Gmail accounts for a specific booking, receipt, or document. Use when user asks to find a specific email or booking confirmation.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        query: {
-          type: 'string',
-          description:
-            'Search query describing what to find (e.g. "yellowstone campground reservation", "RV rental confirmation", "United Airlines tickets")',
+    type: 'function' as const,
+    function: {
+      name: 'complete_task',
+      description: 'Mark a task as done by title. If ambiguous, ask which task.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          task_title: { type: 'string', description: 'Title or partial title to match' },
         },
+        required: ['task_title'],
       },
-      required: ['query'],
     },
   },
   {
-    name: 'set_reminder',
-    description:
-      'Set a reminder for the family. Creates a task with a due date. Use when user says "remind me", "תזכיר לי", "תזכורת".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        text: { type: 'string', description: 'What to remember (in Hebrew)' },
-        trigger_date: { type: 'string', description: 'YYYY-MM-DD when to remind' },
+    type: 'function' as const,
+    function: {
+      name: 'add_note',
+      description: 'Add a sticky note. Can optionally link to a location.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          text: { type: 'string' },
+          author: { type: 'string', enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'] },
+          color: { type: 'string', enum: ['yellow', 'pink', 'blue', 'green', 'orange', 'purple'] },
+          location_id: {
+            type: 'string',
+            description: 'e.g. "grand-canyon", "yosemite", "las-vegas"',
+          },
+          pinned: { type: 'boolean' },
+        },
+        required: ['text'],
       },
-      required: ['text'],
     },
   },
   {
-    name: 'convert_currency',
-    description:
-      'Convert between ILS and USD. Use when user asks about dollar/shekel conversion or "כמה זה בדולרים/שקלים".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        amount: { type: 'number', description: 'Amount to convert' },
-        from: { type: 'string', enum: ['ILS', 'USD'], description: 'Source currency' },
-        to: { type: 'string', enum: ['ILS', 'USD'], description: 'Target currency' },
+    type: 'function' as const,
+    function: {
+      name: 'toggle_packing_item',
+      description: 'Check or uncheck a packing item by name. If ambiguous, ask.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          item_name: { type: 'string', description: 'Name or partial name to match' },
+        },
+        required: ['item_name'],
       },
-      required: ['amount', 'from', 'to'],
     },
   },
   {
-    name: 'estimate_drive_time',
-    description:
-      'Estimate driving time between two trip destinations. Use when user asks "how long to drive", "כמה זמן נסיעה", "כמה רחוק".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        from: { type: 'string', description: 'Origin city/park name' },
-        to: { type: 'string', description: 'Destination city/park name' },
+    type: 'function' as const,
+    function: {
+      name: 'add_itinerary_stop',
+      description: 'Add a stop/activity to a trip day',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          day_id: { type: 'string', description: '"day-1" through "day-20"' },
+          title: { type: 'string' },
+          description: { type: 'string' },
+          category: {
+            type: 'string',
+            enum: ['activity', 'food', 'drive', 'camp', 'photo_op', 'shopping'],
+          },
+          start_time: { type: 'string', description: 'HH:MM' },
+        },
+        required: ['day_id', 'title'],
       },
-      required: ['from', 'to'],
     },
   },
   {
-    name: 'get_daily_plan',
-    description:
-      'Get the full plan for a specific trip day. Use when user asks "what is the plan for day X", "מה התכנית ליום X".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        day_number: { type: 'number', description: 'Day number 1-20' },
+    type: 'function' as const,
+    function: {
+      name: 'ask_clarification',
+      description:
+        'Ask the user a clarifying question when you need more info to complete an action. Use instead of guessing.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          question: { type: 'string', description: 'The question in Hebrew' },
+          context: { type: 'string', description: 'What action you are trying to complete' },
+        },
+        required: ['question'],
       },
-      required: ['day_number'],
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'search_email',
+      description:
+        'Search connected Gmail accounts for a specific booking, receipt, or document. Use when user asks to find a specific email or booking confirmation.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          query: {
+            type: 'string',
+            description:
+              'Search query describing what to find (e.g. "yellowstone campground reservation", "RV rental confirmation", "United Airlines tickets")',
+          },
+        },
+        required: ['query'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'set_reminder',
+      description:
+        'Set a reminder for the family. Creates a task with a due date. Use when user says "remind me", "תזכיר לי", "תזכורת".',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          text: { type: 'string', description: 'What to remember (in Hebrew)' },
+          trigger_date: { type: 'string', description: 'YYYY-MM-DD when to remind' },
+        },
+        required: ['text'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'convert_currency',
+      description:
+        'Convert between ILS and USD. Use when user asks about dollar/shekel conversion or "כמה זה בדולרים/שקלים".',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          amount: { type: 'number', description: 'Amount to convert' },
+          from: { type: 'string', enum: ['ILS', 'USD'], description: 'Source currency' },
+          to: { type: 'string', enum: ['ILS', 'USD'], description: 'Target currency' },
+        },
+        required: ['amount', 'from', 'to'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'estimate_drive_time',
+      description:
+        'Estimate driving time between two trip destinations. Use when user asks "how long to drive", "כמה זמן נסיעה", "כמה רחוק".',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          from: { type: 'string', description: 'Origin city/park name' },
+          to: { type: 'string', description: 'Destination city/park name' },
+        },
+        required: ['from', 'to'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'get_daily_plan',
+      description:
+        'Get the full plan for a specific trip day. Use when user asks "what is the plan for day X", "מה התכנית ליום X".',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          day_number: { type: 'number', description: 'Day number 1-20' },
+        },
+        required: ['day_number'],
+      },
     },
   },
 ]
@@ -372,42 +420,50 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 })
   }
 
-  const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
+  const apiKey = Deno.env.get('OPENAI_API_KEY')
   if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }), {
+    return new Response(JSON.stringify({ error: 'OPENAI_API_KEY not configured' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })
   }
 
   try {
-    const { messages, summarize, appContext } = (await req.json()) as {
+    const { messages, summarize, appContext, familyContext } = (await req.json()) as {
       messages: ChatMessage[]
       summarize?: boolean
       appContext?: string
+      familyContext?: string
     }
 
-    const systemPrompt = SYSTEM_PROMPT.replace('{{APP_CONTEXT}}', appContext || 'לא זמין כרגע')
+    const systemPrompt = SYSTEM_PROMPT
+      .replace('{{APP_CONTEXT}}', appContext || 'לא זמין כרגע')
+      .replace('{{FAMILY_CONTEXT}}', familyContext || '')
 
-    const response = await fetch(ANTHROPIC_API_URL, {
+    const systemMessage = summarize
+      ? 'אתה עוזר שמסכם שיחות. סכם בקצרה ב-3-4 משפטים בעברית.'
+      : systemPrompt
+
+    const response = await fetch(OPENAI_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': 'Bearer ' + apiKey,
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'gpt-4o-mini',
         max_tokens: summarize ? 256 : 2048,
-        system: summarize ? 'אתה עוזר שמסכם שיחות. סכם בקצרה ב-3-4 משפטים בעברית.' : systemPrompt,
-        messages,
-        ...(summarize ? {} : { tools: TOOLS }),
+        messages: [
+          { role: 'system', content: systemMessage },
+          ...messages,
+        ],
+        ...(summarize ? {} : { tools: TOOLS, tool_choice: 'auto' }),
       }),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Anthropic API error:', response.status, errorText)
+      console.error('OpenAI API error:', response.status, errorText)
       return new Response(JSON.stringify({ error: 'AI service error', status: response.status }), {
         status: 502,
         headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
@@ -415,19 +471,19 @@ Deno.serve(async (req) => {
     }
 
     const data = await response.json()
-    const contentBlocks = data.content ?? []
+    const choice = data.choices?.[0]?.message
 
-    let text = ''
+    let text = choice?.content?.trim() || ''
     const actions: Array<{ tool: string; input: Record<string, unknown> }> = []
 
-    for (const block of contentBlocks) {
-      if (block.type === 'text') {
-        text += block.text
-      } else if (block.type === 'tool_use') {
-        actions.push({
-          tool: block.name,
-          input: block.input,
-        })
+    if (choice?.tool_calls) {
+      for (const toolCall of choice.tool_calls) {
+        if (toolCall.type === 'function') {
+          actions.push({
+            tool: toolCall.function.name,
+            input: JSON.parse(toolCall.function.arguments),
+          })
+        }
       }
     }
 

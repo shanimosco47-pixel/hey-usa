@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, initConversationFromDb } from './botEngine'
 import type { MessageCard } from './botEngine'
 import { useAppData } from '@/contexts/AppDataContext'
+import { useAuth } from '@/contexts/AuthContext'
 import { MotiAvatar } from '@/components/shared/MotiRobot'
 import * as db from '@/lib/database'
 import { TRIP_START_DATE } from '@/constants'
@@ -154,6 +155,7 @@ function MessageCardRenderer({ card }: { card: MessageCard }) {
 
 export default function ChatPage() {
   const { executeMotiAction, buildMotiContext, changeLog, tasks, packingItems, expenses, budgetSettings } = useAppData()
+  const { currentMember } = useAuth()
   const navigate = useNavigate()
 
   const tasksTotal = tasks.length
@@ -308,7 +310,7 @@ export default function ChatPage() {
     }).catch(() => {})
 
     try {
-      const response = await getBotResponseAsync(text, buildMotiContext())
+      const response = await getBotResponseAsync(text, buildMotiContext(), currentMember || undefined)
 
       // Execute any actions Moti returned
       if (response.actions.length > 0) {
