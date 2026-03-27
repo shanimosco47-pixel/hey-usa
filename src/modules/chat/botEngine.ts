@@ -492,7 +492,11 @@ function mapToolUseToActions(toolUses: Array<{ tool: string; input: Record<strin
   return mapped
 }
 
-export async function getBotResponseAsync(userMessage: string, appContext?: string): Promise<BotResponse> {
+export async function getBotResponseAsync(
+  userMessage: string,
+  appContext?: string,
+  familyMemberId?: string,
+): Promise<BotResponse> {
   // First, check for actions in the message
   const actions = parseActions(userMessage)
 
@@ -509,6 +513,25 @@ export async function getBotResponseAsync(userMessage: string, appContext?: stri
     const card = detectCard(confirmText, actions)
     const quickActions = detectQuickActions(confirmText, actions)
     return { text: confirmText, actions, card, quickActions }
+  }
+
+  // Build family member context
+  let familyContext = ''
+  if (familyMemberId === 'kid1' || familyMemberId === 'kid2' || familyMemberId === 'kid3') {
+    familyContext = `## בן/בת משפחה נוכחי/ת
+המשתמש הנוכחי הוא ילד/ה. התאם את הטון:
+- השתמש בשפה פשוטה יותר ובהסברים קצרים
+- הוסף עובדות מהנות וטריוויה על המקומות
+- היה מעודד ומשעשע
+- אל תציף במידע תקציבי או לוגיסטי מורכב
+- תן תשובות קצרות יותר`
+  } else if (familyMemberId === 'aba' || familyMemberId === 'ima') {
+    familyContext = `## בן/בת משפחה נוכחי/ת
+המשתמש הנוכחי הוא הורה. התאם את הטון:
+- התמקד בתכנון, תקציב, לוגיסטיקה
+- תן עצות פרקטיות ומדויקות
+- הצע פתרונות ואלטרנטיבות כשרלוונטי
+- אפשר לדבר על תקציב ומסמכים בפירוט`
   }
 
   // Try AI via direct fetch (more reliable than supabase.functions.invoke)
@@ -539,7 +562,7 @@ export async function getBotResponseAsync(userMessage: string, appContext?: stri
           'Authorization': `Bearer ${supabaseKey}`,
           'apikey': supabaseKey,
         },
-        body: JSON.stringify({ messages: messagesWithMemory, appContext: appContext || '' }),
+        body: JSON.stringify({ messages: messagesWithMemory, appContext: appContext || '', familyContext }),
       })
 
       if (response.ok) {
