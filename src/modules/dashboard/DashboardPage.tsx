@@ -330,7 +330,7 @@ export default function DashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="mb-4 rounded-[20px] overflow-hidden relative"
-          style={{ minHeight: 200 }}
+          style={{ minHeight: 400 }}
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -356,40 +356,40 @@ export default function DashboardPage() {
                 }}
               />
 
-              <div className="relative px-6 py-6">
-                <div className="flex items-start justify-between">
+              <div className="relative px-8 py-10 flex flex-col justify-center" style={{ minHeight: 380 }}>
+                <div className="flex items-center justify-between">
                   {/* Countdown info */}
                   <div>
-                    <div className="flex items-baseline gap-3">
+                    <div className="flex items-baseline gap-4">
                       <motion.span
                         key={`${scene.id}-days`}
                         initial={{ scale: 1.1, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                        className="text-[52px] font-bold text-white leading-none tracking-tighter"
-                        style={{ textShadow: '0 2px 12px rgba(0,0,0,0.2)' }}
+                        className="text-[96px] font-bold text-white leading-none tracking-tighter"
+                        style={{ textShadow: '0 4px 20px rgba(0,0,0,0.2)' }}
                       >
                         {daysLeft}
                       </motion.span>
-                      <span className="text-[17px] font-medium text-white/80">ימים</span>
+                      <span className="text-[28px] font-medium text-white/80">ימים</span>
                     </div>
-                    <p className="mt-2 text-[14px] text-white/90 font-semibold">{scene.text}</p>
-                    <p className="mt-1 text-[12px] text-white/60 font-medium">
+                    <p className="mt-4 text-[22px] text-white/90 font-semibold">{scene.text}</p>
+                    <p className="mt-2 text-[18px] text-white/60 font-medium">
                       21 ימים | 6 מדינות | 1 קרוואן
                     </p>
-                    <p className="mt-0.5 text-[11px] text-white/40">10 בספטמבר 2026 — ארה״ב</p>
+                    <p className="mt-1 text-[15px] text-white/40">10 בספטמבר 2026 — ארה״ב</p>
                   </div>
 
                   {/* Emoji scene */}
                   <motion.div
-                    animate={{ y: [0, -6, 0] }}
+                    animate={{ y: [0, -10, 0] }}
                     transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-                    className="flex flex-col items-center gap-1 mt-1"
+                    className="flex flex-col items-center gap-2"
                   >
-                    <span className="text-[48px] leading-none" role="img" aria-label="scene">
+                    <span className="text-[80px] leading-none" role="img" aria-label="scene">
                       {scene.emoji}
                     </span>
-                    <span className="text-[28px] leading-none" role="img" aria-label="accent">
+                    <span className="text-[48px] leading-none" role="img" aria-label="accent">
                       {scene.secondaryEmoji}
                     </span>
                   </motion.div>
@@ -397,9 +397,9 @@ export default function DashboardPage() {
 
                 {/* Next destination teaser */}
                 {nextDay && (
-                  <div className="mt-3 flex items-center gap-2 text-white/70">
-                    <MapPin className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={2} />
-                    <span className="text-[12px] font-medium truncate">
+                  <div className="mt-5 flex items-center gap-3 text-white/70">
+                    <MapPin className="h-5 w-5 flex-shrink-0" strokeWidth={2} />
+                    <span className="text-[18px] font-medium truncate">
                       {tripDayIndex !== null ? 'היום:' : 'תחנה ראשונה:'}{' '}
                       <span className="text-white/90">{nextDay.city || nextDay.title}</span>
                     </span>
