@@ -73,6 +73,13 @@ export default {
           yellow: '#FFF57E',
           orange: '#FFB76C',
         },
+        // Passport stamp aesthetic
+        passport: {
+          cream: '#faf8f5',
+          rust: '#b45309',
+          'rust-light': '#d97706',
+          slate: '#1e293b',
+        },
         // shadcn/ui semantic colors
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -109,7 +116,8 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'Heebo', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['DM Sans', 'Heebo', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        serif: ['Playfair Display', 'serif'],
       },
       fontSize: {
         'hero': ['34px', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-1.5px' }],
