@@ -14,6 +14,8 @@ import type {
   Document,
   PlaylistItem,
   LocationNote,
+  ActivityPoll,
+  PollVote,
 } from './types'
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -875,4 +877,39 @@ export async function deleteEmailAccount(id: string) {
 export async function updateEmailAccountLastScan(id: string) {
   const sb = assertSupabase()
   await sb.from('email_accounts').update({ last_scan_at: new Date().toISOString() }).eq('id', id)
+}
+
+// ─── Activity Polls ──────────────────────────────────────────────────
+
+export async function fetchActivityPolls(): Promise<ActivityPoll[]> {
+  const sb = assertSupabase()
+  const { data, error } = await sb.from('activity_polls').select('*').order('created_at', { ascending: false })
+  if (error || !data) return []
+  return data.map((p) => ({
+    id: p.id,
+    day_id: p.day_id,
+    question: p.question,
+    options: (p.options as string[]) ?? [],
+    votes: (p.votes as PollVote[]) ?? [],
+    created_by: p.created_by,
+    created_at: p.created_at,
+  }))
+}
+
+export async function upsertActivityPoll(poll: ActivityPoll): Promise<void> {
+  const sb = assertSupabase()
+  await sb.from('activity_polls').upsert({
+    id: poll.id,
+    day_id: poll.day_id,
+    question: poll.question,
+    options: poll.options,
+    votes: poll.votes,
+    created_by: poll.created_by,
+    created_at: poll.created_at,
+  })
+}
+
+export async function deleteActivityPoll(id: string): Promise<void> {
+  const sb = assertSupabase()
+  await sb.from('activity_polls').delete().eq('id', id)
 }

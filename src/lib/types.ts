@@ -231,6 +231,23 @@ export interface CampsiteBooking {
   updated_at: string
 }
 
+// ─── Activity Polls ──────────────────────────────────────────────────
+
+export interface PollVote {
+  member_id: FamilyMemberId
+  option_index: number
+}
+
+export interface ActivityPoll {
+  id: string
+  day_id: string
+  question: string
+  options: string[]
+  votes: PollVote[]
+  created_by: FamilyMemberId
+  created_at: string
+}
+
 // ─── Sync ───────────────────────────────────────────────────────────
 
 export interface SyncQueueItem {

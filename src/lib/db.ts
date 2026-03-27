@@ -10,6 +10,7 @@ import type {
   Document,
   PlaylistItem,
   LocationNote,
+  ActivityPoll,
 } from './types'
 
 interface SyncMeta {
@@ -33,6 +34,7 @@ class HeyUSADatabase extends Dexie {
   playlistItems!: EntityTable<PlaylistItem, 'id'>
   locationNotes!: EntityTable<LocationNote, 'id'>
   syncQueue!: EntityTable<SyncMeta, 'id'>
+  polls!: EntityTable<ActivityPoll, 'id'>
 
   constructor() {
     super('hey-usa')
@@ -52,6 +54,24 @@ class HeyUSADatabase extends Dexie {
       // locationId is camelCase in LocationNote
       locationNotes: 'id, locationId',
       syncQueue: 'id, table, synced, timestamp',
+    })
+    this.version(2).stores({
+      // *assigned_to indexes the array elements (multi-entry index)
+      tasks: 'id, status, priority, group, *assigned_to',
+      expenses: 'id, category, date, paid_by',
+      budgetSettings: 'id',
+      itineraryDays: 'id, date',
+      // assigned_to is a scalar FamilyMemberId; is_packed is the boolean field
+      packingItems: 'id, category, assigned_to, is_packed',
+      blogPosts: 'id, created_at',
+      // day_id is optional on Photo; taken_by replaces member_id
+      photos: 'id, day_id, taken_by',
+      documents: 'id, category',
+      playlistItems: 'id',
+      // locationId is camelCase in LocationNote
+      locationNotes: 'id, locationId',
+      syncQueue: 'id, table, synced, timestamp',
+      polls: 'id, day_id, created_by',
     })
   }
 }

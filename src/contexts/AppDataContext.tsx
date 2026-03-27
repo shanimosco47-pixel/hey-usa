@@ -25,6 +25,7 @@ import type {
   LocationNote,
   FamilyMemberId,
   NoteColor,
+  ActivityPoll,
 } from '@/lib/types'
 import { EXPENSE_CATEGORIES } from '@/constants'
 import * as db from '@/lib/database'
@@ -212,6 +213,12 @@ interface AppDataContextType {
   updateLocationNote: (id: string, changes: Partial<LocationNote>) => void
   deleteLocationNote: (id: string) => void
 
+  // Activity Polls
+  polls: ActivityPoll[]
+  addPoll: (poll: Omit<ActivityPoll, 'id' | 'created_at'>) => void
+  votePoll: (pollId: string, optionIndex: number, memberId: FamilyMemberId) => void
+  deletePoll: (id: string) => void
+
   // Moti
   executeMotiAction: (action: MotiAction) => string | null
   buildMotiContext: () => string
@@ -248,6 +255,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [documents, setDocuments] = useState<Document[]>(SAMPLE_DOCUMENTS)
   const [playlistItems, setPlaylistItems] = useState<PlaylistItem[]>(SAMPLE_PLAYLIST)
   const [locationNotes, setLocationNotes] = useState<LocationNote[]>(SAMPLE_LOCATION_NOTES)
+  const [polls, setPolls] = useState<ActivityPoll[]>([])
   const [changeLog, setChangeLog] = useState<MotiChangeLogEntry[]>([])
 
   // ─── Load data: Dexie first, Supabase in background ────────────
@@ -273,6 +281,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             setDocuments(await localDb.documents.toArray())
             setPlaylistItems(await localDb.playlistItems.toArray())
             setLocationNotes(await localDb.locationNotes.toArray())
+            setPolls(await localDb.polls.toArray())
             setIsLoading(false)
           }
         }
@@ -291,6 +300,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           setDocuments(await localDb.documents.toArray())
           setPlaylistItems(await localDb.playlistItems.toArray())
           setLocationNotes(await localDb.locationNotes.toArray())
+          setPolls(await localDb.polls.toArray())
 
           // Hydrate avatars
           await hydrateAvatarsFromSupabase()
@@ -770,6 +780,41 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     db.deleteLocationNoteById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
+  // ─── Activity Polls ─────────────────────────────────────────────
+
+  const addPoll = useCallback((poll: Omit<ActivityPoll, 'id' | 'created_at'>) => {
+    const newPoll: ActivityPoll = {
+      ...poll,
+      id: `poll-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      created_at: new Date().toISOString(),
+    }
+    setPolls((prev) => [newPoll, ...prev])
+    localDb.polls.put(newPoll).catch(() => {})
+    queueSync('polls', newPoll.id, 'upsert').catch(() => {})
+    db.upsertActivityPoll(newPoll).catch(() => {})
+  }, [])
+
+  const votePoll = useCallback((pollId: string, optionIndex: number, memberId: FamilyMemberId) => {
+    setPolls((prev) =>
+      prev.map((p) => {
+        if (p.id !== pollId) return p
+        const filtered = p.votes.filter((v) => v.member_id !== memberId)
+        const updated = { ...p, votes: [...filtered, { member_id: memberId, option_index: optionIndex }] }
+        localDb.polls.put(updated).catch(() => {})
+        queueSync('polls', pollId, 'upsert').catch(() => {})
+        db.upsertActivityPoll(updated).catch(() => {})
+        return updated
+      }),
+    )
+  }, [])
+
+  const deletePoll = useCallback((id: string) => {
+    setPolls((prev) => prev.filter((p) => p.id !== id))
+    localDb.polls.delete(id).catch(() => {})
+    queueSync('polls', id, 'delete').catch(() => {})
+    db.deleteActivityPoll(id).catch(() => {})
+  }, [])
+
   // ─── Undo ───────────────────────────────────────────────────────
 
   const undoLastChange = useCallback((): boolean => {
@@ -1045,6 +1090,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       addLocationNote,
       updateLocationNote,
       deleteLocationNote,
+      polls,
+      addPoll,
+      votePoll,
+      deletePoll,
       executeMotiAction,
       changeLog,
       undoLastChange,
@@ -1093,6 +1142,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       addLocationNote,
       updateLocationNote,
       deleteLocationNote,
+      polls,
+      addPoll,
+      votePoll,
+      deletePoll,
       executeMotiAction,
       changeLog,
       undoLastChange,
