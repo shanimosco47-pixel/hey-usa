@@ -122,7 +122,7 @@ export const StopCard = memo(function StopCard({ stop, index, onUpdateTime }: St
           {/* Title row */}
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-bold text-apple-primary">{stop.title}</h3>
+              <h3 className="text-subhead font-bold text-apple-primary">{stop.title}</h3>
               {stop.location && (
                 <div className="mt-0.5 flex items-center gap-1">
                   <MapPin className="h-3 w-3 flex-shrink-0 text-apple-secondary" />

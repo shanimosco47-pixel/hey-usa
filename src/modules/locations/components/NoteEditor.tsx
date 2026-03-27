@@ -118,7 +118,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
                     className={cn(
                       'w-8 h-8 rounded-full border-2 transition-all',
                       color === c.value
-                        ? 'border-gray-700 scale-110 shadow-md'
+                        ? 'border-gray-700 scale-110 shadow-glass-hover'
                         : 'border-transparent hover:scale-105',
                     )}
                     style={{ backgroundColor: c.bg }}
@@ -146,7 +146,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
                 className={cn(
                   'px-6 py-2 rounded-full text-subhead font-semibold transition-all',
                   text.trim()
-                    ? 'bg-ios-blue text-white hover:bg-blue-600 shadow-md'
+                    ? 'bg-ios-blue text-white hover:bg-ios-blue/90 shadow-glass-hover'
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed',
                 )}
               >

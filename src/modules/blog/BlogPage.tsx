@@ -19,6 +19,7 @@ import type { BlogPost, FamilyMemberId } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
 import { isSampleData } from '@/lib/sampleData'
 import DOMPurify from 'dompurify'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 // Moti's writing prompt suggestions
 const MOTI_PROMPTS = [
@@ -157,9 +158,9 @@ export default function BlogPage() {
                       <button
                         key={prompt.title}
                         onClick={() => handlePrompt(prompt)}
-                        className="rounded-xl bg-white/80 p-2.5 text-right shadow-sm hover:shadow-md transition-shadow border border-black/[0.04]"
+                        className="rounded-apple-lg bg-white/80 p-2.5 text-right shadow-glass hover:shadow-glass-hover transition-shadow border border-black/[0.04]"
                       >
-                        <span className="text-lg">{prompt.emoji}</span>
+                        <span className="text-headline">{prompt.emoji}</span>
                         <p className="text-xs font-semibold text-apple-primary mt-1 line-clamp-1">{prompt.title}</p>
                         <p className="text-[10px] text-apple-tertiary mt-0.5 line-clamp-1">{prompt.starter.slice(0, 40)}...</p>
                       </button>
@@ -258,11 +259,12 @@ export default function BlogPage() {
       </motion.div>
 
       {blogPosts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
-          <BookOpen className="h-12 w-12 text-apple-tertiary/30" />
-          <p className="mt-4 text-apple-secondary">אין פוסטים עדיין</p>
-          <p className="mt-1 text-sm text-apple-tertiary">התחילו לכתוב על הטיול שלכם!</p>
-        </div>
+        <EmptyState
+          icon={BookOpen}
+          title="אין פוסטים"
+          description="כתבו את הפוסט הראשון ביומן הטיול"
+          action={{ label: 'פוסט חדש', onClick: startNewPost }}
+        />
       ) : (
         <motion.div
           className="space-y-3"
@@ -277,10 +279,10 @@ export default function BlogPage() {
               <button
                 key={post.id}
                 onClick={() => setSelectedPost(post)}
-                className="w-full rounded-apple-lg glass p-4 text-right shadow-sm transition-shadow hover:shadow-md"
+                className="w-full rounded-apple-lg glass p-4 text-right shadow-glass transition-shadow hover:shadow-glass-hover"
               >
-                <h3 className="text-base font-bold text-apple-primary">{isSampleData(post.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}{post.title}</h3>
-                <p className="mt-1.5 text-sm text-apple-secondary leading-relaxed line-clamp-2">{excerpt}...</p>
+                <h3 className="text-headline font-bold text-apple-primary">{isSampleData(post.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}{post.title}</h3>
+                <p className="mt-1.5 text-subhead text-apple-secondary leading-relaxed line-clamp-2">{excerpt}...</p>
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs text-apple-secondary">
                     <span>{author.avatar_emoji} {author.name}</span>

@@ -216,7 +216,7 @@ export function FamilySelectScreen() {
                     {/* Camera upload button */}
                     <button
                       onClick={(e) => handleCameraClick(e, id)}
-                      className="absolute -bottom-1 -left-1 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md border border-black/10 hover:bg-gray-50 active:scale-90 transition-all"
+                      className="absolute -bottom-1 -left-1 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-glass-hover border border-black/10 hover:bg-gray-50 active:scale-90 transition-all"
                       title="העלה תמונה"
                     >
                       <Camera className="h-4 w-4 text-apple-secondary" />

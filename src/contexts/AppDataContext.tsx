@@ -1,6 +1,6 @@
 // ─── AppDataContext ──────────────────────────────────────────────────
 // Single source of truth for ALL app data.
-// Loads from Supabase on mount, seeds if empty, syncs on every mutation.
+// Loads from Dexie first (instant), then pulls from Supabase in background.
 
 import {
   createContext,
@@ -27,9 +27,10 @@ import type {
   NoteColor,
 } from '@/lib/types'
 import { EXPENSE_CATEGORIES } from '@/constants'
-import { supabase } from '@/lib/supabase'
 import * as db from '@/lib/database'
 import { hydrateAvatarsFromSupabase } from '@/lib/avatarStorage'
+import { localDb } from '@/lib/db'
+import { pullFromSupabase, flushSyncQueue, queueSync } from '@/lib/sync'
 
 // Fallback sample data (used when Supabase is unavailable)
 import { SAMPLE_BUDGET_SETTINGS, SAMPLE_EXPENSES } from '@/modules/budget/data/sampleExpenses'
@@ -249,94 +250,90 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [locationNotes, setLocationNotes] = useState<LocationNote[]>(SAMPLE_LOCATION_NOTES)
   const [changeLog, setChangeLog] = useState<MotiChangeLogEntry[]>([])
 
-  // ─── Load from Supabase on mount ────────────────────────────────
+  // ─── Load data: Dexie first, Supabase in background ────────────
 
   useEffect(() => {
-    if (!supabase) {
-      setIsLoading(false)
-      return
-    }
-
     let cancelled = false
 
     async function loadData() {
       try {
-        // Check if seeded
-        const seeded = await db.isSeeded()
-        if (!seeded) {
-          console.log('[Hey USA] First run — seeding Supabase...')
-          await db.seedAllData()
+        // Step 1: Try Dexie first (instant, offline-ready)
+        const localTasks = await localDb.tasks.toArray()
+
+        if (localTasks.length > 0) {
+          // We have local data — show it immediately
+          if (!cancelled) {
+            setTasks(localTasks)
+            setExpenses(await localDb.expenses.toArray())
+            const bs = await localDb.budgetSettings.get('main')
+            if (bs) setBudgetSettings(bs)
+            setPackingItems(await localDb.packingItems.toArray())
+            setBlogPosts(await localDb.blogPosts.toArray())
+            setPhotos(await localDb.photos.toArray())
+            setDocuments(await localDb.documents.toArray())
+            setPlaylistItems(await localDb.playlistItems.toArray())
+            setLocationNotes(await localDb.locationNotes.toArray())
+            setIsLoading(false)
+          }
         }
 
-        // Load all data in parallel
-        const [
-          budgetData,
-          expenseData,
-          _itineraryData, // eslint-disable-line @typescript-eslint/no-unused-vars
-          taskData,
-          packingData,
-          blogData,
-          photoData,
-          documentData,
-          playlistData,
-          changeLogData,
-          locationNoteData,
-        ] = await Promise.all([
-          db.fetchBudgetSettings(),
-          db.fetchExpenses(),
-          db.fetchItinerary(),
-          db.fetchTasks(),
-          db.fetchPackingItems(),
-          db.fetchBlogPosts(),
-          db.fetchPhotos(),
-          db.fetchDocuments(),
-          db.fetchPlaylistItems(),
-          db.fetchMotiChangeLog(),
-          db.fetchLocationNotes(),
-        ])
+        // Step 2: Pull fresh data from Supabase in background
+        const pulled = await pullFromSupabase()
+        if (pulled && !cancelled) {
+          // Refresh state from Dexie (now updated with Supabase data)
+          setTasks(await localDb.tasks.toArray())
+          setExpenses(await localDb.expenses.toArray())
+          const bs = await localDb.budgetSettings.get('main')
+          if (bs) setBudgetSettings(bs)
+          setPackingItems(await localDb.packingItems.toArray())
+          setBlogPosts(await localDb.blogPosts.toArray())
+          setPhotos(await localDb.photos.toArray())
+          setDocuments(await localDb.documents.toArray())
+          setPlaylistItems(await localDb.playlistItems.toArray())
+          setLocationNotes(await localDb.locationNotes.toArray())
 
-        if (cancelled) return
-
-        if (budgetData) setBudgetSettings(budgetData)
-        if (expenseData.length) setExpenses(expenseData)
-        // Itinerary: always use local ITINERARY_DAYS as source of truth
-        // Supabase may contain old route data — skip override
-        // if (itineraryData.length) setItineraryDays(itineraryData)
-        if (taskData.length) setTasks(taskData)
-        if (packingData.length) setPackingItems(packingData)
-        if (blogData.length) setBlogPosts(blogData)
-        if (photoData.length) setPhotos(photoData)
-        if (documentData.length) setDocuments(documentData)
-        if (playlistData.length) setPlaylistItems(playlistData)
-        if (locationNoteData.length) setLocationNotes(locationNoteData)
-        if (changeLogData.length) {
-          setChangeLog(
-            changeLogData.map((e) => ({
-              id: e.id,
-              timestamp: e.created_at,
-              action: e.action as MotiAction,
-              description: e.description,
-              previousValue: e.previous_value,
-              newValue: e.new_value,
-            })),
-          )
+          // Hydrate avatars
+          await hydrateAvatarsFromSupabase()
         }
 
-        // Hydrate avatar photos from Supabase into localStorage
-        await hydrateAvatarsFromSupabase()
+        // Step 3: If no local data and no Supabase, seed Dexie from sample data
+        if (localTasks.length === 0 && !pulled) {
+          await localDb.tasks.bulkPut(sampleTasks)
+          await localDb.expenses.bulkPut(SAMPLE_EXPENSES)
+          await localDb.budgetSettings.put({ ...SAMPLE_BUDGET_SETTINGS, id: 'main' })
+          await localDb.packingItems.bulkPut(SAMPLE_PACKING_ITEMS)
+          await localDb.blogPosts.bulkPut(SAMPLE_BLOG_POSTS)
+          await localDb.photos.bulkPut(SAMPLE_PHOTOS)
+          await localDb.documents.bulkPut(SAMPLE_DOCUMENTS)
+          await localDb.playlistItems.bulkPut(SAMPLE_PLAYLIST)
+          await localDb.locationNotes.bulkPut(SAMPLE_LOCATION_NOTES)
+          // State already has sample data as defaults — no need to set again
+        }
 
-        console.log('[Hey USA] Data loaded from Supabase')
+        if (!cancelled) setIsLoading(false)
+
+        // Step 4: Flush any pending sync items
+        await flushSyncQueue()
       } catch (err) {
-        console.warn('[Hey USA] Failed to load from Supabase, using sample data:', err)
-      } finally {
+        console.warn('[Hey USA] Data load failed, using sample data:', err)
         if (!cancelled) setIsLoading(false)
       }
     }
 
     loadData()
-    return () => {
-      cancelled = true
+    return () => { cancelled = true }
+  }, [])
+
+  // ─── Online listener — flush pending sync queue ──────────────
+
+  useEffect(() => {
+    const handleOnline = () => {
+      flushSyncQueue().then((count) => {
+        if (count > 0) console.log(`[Hey USA] Synced ${count} pending changes`)
+      })
     }
+    window.addEventListener('online', handleOnline)
+    return () => window.removeEventListener('online', handleOnline)
   }, [])
 
   // ─── Change Log helper ──────────────────────────────────────────
@@ -372,6 +369,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           category_budgets: { ...prev.category_budgets, [category]: amount },
         }
         addToLog({ type: 'UPDATE_BUDGET_CATEGORY', category, amount }, oldAmount, amount)
+        localDb.budgetSettings.put({ ...next, id: 'main' }).catch(() => {})
+        queueSync('budgetSettings', 'main', 'upsert').catch(() => {})
         db.upsertBudgetSettings(next).catch((err) =>
           console.error('[AppData] Operation failed:', err),
         )
@@ -386,6 +385,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setBudgetSettings((prev) => {
         addToLog({ type: 'UPDATE_TOTAL_BUDGET', amount }, prev.total_budget, amount)
         const next = { ...prev, total_budget: amount }
+        localDb.budgetSettings.put({ ...next, id: 'main' }).catch(() => {})
+        queueSync('budgetSettings', 'main', 'upsert').catch(() => {})
         db.upsertBudgetSettings(next).catch((err) =>
           console.error('[AppData] Operation failed:', err),
         )
@@ -400,6 +401,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setBudgetSettings((prev) => {
         addToLog({ type: 'UPDATE_DAILY_BUDGET', amount }, prev.daily_budget, amount)
         const next = { ...prev, daily_budget: amount }
+        localDb.budgetSettings.put({ ...next, id: 'main' }).catch(() => {})
+        queueSync('budgetSettings', 'main', 'upsert').catch(() => {})
         db.upsertBudgetSettings(next).catch((err) =>
           console.error('[AppData] Operation failed:', err),
         )
@@ -420,6 +423,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         addToLog({ type: 'ADD_EXPENSE', expense }, null, newExpense)
         return [newExpense, ...prev]
       })
+      localDb.expenses.put(newExpense).catch(() => {})
+      queueSync('expenses', newExpense.id, 'upsert').catch(() => {})
       db.insertExpense(newExpense).catch((err) => console.error('[AppData] Operation failed:', err))
     },
     [addToLog],
@@ -427,6 +432,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deleteExpense = useCallback((id: string) => {
     setExpenses((prev) => prev.filter((e) => e.id !== id))
+    localDb.expenses.delete(id).catch(() => {})
+    queueSync('expenses', id, 'delete').catch(() => {})
     db.deleteExpenseById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -501,6 +508,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const now = new Date().toISOString()
     const newTask: Task = { ...task, id: `task-${Date.now()}`, created_at: now, updated_at: now }
     setTasks((prev) => [...prev, newTask])
+    localDb.tasks.put(newTask).catch(() => {})
+    queueSync('tasks', newTask.id, 'upsert').catch(() => {})
     db.upsertTask(newTask).catch((err) => console.error('[AppData] Operation failed:', err))
     return newTask
   }, [])
@@ -516,6 +525,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         if (changes.status && changes.status !== 'done') {
           updated.completed_at = undefined
         }
+        localDb.tasks.put(updated).catch(() => {})
+        queueSync('tasks', updated.id, 'upsert').catch(() => {})
         db.upsertTask(updated).catch((err) => console.error('[AppData] Operation failed:', err))
         return updated
       }),
@@ -524,6 +535,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deleteTask = useCallback((id: string) => {
     setTasks((prev) => prev.filter((t) => t.id !== id))
+    localDb.tasks.delete(id).catch(() => {})
+    queueSync('tasks', id, 'delete').catch(() => {})
     db.deleteTaskById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -537,6 +550,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           group: newGroup ?? t.group,
           updated_at: new Date().toISOString(),
         }
+        localDb.tasks.put(updated).catch(() => {})
+        queueSync('tasks', updated.id, 'upsert').catch(() => {})
         db.upsertTask(updated).catch((err) => console.error('[AppData] Operation failed:', err))
         return updated
       }),
@@ -548,6 +563,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const addPackingItem = useCallback((item: Omit<PackingItem, 'id'>) => {
     const newItem: PackingItem = { ...item, id: `p-${Date.now()}` }
     setPackingItems((prev) => [...prev, newItem])
+    localDb.packingItems.put(newItem).catch(() => {})
+    queueSync('packingItems', newItem.id, 'upsert').catch(() => {})
     db.upsertPackingItem(newItem).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -556,6 +573,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((p) => {
         if (p.id !== id) return p
         const updated = { ...p, ...changes }
+        localDb.packingItems.put(updated).catch(() => {})
+        queueSync('packingItems', updated.id, 'upsert').catch(() => {})
         db.upsertPackingItem(updated).catch((err) =>
           console.error('[AppData] Operation failed:', err),
         )
@@ -566,6 +585,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deletePackingItem = useCallback((id: string) => {
     setPackingItems((prev) => prev.filter((p) => p.id !== id))
+    localDb.packingItems.delete(id).catch(() => {})
+    queueSync('packingItems', id, 'delete').catch(() => {})
     db.deletePackingItemById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -580,6 +601,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updated_at: now,
     }
     setBlogPosts((prev) => [newPost, ...prev])
+    localDb.blogPosts.put(newPost).catch(() => {})
+    queueSync('blogPosts', newPost.id, 'upsert').catch(() => {})
     db.upsertBlogPost(newPost).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -588,6 +611,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((p) => {
         if (p.id !== id) return p
         const updated = { ...p, ...changes, updated_at: new Date().toISOString() }
+        localDb.blogPosts.put(updated).catch(() => {})
+        queueSync('blogPosts', updated.id, 'upsert').catch(() => {})
         db.upsertBlogPost(updated).catch((err) => console.error('[AppData] Operation failed:', err))
         return updated
       }),
@@ -596,6 +621,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deleteBlogPost = useCallback((id: string) => {
     setBlogPosts((prev) => prev.filter((p) => p.id !== id))
+    localDb.blogPosts.delete(id).catch(() => {})
+    queueSync('blogPosts', id, 'delete').catch(() => {})
     db.deleteBlogPostById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -608,6 +635,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       created_at: new Date().toISOString(),
     }
     setPhotos((prev) => [newPhoto, ...prev])
+    localDb.photos.put(newPhoto).catch(() => {})
+    queueSync('photos', newPhoto.id, 'upsert').catch(() => {})
     db.upsertPhoto(newPhoto).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -616,6 +645,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((p) => {
         if (p.id !== id) return p
         const updated = { ...p, ...changes }
+        localDb.photos.put(updated).catch(() => {})
+        queueSync('photos', updated.id, 'upsert').catch(() => {})
         db.upsertPhoto(updated).catch((err) => console.error('[AppData] Operation failed:', err))
         return updated
       }),
@@ -624,6 +655,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deletePhoto = useCallback((id: string) => {
     setPhotos((prev) => prev.filter((p) => p.id !== id))
+    localDb.photos.delete(id).catch(() => {})
+    queueSync('photos', id, 'delete').catch(() => {})
     db.deletePhotoById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -633,6 +666,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const now = new Date().toISOString()
     const newDoc: Document = { ...doc, id: `udoc-${Date.now()}`, created_at: now, updated_at: now }
     setDocuments((prev) => [newDoc, ...prev])
+    localDb.documents.put(newDoc).catch(() => {})
+    queueSync('documents', newDoc.id, 'upsert').catch(() => {})
     db.upsertDocument(newDoc).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -641,6 +676,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((d) => {
         if (d.id !== id) return d
         const updated = { ...d, ...changes, updated_at: new Date().toISOString() }
+        localDb.documents.put(updated).catch(() => {})
+        queueSync('documents', updated.id, 'upsert').catch(() => {})
         db.upsertDocument(updated).catch((err) => console.error('[AppData] Operation failed:', err))
         return updated
       }),
@@ -649,6 +686,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deleteDocument = useCallback((id: string) => {
     setDocuments((prev) => prev.filter((d) => d.id !== id))
+    localDb.documents.delete(id).catch(() => {})
+    queueSync('documents', id, 'delete').catch(() => {})
     db.deleteDocumentById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -661,6 +700,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       created_at: new Date().toISOString(),
     }
     setPlaylistItems((prev) => [newItem, ...prev])
+    localDb.playlistItems.put(newItem).catch(() => {})
+    queueSync('playlistItems', newItem.id, 'upsert').catch(() => {})
     db.upsertPlaylistItem(newItem).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -669,6 +710,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((p) => {
         if (p.id !== id) return p
         const updated = { ...p, ...changes }
+        localDb.playlistItems.put(updated).catch(() => {})
+        queueSync('playlistItems', updated.id, 'upsert').catch(() => {})
         db.upsertPlaylistItem(updated).catch((err) =>
           console.error('[AppData] Operation failed:', err),
         )
@@ -679,6 +722,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deletePlaylistItem = useCallback((id: string) => {
     setPlaylistItems((prev) => prev.filter((p) => p.id !== id))
+    localDb.playlistItems.delete(id).catch(() => {})
+    queueSync('playlistItems', id, 'delete').catch(() => {})
     db.deletePlaylistItem(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 
@@ -694,6 +739,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         updated_at: now,
       }
       setLocationNotes((prev) => [newNote, ...prev])
+      localDb.locationNotes.put(newNote).catch(() => {})
+      queueSync('locationNotes', newNote.id, 'upsert').catch(() => {})
       db.upsertLocationNote(newNote).catch((err) =>
         console.error('[AppData] Operation failed:', err),
       )
@@ -706,6 +753,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((n) => {
         if (n.id !== id) return n
         const updated = { ...n, ...changes, updated_at: new Date().toISOString() }
+        localDb.locationNotes.put(updated).catch(() => {})
+        queueSync('locationNotes', updated.id, 'upsert').catch(() => {})
         db.upsertLocationNote(updated).catch((err) =>
           console.error('[AppData] Operation failed:', err),
         )
@@ -716,6 +765,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const deleteLocationNote = useCallback((id: string) => {
     setLocationNotes((prev) => prev.filter((n) => n.id !== id))
+    localDb.locationNotes.delete(id).catch(() => {})
+    queueSync('locationNotes', id, 'delete').catch(() => {})
     db.deleteLocationNoteById(id).catch((err) => console.error('[AppData] Operation failed:', err))
   }, [])
 

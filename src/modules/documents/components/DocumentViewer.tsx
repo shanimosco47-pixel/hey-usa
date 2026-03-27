@@ -51,7 +51,7 @@ function isExpiringWithin6Months(dateStr?: string): boolean {
 function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   return (
     <div className="fixed bottom-6 start-1/2 -translate-x-1/2 rtl:translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <div className="flex items-center gap-2 rounded-xl bg-gray-800 px-4 py-3 text-sm text-white shadow-lg">
+      <div className="flex items-center gap-2 rounded-apple-lg bg-gray-800 px-4 py-3 text-subhead text-white shadow-glass-float">
         <span>📄</span>
         <span>{message}</span>
         <button type="button" onClick={onClose} className="mr-2 text-white/60 hover:text-white">

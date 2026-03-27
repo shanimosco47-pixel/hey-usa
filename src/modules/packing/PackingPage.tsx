@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { PackingItem } from '@/lib/types'
 import { motion } from 'framer-motion'
+import { StaggerContainer, StaggerItem } from '@/components/ui/motion'
 import {
   Package,
   Plus,
@@ -17,6 +18,7 @@ import {
   ChevronUp,
   Trash2,
   Filter,
+  Luggage,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
@@ -24,6 +26,7 @@ import { PACKING_CATEGORIES, FAMILY_MEMBERS_LIST, getFamilyMember } from '@/cons
 import { useAppData } from '@/contexts/AppDataContext'
 import type { FamilyMemberId } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
   clothing: Shirt,
@@ -158,11 +161,11 @@ export default function PackingPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="rounded-apple-lg bg-gradient-to-r from-green-500 to-emerald-500 p-4 text-center text-white shadow-lg"
+          className="rounded-apple-lg bg-gradient-to-r from-ios-green to-ios-teal p-4 text-center text-white shadow-glass-float"
         >
-          <p className="text-2xl mb-1">🎉</p>
+          <p className="text-title mb-1">🎉</p>
           <p className="font-bold">הכל ארוז!</p>
-          <p className="text-sm text-white/80">מוכנים לטיול! 🚐✨</p>
+          <p className="text-subhead text-white/80">מוכנים לטיול! 🚐✨</p>
         </motion.div>
       )}
 
@@ -250,17 +253,13 @@ export default function PackingPage() {
 
       {/* Category Groups */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
-          <Package className="h-12 w-12 text-apple-secondary/30" />
-          <p className="mt-4 text-apple-secondary">אין פריטים להצגה</p>
-        </div>
+        <EmptyState
+          icon={Luggage}
+          title="רשימת האריזה ריקה"
+          description="הוסיפו פריטים לאריזה"
+        />
       ) : (
-        <motion.div
-          className="space-y-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-        >
+        <StaggerContainer className="space-y-2">
           {Object.entries(PACKING_CATEGORIES).map(([catKey, { label }]) => {
             const catItems = groupedByCategory[catKey]
             if (!catItems || catItems.length === 0) return null
@@ -269,7 +268,8 @@ export default function PackingPage() {
             const IconComp = CATEGORY_ICONS[catKey] || Package
 
             return (
-              <div key={catKey} className="glass rounded-apple-lg shadow-sm overflow-hidden">
+              <StaggerItem key={catKey}>
+              <div className="glass rounded-apple-lg shadow-sm overflow-hidden">
                 <button
                   onClick={() => toggleCategory(catKey)}
                   className="flex w-full items-center gap-3 p-3"
@@ -353,9 +353,10 @@ export default function PackingPage() {
                   </div>
                 )}
               </div>
+              </StaggerItem>
             )
           })}
-        </motion.div>
+        </StaggerContainer>
       )}
     </div>
   )

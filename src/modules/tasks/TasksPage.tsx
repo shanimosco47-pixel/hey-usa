@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { motion } from 'framer-motion'
-import { Plus, Search, Table2, Columns3, GanttChart, X, ListTodo } from 'lucide-react'
+import { Plus, Search, Table2, Columns3, GanttChart, X, ClipboardList } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { FAMILY_MEMBERS, STATUS_MAP } from '@/constants'
@@ -11,6 +11,7 @@ import { TableView } from './components/TableView'
 import { KanbanView } from './components/KanbanView'
 import { TimelineView } from './components/TimelineView'
 import { TaskDialog, type TaskFormData } from './components/TaskDialog'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 interface TaskFilters {
   search?: string
@@ -250,7 +251,7 @@ export default function TasksPage() {
             <Tabs.Trigger
               value="table"
               className={cn(
-                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
+                'flex items-center gap-1.5 rounded-apple-sm px-3 py-1.5 text-subhead font-medium transition-all',
                 activeView === 'table'
                   ? 'bg-white text-apple-primary shadow-sm'
                   : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
@@ -262,7 +263,7 @@ export default function TasksPage() {
             <Tabs.Trigger
               value="kanban"
               className={cn(
-                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
+                'flex items-center gap-1.5 rounded-apple-sm px-3 py-1.5 text-subhead font-medium transition-all',
                 activeView === 'kanban'
                   ? 'bg-white text-apple-primary shadow-sm'
                   : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
@@ -274,7 +275,7 @@ export default function TasksPage() {
             <Tabs.Trigger
               value="timeline"
               className={cn(
-                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
+                'flex items-center gap-1.5 rounded-apple-sm px-3 py-1.5 text-subhead font-medium transition-all',
                 activeView === 'timeline'
                   ? 'bg-white text-apple-primary shadow-sm'
                   : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
@@ -307,7 +308,7 @@ export default function TasksPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="חיפוש משימות..."
-              className="w-full rounded-xl border border-black/[0.06] glass py-2 pe-3 ps-10 text-sm text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+              className="w-full rounded-apple-lg border border-black/[0.06] glass py-2 pe-3 ps-10 text-subhead text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
             />
           </div>
 
@@ -384,10 +385,12 @@ export default function TasksPage() {
 
         {/* Views */}
         {filteredTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
-            <ListTodo className="h-12 w-12 text-apple-secondary/30" />
-            <p className="mt-4 text-apple-secondary">אין משימות להצגה</p>
-          </div>
+          <EmptyState
+            icon={ClipboardList}
+            title="אין משימות"
+            description="הוסיפו משימה ראשונה לתכנון הטיול"
+            action={{ label: 'הוסף משימה', onClick: handleAddClick }}
+          />
         ) : (
           <>
             <Tabs.Content value="table" className="focus:outline-none">

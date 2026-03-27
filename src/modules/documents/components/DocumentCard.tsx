@@ -81,8 +81,8 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
       type="button"
       onClick={() => onClick(doc)}
       className={cn(
-        'group flex w-full flex-col overflow-hidden rounded-xl border text-right',
-        'glass shadow-sm transition-all hover:shadow-md hover:bg-white/80',
+        'group flex w-full flex-col overflow-hidden rounded-apple-lg border text-right',
+        'glass shadow-glass transition-all hover:shadow-glass-hover hover:bg-white/80',
         'focus:outline-none focus:ring-2 focus:ring-sky/40',
         expired ? 'border-red-300' : sample ? 'border-dashed border-ios-teal/40' : 'border-black/[0.06]',
       )}

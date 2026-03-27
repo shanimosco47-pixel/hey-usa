@@ -1,8 +1,10 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { StaggerContainer, StaggerItem } from '@/components/ui/motion'
 import * as Tabs from '@radix-ui/react-tabs'
 import { FileText, Plus, Search, LayoutGrid, List, FolderOpen, Calendar, ArrowUpDown, CheckCircle2, Clock, Paperclip } from 'lucide-react'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { DOCUMENT_CATEGORIES } from '@/constants'
@@ -202,45 +204,47 @@ export default function DocumentsPage() {
 
       {/* Documents grid/list */}
       {documents.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16">
-          <div className="flex h-16 w-16 items-center justify-center rounded-apple-lg bg-black/[0.04]">
-            <FolderOpen className="h-8 w-8 text-apple-secondary/50" />
+        allDocuments.length === 0 ? (
+          <EmptyState
+            icon={FileText}
+            title="אין מסמכים"
+            description="העלו מסמכי נסיעה - דרכונים, ביטוח, הזמנות"
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="flex h-16 w-16 items-center justify-center rounded-apple-lg bg-black/[0.04]">
+              <FolderOpen className="h-8 w-8 text-apple-secondary/50" />
+            </div>
+            <p className="mt-4 text-sm font-medium text-apple-secondary">
+              {searchQuery ? 'לא נמצאו מסמכים התואמים לחיפוש' : 'אין מסמכים בקטגוריה זו'}
+            </p>
+            <Button
+              variant="link"
+              onClick={() => {
+                setSearchQuery('')
+                setActiveCategory('all')
+              }}
+            >
+              הצג את כל המסמכים
+            </Button>
           </div>
-          <p className="mt-4 text-sm font-medium text-apple-secondary">
-            {searchQuery ? 'לא נמצאו מסמכים התואמים לחיפוש' : 'אין מסמכים בקטגוריה זו'}
-          </p>
-          <Button
-            variant="link"
-            onClick={() => {
-              setSearchQuery('')
-              setActiveCategory('all')
-            }}
-          >
-            הצג את כל המסמכים
-          </Button>
-        </div>
+        )
       ) : viewMode === 'grid' ? (
-        <motion.div
-          className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-        >
+        <StaggerContainer className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           {documents.map((doc) => (
-            <DocumentCard key={doc.id} document={doc} onClick={handleCardClick} />
+            <StaggerItem key={doc.id}>
+              <DocumentCard document={doc} onClick={handleCardClick} />
+            </StaggerItem>
           ))}
-        </motion.div>
+        </StaggerContainer>
       ) : (
-        <motion.div
-          className="flex flex-col gap-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-        >
+        <StaggerContainer className="flex flex-col gap-2">
           {documents.map((doc) => (
-            <ListRow key={doc.id} document={doc} onClick={handleCardClick} />
+            <StaggerItem key={doc.id}>
+              <ListRow document={doc} onClick={handleCardClick} />
+            </StaggerItem>
           ))}
-        </motion.div>
+        </StaggerContainer>
       )}
 
       {/* Dialogs */}

@@ -14,6 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import type { CampsiteBooking, BookingStatus, AccommodationType, BookingPriority } from '@/types'
 import { useCampsiteBookings } from './hooks/useCampsiteBookings'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 // ── Status config ─────────────────────────────────────────────────
 const STATUS_CONFIG: Record<
@@ -180,7 +181,7 @@ function StatusBadge({
         {cfg.label}
       </button>
       {open && (
-        <div className="absolute z-50 top-full mt-1 right-0 bg-white shadow-lg rounded-lg border p-1 min-w-[120px]">
+        <div className="absolute z-50 top-full mt-1 right-0 bg-white shadow-glass-float rounded-apple border p-1 min-w-[120px]">
           {(Object.keys(STATUS_CONFIG) as BookingStatus[]).map((s) => {
             const c = STATUS_CONFIG[s]
             const I = c.icon
@@ -497,7 +498,18 @@ export default function CampsitesPage() {
         />
       </div>
 
+      {/* Empty state */}
+      {bookings.length === 0 && (
+        <EmptyState
+          icon={Tent}
+          title="אין הזמנות קמפינג"
+          description="הוסיפו הזמנת קמפינג ראשונה"
+          action={{ label: 'הוסף שורה', onClick: () => setShowAdd(true) }}
+        />
+      )}
+
       {/* Scrollable Table */}
+      {bookings.length > 0 && (
       <div className="bg-white/80 backdrop-blur-sm rounded-apple-xl shadow-glass border border-gray-200/60 overflow-hidden">
         <div className="overflow-x-auto">
           <table
@@ -734,6 +746,7 @@ export default function CampsitesPage() {
           </table>
         </div>
       </div>
+      )}
 
       {/* Legend */}
       <div className="flex flex-wrap gap-3 text-xs text-apple-secondary px-1">

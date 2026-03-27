@@ -9,6 +9,7 @@ import { ROAD_TRIP_GAMES, USA_TRIVIA } from './data/sampleEntertainment'
 import type { FamilyMemberId } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAppData } from '@/contexts/AppDataContext'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 type Tab = 'playlist' | 'games' | 'trivia'
 
@@ -148,10 +149,11 @@ export default function EntertainmentPage() {
           )}
 
           {sortedPlaylist.length === 0 && (
-            <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
-              <Music className="h-12 w-12 text-apple-secondary/30" />
-              <p className="mt-4 text-apple-secondary">אין שירים להצגה</p>
-            </div>
+            <EmptyState
+              icon={Music}
+              title="אין שירים"
+              description="הוסיפו שירים לפלייליסט"
+            />
           )}
 
           {sortedPlaylist.map((song, idx) => {

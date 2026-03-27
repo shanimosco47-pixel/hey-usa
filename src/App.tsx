@@ -2,6 +2,8 @@ import { lazy, Suspense, useState, useCallback, Component, type ReactNode } from
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { AppDataProvider, useAppData } from '@/contexts/AppDataContext'
+import { ToastProvider } from '@/components/shared/ToastContext'
+import { ToastContainer } from '@/components/shared/Toast'
 import AppShell from '@/components/layout/AppShell'
 import SplashScreen from '@/components/shared/SplashScreen'
 import NotFoundPage from '@/components/shared/NotFoundPage'
@@ -161,9 +163,12 @@ export default function App() {
   return (
     <BrowserRouter basename="/hey-usa">
       <AuthProvider>
-        <AppDataProvider>
-          <AppInner />
-        </AppDataProvider>
+        <ToastProvider>
+          <AppDataProvider>
+            <AppInner />
+          </AppDataProvider>
+          <ToastContainer />
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   )

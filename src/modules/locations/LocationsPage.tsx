@@ -5,6 +5,7 @@ import { useAppData } from '@/contexts/AppDataContext'
 import { LOCATIONS, getDaysForLocation, getLocationDateRange } from '@/data/locations'
 import { LocationCard } from './components/LocationCard'
 import { format, parseISO } from 'date-fns'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 function formatDateRange(range: { start: string; end: string } | null): string | null {
   if (!range) return null
@@ -43,7 +44,7 @@ export default function LocationsPage() {
                 {LOCATIONS.length} יעדים
               </span>
             </div>
-            <h1 className="text-2xl sm:text-hero text-white drop-shadow-lg mb-1">🗺️ היעדים שלנו</h1>
+            <h1 className="text-title sm:text-hero text-white drop-shadow-lg mb-1">🗺️ היעדים שלנו</h1>
             <p className="text-[15px] text-white/80 font-medium">
               לחצו על יעד כדי לראות הערות, מסמכים ותכנון
             </p>
@@ -56,6 +57,13 @@ export default function LocationsPage() {
 
       {/* Polaroid Grid */}
       <div className="px-4 py-8 md:px-8">
+        {locationStats.length === 0 ? (
+          <EmptyState
+            icon={MapPin}
+            title="אין מיקומים"
+            description="מיקומים יופיעו כאן מתוך המסלול"
+          />
+        ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-7 max-w-6xl mx-auto">
           {locationStats.map((stat, index) => (
             <LocationCard
@@ -69,6 +77,7 @@ export default function LocationsPage() {
             />
           ))}
         </div>
+        )}
       </div>
 
       {/* Bottom shadow for depth */}

@@ -57,16 +57,16 @@ const MODULE_CARDS: {
   color: string
   countKey?: 'tasks' | 'photos' | 'packing' | 'expenses'
 }[] = [
-  { path: '/tasks', icon: CheckCircle2, label: 'משימות', color: '#007AFF', countKey: 'tasks' },
-  { path: '/itinerary', icon: CalendarRange, label: 'לוח זמנים', color: '#FF9500' },
-  { path: '/documents', icon: FolderClosed, label: 'מסמכים', color: '#FF3B30' },
-  { path: '/map', icon: Map, label: 'מפה', color: '#5856D6' },
-  { path: '/photos', icon: Camera, label: 'תמונות', color: '#FF2D55', countKey: 'photos' },
-  { path: '/blog', icon: PenLine, label: 'בלוג', color: '#34C759' },
-  { path: '/budget', icon: CreditCard, label: 'תקציב', color: '#FF9500', countKey: 'expenses' },
-  { path: '/entertainment', icon: Music, label: 'בידור', color: '#AF52DE' },
-  { path: '/packing', icon: Briefcase, label: 'אריזה', color: '#5AC8FA', countKey: 'packing' },
-  { path: '/locations', icon: MapPin, label: 'יעדים', color: '#FF6B35' },
+  { path: '/tasks', icon: CheckCircle2, label: 'משימות', color: '#007AFF', countKey: 'tasks' },    // ios-blue
+  { path: '/itinerary', icon: CalendarRange, label: 'לוח זמנים', color: '#FF9500' },              // ios-orange
+  { path: '/documents', icon: FolderClosed, label: 'מסמכים', color: '#FF3B30' },                  // ios-red
+  { path: '/map', icon: Map, label: 'מפה', color: '#5856D6' },                                    // ios-indigo
+  { path: '/photos', icon: Camera, label: 'תמונות', color: '#FF2D55', countKey: 'photos' },       // ios-pink
+  { path: '/blog', icon: PenLine, label: 'בלוג', color: '#34C759' },                              // ios-green
+  { path: '/budget', icon: CreditCard, label: 'תקציב', color: '#FF9500', countKey: 'expenses' },  // ios-orange
+  { path: '/entertainment', icon: Music, label: 'בידור', color: '#AF52DE' },                      // ios-purple
+  { path: '/packing', icon: Briefcase, label: 'אריזה', color: '#5AC8FA', countKey: 'packing' },   // ios-teal
+  { path: '/locations', icon: MapPin, label: 'יעדים', color: '#FF9500' },                         // ios-orange
 ]
 
 /* ── Passport Stamp decorative element ── */
@@ -270,7 +270,7 @@ export default function DashboardPage() {
                   <h1 className="font-serif text-[28px] font-semibold text-passport-slate leading-none tracking-tight">
                     <span dir="ltr">Hey USA</span>
                   </h1>
-                  <p className="text-[13px] text-[#64748b] mt-1" dir="ltr">
+                  <p className="text-[13px] text-apple-secondary mt-1" dir="ltr">
                     Bozeman → San Francisco
                   </p>
                 </div>
@@ -287,7 +287,7 @@ export default function DashboardPage() {
 
             {/* Date & greeting */}
             <div className="mb-4">
-              <p className="text-[13px] text-[#94a3b8] tracking-wide">{todayDate}</p>
+              <p className="text-[13px] text-apple-secondary tracking-wide">{todayDate}</p>
               <p className="mt-0.5 text-[17px] font-semibold text-passport-slate">
                 {memberData ? `שלום, ${memberData.name}` : 'שלום!'}
               </p>
@@ -309,19 +309,19 @@ export default function DashboardPage() {
                     <div className="font-serif text-[36px] font-bold leading-none">
                       <NumberTicker value={daysLeft} delay={0.2} />
                     </div>
-                    <div className="text-[12px] text-[#94a3b8] mt-1 font-medium" dir="rtl">ימים לטיסה</div>
+                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">ימים לטיסה</div>
                   </div>
                   <div className="border-x border-white/10">
                     <div className="font-serif text-[36px] font-bold leading-none">
                       <NumberTicker value={2400} delay={0.4} />
                     </div>
-                    <div className="text-[12px] text-[#94a3b8] mt-1 font-medium" dir="rtl">מיילים</div>
+                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">מיילים</div>
                   </div>
                   <div>
                     <div className="font-serif text-[36px] font-bold leading-none">
                       <NumberTicker value={21} delay={0.6} />
                     </div>
-                    <div className="text-[12px] text-[#94a3b8] mt-1 font-medium" dir="rtl">ימי טיול</div>
+                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">ימי טיול</div>
                   </div>
                 </div>
               </div>
@@ -356,8 +356,8 @@ export default function DashboardPage() {
               className="flex-1 rounded-apple bg-white px-3 py-2.5 text-center"
               style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
             >
-              <p className="text-[11px] text-[#94a3b8] font-medium">משימות</p>
-              <p className="text-[15px] font-bold" style={{ color: '#34C759' }}>
+              <p className="text-caption text-apple-secondary font-medium">משימות</p>
+              <p className="text-body font-bold text-ios-green">
                 {tasksDone}/{tasksTotal}
               </p>
             </div>
@@ -365,11 +365,8 @@ export default function DashboardPage() {
               className="flex-1 rounded-apple bg-white px-3 py-2.5 text-center"
               style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
             >
-              <p className="text-[11px] text-[#94a3b8] font-medium">תקציב</p>
-              <p
-                className="text-[15px] font-bold"
-                style={{ color: budgetPercent > 80 ? '#FF3B30' : '#007AFF' }}
-              >
+              <p className="text-caption text-apple-secondary font-medium">תקציב</p>
+              <p className={`text-body font-bold ${budgetPercent > 80 ? 'text-ios-red' : 'text-ios-blue'}`}>
                 {budgetPercent}%
               </p>
             </div>
@@ -377,8 +374,8 @@ export default function DashboardPage() {
               className="flex-1 rounded-apple bg-white px-3 py-2.5 text-center"
               style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
             >
-              <p className="text-[11px] text-[#94a3b8] font-medium">אריזה</p>
-              <p className="text-[15px] font-bold" style={{ color: '#5AC8FA' }}>
+              <p className="text-caption text-apple-secondary font-medium">אריזה</p>
+              <p className="text-body font-bold text-ios-teal">
                 {packingPercent}%
               </p>
             </div>
@@ -401,7 +398,7 @@ export default function DashboardPage() {
                     </span>
                   )}
                   {tripDayIndex === null && daysLeft > 0 && (
-                    <span className="text-[11px] font-medium text-[#94a3b8]">
+                    <span className="text-[11px] font-medium text-apple-secondary">
                       עוד {daysLeft} ימים
                     </span>
                   )}
@@ -522,24 +519,21 @@ export default function DashboardPage() {
                 style={{
                   boxShadow: '0 1px 4px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04)',
                   background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFFFF 100%)',
-                  borderInlineStart: '4px solid #FF9500',
+                  borderInlineStart: '4px solid #FF9500', /* ios-orange */
                 }}
               >
                 <div className="px-4 pt-3.5 pb-1 flex items-center gap-2">
                   <div
-                    className="flex h-7 w-7 items-center justify-center rounded-apple-sm"
-                    style={{ backgroundColor: '#FF950015' }}
+                    className="flex h-7 w-7 items-center justify-center rounded-apple-sm bg-ios-orange/10"
                   >
                     <AlertTriangle
-                      className="h-4 w-4"
-                      style={{ color: '#FF9500' }}
+                      className="h-4 w-4 text-ios-orange"
                       strokeWidth={2.2}
                     />
                   </div>
                   <h3 className="text-[14px] font-bold text-passport-slate">דורש תשומת לב</h3>
                   <span
-                    className="ms-auto text-[11px] font-semibold rounded-full px-2 py-0.5"
-                    style={{ backgroundColor: '#FF950018', color: '#FF9500' }}
+                    className="ms-auto text-caption font-semibold rounded-full px-2 py-0.5 bg-ios-orange/10 text-ios-orange"
                   >
                     {attentionItems.length}
                   </span>
@@ -560,7 +554,7 @@ export default function DashboardPage() {
                           {item.task.title}
                         </span>
                         {item.task.due_date && (
-                          <span className="text-[11px] text-[#94a3b8] shrink-0 font-medium tabular-nums">
+                          <span className="text-[11px] text-apple-secondary shrink-0 font-medium tabular-nums">
                             {new Date(item.task.due_date + 'T00:00:00').toLocaleDateString('he-IL', {
                               day: 'numeric',
                               month: 'short',
@@ -588,22 +582,21 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <div
-                        className="flex h-8 w-8 items-center justify-center rounded-apple-sm"
-                        style={{ backgroundColor: '#FF950010' }}
+                        className="flex h-8 w-8 items-center justify-center rounded-apple-sm bg-ios-orange/10"
                       >
-                        <MapPin className="h-4 w-4" style={{ color: '#FF9500' }} strokeWidth={2} />
+                        <MapPin className="h-4 w-4 text-ios-orange" strokeWidth={2} />
                       </div>
                       <div>
                         <p className="text-[15px] font-semibold text-passport-slate">
                           {nextDay.city || nextDay.title}
                         </p>
-                        <p className="text-[11px] text-[#94a3b8]">
+                        <p className="text-[11px] text-apple-secondary">
                           {tripDayIndex !== null ? `יום ${tripDayIndex + 1}` : `יום 1`} —{' '}
                           {nextDay.title}
                         </p>
                       </div>
                     </div>
-                    <span className="text-[11px] text-[#94a3b8] font-medium">
+                    <span className="text-[11px] text-apple-secondary font-medium">
                       {nextDay.stops.length} עצירות
                     </span>
                   </div>
@@ -611,16 +604,16 @@ export default function DashboardPage() {
                   {nextDay.stops.slice(0, 2).map((stop, i) => (
                     <div key={stop.id || i} className="flex items-center gap-2 py-1.5">
                       <div className="h-1.5 w-1.5 rounded-full bg-ios-orange shrink-0" />
-                      <span className="text-[13px] text-[#64748b] truncate">{stop.title}</span>
+                      <span className="text-[13px] text-apple-secondary truncate">{stop.title}</span>
                       {stop.start_time && (
-                        <span className="text-[11px] text-[#94a3b8] ms-auto">
+                        <span className="text-[11px] text-apple-secondary ms-auto">
                           {stop.start_time}
                         </span>
                       )}
                     </div>
                   ))}
                   {nextDay.stops.length > 2 && (
-                    <p className="text-[11px] text-[#94a3b8] mt-1">
+                    <p className="text-[11px] text-apple-secondary mt-1">
                       +{nextDay.stops.length - 2} עצירות נוספות
                     </p>
                   )}
@@ -647,23 +640,21 @@ export default function DashboardPage() {
                 className="w-full flex items-center gap-3 px-4 py-3.5 text-start"
               >
                 <div
-                  className="flex h-9 w-9 items-center justify-center rounded-[10px] shrink-0"
-                  style={{ backgroundColor: '#5856D610' }}
+                  className="flex h-9 w-9 items-center justify-center rounded-apple-sm shrink-0 bg-ios-indigo/10"
                 >
                   <Mail
-                    className="h-[18px] w-[18px]"
-                    style={{ color: '#5856D6' }}
+                    className="h-[18px] w-[18px] text-ios-indigo"
                     strokeWidth={1.8}
                   />
                 </div>
                 <div className="flex-1 text-start">
                   <p className="text-[14px] font-semibold text-passport-slate">תזכורות</p>
-                  <p className="text-[11px] text-[#94a3b8]">שלח סיכום משימות במייל</p>
+                  <p className="text-[11px] text-apple-secondary">שלח סיכום משימות במייל</p>
                 </div>
                 <motion.span
                   animate={{ rotate: showReminderPanel ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
-                  className="text-[#94a3b8] text-[14px]"
+                  className="text-apple-secondary text-[14px]"
                 >
                   &#9662;
                 </motion.span>
@@ -679,7 +670,7 @@ export default function DashboardPage() {
                     className="overflow-hidden"
                   >
                     <div className="px-4 pb-4 pt-1 border-t border-gray-50">
-                      <label className="block text-[12px] text-[#94a3b8] font-medium mb-1.5 mt-2">
+                      <label className="block text-[12px] text-apple-secondary font-medium mb-1.5 mt-2">
                         כתובת אימייל לתזכורת
                       </label>
                       <input
@@ -688,7 +679,7 @@ export default function DashboardPage() {
                         value={reminderEmail}
                         onChange={(e) => saveReminderEmail(e.target.value)}
                         placeholder="email@example.com"
-                        className="w-full rounded-[10px] border border-gray-200 bg-gray-50 px-3 py-2 text-[14px] text-passport-slate placeholder:text-[#94a3b8] focus:border-[#5856D6] focus:ring-1 focus:ring-[#5856D6] outline-none transition-colors"
+                        className="w-full rounded-apple-sm border border-gray-200 bg-gray-50 px-3 py-2 text-subhead text-passport-slate placeholder:text-apple-secondary focus:border-ios-indigo focus:ring-1 focus:ring-ios-indigo/30 outline-none transition-colors"
                       />
                       <a
                         href={buildReminderMailto()}
@@ -698,7 +689,7 @@ export default function DashboardPage() {
                         <Mail className="h-4 w-4" strokeWidth={2} />
                         <span>שלח תזכורת</span>
                       </a>
-                      <p className="text-[11px] text-[#94a3b8] mt-2 text-center">
+                      <p className="text-[11px] text-apple-secondary mt-2 text-center">
                         ייפתח אפליקציית המייל עם סיכום המשימות
                       </p>
                     </div>
@@ -711,7 +702,7 @@ export default function DashboardPage() {
 
         {/* ── Module Grid with MagicCard ── */}
         <BlurFade delay={0.5} duration={0.5}>
-          <p className="text-caption uppercase tracking-wider text-[#94a3b8] mb-3">מודולים</p>
+          <p className="text-caption uppercase tracking-wider text-apple-secondary mb-3">מודולים</p>  {/* already uses token */}
           <div className="grid grid-cols-3 gap-3">
             {MODULE_CARDS.map(({ path, icon: Icon, label, color, countKey }, i) => (
               <BlurFade key={path} delay={0.55 + i * 0.04} duration={0.4}>

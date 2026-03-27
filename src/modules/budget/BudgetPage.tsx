@@ -27,6 +27,7 @@ import type { Expense } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
 import { DailyBudgetTable } from './components/DailyBudgetTable'
 import { DailyBudgetView } from './components/DailyBudgetView'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 const BudgetBarChart = lazy(() =>
   import('./components/Charts').then((mod) => ({ default: mod.BudgetBarChart })),
@@ -587,10 +588,12 @@ export default function BudgetPage() {
           <div className="space-y-2">
             <h3 className="text-sm font-bold text-apple-primary">הוצאות ({expenses.length})</h3>
             {expenses.length === 0 && (
-              <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
-                <Receipt className="h-12 w-12 text-apple-secondary/30" />
-                <p className="mt-4 text-apple-secondary">אין הוצאות להצגה</p>
-              </div>
+              <EmptyState
+                icon={Receipt}
+                title="אין הוצאות"
+                description="הוסיפו הוצאה ראשונה למעקב התקציב"
+                action={{ label: 'הוסף הוצאה', onClick: () => setShowAddForm(true) }}
+              />
             )}
             {expenses.map((expense) => {
               const IconComp = CATEGORY_ICONS[expense.category] || DollarSign

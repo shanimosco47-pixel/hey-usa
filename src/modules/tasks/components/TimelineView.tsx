@@ -7,10 +7,11 @@ interface TimelineViewProps {
   onTaskClick: (task: Task) => void
 }
 
+// Map task groups to CSS variable-based color values for inline style usage
 const GROUP_COLORS: Record<TaskGroup, string> = {
-  pre_trip: '#6c5ce7',
-  during_trip: '#00b894',
-  post_trip: '#0984e3',
+  pre_trip: 'var(--color-phase-pre, #5856D6)',
+  during_trip: 'var(--color-phase-during, #34C759)',
+  post_trip: 'var(--color-phase-post, #007AFF)',
 }
 
 const GROUP_LABELS: Record<TaskGroup, string> = {
@@ -188,7 +189,7 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
                         right: `${Math.max(0, pos - 3)}%`,
                         width: '3%',
                         minWidth: 12,
-                        backgroundColor: overdue ? '#e17055' : groupColor,
+                        backgroundColor: overdue ? '#FF3B30' : groupColor,
                         opacity: task.status === 'done' ? 0.4 : 0.8,
                       }}
                       title={`${task.title} - ${new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'short' }).format(new Date(task.due_date!))}`}

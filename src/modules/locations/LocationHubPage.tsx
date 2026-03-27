@@ -171,7 +171,7 @@ export default function LocationHubPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <h1 className="text-2xl sm:text-hero text-white drop-shadow-lg mb-1">
+            <h1 className="text-title sm:text-hero text-white drop-shadow-lg mb-1">
               {location.emoji} {location.nameHe}
             </h1>
             <p className="text-[15px] text-white/80 font-medium mb-3">{location.name}</p>
@@ -232,7 +232,7 @@ export default function LocationHubPage() {
                 className={cn(
                   'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-apple text-subhead font-medium transition-all',
                   isActive
-                    ? 'bg-ios-blue text-white shadow-md'
+                    ? 'bg-ios-blue text-white shadow-glass-hover'
                     : 'text-apple-secondary hover:bg-black/[0.04]',
                 )}
               >
