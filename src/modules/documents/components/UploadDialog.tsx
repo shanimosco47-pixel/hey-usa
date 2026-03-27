@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Select from '@radix-ui/react-select'
-import { Upload, X, FileText, ChevronDown, Check, Receipt, Loader2 } from 'lucide-react'
+import { Upload, X, FileText, ChevronDown, Check, Receipt, Loader2, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS, DOCUMENT_CATEGORIES } from '@/constants'
 import { LOCATIONS } from '@/data/locations'
@@ -63,15 +63,27 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
     setExpiryDate('')
     setLocationId('')
     setSelectedFile(null)
+    setFileWarning('')
     setIsDragging(false)
     setAlsoLogExpense(false)
     setExpenseAmount('')
     setExpensePaidBy('aba')
   }, [])
 
+  const [fileWarning, setFileWarning] = useState('')
+
   const handleFileSelect = useCallback(
     (file: File) => {
       setSelectedFile(file)
+      setFileWarning('')
+
+      // Warn if the file is likely just a logo/branding image
+      if (file.type.startsWith('image/') && file.size < 100 * 1024) {
+        setFileWarning(
+          'שים לב: קובץ תמונה קטן (פחות מ-100KB) — ייתכן שזהו לוגו ולא מסמך אמיתי. ודא שהקובץ מכיל את פרטי ההזמנה.',
+        )
+      }
+
       if (!title) {
         const nameWithoutExt = file.name.replace(/\.[^.]+$/, '')
         setTitle(nameWithoutExt)
@@ -242,10 +254,18 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
               ref={fileInputRef}
               type="file"
               className="hidden"
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.html,.htm"
               onChange={handleInputChange}
             />
           </div>
+
+          {/* File warning */}
+          {fileWarning && (
+            <div className="mb-3 flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5" dir="rtl">
+              <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-700 leading-relaxed">{fileWarning}</p>
+            </div>
+          )}
 
           {/* Form fields */}
           <div className="space-y-3">

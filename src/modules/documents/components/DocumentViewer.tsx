@@ -69,9 +69,10 @@ function hasRealFile(doc: Document): boolean {
 }
 
 /** Fetches HTML from Supabase (served as text/plain) and renders via blob URL so the browser treats it as HTML */
-function HtmlPreview({ url, title, onOpen }: { url: string; title: string; onOpen: () => void }) {
+function HtmlPreview({ url, title, notes, onOpen }: { url: string; title: string; notes?: string; onOpen: () => void }) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [error, setError] = useState(false)
+  const [hasUsefulContent, setHasUsefulContent] = useState(true)
 
   useEffect(() => {
     let revoked = false
@@ -79,6 +80,15 @@ function HtmlPreview({ url, title, onOpen }: { url: string; title: string; onOpe
       .then((r) => r.text())
       .then((html) => {
         if (revoked) return
+
+        // Check if the HTML has meaningful text content (not just images/logos)
+        const textContent = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+        // If the text content is very short (< 50 chars after stripping tags),
+        // it's likely just a logo page with no real reservation data
+        if (textContent.length < 50) {
+          setHasUsefulContent(false)
+        }
+
         const blob = new Blob([html], { type: 'text/html' })
         setBlobUrl(URL.createObjectURL(blob))
       })
@@ -91,6 +101,19 @@ function HtmlPreview({ url, title, onOpen }: { url: string; title: string; onOpe
   }, [url])
 
   if (error) {
+    // If HTML failed to load but we have notes, show them instead of an error
+    if (notes) {
+      return (
+        <div className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]" dir="rtl">
+          <div className="flex items-center gap-2 mb-3">
+            <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
+            <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
+          </div>
+          <p className="text-sm text-apple-primary whitespace-pre-wrap leading-relaxed">{notes}</p>
+          <p className="mt-4 text-xs text-red-400 font-medium">⚠️ לא ניתן לטעון את הקובץ המצורף</p>
+        </div>
+      )
+    }
     return (
       <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-red-50">
         <p className="text-sm text-red-400">שגיאה בטעינת המסמך</p>
@@ -106,27 +129,97 @@ function HtmlPreview({ url, title, onOpen }: { url: string; title: string; onOpe
     )
   }
 
-  return (
-    <div className="w-full rounded-xl bg-white overflow-hidden" style={{ minHeight: '40vh' }}>
-      <iframe
-        src={blobUrl}
-        title={title}
-        className="w-full border-0"
-        style={{ height: '55vh' }}
-        sandbox="allow-same-origin"
-      />
-      <div className="flex justify-center py-2 border-t border-gray-100">
-        <button
-          type="button"
-          onClick={onOpen}
-          className="flex items-center gap-2 rounded-lg bg-ios-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
-        >
-          <ExternalLink className="h-4 w-4" />
-          פתח בחלון חדש
-        </button>
+  // HTML has no useful text (just logos/images) — show notes as primary content
+  if (!hasUsefulContent && notes) {
+    return (
+      <div className="w-full space-y-3">
+        <div className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]" dir="rtl">
+          <div className="flex items-center gap-2 mb-3">
+            <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
+            <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
+          </div>
+          <p className="text-sm text-apple-primary whitespace-pre-wrap leading-relaxed">{notes}</p>
+          <p className="mt-4 text-xs text-amber-600 font-medium">
+            📎 הקובץ המצורף מכיל בעיקר תמונות — הפרטים החשובים מוצגים למעלה
+          </p>
+        </div>
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={onOpen}
+            className="flex items-center gap-2 rounded-lg bg-black/[0.04] px-4 py-2 text-sm font-medium text-apple-secondary transition-colors hover:bg-black/[0.08]"
+          >
+            <ExternalLink className="h-4 w-4" />
+            פתח קובץ מצורף בחלון חדש
+          </button>
+        </div>
       </div>
+    )
+  }
+
+  return (
+    <div className="w-full space-y-3">
+      <div className="w-full rounded-xl bg-white overflow-hidden" style={{ minHeight: '40vh' }}>
+        <iframe
+          src={blobUrl}
+          title={title}
+          className="w-full border-0"
+          style={{ height: '55vh' }}
+          sandbox="allow-same-origin"
+        />
+        <div className="flex justify-center py-2 border-t border-gray-100">
+          <button
+            type="button"
+            onClick={onOpen}
+            className="flex items-center gap-2 rounded-lg bg-ios-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
+          >
+            <ExternalLink className="h-4 w-4" />
+            פתח בחלון חדש
+          </button>
+        </div>
+      </div>
+      {/* Show notes below the HTML preview when they exist */}
+      {notes && (
+        <div className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[30vh]" dir="rtl">
+          <div className="flex items-center gap-2 mb-3">
+            <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
+            <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
+          </div>
+          <p className="text-sm text-apple-primary whitespace-pre-wrap leading-relaxed">{notes}</p>
+        </div>
+      )}
     </div>
   )
+}
+
+/** Notes block used as primary content when the attached file isn't useful */
+function NotesBlock({ doc, subtitle }: { doc: Document; subtitle?: string }) {
+  return (
+    <div className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]" dir="rtl">
+      <div className="flex items-center gap-2 mb-3">
+        <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
+        <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
+      </div>
+      <p className="text-sm text-apple-primary whitespace-pre-wrap leading-relaxed">
+        {doc.notes}
+      </p>
+      {subtitle && (
+        <p className="mt-4 text-xs text-amber-600 font-medium">{subtitle}</p>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Detect whether a file is likely just a logo / branding image rather than
+ * useful document content.  Heuristic: images under 100 KB are almost always
+ * logos, icons, or brand headers — real confirmation screenshots or scanned
+ * documents are typically much larger.
+ */
+function isLikelyLogo(doc: Document): boolean {
+  if (!doc.file_type?.includes('image')) return false
+  const MAX_LOGO_BYTES = 100 * 1024 // 100 KB
+  return (doc.file_size ?? 0) < MAX_LOGO_BYTES
 }
 
 function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
@@ -135,30 +228,50 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
   // No real file — show notes/booking details as the main content
   if (!realFile && doc.notes) {
     return (
-      <div className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]" dir="rtl">
-        <div className="flex items-center gap-2 mb-3">
-          <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
-          <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
+      <NotesBlock
+        doc={doc}
+        subtitle="📎 הקובץ טרם הועלה — ניתן להעלות דרך כפתור ״העלה מסמך״"
+      />
+    )
+  }
+
+  // Image file exists, but it's probably just a logo/header — prioritise notes
+  if (doc.file_type?.includes('image') && realFile && isLikelyLogo(doc) && doc.notes) {
+    return (
+      <div className="w-full space-y-3">
+        <NotesBlock
+          doc={doc}
+          subtitle="📎 הקובץ המצורף הוא לוגו/כותרת בלבד — הפרטים החשובים מוצגים למעלה"
+        />
+        {/* Show the image as a small reference thumbnail */}
+        <div className="w-full rounded-xl bg-sky-50/50 p-3 flex items-center gap-3">
+          <img
+            src={doc.file_url!}
+            alt={doc.title}
+            className="h-10 w-auto object-contain rounded opacity-60"
+            loading="lazy"
+          />
+          <span className="text-xs text-apple-secondary">קובץ מצורף ({formatFileSize(doc.file_size)})</span>
         </div>
-        <p className="text-sm text-apple-primary whitespace-pre-wrap leading-relaxed">
-          {doc.notes}
-        </p>
-        <p className="mt-4 text-xs text-amber-600 font-medium">
-          📎 הקובץ טרם הועלה — ניתן להעלות דרך כפתור ״העלה מסמך״
-        </p>
       </div>
     )
   }
 
   if (doc.file_type?.includes('image') && realFile) {
     return (
-      <div className="w-full rounded-xl bg-sky-50 overflow-hidden">
-        <img
-          src={doc.file_url!}
-          alt={doc.title}
-          className="w-full h-auto object-contain max-h-[60vh]"
-          loading="lazy"
-        />
+      <div className="w-full space-y-3">
+        <div className="w-full rounded-xl bg-sky-50 overflow-hidden">
+          <img
+            src={doc.file_url!}
+            alt={doc.title}
+            className="w-full h-auto object-contain max-h-[60vh]"
+            loading="lazy"
+          />
+        </div>
+        {/* If we have notes, show them below the image too */}
+        {doc.notes && (
+          <NotesBlock doc={doc} />
+        )}
       </div>
     )
   }
@@ -175,23 +288,26 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
   }
 
   if (doc.file_type?.includes('html') && realFile) {
-    return <HtmlPreview url={doc.file_url!} title={doc.title} onOpen={onOpen} />
+    return <HtmlPreview url={doc.file_url!} title={doc.title} notes={doc.notes} onOpen={onOpen} />
   }
 
   if (doc.file_type?.includes('pdf')) {
     return (
-      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-red-50">
-        <div className="flex flex-col items-center gap-3">
-          <FileText className="h-16 w-16 text-red-300" />
-          <button
-            type="button"
-            onClick={onOpen}
-            className="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
-          >
-            <ExternalLink className="h-4 w-4" />
-            פתח PDF
-          </button>
+      <div className="w-full space-y-3">
+        <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-red-50">
+          <div className="flex flex-col items-center gap-3">
+            <FileText className="h-16 w-16 text-red-300" />
+            <button
+              type="button"
+              onClick={onOpen}
+              className="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+            >
+              <ExternalLink className="h-4 w-4" />
+              פתח PDF
+            </button>
+          </div>
         </div>
+        {doc.notes && <NotesBlock doc={doc} />}
       </div>
     )
   }
@@ -237,7 +353,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
   const location = doc.locationId ? getLocationById(doc.locationId) : null
   const sample = isSampleData(doc.id)
 
-  const handleOpenFile = () => {
+  const handleOpenFile = async () => {
     if (sample) {
       setToast('זוהי דוגמה מאת מוטי — יש להעלות מסמך אמיתי')
       setTimeout(() => setToast(null), 3500)
@@ -254,6 +370,19 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
       setToast('הקובץ טרם הועלה — הפרטים מופיעים בהערות')
       setTimeout(() => setToast(null), 3500)
       return
+    }
+    // Supabase serves HTML as text/plain for security — fetch and re-wrap as
+    // a proper HTML blob so the browser renders it instead of showing raw code
+    if (doc.file_type?.includes('html') && doc.file_url.startsWith('http')) {
+      try {
+        const res = await fetch(doc.file_url)
+        const html = await res.text()
+        const blob = new Blob([html], { type: 'text/html' })
+        window.open(URL.createObjectURL(blob), '_blank', 'noopener')
+        return
+      } catch {
+        // Fall through to direct open
+      }
     }
     window.open(doc.file_url, '_blank', 'noopener')
   }
@@ -379,7 +508,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
                   </div>
                 )}
 
-                {doc.notes && hasRealFile(doc) && (
+                {doc.notes && hasRealFile(doc) && !isLikelyLogo(doc) && (
                   <DetailRow icon={StickyNote} label="הערות" value={doc.notes} />
                 )}
               </div>
