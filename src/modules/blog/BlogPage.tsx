@@ -20,6 +20,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { isSampleData } from '@/lib/sampleData'
 import DOMPurify from 'dompurify'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { DailyTemplates } from './components/DailyTemplates'
 
 // Moti's writing prompt suggestions
 const MOTI_PROMPTS = [
@@ -126,6 +127,17 @@ export default function BlogPage() {
             שמור
           </Button>
         </div>
+        {/* Daily itinerary templates */}
+        {!selectedPost && (
+          <DailyTemplates
+            onSelectTemplate={(title, content, tags, _dayId) => {
+              setEditTitle(title)
+              setEditContent(content)
+              setEditTags(tags.join(', '))
+            }}
+          />
+        )}
+
         {/* Moti's writing prompts */}
         {!selectedPost && (
           <div className="rounded-apple-lg border border-ios-teal/20 bg-ios-teal/5 overflow-hidden">
