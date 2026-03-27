@@ -13,6 +13,9 @@ import {
   Map,
 } from 'lucide-react'
 import { useAppData } from '@/contexts/AppDataContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { isParent } from '@/lib/familyRoles'
+import { ActivityPoll, CreatePollButton } from './components/ActivityPoll'
 import { DaySelector } from './components/DaySelector'
 import { StopCard } from './components/StopCard'
 import { DriveSegment } from './components/DriveSegment'
@@ -127,7 +130,8 @@ function getDefaultDayIndex(totalDays: number): number {
 export default function ItineraryPage() {
   const { day: dayParam } = useParams<{ day?: string }>()
   const navigate = useNavigate()
-  const { itineraryDays: ITINERARY_DAYS, updateItineraryStop } = useAppData()
+  const { itineraryDays: ITINERARY_DAYS, updateItineraryStop, polls, addPoll, votePoll, deletePoll } = useAppData()
+  const { currentMember } = useAuth()
 
   // Parse route param or use smart default
   const initialIndex = useMemo(() => {
@@ -195,6 +199,9 @@ export default function ItineraryPage() {
 
   // Calculate total estimated cost for the day
   const dayCost = currentDay.stops.reduce((sum, stop) => sum + (stop.cost_estimate ?? 0), 0)
+
+  // Filter polls for the current day
+  const dayPolls = polls.filter((p) => p.day_id === currentDay?.id)
 
   // Format Hebrew day of week
   const hebrewDay = new Intl.DateTimeFormat('he-IL', {
@@ -400,6 +407,29 @@ export default function ItineraryPage() {
             ))}
           </div>
         </motion.div>
+      )}
+
+      {/* Activity Polls */}
+      {dayPolls.length > 0 && (
+        <div className="flex flex-col gap-3 mt-4 px-4">
+          {dayPolls.map((poll) => (
+            <ActivityPoll
+              key={poll.id}
+              poll={poll}
+              onVote={(pollId, optionIndex) => {
+                if (currentMember) votePoll(pollId, optionIndex, currentMember)
+              }}
+              onDelete={currentMember && isParent(currentMember) ? deletePoll : undefined}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Create Poll Button */}
+      {currentDay && (
+        <div className="mt-3 px-4">
+          <CreatePollButton dayId={currentDay.id} onCreatePoll={addPoll} />
+        </div>
       )}
 
       {/* Day notes */}
