@@ -72,6 +72,28 @@ export default defineConfig({
   ],
   build: {
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-radix': [
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-progress',
+            '@radix-ui/react-select',
+            '@radix-ui/react-slot',
+            '@radix-ui/react-tabs',
+          ],
+          'vendor-maps': ['maplibre-gl'],
+          'vendor-charts': ['recharts'],
+          'vendor-editor': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-image'],
+          'vendor-dexie': ['dexie', 'dexie-react-hooks'],
+        },
+      },
+    },
   },
   resolve: {
     alias: {
