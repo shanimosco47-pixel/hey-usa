@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { StaggerContainer, StaggerItem } from '@/components/ui/motion'
 import * as Tabs from '@radix-ui/react-tabs'
-import { FileText, Plus, Search, LayoutGrid, List, FolderOpen, Calendar, ArrowUpDown, CheckCircle2, Clock, Paperclip } from 'lucide-react'
+import { FileText, Plus, Search, LayoutGrid, List, FolderOpen, Calendar, ArrowUpDown, CheckCircle2, Clock, Paperclip, AlertTriangle } from 'lucide-react'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
@@ -15,6 +15,7 @@ import { UploadDialog } from './components/UploadDialog'
 import { DocumentViewer } from './components/DocumentViewer'
 import { EmailScanButton } from './components/EmailScanButton'
 import { EmailAccountSettings } from './components/EmailAccountSettings'
+import { DocChecklist } from './components/DocChecklist'
 import type { Document } from '@/types'
 
 const CATEGORY_TABS: { value: string; label: string }[] = [
@@ -64,6 +65,14 @@ export default function DocumentsPage() {
 
     return result
   }, [allDocuments, activeCategory, searchQuery, sortBy])
+
+  const expiringDocs = useMemo(
+    () => allDocuments.filter((d) => {
+      if (!d.expiry_date) return false
+      return new Date(d.expiry_date) < new Date('2026-09-10')
+    }),
+    [allDocuments],
+  )
 
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [uploadOpen, setUploadOpen] = useState(false)
@@ -178,6 +187,21 @@ export default function DocumentsPage() {
 
       {/* Email account settings */}
       <EmailAccountSettings />
+
+      {/* Expiry warning banner */}
+      {expiringDocs.length > 0 && (
+        <div className="glass rounded-apple-lg p-3 border border-ios-orange/20 bg-ios-orange/5 flex items-center gap-2 mx-4 mb-3">
+          <AlertTriangle className="h-5 w-5 text-ios-orange shrink-0" />
+          <span className="text-body text-apple-primary">
+            {expiringDocs.length} מסמכים עם תוקף שפג או יפוג לפני הטיול
+          </span>
+        </div>
+      )}
+
+      {/* Document completeness checklist */}
+      <div className="px-4 mb-4">
+        <DocChecklist />
+      </div>
 
       {/* Category tabs */}
       <Tabs.Root

@@ -19,6 +19,8 @@ import { ActivityPoll, CreatePollButton } from './components/ActivityPoll'
 import { DaySelector } from './components/DaySelector'
 import { StopCard } from './components/StopCard'
 import { DriveSegment } from './components/DriveSegment'
+import { DriveInfo } from './components/DriveInfo'
+import { DRIVE_TIMES } from '@/data/driveTimes'
 import { DayPlannerBoard } from './components/DayPlannerBoard'
 import { cn } from '@/lib/cn'
 import { fetchTripWeather, getWeatherForDate, type DestinationWeather } from '@/lib/weather'
@@ -393,6 +395,7 @@ export default function ItineraryPage() {
           transition={{ delay: 0.1, duration: 0.3 }}
         >
           <div className="flex flex-col">
+            <DriveInfo driveTime={DRIVE_TIMES[currentDay?.id ?? '']} />
             {currentDay.stops.map((stop, index) => (
               <div key={stop.id}>
                 <StopCard
