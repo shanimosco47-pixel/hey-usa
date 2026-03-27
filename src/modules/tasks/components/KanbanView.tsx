@@ -26,10 +26,10 @@ interface KanbanViewProps {
 }
 
 const COLUMN_CONFIG: { status: TaskStatus; label: string; color: string }[] = [
-  { status: 'todo', label: 'לביצוע', color: '#e17055' },
-  { status: 'in_progress', label: 'בתהליך', color: '#fdcb6e' },
-  { status: 'waiting', label: 'ממתין', color: '#636e72' },
-  { status: 'done', label: 'בוצע', color: '#00b894' },
+  { status: 'todo', label: 'לביצוע', color: '#FF3B30' },
+  { status: 'in_progress', label: 'בתהליך', color: '#FF9500' },
+  { status: 'waiting', label: 'ממתין', color: '#8E8E93' },
+  { status: 'done', label: 'בוצע', color: '#34C759' },
 ]
 
 function KanbanColumn({
@@ -290,8 +290,8 @@ export function KanbanView({ tasksByStatus, onUpdateStatus, onTaskClick }: Kanba
 
       <DragOverlay>
         {activeTask ? (
-          <div className="w-[260px] rounded-xl border border-ios-blue/30 bg-white p-3 shadow-lg">
-            <p className="text-sm font-semibold text-apple-primary">{activeTask.title}</p>
+          <div className="w-[260px] rounded-apple-lg border border-ios-blue/30 bg-white p-3 shadow-glass-float">
+            <p className="text-subhead font-semibold text-apple-primary">{activeTask.title}</p>
           </div>
         ) : null}
       </DragOverlay>

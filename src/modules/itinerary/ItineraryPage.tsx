@@ -161,10 +161,10 @@ export default function ItineraryPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ios-orange/10">
+          <div className="flex h-10 w-10 items-center justify-center rounded-apple-lg bg-ios-orange/10">
             <Calendar className="h-5 w-5 text-ios-orange" />
           </div>
-          <h1 className="text-xl font-bold text-apple-primary">לוח זמנים</h1>
+          <h1 className="text-title font-bold text-apple-primary">לוח זמנים</h1>
         </motion.div>
         <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
           <Map className="h-12 w-12 text-apple-secondary/30" />
@@ -212,21 +212,21 @@ export default function ItineraryPage() {
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ios-orange/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-apple-lg bg-ios-orange/10">
               <Calendar className="h-5 w-5 text-ios-orange" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-apple-primary">לוח זמנים</h1>
+              <h1 className="text-title font-bold text-apple-primary">לוח זמנים</h1>
               <p className="text-xs text-apple-secondary">21 ימים במערב ארה"ב | ספטמבר 2026</p>
             </div>
           </div>
 
           {/* View mode toggle */}
-          <div className="flex items-center gap-0.5 rounded-xl bg-black/[0.04] p-0.5">
+          <div className="flex items-center gap-0.5 rounded-apple-lg bg-black/[0.04] p-0.5">
             <button
               onClick={() => setViewMode('list')}
               className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-lg transition-all',
+                'flex h-8 w-8 items-center justify-center rounded-apple-sm transition-all',
                 viewMode === 'list'
                   ? 'bg-white text-ios-blue shadow-sm'
                   : 'text-apple-secondary hover:text-apple-primary',
@@ -238,7 +238,7 @@ export default function ItineraryPage() {
             <button
               onClick={() => setViewMode('timeline')}
               className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-lg transition-all',
+                'flex h-8 w-8 items-center justify-center rounded-apple-sm transition-all',
                 viewMode === 'timeline'
                   ? 'bg-white text-ios-blue shadow-sm'
                   : 'text-apple-secondary hover:text-apple-primary',
@@ -260,7 +260,7 @@ export default function ItineraryPage() {
         const w = getWeatherForDate(weatherData, currentDay.date)
         return (
           <div
-            className="mx-4 mt-3 rounded-2xl p-4 text-white relative overflow-hidden"
+            className="mx-4 mt-3 rounded-apple-xl p-4 text-white relative overflow-hidden"
             style={{ minHeight: '160px' }}
           >
             {/* Background photo */}
@@ -309,7 +309,7 @@ export default function ItineraryPage() {
                 </button>
               </div>
 
-              <h2 className="text-lg font-bold text-center drop-shadow-sm">{currentDay.title}</h2>
+              <h2 className="text-headline font-bold text-center drop-shadow-sm">{currentDay.title}</h2>
 
               {currentDay.city &&
                 (() => {
@@ -404,7 +404,7 @@ export default function ItineraryPage() {
 
       {/* Day notes */}
       {currentDay.notes && (
-        <div className="mx-4 mt-4 rounded-xl border border-ios-orange/30 bg-ios-orange/5 p-3">
+        <div className="mx-4 mt-4 rounded-apple-lg border border-ios-orange/30 bg-ios-orange/5 p-3">
           <div className="flex gap-2">
             <StickyNote className="mt-0.5 h-4 w-4 flex-shrink-0 text-ios-orange" />
             <div>

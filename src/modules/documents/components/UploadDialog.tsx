@@ -191,18 +191,18 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content
-          className="fixed inset-x-4 top-[50%] z-50 max-h-[85vh] w-auto max-w-lg translate-y-[-50%] overflow-y-auto rounded-apple-lg bg-surface-primary p-6 shadow-xl sm:inset-x-auto sm:start-[50%] sm:translate-x-[50%] sm:-translate-y-[50%] rtl:sm:-translate-x-[50%]"
+          className="fixed inset-x-4 top-[50%] z-50 max-h-[85vh] w-auto max-w-lg translate-y-[-50%] overflow-y-auto rounded-apple-lg bg-surface-primary p-6 shadow-glass-float sm:inset-x-auto sm:start-[50%] sm:translate-x-[50%] sm:-translate-y-[50%] rtl:sm:-translate-x-[50%]"
           dir="rtl"
         >
           {/* Header */}
           <div className="mb-5 flex items-center justify-between">
-            <Dialog.Title className="text-lg font-bold text-apple-primary">
+            <Dialog.Title className="text-headline font-bold text-apple-primary">
               העלאת מסמך
             </Dialog.Title>
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="rounded-lg p-1.5 text-apple-secondary transition-colors hover:bg-black/[0.04]"
+                className="rounded-apple-sm p-1.5 text-apple-secondary transition-colors hover:bg-black/[0.04]"
                 aria-label="סגור"
               >
                 <X className="h-5 w-5" />
@@ -216,7 +216,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             className={cn(
-              'mb-4 flex flex-col items-center gap-2 rounded-xl border-2 border-dashed p-6 transition-colors',
+              'mb-4 flex flex-col items-center gap-2 rounded-apple-lg border-2 border-dashed p-6 transition-colors',
               isDragging
                 ? 'border-ios-blue bg-ios-blue/5'
                 : 'border-black/[0.06] bg-white/40 hover:border-ios-blue/50',
@@ -301,7 +301,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
                 </Select.Trigger>
                 <Select.Portal>
                   <Select.Content
-                    className="z-[60] overflow-hidden rounded-xl border border-black/[0.06] bg-surface-primary shadow-lg"
+                    className="z-[60] overflow-hidden rounded-apple-lg border border-black/[0.06] bg-surface-primary shadow-glass-float"
                     position="popper"
                     sideOffset={4}
                     dir="rtl"
@@ -344,7 +344,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
                 </Select.Trigger>
                 <Select.Portal>
                   <Select.Content
-                    className="z-[60] max-h-60 overflow-hidden rounded-xl border border-black/[0.06] bg-surface-primary shadow-lg"
+                    className="z-[60] max-h-60 overflow-hidden rounded-apple-lg border border-black/[0.06] bg-surface-primary shadow-glass-float"
                     position="popper"
                     sideOffset={4}
                     dir="rtl"
@@ -389,7 +389,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
                 </Select.Trigger>
                 <Select.Portal>
                   <Select.Content
-                    className="z-[60] overflow-hidden rounded-xl border border-black/[0.06] bg-surface-primary shadow-lg"
+                    className="z-[60] overflow-hidden rounded-apple-lg border border-black/[0.06] bg-surface-primary shadow-glass-float"
                     position="popper"
                     sideOffset={4}
                     dir="rtl"
@@ -479,7 +479,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
                       </Select.Trigger>
                       <Select.Portal>
                         <Select.Content
-                          className="z-[60] overflow-hidden rounded-xl border border-black/[0.06] bg-surface-primary shadow-lg"
+                          className="z-[60] overflow-hidden rounded-apple-lg border border-black/[0.06] bg-surface-primary shadow-glass-float"
                           position="popper"
                           sideOffset={4}
                           dir="rtl"

@@ -12,9 +12,9 @@ interface TableViewProps {
 }
 
 const GROUP_CONFIG: Record<TaskGroup, { label: string; color: string }> = {
-  pre_trip: { label: 'לפני הטיול', color: '#6c5ce7' },
-  during_trip: { label: 'במהלך הטיול', color: '#00b894' },
-  post_trip: { label: 'אחרי הטיול', color: '#0984e3' },
+  pre_trip: { label: 'לפני הטיול', color: '#5856D6' },
+  during_trip: { label: 'במהלך הטיול', color: '#34C759' },
+  post_trip: { label: 'אחרי הטיול', color: '#007AFF' },
 }
 
 const GROUP_ORDER: TaskGroup[] = ['pre_trip', 'during_trip', 'post_trip']
@@ -43,7 +43,7 @@ export function TableView({ tasksByGroup, onToggleDone, onCycleStatus, onTaskCli
         const doneCount = tasks.filter((t) => t.status === 'done').length
 
         return (
-          <div key={group} className="overflow-x-auto rounded-xl border border-black/[0.06] glass">
+          <div key={group} className="overflow-x-auto rounded-apple-lg border border-black/[0.06] glass">
             {/* Group header */}
             <button
               onClick={() => toggleCollapse(group)}

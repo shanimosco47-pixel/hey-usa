@@ -56,8 +56,8 @@ export const KanbanCard = memo(function KanbanCard({ task, onClick }: KanbanCard
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group rounded-xl border border-black/[0.06] glass p-3 shadow-sm transition-all hover:shadow-md cursor-pointer',
-        isDragging && 'opacity-50 shadow-lg ring-2 ring-ios-blue/30',
+        'group rounded-apple-lg border border-black/[0.06] glass p-3 shadow-glass transition-all hover:shadow-glass-hover cursor-pointer',
+        isDragging && 'opacity-50 shadow-glass-float ring-2 ring-ios-blue/30',
       )}
       onClick={() => onClick(task)}
     >
@@ -85,7 +85,7 @@ export const KanbanCard = memo(function KanbanCard({ task, onClick }: KanbanCard
       {/* Title */}
       <p
         className={cn(
-          'text-sm font-semibold text-apple-primary leading-snug',
+          'text-subhead font-semibold text-apple-primary leading-snug',
           task.status === 'done' && 'line-through opacity-60',
         )}
       >

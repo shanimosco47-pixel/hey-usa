@@ -99,7 +99,7 @@ function TimelineStop({ stop }: { stop: ItineraryStop }) {
       />
 
       <div className="flex flex-col gap-0.5 pr-2 h-full justify-center">
-        <h4 className="text-sm font-bold text-apple-primary leading-tight truncate">
+        <h4 className="text-subhead font-bold text-apple-primary leading-tight truncate">
           {stop.title}
         </h4>
 
@@ -145,7 +145,7 @@ function UnscheduledStop({ stop }: { stop: ItineraryStop }) {
         style={{ backgroundColor: style.dot }}
       />
       <div className="pr-2">
-        <h4 className="text-sm font-bold text-apple-primary">{stop.title}</h4>
+        <h4 className="text-subhead font-bold text-apple-primary">{stop.title}</h4>
         {stop.location && (
           <div className="mt-0.5 flex items-center gap-1">
             <MapPin className="h-3 w-3 flex-shrink-0 text-apple-secondary" />

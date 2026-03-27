@@ -251,7 +251,7 @@ export default function TasksPage() {
             <Tabs.Trigger
               value="table"
               className={cn(
-                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
+                'flex items-center gap-1.5 rounded-apple-sm px-3 py-1.5 text-subhead font-medium transition-all',
                 activeView === 'table'
                   ? 'bg-white text-apple-primary shadow-sm'
                   : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
@@ -263,7 +263,7 @@ export default function TasksPage() {
             <Tabs.Trigger
               value="kanban"
               className={cn(
-                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
+                'flex items-center gap-1.5 rounded-apple-sm px-3 py-1.5 text-subhead font-medium transition-all',
                 activeView === 'kanban'
                   ? 'bg-white text-apple-primary shadow-sm'
                   : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
@@ -275,7 +275,7 @@ export default function TasksPage() {
             <Tabs.Trigger
               value="timeline"
               className={cn(
-                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all',
+                'flex items-center gap-1.5 rounded-apple-sm px-3 py-1.5 text-subhead font-medium transition-all',
                 activeView === 'timeline'
                   ? 'bg-white text-apple-primary shadow-sm'
                   : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
@@ -308,7 +308,7 @@ export default function TasksPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="חיפוש משימות..."
-              className="w-full rounded-xl border border-black/[0.06] glass py-2 pe-3 ps-10 text-sm text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+              className="w-full rounded-apple-lg border border-black/[0.06] glass py-2 pe-3 ps-10 text-subhead text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
             />
           </div>
 

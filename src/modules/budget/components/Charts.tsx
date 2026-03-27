@@ -38,13 +38,13 @@ export function BudgetBarChart({ data, currency }: BudgetBarChartProps) {
           <XAxis type="number" hide />
           <YAxis type="category" dataKey="name" width={60} tick={{ fontSize: 11 }} />
           <Tooltip content={<GlassTooltip currency={currency} />} />
-          <Bar dataKey="budget" name="תקציב" fill="#d1d1d6" radius={[0, 4, 4, 0]} barSize={12} />
+          <Bar dataKey="budget" name="תקציב" fill="#8E8E93" radius={[0, 4, 4, 0]} barSize={12} />
           <Bar dataKey="spent" name="הוצאות" fill="#007AFF" radius={[0, 4, 4, 0]} barSize={12} />
         </BarChart>
       </ResponsiveContainer>
       <div className="mt-2 flex justify-center gap-4 text-xs text-apple-secondary">
         <div className="flex items-center gap-1">
-          <div className="h-2.5 w-2.5 rounded-full bg-[#d1d1d6]" />
+          <div className="h-2.5 w-2.5 rounded-full bg-ios-gray" />
           תקציב מתוכנן
         </div>
         <div className="flex items-center gap-1">

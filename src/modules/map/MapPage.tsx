@@ -254,7 +254,7 @@ export default function MapPage() {
               }}
             >
               <div
-                className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white shadow-lg cursor-pointer transition-transform hover:scale-125"
+                className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white shadow-glass-float cursor-pointer transition-transform hover:scale-125"
                 style={{ backgroundColor: DAY_COLORS[point.dayIndex % DAY_COLORS.length] }}
               >
                 <MapPin className="h-3.5 w-3.5 text-white" />

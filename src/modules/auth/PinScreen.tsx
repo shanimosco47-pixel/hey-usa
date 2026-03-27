@@ -82,9 +82,9 @@ export function PinScreen() {
             transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.1 }}
             className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[18px] bg-gradient-to-br from-ios-blue to-ios-indigo shadow-[0_4px_16px_rgba(0,122,255,0.3)]"
           >
-            <span className="text-3xl">🇺🇸</span>
+            <span className="text-title">🇺🇸</span>
           </motion.div>
-          <h1 className="text-2xl sm:text-hero text-apple-primary mb-2">Hey USA</h1>
+          <h1 className="text-title sm:text-hero text-apple-primary mb-2">Hey USA</h1>
           <p className="text-subhead text-apple-secondary">הכנס קוד משפחתי</p>
         </motion.div>
 

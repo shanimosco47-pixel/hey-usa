@@ -181,7 +181,7 @@ function StatusBadge({
         {cfg.label}
       </button>
       {open && (
-        <div className="absolute z-50 top-full mt-1 right-0 bg-white shadow-lg rounded-lg border p-1 min-w-[120px]">
+        <div className="absolute z-50 top-full mt-1 right-0 bg-white shadow-glass-float rounded-apple border p-1 min-w-[120px]">
           {(Object.keys(STATUS_CONFIG) as BookingStatus[]).map((s) => {
             const c = STATUS_CONFIG[s]
             const I = c.icon

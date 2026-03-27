@@ -102,13 +102,13 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed inset-x-4 top-[50%] z-50 max-h-[85vh] max-w-lg translate-y-[-50%] mx-auto overflow-y-auto rounded-apple-lg border border-black/[0.06] bg-surface-primary p-6 shadow-xl focus:outline-none">
+        <Dialog.Content className="fixed inset-x-4 top-[50%] z-50 max-h-[85vh] max-w-lg translate-y-[-50%] mx-auto overflow-y-auto rounded-apple-lg border border-black/[0.06] bg-surface-primary p-6 shadow-glass-float focus:outline-none">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
-            <Dialog.Title className="text-lg font-bold text-apple-primary">
+            <Dialog.Title className="text-headline font-bold text-apple-primary">
               {isEditing ? 'עריכת משימה' : 'משימה חדשה'}
             </Dialog.Title>
-            <Dialog.Close className="rounded-lg p-1.5 text-apple-secondary transition-colors hover:bg-black/[0.04]">
+            <Dialog.Close className="rounded-apple-sm p-1.5 text-apple-secondary transition-colors hover:bg-black/[0.04]">
               <X className="h-5 w-5" />
             </Dialog.Close>
           </div>

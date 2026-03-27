@@ -48,7 +48,7 @@ export function EmailScanButton() {
         type="button"
         onClick={handleScan}
         disabled={scanning}
-        className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-ios-indigo px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-ios-indigo/90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ios-indigo/40 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 active:scale-[0.97]"
+        className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-apple-lg bg-ios-indigo px-4 py-2 text-subhead font-semibold text-white shadow-glass transition-all hover:bg-ios-indigo/90 hover:shadow-glass-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ios-indigo/40 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 active:scale-[0.97]"
       >
         {scanning ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -66,7 +66,7 @@ export function EmailScanButton() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className={`absolute start-0 top-full z-50 mt-2 flex min-w-max items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium shadow-md ${
+            className={`absolute start-0 top-full z-50 mt-2 flex min-w-max items-center gap-2 rounded-apple-lg px-3.5 py-2.5 text-subhead font-medium shadow-glass-hover ${
               toast.type === 'success'
                 ? 'bg-ios-green/10 text-ios-green ring-1 ring-ios-green/20'
                 : 'bg-ios-red/10 text-ios-red ring-1 ring-ios-red/20'

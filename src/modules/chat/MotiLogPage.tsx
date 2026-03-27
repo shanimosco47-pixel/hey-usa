@@ -44,8 +44,8 @@ export default function MotiLogPage() {
             <History className="h-5 w-5 text-purple-600" />
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-apple-primary">יומן שינויים — מוטי</h1>
-            <p className="text-xs text-apple-secondary">
+            <h1 className="text-title font-bold text-apple-primary">יומן שינויים — מוטי</h1>
+            <p className="text-caption text-apple-secondary">
               כל השינויים שמוטי ביצע באתר
             </p>
           </div>
@@ -104,11 +104,11 @@ export default function MotiLogPage() {
             className="glass rounded-apple-lg p-3 shadow-sm"
           >
             <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-50">
-                <Zap className="h-4 w-4 text-purple-500" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-apple-sm bg-ios-purple/10">
+                <Zap className="h-4 w-4 text-ios-purple" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-apple-primary">
+                <p className="text-subhead font-medium text-apple-primary">
                   {entry.description}
                 </p>
                 <div className="flex items-center gap-2 mt-1">

@@ -161,11 +161,11 @@ export default function PackingPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="rounded-apple-lg bg-gradient-to-r from-green-500 to-emerald-500 p-4 text-center text-white shadow-lg"
+          className="rounded-apple-lg bg-gradient-to-r from-ios-green to-ios-teal p-4 text-center text-white shadow-glass-float"
         >
-          <p className="text-2xl mb-1">🎉</p>
+          <p className="text-title mb-1">🎉</p>
           <p className="font-bold">הכל ארוז!</p>
-          <p className="text-sm text-white/80">מוכנים לטיול! 🚐✨</p>
+          <p className="text-subhead text-white/80">מוכנים לטיול! 🚐✨</p>
         </motion.div>
       )}
 
