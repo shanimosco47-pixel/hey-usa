@@ -14,10 +14,16 @@
   --color-teal: #5AC8FA;
   --color-pink: #FF2D55;
 
+  /* Trip palette */
+  --trip-mint: #6AECE1;
+  --trip-teal: #26CCC2;
+  --trip-yellow: #FFF57E;
+  --trip-orange: #FFB76C;
+
   /* Surfaces */
-  --bg-primary: #f5f5f7;
-  --bg-elevated: rgba(255, 255, 255, 0.72);
-  --bg-card: rgba(255, 255, 255, 0.80);
+  --bg-primary: #E8FAF8;
+  --bg-elevated: rgba(255, 255, 255, 0.75);
+  --bg-card: rgba(255, 255, 255, 0.82);
   --bg-dark: #1d1d1f;
   --bg-dark-secondary: #2d2d30;
 
@@ -116,27 +122,27 @@ ol {
 @layer utilities {
   /* Level 1 — Raised glass */
   .glass {
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.78);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 0.5px solid rgba(0, 0, 0, 0.06);
+    border: 0.5px solid rgba(38, 204, 194, 0.12);
     border-radius: 16px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 
   /* Level 2 — Floating glass */
   .glass-float {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.88);
     backdrop-filter: blur(40px);
     -webkit-backdrop-filter: blur(40px);
-    border: 0.5px solid rgba(0, 0, 0, 0.1);
+    border: 0.5px solid rgba(38, 204, 194, 0.15);
     border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10);
   }
 
   /* Navigation glass */
   .glass-nav {
-    background: rgba(255, 255, 255, 0.80);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }

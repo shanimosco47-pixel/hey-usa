@@ -58,7 +58,7 @@ export function BottomTabs() {
                 className="rounded-full p-1 hover:bg-black/[0.04] transition-colors"
                 aria-label="סגור"
               >
-                <X className="h-5 w-5 text-apple-secondary" />
+                <X className="h-6 w-6 text-apple-secondary" />
               </motion.button>
             </div>
             <div className="grid grid-cols-3 gap-1 px-4 pb-4">
@@ -92,7 +92,7 @@ export function BottomTabs() {
                 )
               })}
             </div>
-            <div className="px-4 pb-3 text-[10px] text-apple-tertiary text-center leading-relaxed">
+            <div className="px-4 pb-3 text-[12px] text-apple-tertiary text-center leading-relaxed">
               <span>גרסה {APP_VERSION}</span>
               <span className="mx-1">·</span>
               <span>עודכן {buildTimeFormatted()}</span>
@@ -120,7 +120,7 @@ export function BottomTabs() {
               className={({ isActive }) =>
                 cn(
                   'flex flex-col items-center gap-0.5 px-4 py-1.5',
-                  'text-[10px] font-medium transition-colors duration-150',
+                  'text-[12px] font-medium transition-colors duration-150',
                   isActive
                     ? 'text-ios-blue font-semibold'
                     : 'text-apple-tertiary',
@@ -133,7 +133,7 @@ export function BottomTabs() {
                   whileTap={{ scale: 0.85 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 15 }}
                 >
-                  {Icon && <Icon className="h-5 w-5" />}
+                  {Icon && <Icon className="h-6 w-6" />}
                   {isActive && (
                     <motion.div
                       layoutId="tab-dot"
@@ -153,11 +153,11 @@ export function BottomTabs() {
           onClick={() => setMoreOpen((prev) => !prev)}
           className={cn(
             'flex flex-col items-center gap-0.5 px-3 py-1.5',
-            'text-[10px] transition-colors',
+            'text-[12px] transition-colors',
             moreOpen ? 'text-ios-blue font-semibold' : 'text-apple-secondary',
           )}
         >
-          <MoreHorizontal className="h-5 w-5" />
+          <MoreHorizontal className="h-6 w-6" />
           <span>עוד</span>
         </motion.button>
       </nav>

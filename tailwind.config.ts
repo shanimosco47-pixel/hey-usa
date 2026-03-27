@@ -23,9 +23,9 @@ export default {
         },
         // Surfaces
         surface: {
-          primary: '#f5f5f7',
-          elevated: 'rgba(255,255,255,0.72)',
-          card: 'rgba(255,255,255,0.80)',
+          primary: '#E8FAF8',
+          elevated: 'rgba(255,255,255,0.75)',
+          card: 'rgba(255,255,255,0.82)',
         },
         // Apple text
         apple: {
@@ -57,6 +57,13 @@ export default {
           medium: '#007AFF',
           high: '#FF9500',
           urgent: '#FF3B30',
+        },
+        // Trip color palette
+        trip: {
+          mint: '#6AECE1',
+          teal: '#26CCC2',
+          yellow: '#FFF57E',
+          orange: '#FFB76C',
         },
       },
       fontFamily: {

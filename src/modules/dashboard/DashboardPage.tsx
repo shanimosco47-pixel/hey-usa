@@ -875,25 +875,25 @@ export default function DashboardPage() {
             }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            className="fixed bottom-20 left-5 z-20 flex h-14 w-14 items-center justify-center rounded-full overflow-hidden"
+            className="fixed bottom-24 left-5 z-20 flex h-28 w-28 items-center justify-center rounded-full overflow-hidden"
             style={{
-              background: 'linear-gradient(145deg, #F5F5F7, #E5E5EA)',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(255,255,255,0.8)',
-              border: '1.5px solid rgba(0,0,0,0.06)',
+              background: 'linear-gradient(145deg, #E8FAF8, #B8F0EA)',
+              boxShadow: '0 6px 28px rgba(38, 204, 194, 0.25), inset 0 1px 2px rgba(255,255,255,0.8)',
+              border: '2px solid rgba(38,204,194,0.2)',
             }}
           >
             <motion.div
-              animate={{ y: [0, -3, 0], rotate: [0, 3, -3, 0] }}
+              animate={{ y: [0, -4, 0], rotate: [0, 3, -3, 0] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
             >
               {getAvatarPhoto('moti') ? (
                 <img
                   src={getAvatarPhoto('moti')!}
                   alt="מוטי"
-                  className="h-10 w-10 rounded-full object-cover"
+                  className="h-20 w-20 rounded-full object-cover"
                 />
               ) : (
-                <MotiRobot size={36} animated={false} />
+                <MotiRobot size={72} animated={false} />
               )}
             </motion.div>
           </motion.div>
