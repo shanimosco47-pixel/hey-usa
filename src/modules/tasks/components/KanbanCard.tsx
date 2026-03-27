@@ -104,7 +104,7 @@ export const KanbanCard = memo(function KanbanCard({ task, onClick }: KanbanCard
           {task.assigned_to.slice(0, 3).map((memberId: FamilyMemberId) => {
             const member = FAMILY_MEMBERS[memberId]
             if (!member) return null
-            return <FamilyAvatar key={memberId} memberId={memberId} size="sm" />
+            return <FamilyAvatar key={memberId} memberId={memberId} size="md" />
           })}
           {task.assigned_to.length > 3 && (
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-[10px] font-bold text-apple-secondary">

@@ -128,7 +128,7 @@ export const TaskRow = memo(function TaskRow({
         {task.assigned_to.slice(0, 2).map((memberId: FamilyMemberId) => {
           const member = FAMILY_MEMBERS[memberId]
           if (!member) return null
-          return <FamilyAvatar key={memberId} memberId={memberId} size="xs" />
+          return <FamilyAvatar key={memberId} memberId={memberId} size="sm" />
         })}
         {task.assigned_to.length > 2 && (
           <div className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-black/[0.04] text-[9px] sm:text-[10px] font-bold text-apple-secondary">

@@ -42,6 +42,19 @@ export function FamilyAvatar({
 
   useEffect(() => {
     setPhotoUrl(getAvatarPhoto(memberId))
+    // Re-check when localStorage changes (cross-tab or after upload)
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'hey-usa-avatars') {
+        setPhotoUrl(getAvatarPhoto(memberId))
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+    // Also poll briefly after mount in case photos were just saved
+    const timer = setTimeout(() => setPhotoUrl(getAvatarPhoto(memberId)), 500)
+    return () => {
+      window.removeEventListener('storage', handleStorage)
+      clearTimeout(timer)
+    }
   }, [memberId])
 
   if (!member) {
