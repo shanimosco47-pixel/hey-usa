@@ -162,6 +162,11 @@ interface AppDataContextType {
       notes?: string
     },
   ) => void
+  updateItineraryStop: (
+    dayId: string,
+    stopId: string,
+    updates: { start_time?: string; end_time?: string },
+  ) => void
 
   // Tasks
   tasks: Task[]
@@ -470,6 +475,24 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       )
     },
     [addToLog],
+  )
+
+  const updateItineraryStop = useCallback(
+    (dayId: string, stopId: string, updates: { start_time?: string; end_time?: string }) => {
+      setItineraryDays((prev) =>
+        prev.map((day) => {
+          if (day.id !== dayId) return day
+          return {
+            ...day,
+            stops: day.stops.map((s) => (s.id === stopId ? { ...s, ...updates } : s)),
+          }
+        }),
+      )
+      db.updateItineraryStop(stopId, updates).catch((err) =>
+        console.error('[AppData] updateItineraryStop failed:', err),
+      )
+    },
+    [],
   )
 
   // ─── Tasks ──────────────────────────────────────────────────────
@@ -917,6 +940,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       addExpense,
       updateItineraryDayNotes,
       addItineraryStop,
+      updateItineraryStop,
       tasks,
       packingItems,
       updateTask,
@@ -940,6 +964,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       itineraryDays,
       updateItineraryDayNotes,
       addItineraryStop,
+      updateItineraryStop,
       tasks,
       addTask,
       updateTask,
@@ -987,6 +1012,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       itineraryDays,
       updateItineraryDayNotes,
       addItineraryStop,
+      updateItineraryStop,
       tasks,
       addTask,
       updateTask,

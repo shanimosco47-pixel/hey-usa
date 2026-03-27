@@ -127,7 +127,7 @@ function getDefaultDayIndex(totalDays: number): number {
 export default function ItineraryPage() {
   const { day: dayParam } = useParams<{ day?: string }>()
   const navigate = useNavigate()
-  const { itineraryDays: ITINERARY_DAYS } = useAppData()
+  const { itineraryDays: ITINERARY_DAYS, updateItineraryStop } = useAppData()
 
   // Parse route param or use smart default
   const initialIndex = useMemo(() => {
@@ -388,7 +388,13 @@ export default function ItineraryPage() {
           <div className="flex flex-col">
             {currentDay.stops.map((stop, index) => (
               <div key={stop.id}>
-                <StopCard stop={stop} index={index} />
+                <StopCard
+                  stop={stop}
+                  index={index}
+                  onUpdateTime={(stopId, start_time, end_time) =>
+                    updateItineraryStop(currentDay.id, stopId, { start_time, end_time })
+                  }
+                />
                 {index < currentDay.stops.length - 1 && <DriveSegment />}
               </div>
             ))}

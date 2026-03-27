@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import {
   Mountain,
   Car,
@@ -14,6 +14,9 @@ import {
   StickyNote,
   ExternalLink,
   Navigation,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react'
 import type { ItineraryStop } from '@/types'
 import { cn } from '@/lib/cn'
@@ -75,9 +78,13 @@ const CATEGORY_CONFIG: Record<
 interface StopCardProps {
   stop: ItineraryStop
   index: number
+  onUpdateTime?: (stopId: string, start_time: string, end_time: string) => void
 }
 
-export const StopCard = memo(function StopCard({ stop, index }: StopCardProps) {
+export const StopCard = memo(function StopCard({ stop, index, onUpdateTime }: StopCardProps) {
+  const [editingTime, setEditingTime] = useState(false)
+  const [startTime, setStartTime] = useState(stop.start_time || '')
+  const [endTime, setEndTime] = useState(stop.end_time || '')
   const config = CATEGORY_CONFIG[stop.category ?? 'activity'] ?? CATEGORY_CONFIG.activity
   const Icon = config.icon
 
@@ -132,15 +139,59 @@ export const StopCard = memo(function StopCard({ stop, index }: StopCardProps) {
             </span>
           </div>
 
-          {/* Time */}
-          {timeRange && (
-            <div className="mt-2 flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5 text-apple-secondary" />
-              <span className="text-xs font-medium text-apple-secondary" dir="ltr">
-                {timeRange}
-              </span>
-            </div>
-          )}
+          {/* Time — editable */}
+          <div className="mt-2 flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-apple-secondary" />
+            {editingTime ? (
+              <div className="flex items-center gap-1.5" dir="ltr">
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="rounded-md border border-black/10 bg-white px-1.5 py-0.5 text-xs font-medium text-apple-primary focus:border-ios-blue focus:outline-none"
+                />
+                <span className="text-xs text-apple-secondary">—</span>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="rounded-md border border-black/10 bg-white px-1.5 py-0.5 text-xs font-medium text-apple-primary focus:border-ios-blue focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    onUpdateTime?.(stop.id, startTime, endTime)
+                    setEditingTime(false)
+                  }}
+                  className="rounded-md bg-ios-green p-0.5 text-white"
+                  aria-label="שמור"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStartTime(stop.start_time || '')
+                    setEndTime(stop.end_time || '')
+                    setEditingTime(false)
+                  }}
+                  className="rounded-md bg-black/5 p-0.5 text-apple-secondary"
+                  aria-label="ביטול"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingTime(true)}
+                className="group flex items-center gap-1 text-xs font-medium text-apple-secondary hover:text-ios-blue transition-colors"
+              >
+                <span dir="ltr">{timeRange || 'הגדר שעות'}</span>
+                <Pencil className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            )}
+          </div>
 
           {/* Description */}
           {stop.description && (

@@ -181,6 +181,14 @@ export async function insertItineraryStop(
   })
 }
 
+export async function updateItineraryStop(
+  stopId: string,
+  updates: Partial<Pick<ItineraryStop, 'start_time' | 'end_time' | 'title' | 'description' | 'notes'>>,
+): Promise<void> {
+  const sb = assertSupabase()
+  await sb.from('itinerary_stops').update(updates).eq('id', stopId)
+}
+
 // ─── Tasks ──────────────────────────────────────────────────────────
 
 export async function fetchTasks(): Promise<Task[]> {
