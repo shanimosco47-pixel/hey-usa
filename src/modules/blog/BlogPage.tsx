@@ -19,6 +19,7 @@ import type { BlogPost, FamilyMemberId } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
 import { isSampleData } from '@/lib/sampleData'
 import DOMPurify from 'dompurify'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 // Moti's writing prompt suggestions
 const MOTI_PROMPTS = [
@@ -258,11 +259,12 @@ export default function BlogPage() {
       </motion.div>
 
       {blogPosts.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
-          <BookOpen className="h-12 w-12 text-apple-tertiary/30" />
-          <p className="mt-4 text-apple-secondary">אין פוסטים עדיין</p>
-          <p className="mt-1 text-sm text-apple-tertiary">התחילו לכתוב על הטיול שלכם!</p>
-        </div>
+        <EmptyState
+          icon={BookOpen}
+          title="אין פוסטים"
+          description="כתבו את הפוסט הראשון ביומן הטיול"
+          action={{ label: 'פוסט חדש', onClick: startNewPost }}
+        />
       ) : (
         <motion.div
           className="space-y-3"

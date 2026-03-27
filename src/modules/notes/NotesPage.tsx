@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, MapPin } from 'lucide-react'
+import { Plus, MapPin, StickyNote as StickyNoteIcon } from 'lucide-react'
 import { useAppData } from '@/contexts/AppDataContext'
 import { LOCATIONS } from '@/data/locations'
 import { StickyNote } from '@/modules/locations/components/StickyNote'
 import { NoteEditor } from './components/NoteEditorWithLocation'
 import type { LocationNote, NoteColor, FamilyMemberId } from '@/lib/types'
 import { cn } from '@/lib/cn'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 type FilterMode = 'all' | 'general' | 'location'
 
@@ -132,9 +133,13 @@ export default function NotesPage() {
         </div>
 
         {notes.length === 0 && (
-          <p className="text-center text-apple-secondary text-body mt-8">
-            אין פתקים {filter !== 'all' ? 'בקטגוריה הזו' : 'עדיין'}. הוסיפו פתק ראשון! ✏️
-          </p>
+          <div className="col-span-2 md:col-span-3">
+            <EmptyState
+              icon={StickyNoteIcon}
+              title="אין פתקים"
+              description="הוסיפו פתק ראשון"
+            />
+          </div>
         )}
       </div>
 

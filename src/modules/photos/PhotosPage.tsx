@@ -17,6 +17,7 @@ import { FAMILY_MEMBERS_LIST, getFamilyMember } from '@/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Photo, FamilyMemberId } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 export default function PhotosPage() {
   const { photos, updatePhoto } = useAppData()
@@ -209,10 +210,11 @@ export default function PhotosPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
-          <Camera className="h-12 w-12 text-apple-secondary/30" />
-          <p className="mt-4 text-apple-secondary">אין תמונות להצגה</p>
-        </div>
+        <EmptyState
+          icon={Camera}
+          title="אין תמונות"
+          description="הוסיפו תמונות מהטיול"
+        />
       ) : viewMode === 'grid' ? (
         <motion.div
           className="grid grid-cols-3 gap-1.5"

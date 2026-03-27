@@ -17,6 +17,7 @@ import {
   ChevronUp,
   Trash2,
   Filter,
+  Luggage,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,7 @@ import { PACKING_CATEGORIES, FAMILY_MEMBERS_LIST, getFamilyMember } from '@/cons
 import { useAppData } from '@/contexts/AppDataContext'
 import type { FamilyMemberId } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
   clothing: Shirt,
@@ -250,10 +252,11 @@ export default function PackingPage() {
 
       {/* Category Groups */}
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
-          <Package className="h-12 w-12 text-apple-secondary/30" />
-          <p className="mt-4 text-apple-secondary">אין פריטים להצגה</p>
-        </div>
+        <EmptyState
+          icon={Luggage}
+          title="רשימת האריזה ריקה"
+          description="הוסיפו פריטים לאריזה"
+        />
       ) : (
         <motion.div
           className="space-y-2"

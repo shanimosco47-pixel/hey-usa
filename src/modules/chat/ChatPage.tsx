@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Send, ArrowRight, Sparkles, WifiOff, Zap, History, Mic, MicOff } from 'lucide-react'
+import { Send, ArrowRight, Sparkles, WifiOff, Zap, History, Mic, MicOff, MessageCircle } from 'lucide-react'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, initConversationFromDb } from './botEngine'
 import type { MessageCard } from './botEngine'
 import { useAppData } from '@/contexts/AppDataContext'
@@ -418,6 +419,13 @@ export default function ChatPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {messages.length === 0 && !isTyping && (
+          <EmptyState
+            icon={MessageCircle}
+            title="היי! אני מוטי"
+            description="שאלו אותי כל דבר על הטיול"
+          />
+        )}
         {hasOlderMessages && (
           <div className="flex justify-center">
             <button

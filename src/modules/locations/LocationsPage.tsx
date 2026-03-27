@@ -5,6 +5,7 @@ import { useAppData } from '@/contexts/AppDataContext'
 import { LOCATIONS, getDaysForLocation, getLocationDateRange } from '@/data/locations'
 import { LocationCard } from './components/LocationCard'
 import { format, parseISO } from 'date-fns'
+import { EmptyState } from '@/components/shared/EmptyState'
 
 function formatDateRange(range: { start: string; end: string } | null): string | null {
   if (!range) return null
@@ -56,6 +57,13 @@ export default function LocationsPage() {
 
       {/* Polaroid Grid */}
       <div className="px-4 py-8 md:px-8">
+        {locationStats.length === 0 ? (
+          <EmptyState
+            icon={MapPin}
+            title="אין מיקומים"
+            description="מיקומים יופיעו כאן מתוך המסלול"
+          />
+        ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-7 max-w-6xl mx-auto">
           {locationStats.map((stat, index) => (
             <LocationCard
@@ -69,6 +77,7 @@ export default function LocationsPage() {
             />
           ))}
         </div>
+        )}
       </div>
 
       {/* Bottom shadow for depth */}
