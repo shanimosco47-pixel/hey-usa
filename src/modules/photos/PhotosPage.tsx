@@ -19,6 +19,7 @@ import { useAppData } from '@/contexts/AppDataContext'
 import type { Photo, FamilyMemberId } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { PhotoCapture } from './components/PhotoCapture'
 
 export default function PhotosPage() {
   const { photos, updatePhoto } = useAppData()
@@ -208,6 +209,10 @@ export default function PhotosPage() {
             {m.avatar_emoji} {m.name}
           </button>
         ))}
+      </div>
+
+      <div className="px-0 mb-4">
+        <PhotoCapture />
       </div>
 
       {filtered.length === 0 ? (
