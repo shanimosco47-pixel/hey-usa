@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { getFamilyMember } from '@/constants'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { BlogPost, FamilyMemberId } from '@/lib/types'
@@ -217,7 +218,7 @@ export default function BlogPage() {
           {selectedPost.tags && selectedPost.tags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {selectedPost.tags.map((tag) => (
-                <span key={tag} className="rounded-full bg-ios-blue/10 px-2.5 py-0.5 text-xs font-medium text-ios-blue">#{tag}</span>
+                <Badge key={tag}>#{tag}</Badge>
               ))}
             </div>
           )}

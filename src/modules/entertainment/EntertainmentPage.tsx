@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Music, Plus, ThumbsUp, ThumbsDown, Trash2, Gamepad2, HelpCircle, Eye } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/cn'
 import { getFamilyMember } from '@/constants'
 import { isSampleData } from '@/lib/sampleData'
@@ -249,9 +250,9 @@ export default function EntertainmentPage() {
         <div className="space-y-4">
           <p className="text-sm text-apple-secondary">חידון ארה"ב - בדקו את הידע שלכם!</p>
           <div className="glass rounded-apple-lg p-6 shadow-sm text-center">
-            <span className="inline-block rounded-full bg-ios-teal/10 px-3 py-1 text-xs font-medium text-ios-teal">
+            <Badge className="bg-ios-teal/10 text-ios-teal">
               {USA_TRIVIA[triviaIndex].category}
-            </span>
+            </Badge>
             <p className="mt-4 text-lg font-bold text-apple-primary leading-relaxed">
               {USA_TRIVIA[triviaIndex].question}
             </p>
