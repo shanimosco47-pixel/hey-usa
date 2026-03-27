@@ -5,6 +5,7 @@ import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import { getLocationById } from '@/data/locations'
 import type { Document, FamilyMemberId } from '@/types'
 import { isSampleData } from '@/lib/sampleData'
+import { ExpiryWarning } from './ExpiryWarning'
 
 interface DocumentCardProps {
   document: Document
@@ -110,6 +111,7 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
         <h3 className="line-clamp-2 text-sm font-semibold text-apple-primary leading-tight">
           {doc.title}
         </h3>
+        <ExpiryWarning expiryDate={doc.expiry_date} />
 
         <div className="flex flex-wrap items-center gap-1.5">
           <span
