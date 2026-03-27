@@ -1,6 +1,6 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   CheckCircle2,
   CalendarRange,
@@ -13,10 +13,12 @@ import {
   Briefcase,
   MapPin,
   AlertTriangle,
-  Mail,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
+import { isChild } from '@/lib/familyRoles'
 import { useAppData } from '@/contexts/AppDataContext'
+import { KidsDashboard } from './components/KidsDashboard'
+import { ParentDashboard } from './components/ParentDashboard'
 import type { Task } from '@/lib/types'
 import { FAMILY_MEMBERS, TRIP_START_DATE, TRIP_END_DATE, ROUTE_COLORS } from '@/constants'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
@@ -119,6 +121,7 @@ function formatHebrewDate(): string {
 
 export default function DashboardPage() {
   const { currentMember } = useAuth()
+  const showKidsView = currentMember ? isChild(currentMember) : false
   const { itineraryDays, tasks, expenses, packingItems, budgetSettings, photos } = useAppData()
   const daysLeft = useMemo(() => getDaysUntilTrip(), [])
   const tripDayIndex = useMemo(() => getTripDayIndex(), [])
@@ -186,72 +189,6 @@ export default function DashboardPage() {
 
     return items.slice(0, 5)
   }, [tasks])
-
-  // --- Email reminder ---
-  const [reminderEmail, setReminderEmail] = useState(() => {
-    try {
-      return localStorage.getItem('hey-usa-reminder-email') || ''
-    } catch {
-      return ''
-    }
-  })
-  const [showReminderPanel, setShowReminderPanel] = useState(false)
-
-  const saveReminderEmail = useCallback((email: string) => {
-    setReminderEmail(email)
-    try {
-      localStorage.setItem('hey-usa-reminder-email', email)
-    } catch {
-      /* noop */
-    }
-  }, [])
-
-  const buildReminderMailto = useCallback(() => {
-    const today = new Date()
-    const todayStr = today.toISOString().split('T')[0]
-    const endOfWeek = new Date(today)
-    endOfWeek.setDate(today.getDate() + 7)
-    const endOfWeekStr = endOfWeek.toISOString().split('T')[0]
-
-    const overdue = tasks.filter((t) => t.status !== 'done' && t.due_date && t.due_date < todayStr)
-    const dueThisWeek = tasks.filter(
-      (t) =>
-        t.status !== 'done' && t.due_date && t.due_date >= todayStr && t.due_date <= endOfWeekStr,
-    )
-    const openTasks = tasks.filter((t) => t.status !== 'done').length
-
-    const lines: string[] = []
-    lines.push('Hey USA - סיכום משימות')
-    lines.push('========================')
-    lines.push('')
-    lines.push(`${daysLeft} ימים לטיול!`)
-    lines.push(`משימות פתוחות: ${openTasks} מתוך ${tasks.length}`)
-    lines.push(`אריזה: ${packingPercent}% הושלם`)
-    lines.push('')
-
-    if (overdue.length > 0) {
-      lines.push(`--- באיחור (${overdue.length}) ---`)
-      overdue.forEach((t) => lines.push(`  - ${t.title} (${t.due_date})`))
-      lines.push('')
-    }
-
-    if (dueThisWeek.length > 0) {
-      lines.push(`--- השבוע (${dueThisWeek.length}) ---`)
-      dueThisWeek.forEach((t) => lines.push(`  - ${t.title} (${t.due_date})`))
-      lines.push('')
-    }
-
-    lines.push('---')
-    lines.push('נשלח מאפליקציית Hey USA')
-
-    const subject = encodeURIComponent(
-      `Hey USA - ${daysLeft} ימים לטיול! (${openTasks} משימות פתוחות)`,
-    )
-    const body = encodeURIComponent(lines.join('\n'))
-    const to = encodeURIComponent(reminderEmail)
-
-    return `mailto:${to}?subject=${subject}&body=${body}`
-  }, [tasks, daysLeft, packingPercent, reminderEmail])
 
   return (
     <div className="relative min-h-screen">
@@ -510,195 +447,131 @@ export default function DashboardPage() {
           </BlurFade>
         )}
 
-        {/* ── Attention / Highlights ── */}
-        {attentionItems.length > 0 && (
-          <BlurFade delay={0.35} duration={0.5}>
-            <div className="mb-6">
-              <div
-                className="rounded-apple-lg overflow-hidden"
-                style={{
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04)',
-                  background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFFFF 100%)',
-                  borderInlineStart: '4px solid #FF9500', /* ios-orange */
-                }}
-              >
-                <div className="px-4 pt-3.5 pb-1 flex items-center gap-2">
-                  <div
-                    className="flex h-7 w-7 items-center justify-center rounded-apple-sm bg-ios-orange/10"
-                  >
-                    <AlertTriangle
-                      className="h-4 w-4 text-ios-orange"
-                      strokeWidth={2.2}
-                    />
-                  </div>
-                  <h3 className="text-[14px] font-bold text-passport-slate">דורש תשומת לב</h3>
-                  <span
-                    className="ms-auto text-caption font-semibold rounded-full px-2 py-0.5 bg-ios-orange/10 text-ios-orange"
-                  >
-                    {attentionItems.length}
-                  </span>
-                </div>
-                <div className="px-4 pb-3 pt-1">
-                  {attentionItems.map((item, i) => (
-                    <Link to="/tasks" key={item.task.id}>
-                      <div
-                        className={`flex items-center gap-2.5 py-2 ${i < attentionItems.length - 1 ? 'border-b border-gray-100' : ''}`}
-                      >
-                        <span
-                          className="shrink-0 text-[10px] font-bold rounded-full px-2 py-0.5 text-white"
-                          style={{ backgroundColor: item.color }}
+        {/* ── Role-specific middle section ── */}
+        {showKidsView ? (
+          <KidsDashboard />
+        ) : (
+          <ParentDashboard
+            attentionSection={
+              attentionItems.length > 0 ? (
+                <BlurFade delay={0.35} duration={0.5}>
+                  <div className="mb-6">
+                    <div
+                      className="rounded-apple-lg overflow-hidden"
+                      style={{
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                        background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFFFF 100%)',
+                        borderInlineStart: '4px solid #FF9500', /* ios-orange */
+                      }}
+                    >
+                      <div className="px-4 pt-3.5 pb-1 flex items-center gap-2">
+                        <div
+                          className="flex h-7 w-7 items-center justify-center rounded-apple-sm bg-ios-orange/10"
                         >
-                          {item.reason}
+                          <AlertTriangle
+                            className="h-4 w-4 text-ios-orange"
+                            strokeWidth={2.2}
+                          />
+                        </div>
+                        <h3 className="text-[14px] font-bold text-passport-slate">דורש תשומת לב</h3>
+                        <span
+                          className="ms-auto text-caption font-semibold rounded-full px-2 py-0.5 bg-ios-orange/10 text-ios-orange"
+                        >
+                          {attentionItems.length}
                         </span>
-                        <span className="text-[13px] text-passport-slate truncate flex-1">
-                          {item.task.title}
-                        </span>
-                        {item.task.due_date && (
-                          <span className="text-[11px] text-apple-secondary shrink-0 font-medium tabular-nums">
-                            {new Date(item.task.due_date + 'T00:00:00').toLocaleDateString('he-IL', {
-                              day: 'numeric',
-                              month: 'short',
-                            })}
+                      </div>
+                      <div className="px-4 pb-3 pt-1">
+                        {attentionItems.map((item, i) => (
+                          <Link to="/tasks" key={item.task.id}>
+                            <div
+                              className={`flex items-center gap-2.5 py-2 ${i < attentionItems.length - 1 ? 'border-b border-gray-100' : ''}`}
+                            >
+                              <span
+                                className="shrink-0 text-[10px] font-bold rounded-full px-2 py-0.5 text-white"
+                                style={{ backgroundColor: item.color }}
+                              >
+                                {item.reason}
+                              </span>
+                              <span className="text-[13px] text-passport-slate truncate flex-1">
+                                {item.task.title}
+                              </span>
+                              {item.task.due_date && (
+                                <span className="text-[11px] text-apple-secondary shrink-0 font-medium tabular-nums">
+                                  {new Date(item.task.due_date + 'T00:00:00').toLocaleDateString('he-IL', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                  })}
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </BlurFade>
+              ) : null
+            }
+            nextStopSection={
+              nextDay ? (
+                <BlurFade delay={0.4} duration={0.5}>
+                  <div className="mb-6">
+                    <Link to="/itinerary">
+                      <div
+                        className="rounded-apple-lg bg-white p-4"
+                        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="flex h-8 w-8 items-center justify-center rounded-apple-sm bg-ios-orange/10"
+                            >
+                              <MapPin className="h-4 w-4 text-ios-orange" strokeWidth={2} />
+                            </div>
+                            <div>
+                              <p className="text-[15px] font-semibold text-passport-slate">
+                                {nextDay.city || nextDay.title}
+                              </p>
+                              <p className="text-[11px] text-apple-secondary">
+                                {tripDayIndex !== null ? `יום ${tripDayIndex + 1}` : `יום 1`} —{' '}
+                                {nextDay.title}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-[11px] text-apple-secondary font-medium">
+                            {nextDay.stops.length} עצירות
                           </span>
+                        </div>
+
+                        {nextDay.stops.slice(0, 2).map((stop, i) => (
+                          <div key={stop.id || i} className="flex items-center gap-2 py-1.5">
+                            <div className="h-1.5 w-1.5 rounded-full bg-ios-orange shrink-0" />
+                            <span className="text-[13px] text-apple-secondary truncate">{stop.title}</span>
+                            {stop.start_time && (
+                              <span className="text-[11px] text-apple-secondary ms-auto">
+                                {stop.start_time}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                        {nextDay.stops.length > 2 && (
+                          <p className="text-[11px] text-apple-secondary mt-1">
+                            +{nextDay.stops.length - 2} עצירות נוספות
+                          </p>
                         )}
                       </div>
                     </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </BlurFade>
-        )}
-
-        {/* ── Next Stop Preview ── */}
-        {nextDay && (
-          <BlurFade delay={0.4} duration={0.5}>
-            <div className="mb-6">
-              <Link to="/itinerary">
-                <div
-                  className="rounded-apple-lg bg-white p-4"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="flex h-8 w-8 items-center justify-center rounded-apple-sm bg-ios-orange/10"
-                      >
-                        <MapPin className="h-4 w-4 text-ios-orange" strokeWidth={2} />
-                      </div>
-                      <div>
-                        <p className="text-[15px] font-semibold text-passport-slate">
-                          {nextDay.city || nextDay.title}
-                        </p>
-                        <p className="text-[11px] text-apple-secondary">
-                          {tripDayIndex !== null ? `יום ${tripDayIndex + 1}` : `יום 1`} —{' '}
-                          {nextDay.title}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-[11px] text-apple-secondary font-medium">
-                      {nextDay.stops.length} עצירות
-                    </span>
                   </div>
-
-                  {nextDay.stops.slice(0, 2).map((stop, i) => (
-                    <div key={stop.id || i} className="flex items-center gap-2 py-1.5">
-                      <div className="h-1.5 w-1.5 rounded-full bg-ios-orange shrink-0" />
-                      <span className="text-[13px] text-apple-secondary truncate">{stop.title}</span>
-                      {stop.start_time && (
-                        <span className="text-[11px] text-apple-secondary ms-auto">
-                          {stop.start_time}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                  {nextDay.stops.length > 2 && (
-                    <p className="text-[11px] text-apple-secondary mt-1">
-                      +{nextDay.stops.length - 2} עצירות נוספות
-                    </p>
-                  )}
-                </div>
-              </Link>
-            </div>
-          </BlurFade>
+                </BlurFade>
+              ) : null
+            }
+            weatherSection={
+              <div className="mb-6">
+                <WeatherWidget mode="dashboard" />
+              </div>
+            }
+          />
         )}
-
-        {/* Weather */}
-        <div className="mb-6">
-          <WeatherWidget mode="dashboard" />
-        </div>
-
-        {/* ── Reminders Card ── */}
-        <BlurFade delay={0.45} duration={0.5}>
-          <div className="mb-6">
-            <div
-              className="rounded-apple-lg bg-white overflow-hidden"
-              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
-            >
-              <button
-                onClick={() => setShowReminderPanel((v) => !v)}
-                className="w-full flex items-center gap-3 px-4 py-3.5 text-start"
-              >
-                <div
-                  className="flex h-9 w-9 items-center justify-center rounded-apple-sm shrink-0 bg-ios-indigo/10"
-                >
-                  <Mail
-                    className="h-[18px] w-[18px] text-ios-indigo"
-                    strokeWidth={1.8}
-                  />
-                </div>
-                <div className="flex-1 text-start">
-                  <p className="text-[14px] font-semibold text-passport-slate">תזכורות</p>
-                  <p className="text-[11px] text-apple-secondary">שלח סיכום משימות במייל</p>
-                </div>
-                <motion.span
-                  animate={{ rotate: showReminderPanel ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="text-apple-secondary text-[14px]"
-                >
-                  &#9662;
-                </motion.span>
-              </button>
-
-              <AnimatePresence>
-                {showReminderPanel && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25, ease: 'easeInOut' }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-4 pb-4 pt-1 border-t border-gray-50">
-                      <label className="block text-[12px] text-apple-secondary font-medium mb-1.5 mt-2">
-                        כתובת אימייל לתזכורת
-                      </label>
-                      <input
-                        type="email"
-                        dir="ltr"
-                        value={reminderEmail}
-                        onChange={(e) => saveReminderEmail(e.target.value)}
-                        placeholder="email@example.com"
-                        className="w-full rounded-apple-sm border border-gray-200 bg-gray-50 px-3 py-2 text-subhead text-passport-slate placeholder:text-apple-secondary focus:border-ios-indigo focus:ring-1 focus:ring-ios-indigo/30 outline-none transition-colors"
-                      />
-                      <a
-                        href={buildReminderMailto()}
-                        className="mt-3 flex items-center justify-center gap-2 w-full rounded-[10px] py-2.5 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 active:opacity-80"
-                        style={{ background: 'linear-gradient(135deg, #5856D6, #AF52DE)' }}
-                      >
-                        <Mail className="h-4 w-4" strokeWidth={2} />
-                        <span>שלח תזכורת</span>
-                      </a>
-                      <p className="text-[11px] text-apple-secondary mt-2 text-center">
-                        ייפתח אפליקציית המייל עם סיכום המשימות
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </BlurFade>
 
         {/* ── Module Grid with MagicCard ── */}
         <BlurFade delay={0.5} duration={0.5}>
