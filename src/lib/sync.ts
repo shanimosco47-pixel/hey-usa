@@ -15,6 +15,8 @@ import type {
   Document,
   PlaylistItem,
   LocationNote,
+  ActivityPoll,
+  PollVote,
 } from './types'
 
 // ─── Table Name Mapping ──────────────────────────────────────────────────────
@@ -31,6 +33,7 @@ const TABLE_MAP: Record<string, string> = {
   documents: 'documents',
   playlistItems: 'playlist_items',
   locationNotes: 'location_notes',
+  polls: 'activity_polls',
 }
 
 // ─── Queue ───────────────────────────────────────────────────────────────────
@@ -183,6 +186,7 @@ export async function pullFromSupabase(): Promise<boolean> {
       { data: rawDocuments },
       { data: rawPlaylistItems },
       { data: rawLocationNotes },
+      { data: rawPolls },
     ] = await Promise.all([
       supabase.from('tasks').select('*'),
       supabase.from('expenses').select('*'),
@@ -194,6 +198,7 @@ export async function pullFromSupabase(): Promise<boolean> {
       supabase.from('documents').select('*'),
       supabase.from('playlist_items').select('*'),
       supabase.from('location_notes').select('*'),
+      supabase.from('activity_polls').select('*'),
     ])
 
     // ── Transform Supabase shapes → Dexie/TypeScript types ─────────────────
@@ -355,6 +360,17 @@ export async function pullFromSupabase(): Promise<boolean> {
       }),
     )
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const polls: ActivityPoll[] = (rawPolls ?? []).map((p: any): ActivityPoll => ({
+      id: p.id,
+      day_id: p.day_id,
+      question: p.question,
+      options: (p.options as string[]) ?? [],
+      votes: (p.votes as PollVote[]) ?? [],
+      created_by: p.created_by,
+      created_at: p.created_at,
+    }))
+
     // ── Write into Dexie in a single transaction ────────────────────────────
     await localDb.transaction(
       'rw',
@@ -369,6 +385,7 @@ export async function pullFromSupabase(): Promise<boolean> {
         localDb.documents,
         localDb.playlistItems,
         localDb.locationNotes,
+        localDb.polls,
       ],
       async () => {
         if (tasks.length) await localDb.tasks.bulkPut(tasks)
@@ -381,6 +398,7 @@ export async function pullFromSupabase(): Promise<boolean> {
         if (documents.length) await localDb.documents.bulkPut(documents)
         if (playlistItems.length) await localDb.playlistItems.bulkPut(playlistItems)
         if (locationNotes.length) await localDb.locationNotes.bulkPut(locationNotes)
+        if (polls.length) await localDb.polls.bulkPut(polls)
       },
     )
 
