@@ -55,6 +55,8 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
 
   const showExpenseSection = EXPENSE_ELIGIBLE_CATEGORIES.includes(category) && !!onAddExpense
 
+  const [fileWarning, setFileWarning] = useState('')
+
   const resetForm = useCallback(() => {
     setTitle('')
     setCategory('')
@@ -69,8 +71,6 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
     setExpenseAmount('')
     setExpensePaidBy('aba')
   }, [])
-
-  const [fileWarning, setFileWarning] = useState('')
 
   const handleFileSelect = useCallback(
     (file: File) => {
