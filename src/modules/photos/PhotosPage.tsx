@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
+import { StaggerContainer, StaggerItem } from '@/components/ui/motion'
 import {
   Camera,
   Heart,
@@ -216,71 +217,68 @@ export default function PhotosPage() {
           description="הוסיפו תמונות מהטיול"
         />
       ) : viewMode === 'grid' ? (
-        <motion.div
-          className="grid grid-cols-3 gap-1.5"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-        >
+        <StaggerContainer className="grid grid-cols-3 gap-1.5">
           {filtered.map((photo) => (
-            <button
-              key={photo.id}
-              onClick={() => setSelectedPhoto(photo)}
-              className={cn(
-                'group relative aspect-square overflow-hidden rounded-xl bg-black/[0.04]',
-                isSampleData(photo.id) && 'ring-1 ring-dashed ring-ios-teal/30',
-              )}
-            >
-              <img
-                src={photo.thumbnail_url || photo.url}
-                alt={photo.caption || ''}
-                className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                loading="lazy"
-              />
-              {photo.is_favorite && (
-                <Heart className="absolute top-1.5 left-1.5 h-4 w-4 fill-red-400 text-red-400 drop-shadow" />
-              )}
-              {isSampleData(photo.id) && (
-                <span className="absolute bottom-1 right-1 text-xs bg-black/50 rounded-full px-1.5 py-0.5 text-white">
-                  🤖
-                </span>
-              )}
-            </button>
-          ))}
-        </motion.div>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map((photo) => {
-            const photographer = photo.taken_by ? getFamilyMember(photo.taken_by) : null
-            return (
+            <StaggerItem key={photo.id}>
               <button
-                key={photo.id}
                 onClick={() => setSelectedPhoto(photo)}
-                className="flex w-full items-center gap-3 rounded-apple-lg glass p-2 text-right shadow-sm"
+                className={cn(
+                  'group relative aspect-square w-full overflow-hidden rounded-xl bg-black/[0.04]',
+                  isSampleData(photo.id) && 'ring-1 ring-dashed ring-ios-teal/30',
+                )}
               >
                 <img
                   src={photo.thumbnail_url || photo.url}
                   alt={photo.caption || ''}
-                  className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                  className="h-full w-full object-cover transition-transform group-hover:scale-105"
                   loading="lazy"
                 />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-apple-primary truncate">
-                    {photo.caption || 'ללא כיתוב'}
-                  </p>
-                  <p className="text-xs text-apple-secondary">
-                    {photographer && <span>{photographer.avatar_emoji} </span>}
-                    {photo.location && <span>{photo.location} · </span>}
-                    {photo.taken_at && formatDate(photo.taken_at)}
-                  </p>
-                </div>
                 {photo.is_favorite && (
-                  <Heart className="h-4 w-4 shrink-0 fill-red-400 text-red-400" />
+                  <Heart className="absolute top-1.5 left-1.5 h-4 w-4 fill-red-400 text-red-400 drop-shadow" />
+                )}
+                {isSampleData(photo.id) && (
+                  <span className="absolute bottom-1 right-1 text-xs bg-black/50 rounded-full px-1.5 py-0.5 text-white">
+                    🤖
+                  </span>
                 )}
               </button>
+            </StaggerItem>
+          ))}
+        </StaggerContainer>
+      ) : (
+        <StaggerContainer className="space-y-2">
+          {filtered.map((photo) => {
+            const photographer = photo.taken_by ? getFamilyMember(photo.taken_by) : null
+            return (
+              <StaggerItem key={photo.id}>
+                <button
+                  onClick={() => setSelectedPhoto(photo)}
+                  className="flex w-full items-center gap-3 rounded-apple-lg glass p-2 text-right shadow-sm"
+                >
+                  <img
+                    src={photo.thumbnail_url || photo.url}
+                    alt={photo.caption || ''}
+                    className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                    loading="lazy"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-apple-primary truncate">
+                      {photo.caption || 'ללא כיתוב'}
+                    </p>
+                    <p className="text-xs text-apple-secondary">
+                      {photographer && <span>{photographer.avatar_emoji} </span>}
+                      {photo.location && <span>{photo.location} · </span>}
+                      {photo.taken_at && formatDate(photo.taken_at)}
+                    </p>
+                  </div>
+                  {photo.is_favorite && (
+                    <Heart className="h-4 w-4 shrink-0 fill-red-400 text-red-400" />
+                  )}
+                </button>
+              </StaggerItem>
             )
           })}
-        </div>
+        </StaggerContainer>
       )}
     </div>
   )

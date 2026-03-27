@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { StaggerContainer, StaggerItem } from '@/components/ui/motion'
 import { Plus, MapPin, StickyNote as StickyNoteIcon } from 'lucide-react'
 import { useAppData } from '@/contexts/AppDataContext'
 import { LOCATIONS } from '@/data/locations'
@@ -93,7 +94,7 @@ export default function NotesPage() {
 
       {/* Notes Grid */}
       <div className="max-w-3xl mx-auto px-4 pb-24">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <StaggerContainer className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {/* Add note button */}
           <motion.button
             whileHover={{ scale: 1.03, rotate: 0 }}
@@ -112,25 +113,27 @@ export default function NotesPage() {
           </motion.button>
 
           {notes.map((note) => (
-            <div key={note.id} className="relative">
-              <StickyNote
-                note={note}
-                onEdit={handleEditNote}
-                onDelete={deleteLocationNote}
-                onTogglePin={handleTogglePin}
-              />
-              {/* Location badge */}
-              {note.locationId && (
-                <div className="absolute bottom-2 left-2 right-2">
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/60 backdrop-blur-sm text-[9px] text-gray-600 font-medium">
-                    <MapPin className="h-2.5 w-2.5" />
-                    {getLocationLabel(note.locationId)}
-                  </span>
-                </div>
-              )}
-            </div>
+            <StaggerItem key={note.id}>
+              <div className="relative">
+                <StickyNote
+                  note={note}
+                  onEdit={handleEditNote}
+                  onDelete={deleteLocationNote}
+                  onTogglePin={handleTogglePin}
+                />
+                {/* Location badge */}
+                {note.locationId && (
+                  <div className="absolute bottom-2 left-2 right-2">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/60 backdrop-blur-sm text-[9px] text-gray-600 font-medium">
+                      <MapPin className="h-2.5 w-2.5" />
+                      {getLocationLabel(note.locationId)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
 
         {notes.length === 0 && (
           <div className="col-span-2 md:col-span-3">

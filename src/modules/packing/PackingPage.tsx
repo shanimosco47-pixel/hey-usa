@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { PackingItem } from '@/lib/types'
 import { motion } from 'framer-motion'
+import { StaggerContainer, StaggerItem } from '@/components/ui/motion'
 import {
   Package,
   Plus,
@@ -258,12 +259,7 @@ export default function PackingPage() {
           description="הוסיפו פריטים לאריזה"
         />
       ) : (
-        <motion.div
-          className="space-y-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-        >
+        <StaggerContainer className="space-y-2">
           {Object.entries(PACKING_CATEGORIES).map(([catKey, { label }]) => {
             const catItems = groupedByCategory[catKey]
             if (!catItems || catItems.length === 0) return null
@@ -272,7 +268,8 @@ export default function PackingPage() {
             const IconComp = CATEGORY_ICONS[catKey] || Package
 
             return (
-              <div key={catKey} className="glass rounded-apple-lg shadow-sm overflow-hidden">
+              <StaggerItem key={catKey}>
+              <div className="glass rounded-apple-lg shadow-sm overflow-hidden">
                 <button
                   onClick={() => toggleCategory(catKey)}
                   className="flex w-full items-center gap-3 p-3"
@@ -356,9 +353,10 @@ export default function PackingPage() {
                   </div>
                 )}
               </div>
+              </StaggerItem>
             )
           })}
-        </motion.div>
+        </StaggerContainer>
       )}
     </div>
   )

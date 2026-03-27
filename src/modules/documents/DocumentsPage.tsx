@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { StaggerContainer, StaggerItem } from '@/components/ui/motion'
 import * as Tabs from '@radix-ui/react-tabs'
 import { FileText, Plus, Search, LayoutGrid, List, FolderOpen, Calendar, ArrowUpDown, CheckCircle2, Clock, Paperclip } from 'lucide-react'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -229,27 +230,21 @@ export default function DocumentsPage() {
           </div>
         )
       ) : viewMode === 'grid' ? (
-        <motion.div
-          className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-        >
+        <StaggerContainer className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           {documents.map((doc) => (
-            <DocumentCard key={doc.id} document={doc} onClick={handleCardClick} />
+            <StaggerItem key={doc.id}>
+              <DocumentCard document={doc} onClick={handleCardClick} />
+            </StaggerItem>
           ))}
-        </motion.div>
+        </StaggerContainer>
       ) : (
-        <motion.div
-          className="flex flex-col gap-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-        >
+        <StaggerContainer className="flex flex-col gap-2">
           {documents.map((doc) => (
-            <ListRow key={doc.id} document={doc} onClick={handleCardClick} />
+            <StaggerItem key={doc.id}>
+              <ListRow document={doc} onClick={handleCardClick} />
+            </StaggerItem>
           ))}
-        </motion.div>
+        </StaggerContainer>
       )}
 
       {/* Dialogs */}
