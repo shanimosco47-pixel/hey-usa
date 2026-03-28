@@ -48,8 +48,7 @@ vi.mock('@/lib/db', () => ({
         mockSyncQueueData.push(item)
         return item.id
       }),
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      where: (field: string) => ({
+      where: () => ({
         equals: (val: number) => ({
           toArray: async () => mockSyncQueueData.filter((i) => i.synced === val),
           filter: () => ({

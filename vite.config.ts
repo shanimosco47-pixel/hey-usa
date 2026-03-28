@@ -88,8 +88,6 @@ export default defineConfig({
             '@radix-ui/react-tabs',
           ],
           'vendor-maps': ['maplibre-gl'],
-          'vendor-charts': ['recharts'],
-          'vendor-editor': ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/extension-image'],
           'vendor-dexie': ['dexie', 'dexie-react-hooks'],
         },
       },
