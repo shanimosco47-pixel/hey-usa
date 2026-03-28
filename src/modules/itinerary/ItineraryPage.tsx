@@ -11,6 +11,7 @@ import {
   List,
   Clock,
   Map,
+  Download,
 } from 'lucide-react'
 import { useAppData } from '@/contexts/AppDataContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -23,6 +24,7 @@ import { DriveInfo } from './components/DriveInfo'
 import { DRIVE_TIMES } from '@/data/driveTimes'
 import { DayPlannerBoard } from './components/DayPlannerBoard'
 import { cn } from '@/lib/cn'
+import { exportItineraryText } from '@/lib/export'
 import { fetchTripWeather, getWeatherForDate, type DestinationWeather } from '@/lib/weather'
 import { getPrimaryLocationForCity } from '@/data/locations'
 
@@ -132,7 +134,14 @@ function getDefaultDayIndex(totalDays: number): number {
 export default function ItineraryPage() {
   const { day: dayParam } = useParams<{ day?: string }>()
   const navigate = useNavigate()
-  const { itineraryDays: ITINERARY_DAYS, updateItineraryStop, polls, addPoll, votePoll, deletePoll } = useAppData()
+  const {
+    itineraryDays: ITINERARY_DAYS,
+    updateItineraryStop,
+    polls,
+    addPoll,
+    votePoll,
+    deletePoll,
+  } = useAppData()
   const { currentMember } = useAuth()
 
   // Parse route param or use smart default
@@ -230,32 +239,42 @@ export default function ItineraryPage() {
             </div>
           </div>
 
-          {/* View mode toggle */}
-          <div className="flex items-center gap-0.5 rounded-apple-lg bg-black/[0.04] p-0.5">
+          {/* Export + View mode toggle */}
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setViewMode('list')}
-              className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-apple-sm transition-all',
-                viewMode === 'list'
-                  ? 'bg-white text-ios-blue shadow-sm'
-                  : 'text-apple-secondary hover:text-apple-primary',
-              )}
-              aria-label="תצוגת רשימה"
+              onClick={() => exportItineraryText(ITINERARY_DAYS)}
+              className="flex h-8 w-8 items-center justify-center rounded-apple-sm text-apple-secondary hover:bg-black/[0.06] dark:hover:bg-white/[0.1] transition-colors"
+              aria-label="ייצוא מסלול"
+              title="ייצוא מסלול"
             >
-              <List className="h-4 w-4" />
+              <Download className="h-4 w-4" />
             </button>
-            <button
-              onClick={() => setViewMode('timeline')}
-              className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-apple-sm transition-all',
-                viewMode === 'timeline'
-                  ? 'bg-white text-ios-blue shadow-sm'
-                  : 'text-apple-secondary hover:text-apple-primary',
-              )}
-              aria-label="תצוגת ציר זמן"
-            >
-              <Clock className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-0.5 rounded-apple-lg bg-black/[0.04] p-0.5">
+              <button
+                onClick={() => setViewMode('list')}
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-apple-sm transition-all',
+                  viewMode === 'list'
+                    ? 'bg-white text-ios-blue shadow-sm'
+                    : 'text-apple-secondary hover:text-apple-primary',
+                )}
+                aria-label="תצוגת רשימה"
+              >
+                <List className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('timeline')}
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-apple-sm transition-all',
+                  viewMode === 'timeline'
+                    ? 'bg-white text-ios-blue shadow-sm'
+                    : 'text-apple-secondary hover:text-apple-primary',
+                )}
+                aria-label="תצוגת ציר זמן"
+              >
+                <Clock className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -318,7 +337,9 @@ export default function ItineraryPage() {
                 </button>
               </div>
 
-              <h2 className="text-headline font-bold text-center drop-shadow-sm">{currentDay.title}</h2>
+              <h2 className="text-headline font-bold text-center drop-shadow-sm">
+                {currentDay.title}
+              </h2>
 
               {currentDay.city &&
                 (() => {

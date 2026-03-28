@@ -21,19 +21,70 @@ import { isSampleData } from '@/lib/sampleData'
 import DOMPurify from 'dompurify'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { DailyTemplates } from './components/DailyTemplates'
+import { RichTextEditor } from './components/RichTextEditor'
 
 // Moti's writing prompt suggestions
 const MOTI_PROMPTS = [
-  { title: 'הנחיתה באמריקה!', starter: 'היום נחתנו בלוס אנג\'לס! הרגע שירדנו מהמטוס...', tags: 'לוס אנג\'לס, טיסה', emoji: '✈️' },
-  { title: 'הרכב הראשון שלנו', starter: 'הקרוואן הזה ענק! כשנכנסנו בפעם הראשונה...', tags: 'קרוואן, התחלה', emoji: '🚐' },
-  { title: 'לאס וגאס בלילה', starter: 'לאס וגאס בלילה זה משהו אחר לגמרי. האורות, הקולות...', tags: 'לאס וגאס, לילה', emoji: '🎰' },
-  { title: 'פארק זאיון — ההליכה בקניון', starter: 'ההליכה דרך הקניון הצר של זאיון הייתה מדהימה. המים...', tags: 'זאיון, טיול, טבע', emoji: '🏔️' },
-  { title: 'שקיעה בגרנד קניון', starter: 'עמדנו על שפת הגרנד קניון וראינו את השקיעה. הצבעים...', tags: 'גרנד קניון, שקיעה', emoji: '🌅' },
-  { title: 'מה למדתי היום', starter: 'דבר מעניין שגיליתי היום בטיול...', tags: 'חוויות, למידה', emoji: '💡' },
-  { title: 'הארוחה הכי טובה', starter: 'האוכל האמריקאי הוא סיפור בפני עצמו! היום אכלנו...', tags: 'אוכל, חוויות', emoji: '🍔' },
-  { title: 'כוכבים במדבר', starter: 'בלילה, רחוק מכל עיר, ראינו כוכבים כמו שמעולם לא ראינו...', tags: 'מדבר, לילה, כוכבים', emoji: '🌌' },
-  { title: 'גשר הזהב!', starter: 'סן פרנסיסקו! הגשר האדום המפורסם נראה בדיוק כמו בסרטים...', tags: 'סן פרנסיסקו, גשר הזהב', emoji: '🌉' },
-  { title: 'היום האחרון — סיכום הטיול', starter: '21 ימים חלפו כמו רגע. מהרגע שנחתנו בדנבר ועד...', tags: 'סיכום, זיכרונות', emoji: '🇺🇸' },
+  {
+    title: 'הנחיתה באמריקה!',
+    starter: "היום נחתנו בלוס אנג'לס! הרגע שירדנו מהמטוס...",
+    tags: "לוס אנג'לס, טיסה",
+    emoji: '✈️',
+  },
+  {
+    title: 'הרכב הראשון שלנו',
+    starter: 'הקרוואן הזה ענק! כשנכנסנו בפעם הראשונה...',
+    tags: 'קרוואן, התחלה',
+    emoji: '🚐',
+  },
+  {
+    title: 'לאס וגאס בלילה',
+    starter: 'לאס וגאס בלילה זה משהו אחר לגמרי. האורות, הקולות...',
+    tags: 'לאס וגאס, לילה',
+    emoji: '🎰',
+  },
+  {
+    title: 'פארק זאיון — ההליכה בקניון',
+    starter: 'ההליכה דרך הקניון הצר של זאיון הייתה מדהימה. המים...',
+    tags: 'זאיון, טיול, טבע',
+    emoji: '🏔️',
+  },
+  {
+    title: 'שקיעה בגרנד קניון',
+    starter: 'עמדנו על שפת הגרנד קניון וראינו את השקיעה. הצבעים...',
+    tags: 'גרנד קניון, שקיעה',
+    emoji: '🌅',
+  },
+  {
+    title: 'מה למדתי היום',
+    starter: 'דבר מעניין שגיליתי היום בטיול...',
+    tags: 'חוויות, למידה',
+    emoji: '💡',
+  },
+  {
+    title: 'הארוחה הכי טובה',
+    starter: 'האוכל האמריקאי הוא סיפור בפני עצמו! היום אכלנו...',
+    tags: 'אוכל, חוויות',
+    emoji: '🍔',
+  },
+  {
+    title: 'כוכבים במדבר',
+    starter: 'בלילה, רחוק מכל עיר, ראינו כוכבים כמו שמעולם לא ראינו...',
+    tags: 'מדבר, לילה, כוכבים',
+    emoji: '🌌',
+  },
+  {
+    title: 'גשר הזהב!',
+    starter: 'סן פרנסיסקו! הגשר האדום המפורסם נראה בדיוק כמו בסרטים...',
+    tags: 'סן פרנסיסקו, גשר הזהב',
+    emoji: '🌉',
+  },
+  {
+    title: 'היום האחרון — סיכום הטיול',
+    starter: '21 ימים חלפו כמו רגע. מהרגע שנחתנו בדנבר ועד...',
+    tags: 'סיכום, זיכרונות',
+    emoji: '🇺🇸',
+  },
 ]
 
 export default function BlogPage() {
@@ -55,9 +106,9 @@ export default function BlogPage() {
     setIsEditing(true)
   }
 
-  function handlePrompt(prompt: typeof MOTI_PROMPTS[0]) {
+  function handlePrompt(prompt: (typeof MOTI_PROMPTS)[0]) {
     setEditTitle(prompt.title)
-    setEditContent(prompt.starter)
+    setEditContent(`<p>${prompt.starter}</p>`)
     setEditTags(prompt.tags)
     setShowPrompts(false)
   }
@@ -65,31 +116,32 @@ export default function BlogPage() {
   function startEditPost(post: BlogPost) {
     setSelectedPost(post)
     setEditTitle(post.title)
-    setEditContent(post.content.replace(/<[^>]*>/g, ''))
+    setEditContent(post.content)
     setEditTags(post.tags?.join(', ') || '')
     setIsEditing(true)
   }
 
   function savePost() {
     if (!editTitle.trim()) return
-    const htmlContent = editContent
-      .split('\n')
-      .filter((l) => l.trim())
-      .map((l) => `<p>${l}</p>`)
-      .join('\n')
 
     if (selectedPost) {
       updateBlogPost(selectedPost.id, {
         title: editTitle,
-        content: htmlContent,
-        tags: editTags.split(',').map((t) => t.trim()).filter(Boolean),
+        content: editContent,
+        tags: editTags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean),
       })
     } else {
       addBlogPost({
         title: editTitle,
-        content: htmlContent,
+        content: editContent,
         author_id: (currentMember || 'aba') as FamilyMemberId,
-        tags: editTags.split(',').map((t) => t.trim()).filter(Boolean),
+        tags: editTags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean),
         is_published: true,
       })
     }
@@ -118,7 +170,10 @@ export default function BlogPage() {
     return (
       <div className="space-y-4 p-4">
         <div className="flex items-center justify-between">
-          <button onClick={() => setIsEditing(false)} className="flex items-center gap-1 text-sm text-apple-secondary">
+          <button
+            onClick={() => setIsEditing(false)}
+            className="flex items-center gap-1 text-sm text-apple-secondary"
+          >
             <ArrowRight className="h-4 w-4" />
             חזרה
           </button>
@@ -130,9 +185,14 @@ export default function BlogPage() {
         {/* Daily itinerary templates */}
         {!selectedPost && (
           <DailyTemplates
-            onSelectTemplate={(title, content, tags, _dayId) => {
+            onSelectTemplate={(title, content, tags) => {
+              const htmlContent = content
+                .split('\n')
+                .filter((l) => l.trim())
+                .map((l) => `<p>${l}</p>`)
+                .join('')
               setEditTitle(title)
-              setEditContent(content)
+              setEditContent(htmlContent)
               setEditTags(tags.join(', '))
             }}
           />
@@ -146,7 +206,9 @@ export default function BlogPage() {
               className="w-full flex items-center gap-2 px-4 py-2.5 text-right"
             >
               <span className="text-lg">🤖</span>
-              <span className="text-sm font-semibold text-apple-primary flex-1">מוטי מציע רעיונות לכתיבה</span>
+              <span className="text-sm font-semibold text-apple-primary flex-1">
+                מוטי מציע רעיונות לכתיבה
+              </span>
               <Sparkles className="h-4 w-4 text-ios-teal" />
               <motion.span
                 animate={{ rotate: showPrompts ? 180 : 0 }}
@@ -173,8 +235,12 @@ export default function BlogPage() {
                         className="rounded-apple-lg bg-white/80 p-2.5 text-right shadow-glass hover:shadow-glass-hover transition-shadow border border-black/[0.04]"
                       >
                         <span className="text-headline">{prompt.emoji}</span>
-                        <p className="text-xs font-semibold text-apple-primary mt-1 line-clamp-1">{prompt.title}</p>
-                        <p className="text-[10px] text-apple-tertiary mt-0.5 line-clamp-1">{prompt.starter.slice(0, 40)}...</p>
+                        <p className="text-xs font-semibold text-apple-primary mt-1 line-clamp-1">
+                          {prompt.title}
+                        </p>
+                        <p className="text-[10px] text-apple-tertiary mt-0.5 line-clamp-1">
+                          {prompt.starter.slice(0, 40)}...
+                        </p>
                       </button>
                     ))}
                   </div>
@@ -191,13 +257,7 @@ export default function BlogPage() {
           onChange={(e) => setEditTitle(e.target.value)}
           className="w-full rounded-apple-lg border border-black/[0.06] glass px-4 py-3 text-lg font-bold text-apple-primary placeholder:text-apple-tertiary"
         />
-        <textarea
-          placeholder="כתבו את הסיפור שלכם..."
-          value={editContent}
-          onChange={(e) => setEditContent(e.target.value)}
-          rows={12}
-          className="w-full rounded-apple-lg border border-black/[0.06] glass px-4 py-3 text-sm text-apple-primary placeholder:text-apple-tertiary resize-none leading-relaxed"
-        />
+        <RichTextEditor content={editContent} onChange={setEditContent} />
         <div className="flex items-center gap-2">
           <Tag className="h-4 w-4 text-apple-secondary" />
           <input
@@ -217,16 +277,24 @@ export default function BlogPage() {
     const author = getFamilyMember(selectedPost.author_id)
     return (
       <div className="space-y-4 p-4">
-        <button onClick={() => setSelectedPost(null)} className="flex items-center gap-1 text-sm text-apple-secondary">
+        <button
+          onClick={() => setSelectedPost(null)}
+          className="flex items-center gap-1 text-sm text-apple-secondary"
+        >
           <ArrowRight className="h-4 w-4" />
           חזרה לכל הפוסטים
         </button>
         <div className="rounded-apple-lg glass p-6 shadow-sm">
           <h1 className="text-2xl font-bold text-apple-primary">{selectedPost.title}</h1>
           <div className="mt-3 flex items-center gap-3 text-sm text-apple-secondary">
-            <span>{author.avatar_emoji} {author.name}</span>
+            <span>
+              {author.avatar_emoji} {author.name}
+            </span>
             <span>·</span>
-            <span><Calendar className="ml-1 inline h-3.5 w-3.5" />{formatDate(selectedPost.created_at)}</span>
+            <span>
+              <Calendar className="ml-1 inline h-3.5 w-3.5" />
+              {formatDate(selectedPost.created_at)}
+            </span>
           </div>
           {selectedPost.tags && selectedPost.tags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
@@ -242,10 +310,12 @@ export default function BlogPage() {
         </div>
         <div className="flex gap-2">
           <Button onClick={() => startEditPost(selectedPost)} variant="outline">
-            <Edit3 className="h-4 w-4" />ערוך
+            <Edit3 className="h-4 w-4" />
+            ערוך
           </Button>
           <Button onClick={() => deletePost(selectedPost.id)} variant="destructive">
-            <Trash2 className="h-4 w-4" />מחק
+            <Trash2 className="h-4 w-4" />
+            מחק
           </Button>
         </div>
       </div>
@@ -266,7 +336,8 @@ export default function BlogPage() {
           יומן מסע
         </h1>
         <Button onClick={startNewPost} variant="success">
-          <Plus className="h-4 w-4" />פוסט חדש
+          <Plus className="h-4 w-4" />
+          פוסט חדש
         </Button>
       </motion.div>
 
@@ -293,18 +364,34 @@ export default function BlogPage() {
                 onClick={() => setSelectedPost(post)}
                 className="w-full rounded-apple-lg glass p-4 text-right shadow-glass transition-shadow hover:shadow-glass-hover"
               >
-                <h3 className="text-headline font-bold text-apple-primary">{isSampleData(post.id) && <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">🤖</span>}{post.title}</h3>
-                <p className="mt-1.5 text-subhead text-apple-secondary leading-relaxed line-clamp-2">{excerpt}...</p>
+                <h3 className="text-headline font-bold text-apple-primary">
+                  {isSampleData(post.id) && (
+                    <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">
+                      🤖
+                    </span>
+                  )}
+                  {post.title}
+                </h3>
+                <p className="mt-1.5 text-subhead text-apple-secondary leading-relaxed line-clamp-2">
+                  {excerpt}...
+                </p>
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs text-apple-secondary">
-                    <span>{author.avatar_emoji} {author.name}</span>
+                    <span>
+                      {author.avatar_emoji} {author.name}
+                    </span>
                     <span>·</span>
                     <span>{formatDate(post.created_at)}</span>
                   </div>
                   {post.tags && post.tags.length > 0 && (
                     <div className="flex gap-1">
                       {post.tags.slice(0, 2).map((tag) => (
-                        <span key={tag} className="rounded-full bg-ios-blue/10 px-2 py-0.5 text-[10px] font-medium text-ios-blue">#{tag}</span>
+                        <span
+                          key={tag}
+                          className="rounded-full bg-ios-blue/10 px-2 py-0.5 text-[10px] font-medium text-ios-blue"
+                        >
+                          #{tag}
+                        </span>
                       ))}
                     </div>
                   )}

@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
 import { motion } from 'framer-motion'
 import {
   DollarSign,
+  Download,
   Plus,
   Plane,
   Bed,
@@ -28,6 +29,7 @@ import { isSampleData } from '@/lib/sampleData'
 import { DailyBudgetTable } from './components/DailyBudgetTable'
 import { DailyBudgetView } from './components/DailyBudgetView'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { exportExpensesCsv } from '@/lib/export'
 
 const BudgetBarChart = lazy(() =>
   import('./components/Charts').then((mod) => ({ default: mod.BudgetBarChart })),
@@ -203,6 +205,12 @@ export default function BudgetPage() {
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
         <h1 className="text-2xl font-bold text-apple-primary">תקציב</h1>
+        {expenses.length > 0 && (
+          <Button variant="outline" onClick={() => exportExpensesCsv(expenses)}>
+            <Download className="h-4 w-4" />
+            ייצוא CSV
+          </Button>
+        )}
       </motion.div>
 
       {/* Summary Cards */}
