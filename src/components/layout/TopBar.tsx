@@ -1,14 +1,24 @@
-import { Sun, Moon, Search } from 'lucide-react'
+import { Sun, Moon, Search, Bell, BellOff } from 'lucide-react'
 import { DualClock } from '@/components/shared/DualClock'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import { useAuth } from '@/contexts/AuthContext'
+import { useAppData } from '@/contexts/AppDataContext'
+import { useCampsiteBookings } from '@/modules/campsites/hooks/useCampsiteBookings'
 import { useTheme } from '@/hooks/useTheme'
+import { useNotifications } from '@/hooks/useNotifications'
 import { cn } from '@/lib/cn'
 import { APP_VERSION, buildTimeFormatted } from '@/lib/version'
 
 export function TopBar() {
   const { currentMember } = useAuth()
   const { isDark, toggleTheme } = useTheme()
+  const { tasks } = useAppData()
+  const { bookings } = useCampsiteBookings()
+  const {
+    enabled: notifEnabled,
+    toggleEnabled: toggleNotif,
+    supported: notifSupported,
+  } = useNotifications(tasks, bookings)
 
   return (
     <header
@@ -51,6 +61,20 @@ export function TopBar() {
         >
           <Search className="h-4 w-4 text-apple-secondary" />
         </button>
+        {notifSupported && (
+          <button
+            onClick={toggleNotif}
+            aria-label={notifEnabled ? 'התראות פעילות' : 'הפעלת התראות'}
+            className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-full transition-colors',
+              notifEnabled
+                ? 'text-ios-blue bg-ios-blue/10'
+                : 'text-apple-secondary hover:bg-black/[0.06] dark:hover:bg-white/[0.1]',
+            )}
+          >
+            {notifEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+          </button>
+        )}
       </div>
 
       <div className="flex-1 flex justify-center min-w-0">
