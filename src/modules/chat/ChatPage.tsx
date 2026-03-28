@@ -475,7 +475,7 @@ export default function ChatPage() {
                   </div>
                 )}
                 {msg.sender === 'user' ? (
-                  <p className="text-[15px] leading-relaxed whitespace-pre-line">{msg.text}</p>
+                  <p className="text-[15px] leading-relaxed whitespace-pre-line" dir="auto">{msg.text}</p>
                 ) : (
                   <ChatMarkdown text={msg.text} />
                 )}
@@ -559,6 +559,7 @@ export default function ChatPage() {
             placeholder={isTyping ? 'מוטי חושב...' : 'שאלו את מוטי או בקשו עדכון...'}
             disabled={isTyping}
             rows={1}
+            dir="auto"
             className="flex-1 rounded-2xl bg-surface-primary px-4 py-2.5 text-[15px] text-apple-primary placeholder:text-apple-tertiary outline-none focus:ring-2 focus:ring-ios-blue/20 transition-shadow disabled:opacity-60 resize-none max-h-32 overflow-y-auto"
             style={{ minHeight: '40px' }}
           />

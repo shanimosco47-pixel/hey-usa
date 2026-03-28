@@ -108,7 +108,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
                   'focus:outline-none focus:ring-2 focus:ring-ios-blue/30',
                 )}
                 autoFocus
-                dir="rtl"
+                dir="auto"
               />
             </div>
 

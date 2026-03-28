@@ -335,7 +335,7 @@ export default function LocationHubPage() {
 
                     {/* Day notes */}
                     {day.notes && (
-                      <div className="glass rounded-apple-lg px-4 py-3 text-body text-apple-secondary">
+                      <div className="glass rounded-apple-lg px-4 py-3 text-body text-apple-secondary" dir="auto">
                         💡 {day.notes}
                       </div>
                     )}
@@ -358,7 +358,7 @@ export default function LocationHubPage() {
                                 {stop.title}
                               </h4>
                               {stop.description && (
-                                <p className="text-[13px] text-apple-secondary mt-0.5 line-clamp-2">
+                                <p className="text-[13px] text-apple-secondary mt-0.5 line-clamp-2" dir="auto">
                                   {stop.description}
                                 </p>
                               )}
@@ -381,7 +381,7 @@ export default function LocationHubPage() {
                                 )}
                               </div>
                               {stop.notes && (
-                                <p className="text-[12px] text-amber-700 bg-amber-50 rounded-lg px-2 py-1 mt-2">
+                                <p className="text-[12px] text-amber-700 bg-amber-50 rounded-lg px-2 py-1 mt-2" dir="auto">
                                   📌 {stop.notes}
                                 </p>
                               )}
@@ -443,7 +443,7 @@ export default function LocationHubPage() {
                           {doc.title}
                         </h4>
                         {doc.notes && (
-                          <p className="text-[12px] text-apple-secondary mt-0.5 line-clamp-2">
+                          <p className="text-[12px] text-apple-secondary mt-0.5 line-clamp-2" dir="auto">
                             {doc.notes}
                           </p>
                         )}

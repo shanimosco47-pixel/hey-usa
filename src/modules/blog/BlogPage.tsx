@@ -255,6 +255,7 @@ export default function BlogPage() {
           placeholder="כותרת הפוסט"
           value={editTitle}
           onChange={(e) => setEditTitle(e.target.value)}
+          dir="auto"
           className="w-full rounded-apple-lg border border-black/[0.06] glass px-4 py-3 text-lg font-bold text-apple-primary placeholder:text-apple-tertiary"
         />
         <RichTextEditor content={editContent} onChange={setEditContent} />
@@ -305,6 +306,7 @@ export default function BlogPage() {
           )}
           <div
             className="mt-6 text-sm text-apple-primary leading-relaxed [&_p]:mb-3 [&_strong]:font-bold [&_ul]:mr-4 [&_ul]:list-disc [&_li]:mb-1"
+            dir="auto"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedPost.content) }}
           />
         </div>
@@ -372,7 +374,7 @@ export default function BlogPage() {
                   )}
                   {post.title}
                 </h3>
-                <p className="mt-1.5 text-subhead text-apple-secondary leading-relaxed line-clamp-2">
+                <p className="mt-1.5 text-subhead text-apple-secondary leading-relaxed line-clamp-2" dir="auto">
                   {excerpt}...
                 </p>
                 <div className="mt-3 flex items-center justify-between">

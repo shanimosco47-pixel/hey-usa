@@ -124,6 +124,7 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="שם המשימה..."
+                dir="auto"
                 className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                 required
                 autoFocus
@@ -138,6 +139,7 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 placeholder="פרטים נוספים..."
                 rows={3}
+                dir="auto"
                 className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 resize-none"
               />
             </div>

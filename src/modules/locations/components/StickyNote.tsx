@@ -60,7 +60,7 @@ export const StickyNote = memo(function StickyNote({
       onMouseLeave={() => setShowActions(false)}
     >
       {/* Note text */}
-      <p className="text-[14px] leading-relaxed text-gray-800 font-medium whitespace-pre-wrap break-words">
+      <p className="text-[14px] leading-relaxed text-gray-800 font-medium whitespace-pre-wrap break-words" dir="auto">
         {note.text}
       </p>
 

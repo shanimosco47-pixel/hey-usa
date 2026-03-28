@@ -195,7 +195,7 @@ export const StopCard = memo(function StopCard({ stop, index, onUpdateTime }: St
 
           {/* Description */}
           {stop.description && (
-            <p className="mt-2 text-xs leading-relaxed text-apple-secondary">{stop.description}</p>
+            <p className="mt-2 text-xs leading-relaxed text-apple-secondary" dir="auto">{stop.description}</p>
           )}
 
           {/* Meta row: cost, booking */}
@@ -230,7 +230,7 @@ export const StopCard = memo(function StopCard({ stop, index, onUpdateTime }: St
           {stop.notes && (
             <div className="mt-3 flex gap-2 rounded-lg bg-black/[0.03] p-2">
               <StickyNote className="mt-0.5 h-3 w-3 flex-shrink-0 text-ios-orange" />
-              <p className="text-[11px] leading-relaxed text-apple-secondary">{stop.notes}</p>
+              <p className="text-[11px] leading-relaxed text-apple-secondary" dir="auto">{stop.notes}</p>
             </div>
           )}
 
