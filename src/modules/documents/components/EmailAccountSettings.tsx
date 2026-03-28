@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Mail, ChevronDown, ChevronUp, Trash2, Plus, Loader2 } from 'lucide-react'
 import { fetchEmailAccounts, deleteEmailAccount } from '@/lib/database'
 import { getGoogleOAuthUrl } from '@/lib/emailScan'
+import { useToast } from '@/components/shared/ToastContext'
 
 interface EmailAccount {
   id: string
@@ -17,6 +18,7 @@ export function EmailAccountSettings() {
   const [accounts, setAccounts] = useState<EmailAccount[]>([])
   const [loading, setLoading] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const { addToast } = useToast()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -49,7 +51,7 @@ export function EmailAccountSettings() {
       await deleteEmailAccount(id)
       setAccounts((prev) => prev.filter((a) => a.id !== id))
     } catch {
-      // TODO: show error toast
+      addToast('שגיאה בניתוק החשבון', 'error')
     } finally {
       setDeletingId(null)
     }
