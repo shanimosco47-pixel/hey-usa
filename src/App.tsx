@@ -132,8 +132,8 @@ function AppInner() {
               <Route path="tasks" element={<TasksPage />} />
               <Route path="itinerary" element={<ItineraryPage />} />
               <Route path="itinerary/:day" element={<ItineraryPage />} />
-              <Route path="campsites" element={<CampsitesPage />} />
-              <Route path="campsites/v2" element={<CampsitesPageV2 />} />
+              <Route path="campsites" element={<CampsitesPageV2 />} />
+              <Route path="campsites/old" element={<CampsitesPage />} />
               <Route path="documents" element={<DocumentsPage />} />
               <Route path="map" element={<MapPage />} />
               <Route path="photos" element={<PhotosPage />} />

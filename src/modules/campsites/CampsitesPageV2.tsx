@@ -11,8 +11,9 @@ import {
   ChevronDown,
   ChevronUp,
   DollarSign,
-  FileText,
   Pencil,
+  ExternalLink,
+  Link2,
 } from 'lucide-react'
 import type { CampsiteBooking, BookingStatus, AccommodationType } from '@/types'
 import { useCampsiteBookings } from './hooks/useCampsiteBookings'
@@ -230,6 +231,20 @@ function InlineEdit({
   )
 }
 
+// ── Region emoji ────────────────────────────────────────────────
+const REGION_EMOJI: Record<string, string> = {
+  Denver: '✈️',
+  Yellowstone: '🌋',
+  'Grand Teton / Jackson': '🏔️',
+  'Utah Transit': '🚐',
+  'Bryce Canyon': '🪨',
+  Zion: '⛰️',
+  'Las Vegas': '🎰',
+  'Mammoth Lakes': '🎿',
+  Yosemite: '🌲',
+  'San Francisco Bay': '🌉',
+}
+
 // ── Booking Card ─────────────────────────────────────────────────
 function BookingCard({
   booking,
@@ -242,6 +257,7 @@ function BookingCard({
   const meta = STATUS_META[booking.status]
   const typeInfo = TYPE_ICON[booking.type] ?? TYPE_ICON.unknown
   const deadlineWarning = isWithin14Days(booking.cancellation_deadline)
+  const nights = daysBetween(booking.check_in, booking.check_out)
 
   const handleFieldSave = useCallback(
     (field: string, val: string) => {
@@ -258,8 +274,8 @@ function BookingCard({
       transition={{ type: 'spring', stiffness: 400, damping: 17 }}
       id={`booking-${booking.id}`}
     >
-      <GlassCard padding="sm" className={cn('border-r-4', meta.border)}>
-        {/* Status badge */}
+      <GlassCard padding="sm" className={cn('border-r-4', meta.border, 'relative')}>
+        {/* Top row: status + type + nights */}
         <div className="flex items-center justify-between mb-2">
           <span
             className={cn(
@@ -270,65 +286,100 @@ function BookingCard({
           >
             {meta.label}
           </span>
-          <span className="text-lg">{typeInfo.icon}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-caption text-apple-secondary">
+              {nights} {nights === 1 ? 'לילה' : 'לילות'}
+            </span>
+            <span className="text-lg">{typeInfo.icon}</span>
+          </div>
         </div>
 
-        {/* Location */}
-        <h4 className="text-headline text-apple-primary dark:text-white truncate">
+        {/* Location — bold and prominent */}
+        <h4 className="text-headline text-apple-primary dark:text-white leading-tight">
           {booking.location}
         </h4>
+        <p className="text-caption text-apple-tertiary">{booking.area}</p>
 
-        {/* Dates */}
-        <p className="text-subhead text-apple-secondary mt-1" dir="ltr">
-          <Calendar className="w-3.5 h-3.5 inline-block ml-1" />
-          {formatRange(booking.check_in, booking.check_out)}
-        </p>
+        {/* Date range */}
+        <div className="flex items-center gap-1.5 mt-2 text-subhead text-apple-secondary" dir="ltr">
+          <Calendar className="w-3.5 h-3.5 shrink-0" />
+          <span>{formatRange(booking.check_in, booking.check_out)}</span>
+        </div>
 
-        {/* Type */}
-        <p className="text-caption text-apple-secondary mt-1">
-          {typeInfo.icon} {typeInfo.label}
-        </p>
-
-        {/* Cost */}
-        {booking.cost != null && (
-          <p className="text-subhead text-apple-primary dark:text-white mt-1" dir="ltr">
-            <DollarSign className="w-3.5 h-3.5 inline-block ml-1" />${booking.cost}
-            <InlineEdit value={String(booking.cost)} field="cost" onSave={handleFieldSave} />
-          </p>
-        )}
-
-        {/* Confirmation */}
-        {booking.confirmation && (
-          <p className="text-caption text-apple-secondary mt-1 truncate" dir="ltr">
-            <FileText className="w-3 h-3 inline-block ml-1" />
-            {booking.confirmation}
-          </p>
+        {/* Cost + Confirmation row */}
+        {(booking.cost != null || booking.confirmation) && (
+          <div className="flex items-center gap-3 mt-2 flex-wrap">
+            {booking.cost != null && (
+              <span
+                className="text-subhead font-semibold text-apple-primary dark:text-white"
+                dir="ltr"
+              >
+                <DollarSign className="w-3.5 h-3.5 inline-block" />
+                {booking.cost}
+                <InlineEdit value={String(booking.cost)} field="cost" onSave={handleFieldSave} />
+              </span>
+            )}
+            {booking.confirmation && (
+              <span className="text-caption text-apple-secondary font-mono" dir="ltr">
+                {booking.confirmation}
+              </span>
+            )}
+          </div>
         )}
 
         {/* Cancellation warning */}
         {deadlineWarning && (
-          <div className="mt-2 flex items-center gap-1 text-caption text-ios-red">
+          <div className="mt-2 flex items-center gap-1.5 text-caption text-ios-red bg-ios-red/10 rounded-apple-sm px-2 py-1">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
             <span>ביטול עד {formatDay(booking.cancellation_deadline!)}</span>
           </div>
         )}
 
-        {/* Expand toggle for notes */}
-        {booking.notes && (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="mt-2 flex items-center gap-1 text-caption text-ios-blue hover:underline"
-          >
-            {expanded ? (
-              <ChevronUp className="w-3.5 h-3.5" />
-            ) : (
-              <ChevronDown className="w-3.5 h-3.5" />
-            )}
-            {expanded ? 'הסתר הערות' : 'הערות'}
-          </button>
-        )}
+        {/* Action buttons row */}
+        <div className="flex items-center gap-2 mt-3 flex-wrap">
+          {/* Website link */}
+          {booking.booking_url && (
+            <a
+              href={booking.booking_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-caption text-ios-blue hover:underline font-medium"
+            >
+              <ExternalLink className="w-3 h-3" />
+              אתר
+            </a>
+          )}
+
+          {/* Document link */}
+          {booking.document_id && (
+            <a
+              href={`/hey-usa/documents?doc=${booking.document_id}`}
+              className="inline-flex items-center gap-1 text-caption text-ios-purple hover:underline font-medium"
+            >
+              <Link2 className="w-3 h-3" />
+              מסמך
+            </a>
+          )}
+
+          {/* Notes toggle */}
+          {booking.notes && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="inline-flex items-center gap-1 text-caption text-apple-secondary hover:text-ios-blue transition-colors"
+            >
+              {expanded ? (
+                <ChevronUp className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5" />
+              )}
+              {expanded ? 'הסתר' : 'הערות'}
+            </button>
+          )}
+        </div>
+
+        {/* Expanded notes */}
         {expanded && booking.notes && (
-          <p className="mt-1 text-caption text-apple-secondary whitespace-pre-wrap">
+          <p className="mt-2 text-caption text-apple-secondary whitespace-pre-wrap bg-black/[0.02] dark:bg-white/[0.04] rounded-apple-sm p-2">
             {booking.notes}
           </p>
         )}
@@ -444,7 +495,9 @@ export default function CampsitesPageV2() {
       {groups.map((group) => (
         <section key={`${group.region}-${group.bookings[0].check_in}`}>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-headline text-apple-primary dark:text-white">{group.region}</h3>
+            <h3 className="text-headline text-apple-primary dark:text-white">
+              {REGION_EMOJI[group.region] || '📍'} {group.region}
+            </h3>
             <span className="text-caption text-apple-secondary" dir="ltr">
               {group.dateRange} · {group.bookings.length}
             </span>
