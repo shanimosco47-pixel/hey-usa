@@ -322,7 +322,7 @@ export default function TasksPage() {
                   key={opt.value}
                   onClick={() => toggleStatusFilter(opt.value)}
                   className={cn(
-                    'rounded-full px-2.5 py-1 text-[11px] font-medium transition-all border',
+                    'rounded-full px-2.5 py-1 text-caption font-medium transition-all border',
                     active
                       ? `${cfg?.bg} ${cfg?.color} border-transparent`
                       : 'border-black/[0.06] bg-transparent text-apple-tertiary hover:bg-black/[0.03]',
@@ -343,7 +343,7 @@ export default function TasksPage() {
                   key={opt.value}
                   onClick={() => togglePriorityFilter(opt.value)}
                   className={cn(
-                    'rounded-full px-2.5 py-1 text-[11px] font-medium transition-all border',
+                    'rounded-full px-2.5 py-1 text-caption font-medium transition-all border',
                     active
                       ? 'border-ios-blue bg-ios-blue/10 text-ios-blue'
                       : 'border-black/[0.06] bg-transparent text-apple-tertiary hover:bg-black/[0.03]',

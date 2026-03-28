@@ -40,12 +40,12 @@ export default function LocationsPage() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-sm mb-3">
               <MapPin className="h-4 w-4 text-white" />
-              <span className="text-[13px] font-semibold text-white tracking-wide">
+              <span className="text-subhead font-semibold text-white tracking-wide">
                 {LOCATIONS.length} יעדים
               </span>
             </div>
             <h1 className="text-title sm:text-hero text-white drop-shadow-lg mb-1">🗺️ היעדים שלנו</h1>
-            <p className="text-[15px] text-white/80 font-medium">
+            <p className="text-body text-white/80 font-medium">
               לחצו על יעד כדי לראות הערות, מסמכים ותכנון
             </p>
           </motion.div>

@@ -88,8 +88,8 @@ function PassportStamp({ text, date, rotation = -12 }: { text: string; date: str
       }}
     >
       <div className="absolute rounded-full" style={{ inset: 4, border: '1px dashed rgba(180, 83, 9, 0.4)' }} />
-      <span className="font-serif text-[9px] font-semibold uppercase tracking-wider">{text}</span>
-      <span className="font-serif text-[11px] font-bold">{date}</span>
+      <span className="font-serif text-caption font-semibold uppercase tracking-wider">{text}</span>
+      <span className="font-serif text-caption font-bold">{date}</span>
     </div>
   )
 }
@@ -204,10 +204,10 @@ export default function DashboardPage() {
               <div className="flex items-center gap-3">
                 <PassportStamp text="USA" date="SEP 26" rotation={-8} />
                 <div>
-                  <h1 className="font-serif text-[28px] font-semibold text-passport-slate leading-none tracking-tight">
+                  <h1 className="font-serif text-hero font-semibold text-passport-slate leading-none tracking-tight">
                     <span dir="ltr">Hey USA</span>
                   </h1>
-                  <p className="text-[13px] text-apple-secondary mt-1" dir="ltr">
+                  <p className="text-subhead text-apple-secondary mt-1" dir="ltr">
                     Bozeman → San Francisco
                   </p>
                 </div>
@@ -224,8 +224,8 @@ export default function DashboardPage() {
 
             {/* Date & greeting */}
             <div className="mb-4">
-              <p className="text-[13px] text-apple-secondary tracking-wide">{todayDate}</p>
-              <p className="mt-0.5 text-[17px] font-semibold text-passport-slate">
+              <p className="text-subhead text-apple-secondary tracking-wide">{todayDate}</p>
+              <p className="mt-0.5 text-headline font-semibold text-passport-slate">
                 {memberData ? `שלום, ${memberData.name}` : 'שלום!'}
               </p>
             </div>
@@ -243,19 +243,19 @@ export default function DashboardPage() {
               >
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <div className="font-serif text-[36px] font-bold leading-none">
+                    <div className="font-serif text-hero font-bold leading-none">
                       <NumberTicker value={daysLeft} delay={0.2} />
                     </div>
                     <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">ימים לטיסה</div>
                   </div>
                   <div className="border-x border-white/10">
-                    <div className="font-serif text-[36px] font-bold leading-none">
+                    <div className="font-serif text-hero font-bold leading-none">
                       <NumberTicker value={2400} delay={0.4} />
                     </div>
                     <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">מיילים</div>
                   </div>
                   <div>
-                    <div className="font-serif text-[36px] font-bold leading-none">
+                    <div className="font-serif text-hero font-bold leading-none">
                       <NumberTicker value={21} delay={0.6} />
                     </div>
                     <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">ימי טיול</div>
@@ -277,9 +277,9 @@ export default function DashboardPage() {
                   className="shrink-0 rounded-apple px-4 py-3 text-white min-w-[140px] flex flex-col gap-1"
                   style={{ background: d.gradient }}
                 >
-                  <span className="text-[20px]">{d.emoji}</span>
-                  <span className="text-[14px] font-semibold">{d.name}</span>
-                  <span className="text-[11px] opacity-85">{d.days} · {d.state}</span>
+                  <span className="text-title">{d.emoji}</span>
+                  <span className="text-body font-semibold">{d.name}</span>
+                  <span className="text-caption opacity-85">{d.days} · {d.state}</span>
                 </div>
               ))}
             </Marquee>
@@ -333,14 +333,14 @@ export default function DashboardPage() {
                 style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[14px] font-semibold text-passport-slate">🛣️ מסלול הטיול</span>
+                  <span className="text-body font-semibold text-passport-slate">🛣️ מסלול הטיול</span>
                   {tripDayIndex !== null && (
-                    <span className="text-[11px] font-bold text-white bg-ios-green rounded-full px-2 py-0.5">
+                    <span className="text-caption font-bold text-white bg-ios-green rounded-full px-2 py-0.5">
                       יום {tripDayIndex + 1} מתוך {itineraryDays.length}
                     </span>
                   )}
                   {tripDayIndex === null && daysLeft > 0 && (
-                    <span className="text-[11px] font-medium text-apple-secondary">
+                    <span className="text-caption font-medium text-apple-secondary">
                       עוד {daysLeft} ימים
                     </span>
                   )}
@@ -415,7 +415,7 @@ export default function DashboardPage() {
                                 {isCurrent && <span className="text-[8px]">📍</span>}
                               </div>
                               <span
-                                className="text-[9px] mt-1 font-medium text-center leading-tight"
+                                className="text-caption mt-1 font-medium text-center leading-tight"
                                 style={{
                                   color: dayNumColor,
                                   fontWeight: isCurrent ? 700 : allFuture ? 600 : 500,
@@ -463,7 +463,7 @@ export default function DashboardPage() {
                     <div className="relative flex flex-col items-center gap-3 py-5 px-2">
                       {countKey && badgeCounts[countKey] > 0 && (
                         <span
-                          className="absolute -top-1.5 -start-1.5 flex h-5 min-w-5 items-center justify-center rounded-full text-[10px] font-bold text-white px-1 z-50"
+                          className="absolute -top-1.5 -start-1.5 flex h-5 min-w-5 items-center justify-center rounded-full text-caption font-bold text-white px-1 z-50"
                           style={{ backgroundColor: color }}
                         >
                           {badgeCounts[countKey]}
@@ -475,7 +475,7 @@ export default function DashboardPage() {
                       >
                         <Icon className="h-[22px] w-[22px]" style={{ color }} strokeWidth={1.8} />
                       </div>
-                      <span className="text-[13px] font-medium text-passport-slate">{label}</span>
+                      <span className="text-subhead font-medium text-passport-slate">{label}</span>
                     </div>
                   </MagicCard>
                 </Link>
@@ -507,7 +507,7 @@ export default function DashboardPage() {
                         <div className="flex h-7 w-7 items-center justify-center rounded-apple-sm bg-ios-orange/10">
                           <AlertTriangle className="h-4 w-4 text-ios-orange" strokeWidth={2.2} />
                         </div>
-                        <h3 className="text-[14px] font-bold text-passport-slate">דורש תשומת לב</h3>
+                        <h3 className="text-body font-bold text-passport-slate">דורש תשומת לב</h3>
                         <span className="ms-auto text-caption font-semibold rounded-full px-2 py-0.5 bg-ios-orange/10 text-ios-orange">
                           {attentionItems.length}
                         </span>
@@ -516,12 +516,12 @@ export default function DashboardPage() {
                         {attentionItems.map((item, i) => (
                           <Link to="/tasks" key={item.task.id}>
                             <div className={`flex items-center gap-2.5 py-2 ${i < attentionItems.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                              <span className="shrink-0 text-[10px] font-bold rounded-full px-2 py-0.5 text-white" style={{ backgroundColor: item.color }}>
+                              <span className="shrink-0 text-caption font-bold rounded-full px-2 py-0.5 text-white" style={{ backgroundColor: item.color }}>
                                 {item.reason}
                               </span>
-                              <span className="text-[13px] text-passport-slate truncate flex-1">{item.task.title}</span>
+                              <span className="text-subhead text-passport-slate truncate flex-1">{item.task.title}</span>
                               {item.task.due_date && (
-                                <span className="text-[11px] text-apple-secondary shrink-0 font-medium tabular-nums">
+                                <span className="text-caption text-apple-secondary shrink-0 font-medium tabular-nums">
                                   {new Date(item.task.due_date + 'T00:00:00').toLocaleDateString('he-IL', { day: 'numeric', month: 'short' })}
                                 </span>
                               )}
@@ -547,25 +547,25 @@ export default function DashboardPage() {
                               <MapPin className="h-4 w-4 text-ios-orange" strokeWidth={2} />
                             </div>
                             <div>
-                              <p className="text-[15px] font-semibold text-passport-slate">{nextDay.city || nextDay.title}</p>
-                              <p className="text-[11px] text-apple-secondary">
+                              <p className="text-body font-semibold text-passport-slate">{nextDay.city || nextDay.title}</p>
+                              <p className="text-caption text-apple-secondary">
                                 {tripDayIndex !== null ? `יום ${tripDayIndex + 1}` : `יום 1`} — {nextDay.title}
                               </p>
                             </div>
                           </div>
-                          <span className="text-[11px] text-apple-secondary font-medium">{nextDay.stops.length} עצירות</span>
+                          <span className="text-caption text-apple-secondary font-medium">{nextDay.stops.length} עצירות</span>
                         </div>
                         {nextDay.stops.slice(0, 2).map((stop, i) => (
                           <div key={stop.id || i} className="flex items-center gap-2 py-1.5">
                             <div className="h-1.5 w-1.5 rounded-full bg-ios-orange shrink-0" />
-                            <span className="text-[13px] text-apple-secondary truncate">{stop.title}</span>
+                            <span className="text-subhead text-apple-secondary truncate">{stop.title}</span>
                             {stop.start_time && (
-                              <span className="text-[11px] text-apple-secondary ms-auto">{stop.start_time}</span>
+                              <span className="text-caption text-apple-secondary ms-auto">{stop.start_time}</span>
                             )}
                           </div>
                         ))}
                         {nextDay.stops.length > 2 && (
-                          <p className="text-[11px] text-apple-secondary mt-1">+{nextDay.stops.length - 2} עצירות נוספות</p>
+                          <p className="text-caption text-apple-secondary mt-1">+{nextDay.stops.length - 2} עצירות נוספות</p>
                         )}
                       </div>
                     </Link>
@@ -603,7 +603,7 @@ export default function DashboardPage() {
                           <div className="flex h-7 w-7 items-center justify-center rounded-apple-sm bg-ios-orange/10">
                             <AlertTriangle className="h-4 w-4 text-ios-orange" strokeWidth={2.2} />
                           </div>
-                          <h3 className="text-[14px] font-bold text-passport-slate">דורש תשומת לב</h3>
+                          <h3 className="text-body font-bold text-passport-slate">דורש תשומת לב</h3>
                           <span className="ms-auto text-caption font-semibold rounded-full px-2 py-0.5 bg-ios-orange/10 text-ios-orange">
                             {attentionItems.length}
                           </span>
@@ -612,12 +612,12 @@ export default function DashboardPage() {
                           {attentionItems.map((item, i) => (
                             <Link to="/tasks" key={item.task.id}>
                               <div className={`flex items-center gap-2.5 py-2 ${i < attentionItems.length - 1 ? 'border-b border-gray-100' : ''}`}>
-                                <span className="shrink-0 text-[10px] font-bold rounded-full px-2 py-0.5 text-white" style={{ backgroundColor: item.color }}>
+                                <span className="shrink-0 text-caption font-bold rounded-full px-2 py-0.5 text-white" style={{ backgroundColor: item.color }}>
                                   {item.reason}
                                 </span>
-                                <span className="text-[13px] text-passport-slate truncate flex-1">{item.task.title}</span>
+                                <span className="text-subhead text-passport-slate truncate flex-1">{item.task.title}</span>
                                 {item.task.due_date && (
-                                  <span className="text-[11px] text-apple-secondary shrink-0 font-medium tabular-nums">
+                                  <span className="text-caption text-apple-secondary shrink-0 font-medium tabular-nums">
                                     {new Date(item.task.due_date + 'T00:00:00').toLocaleDateString('he-IL', { day: 'numeric', month: 'short' })}
                                   </span>
                                 )}
@@ -642,25 +642,25 @@ export default function DashboardPage() {
                                 <MapPin className="h-4 w-4 text-ios-orange" strokeWidth={2} />
                               </div>
                               <div>
-                                <p className="text-[15px] font-semibold text-passport-slate">{nextDay.city || nextDay.title}</p>
-                                <p className="text-[11px] text-apple-secondary">
+                                <p className="text-body font-semibold text-passport-slate">{nextDay.city || nextDay.title}</p>
+                                <p className="text-caption text-apple-secondary">
                                   {tripDayIndex !== null ? `יום ${tripDayIndex + 1}` : `יום 1`} — {nextDay.title}
                                 </p>
                               </div>
                             </div>
-                            <span className="text-[11px] text-apple-secondary font-medium">{nextDay.stops.length} עצירות</span>
+                            <span className="text-caption text-apple-secondary font-medium">{nextDay.stops.length} עצירות</span>
                           </div>
                           {nextDay.stops.slice(0, 2).map((stop, i) => (
                             <div key={stop.id || i} className="flex items-center gap-2 py-1.5">
                               <div className="h-1.5 w-1.5 rounded-full bg-ios-orange shrink-0" />
-                              <span className="text-[13px] text-apple-secondary truncate">{stop.title}</span>
+                              <span className="text-subhead text-apple-secondary truncate">{stop.title}</span>
                               {stop.start_time && (
-                                <span className="text-[11px] text-apple-secondary ms-auto">{stop.start_time}</span>
+                                <span className="text-caption text-apple-secondary ms-auto">{stop.start_time}</span>
                               )}
                             </div>
                           ))}
                           {nextDay.stops.length > 2 && (
-                            <p className="text-[11px] text-apple-secondary mt-1">+{nextDay.stops.length - 2} עצירות נוספות</p>
+                            <p className="text-caption text-apple-secondary mt-1">+{nextDay.stops.length - 2} עצירות נוספות</p>
                           )}
                         </div>
                       </Link>

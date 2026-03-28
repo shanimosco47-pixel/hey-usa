@@ -77,7 +77,7 @@ export function TableView({ tasksByGroup, onToggleDone, onCycleStatus, onTaskCli
 
             {/* Column headers */}
             {!isCollapsed && tasks.length > 0 && (
-              <div className="flex items-center gap-3 border-b border-black/[0.04] bg-black/[0.03] px-4 py-1.5 text-[11px] font-semibold text-apple-secondary">
+              <div className="flex items-center gap-3 border-b border-black/[0.04] bg-black/[0.03] px-4 py-1.5 text-caption font-semibold text-apple-secondary">
                 <div className="w-5 shrink-0" />
                 <div className="flex-1">משימה</div>
                 <div className="shrink-0 text-center">סטטוס</div>

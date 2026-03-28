@@ -60,14 +60,14 @@ export const StickyNote = memo(function StickyNote({
       onMouseLeave={() => setShowActions(false)}
     >
       {/* Note text */}
-      <p className="text-[14px] leading-relaxed text-gray-800 font-medium whitespace-pre-wrap break-words" dir="auto">
+      <p className="text-body leading-relaxed text-gray-800 font-medium whitespace-pre-wrap break-words" dir="auto">
         {note.text}
       </p>
 
       {/* Bottom row: avatar + time */}
       <div className="flex items-center justify-between mt-3 pt-2 border-t border-black/[0.06]">
         <FamilyAvatar memberId={note.author} size="xs" />
-        <span className="text-[10px] text-gray-500">{timeAgo(note.updated_at)}</span>
+        <span className="text-caption text-gray-500">{timeAgo(note.updated_at)}</span>
       </div>
 
       {/* Pin indicator */}

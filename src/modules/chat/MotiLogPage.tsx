@@ -112,11 +112,11 @@ export default function MotiLogPage() {
                   {entry.description}
                 </p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[11px] text-apple-tertiary">
+                  <span className="text-caption text-apple-tertiary">
                     {formatTimestamp(entry.timestamp)}
                   </span>
                   {entry.previousValue !== null && entry.previousValue !== undefined && (
-                    <span className="text-[11px] text-apple-secondary">
+                    <span className="text-caption text-apple-secondary">
                       מ-{formatPreviousValue(entry.previousValue)}
                     </span>
                   )}

@@ -304,7 +304,7 @@ function StatusBadge({ status }: { status: 'reserved' | 'waitlist' | 'both' }) {
   const config = STATUS_CONFIG[status]
   const Icon = config.icon
   return (
-    <span className={cn('shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold', config.className)}>
+    <span className={cn('shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-semibold', config.className)}>
       <Icon className="h-3 w-3" />
       {config.label}
     </span>
@@ -387,7 +387,7 @@ function ListRow({
       {(isExpired || isExpiringSoon) && (
         <span
           className={cn(
-            'shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold',
+            'shrink-0 rounded-full px-2 py-0.5 text-caption font-semibold',
             isExpired ? 'bg-red-500 text-white' : 'bg-amber-400 text-amber-900',
           )}
         >
@@ -398,7 +398,7 @@ function ListRow({
       {/* Upload date column — hidden for sample data */}
       <div className="shrink-0 w-20 text-left">
         {!isSampleData(doc.id) && (
-          <div className="flex items-center gap-1 text-[11px] text-apple-secondary">
+          <div className="flex items-center gap-1 text-caption text-apple-secondary">
             <Calendar className="h-3 w-3" />
             <span>{new Date(doc.created_at).toLocaleDateString('he-IL')}</span>
           </div>

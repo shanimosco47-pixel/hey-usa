@@ -84,10 +84,10 @@ export function TopBar() {
       </div>
 
       <div className="flex flex-col items-end shrink-0">
-        <h1 className="text-[15px] sm:text-[17px] font-bold tracking-tight text-apple-primary whitespace-nowrap">
+        <h1 className="text-body sm:text-headline font-bold tracking-tight text-apple-primary whitespace-nowrap">
           Hey USA
         </h1>
-        <span className="text-[11px] font-extrabold text-apple-primary dark:text-white/80 tabular-nums whitespace-nowrap">
+        <span className="text-caption font-extrabold text-apple-primary dark:text-white/80 tabular-nums whitespace-nowrap">
           v{APP_VERSION} • {buildTimeFormatted()}
         </span>
       </div>

@@ -311,7 +311,7 @@ export function DailyBudgetTable() {
         )}
         title={cell.isUserSet ? 'הוזן ידנית' : 'הערכת מוטי 🤖 — לחץ לעריכה'}
       >
-        {!cell.isUserSet && <span className="text-[9px] opacity-60">🤖</span>}
+        {!cell.isUserSet && <span className="text-caption opacity-60">🤖</span>}
         <span dir="ltr">{cell.value}</span>
         <Pencil className="h-2.5 w-2.5 text-apple-tertiary opacity-0 group-hover:opacity-100" />
       </button>
@@ -321,7 +321,7 @@ export function DailyBudgetTable() {
   return (
     <div className="space-y-4">
       {/* Legend */}
-      <div className="flex items-center gap-4 text-[11px] text-apple-secondary">
+      <div className="flex items-center gap-4 text-caption text-apple-secondary">
         <span className="flex items-center gap-1">
           <span className="italic text-apple-secondary">🤖 123</span> = הערכת מוטי
         </span>
@@ -372,7 +372,7 @@ export function DailyBudgetTable() {
         <div className="px-3 py-2 border-b border-black/[0.06] bg-ios-green/5">
           <h3 className="text-sm font-bold text-apple-primary">📅 תקציב יומי</h3>
           {isDesktop && (
-            <p className="text-[10px] text-apple-secondary">גללו ימינה לראות את כל הימים</p>
+            <p className="text-caption text-apple-secondary">גללו ימינה לראות את כל הימים</p>
           )}
         </div>
 
@@ -382,7 +382,7 @@ export function DailyBudgetTable() {
             <table className="w-full text-xs border-collapse min-w-[800px]">
               <thead>
                 <tr className="bg-black/[0.02]">
-                  <th className="sticky right-0 z-10 bg-white/90 backdrop-blur-sm py-2 px-2 text-right text-[11px] font-bold text-apple-primary border-l border-black/[0.06] min-w-[100px]">
+                  <th className="sticky right-0 z-10 bg-white/90 backdrop-blur-sm py-2 px-2 text-right text-caption font-bold text-apple-primary border-l border-black/[0.06] min-w-[100px]">
                     קטגוריה
                   </th>
                   {itineraryDays.map((day, i) => (
@@ -390,9 +390,9 @@ export function DailyBudgetTable() {
                       key={day.id}
                       className="py-2 px-1.5 text-center min-w-[60px] border-l border-black/[0.04]"
                     >
-                      <div className="text-[10px] font-bold text-apple-primary">יום {i + 1}</div>
+                      <div className="text-caption font-bold text-apple-primary">יום {i + 1}</div>
                       <div
-                        className="text-[9px] text-apple-tertiary truncate max-w-[60px]"
+                        className="text-caption text-apple-tertiary truncate max-w-[60px]"
                         title={day.city}
                       >
                         {day.city?.split('→')[0]?.trim()?.slice(0, 8) || ''}
@@ -400,14 +400,14 @@ export function DailyBudgetTable() {
                     </th>
                   ))}
                   <th className="py-2 px-2 text-center min-w-[70px] bg-black/[0.03] border-r border-black/[0.06]">
-                    <div className="text-[10px] font-bold text-apple-primary">סה״כ</div>
+                    <div className="text-caption font-bold text-apple-primary">סה״כ</div>
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {BUDGET_ROWS.map((row) => (
                   <tr key={row.key} className="border-b border-black/[0.03]">
-                    <td className="sticky right-0 z-10 bg-white/90 backdrop-blur-sm py-1.5 px-2 text-right text-[11px] font-medium text-apple-primary whitespace-nowrap border-l border-black/[0.06]">
+                    <td className="sticky right-0 z-10 bg-white/90 backdrop-blur-sm py-1.5 px-2 text-right text-caption font-medium text-apple-primary whitespace-nowrap border-l border-black/[0.06]">
                       {row.emoji} {row.label}
                     </td>
                     {itineraryDays.map((day) => {
@@ -429,19 +429,19 @@ export function DailyBudgetTable() {
                 ))}
                 {/* Daily totals row */}
                 <tr className="bg-black/[0.02] border-t border-black/[0.08]">
-                  <td className="sticky right-0 z-10 bg-gray-50/90 backdrop-blur-sm py-2 px-2 text-right text-[11px] font-bold text-apple-primary border-l border-black/[0.06]">
+                  <td className="sticky right-0 z-10 bg-gray-50/90 backdrop-blur-sm py-2 px-2 text-right text-caption font-bold text-apple-primary border-l border-black/[0.06]">
                     סה״כ יומי
                   </td>
                   {itineraryDays.map((day) => (
                     <td
                       key={day.id}
-                      className="py-2 px-1 text-center text-[11px] font-bold text-apple-primary border-l border-black/[0.04]"
+                      className="py-2 px-1 text-center text-caption font-bold text-apple-primary border-l border-black/[0.04]"
                     >
                       {currency}
                       {(dayTotals[day.id] || 0).toLocaleString()}
                     </td>
                   ))}
-                  <td className="py-2 px-2 text-center text-[11px] font-bold text-ios-blue bg-black/[0.03] border-r border-black/[0.06]">
+                  <td className="py-2 px-2 text-center text-caption font-bold text-ios-blue bg-black/[0.03] border-r border-black/[0.06]">
                     {currency}
                     {(grandTotal - pretripTotal).toLocaleString()}
                   </td>
@@ -474,7 +474,7 @@ export function DailyBudgetTable() {
                   >
                     <span className="text-xs font-bold text-apple-primary">יום {i + 1}</span>
                     {day.city && (
-                      <span className="text-[11px] text-apple-secondary truncate max-w-[120px]">
+                      <span className="text-caption text-apple-secondary truncate max-w-[120px]">
                         {day.city.split('→')[0]?.trim() || ''}
                       </span>
                     )}
@@ -500,7 +500,7 @@ export function DailyBudgetTable() {
                             key={row.key}
                             className="flex items-center justify-between px-3 py-1.5"
                           >
-                            <span className="text-[11px] text-apple-primary">
+                            <span className="text-caption text-apple-primary">
                               {row.emoji} {row.label}
                             </span>
                             <div dir="ltr">{renderCell(cellKey, estimate)}</div>
@@ -508,7 +508,7 @@ export function DailyBudgetTable() {
                         )
                       })}
                       <div className="flex items-center justify-between px-3 py-2 bg-black/[0.02]">
-                        <span className="text-[11px] font-bold text-apple-primary">סה״כ</span>
+                        <span className="text-caption font-bold text-apple-primary">סה״כ</span>
                         <span className="text-xs font-bold text-ios-blue" dir="ltr">
                           {currency}
                           {dayTotal.toLocaleString()}

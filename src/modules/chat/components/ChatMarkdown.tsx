@@ -20,13 +20,13 @@ const components: Components = {
     const isBlock = className?.includes('language-')
     if (isBlock) {
       return (
-        <pre dir="ltr" className="bg-surface-primary rounded-apple-sm p-2 my-1.5 overflow-x-auto text-[13px]">
+        <pre dir="ltr" className="bg-surface-primary rounded-apple-sm p-2 my-1.5 overflow-x-auto text-subhead">
           <code>{children}</code>
         </pre>
       )
     }
     return (
-      <code dir="ltr" className="bg-surface-primary rounded-apple-sm px-1 py-0.5 text-[13px]">
+      <code dir="ltr" className="bg-surface-primary rounded-apple-sm px-1 py-0.5 text-subhead">
         {children}
       </code>
     )
@@ -40,7 +40,7 @@ const components: Components = {
   ),
   table: ({ children }) => (
     <div className="overflow-x-auto my-1.5">
-      <table className="w-full text-[13px] border-collapse">{children}</table>
+      <table className="w-full text-subhead border-collapse">{children}</table>
     </div>
   ),
   th: ({ children }) => (
@@ -60,7 +60,7 @@ interface ChatMarkdownProps {
 export function ChatMarkdown({ text, className }: ChatMarkdownProps) {
   const sanitized = DOMPurify.sanitize(text)
   return (
-    <div className={`text-[15px] leading-relaxed ${className || ''}`}>
+    <div className={`text-body leading-relaxed ${className || ''}`}>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {sanitized}
       </ReactMarkdown>

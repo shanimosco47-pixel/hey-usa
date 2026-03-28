@@ -238,7 +238,7 @@ export default function BlogPage() {
                         <p className="text-xs font-semibold text-apple-primary mt-1 line-clamp-1">
                           {prompt.title}
                         </p>
-                        <p className="text-[10px] text-apple-tertiary mt-0.5 line-clamp-1">
+                        <p className="text-caption text-apple-tertiary mt-0.5 line-clamp-1">
                           {prompt.starter.slice(0, 40)}...
                         </p>
                       </button>
@@ -368,7 +368,7 @@ export default function BlogPage() {
               >
                 <h3 className="text-headline font-bold text-apple-primary">
                   {isSampleData(post.id) && (
-                    <span className="text-[10px] ms-1 opacity-60" title="דוגמה מאת מוטי">
+                    <span className="text-caption ms-1 opacity-60" title="דוגמה מאת מוטי">
                       🤖
                     </span>
                   )}
@@ -390,7 +390,7 @@ export default function BlogPage() {
                       {post.tags.slice(0, 2).map((tag) => (
                         <span
                           key={tag}
-                          className="rounded-full bg-ios-blue/10 px-2 py-0.5 text-[10px] font-medium text-ios-blue"
+                          className="rounded-full bg-ios-blue/10 px-2 py-0.5 text-caption font-medium text-ios-blue"
                         >
                           #{tag}
                         </span>

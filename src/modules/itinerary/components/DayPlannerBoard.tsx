@@ -106,7 +106,7 @@ function TimelineStop({ stop }: { stop: ItineraryStop }) {
         {height >= 52 && stop.location && (
           <div className="flex items-center gap-1">
             <MapPin className="h-3 w-3 flex-shrink-0 text-apple-secondary" />
-            <span className="text-[11px] text-apple-secondary truncate" dir="ltr">
+            <span className="text-caption text-apple-secondary truncate" dir="ltr">
               {stop.location}
             </span>
           </div>
@@ -115,7 +115,7 @@ function TimelineStop({ stop }: { stop: ItineraryStop }) {
         {height >= 44 && (
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3 flex-shrink-0 text-apple-secondary" />
-            <span className="text-[11px] font-medium text-apple-secondary" dir="ltr">
+            <span className="text-caption font-medium text-apple-secondary" dir="ltr">
               {timeRange}
             </span>
           </div>
@@ -149,7 +149,7 @@ function UnscheduledStop({ stop }: { stop: ItineraryStop }) {
         {stop.location && (
           <div className="mt-0.5 flex items-center gap-1">
             <MapPin className="h-3 w-3 flex-shrink-0 text-apple-secondary" />
-            <span className="text-[11px] text-apple-secondary truncate" dir="ltr">
+            <span className="text-caption text-apple-secondary truncate" dir="ltr">
               {stop.location}
             </span>
           </div>
@@ -231,7 +231,7 @@ export function DayPlannerBoard({ day }: DayPlannerBoardProps) {
             >
               {/* Time label on right (RTL) */}
               <div className="absolute right-0 top-0 w-12 text-left">
-                <span className="text-[11px] font-medium text-apple-secondary leading-none">
+                <span className="text-caption font-medium text-apple-secondary leading-none">
                   {formatHour(hour)}
                 </span>
               </div>

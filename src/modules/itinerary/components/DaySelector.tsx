@@ -61,7 +61,7 @@ export function DaySelector({ days, activeDay, onDayChange }: DaySelectorProps) 
                   : 'glass text-apple-primary border border-black/[0.06] hover:bg-white/80'
               )}
             >
-              <span className="text-[10px] font-medium opacity-75">
+              <span className="text-caption font-medium opacity-75">
                 {shortDate}
               </span>
               <span className="text-subhead font-bold">
@@ -69,7 +69,7 @@ export function DaySelector({ days, activeDay, onDayChange }: DaySelectorProps) 
               </span>
               <span
                 className={cn(
-                  'max-w-[60px] truncate text-[9px]',
+                  'max-w-[60px] truncate text-caption',
                   isActive ? 'text-white/80' : 'text-apple-secondary'
                 )}
               >

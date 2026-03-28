@@ -95,7 +95,7 @@ export const TaskRow = memo(function TaskRow({
         )}
       >
         {isSampleData(task.id) && (
-          <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">
+          <span className="text-caption ml-1 opacity-60" title="דוגמה מאת מוטי">
             🤖
           </span>
         )}
@@ -107,7 +107,7 @@ export const TaskRow = memo(function TaskRow({
         onClick={handleCycleStatus}
         title={`לחץ לשנות ל: ${nextStatus()}`}
         className={cn(
-          'shrink-0 rounded-full px-2 py-0.5 text-[11px] sm:text-xs sm:px-2.5 font-medium transition-all hover:opacity-80',
+          'shrink-0 rounded-full px-2 py-0.5 text-caption sm:text-xs sm:px-2.5 font-medium transition-all hover:opacity-80',
           statusConfig?.bg ?? 'bg-gray-200',
           statusConfig?.color ?? 'text-gray-600',
         )}
@@ -131,7 +131,7 @@ export const TaskRow = memo(function TaskRow({
           return <FamilyAvatar key={memberId} memberId={memberId} size="sm" />
         })}
         {task.assigned_to.length > 2 && (
-          <div className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-black/[0.04] text-[9px] sm:text-[10px] font-bold text-apple-secondary">
+          <div className="flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-black/[0.04] text-caption font-bold text-apple-secondary">
             +{task.assigned_to.length - 2}
           </div>
         )}

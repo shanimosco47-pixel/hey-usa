@@ -24,14 +24,14 @@ export const TripRouteProgress = memo(function TripRouteProgress({
       style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
     >
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-[14px] font-semibold text-passport-slate">🛣️ מסלול הטיול</span>
+        <span className="text-body font-semibold text-passport-slate">🛣️ מסלול הטיול</span>
         {tripDayIndex !== null && (
-          <span className="text-[11px] font-bold text-white bg-ios-green rounded-full px-2 py-0.5">
+          <span className="text-caption font-bold text-white bg-ios-green rounded-full px-2 py-0.5">
             יום {tripDayIndex + 1} מתוך {itineraryDays.length}
           </span>
         )}
         {tripDayIndex === null && daysLeft > 0 && (
-          <span className="text-[11px] font-medium text-apple-secondary">עוד {daysLeft} ימים</span>
+          <span className="text-caption font-medium text-apple-secondary">עוד {daysLeft} ימים</span>
         )}
       </div>
       <div className="overflow-x-auto -mx-1 px-1 pb-1">
@@ -106,7 +106,7 @@ export const TripRouteProgress = memo(function TripRouteProgress({
                     )}
                   </div>
                   <span
-                    className="text-[9px] mt-1 font-medium text-center leading-tight"
+                    className="text-caption mt-1 font-medium text-center leading-tight"
                     style={{
                       color: dayNumColor,
                       fontWeight: isCurrent ? 700 : allFuture ? 600 : 500,

@@ -171,7 +171,7 @@ export default function EntertainmentPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-apple-primary truncate">
                     {isSampleData(song.id) && (
-                      <span className="text-[10px] ms-1 opacity-60" title="דוגמה מאת מוטי">
+                      <span className="text-caption ms-1 opacity-60" title="דוגמה מאת מוטי">
                         🤖
                       </span>
                     )}

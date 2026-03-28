@@ -321,7 +321,7 @@ export default function PackingPage() {
                             >
                               {isSampleData(item.id) && (
                                 <span
-                                  className="text-[10px] ms-1 opacity-60"
+                                  className="text-caption ms-1 opacity-60"
                                   title="דוגמה מאת מוטי"
                                 >
                                   🤖

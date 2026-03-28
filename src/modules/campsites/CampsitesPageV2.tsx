@@ -656,7 +656,7 @@ export default function CampsitesPageV2() {
                 >
                   <span className="text-caption font-bold leading-none">{n.dayNum}</span>
                   {n.type && (
-                    <span className="text-[10px] leading-none mt-0.5">
+                    <span className="text-caption leading-none mt-0.5">
                       {TYPE_ICON[n.type]?.icon}
                     </span>
                   )}
@@ -690,7 +690,7 @@ export default function CampsitesPageV2() {
               )}
             >
               {label}
-              <span className="text-[10px] opacity-70">{count}</span>
+              <span className="text-caption opacity-70">{count}</span>
             </button>
           )
         })}

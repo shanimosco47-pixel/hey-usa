@@ -225,13 +225,13 @@ export function SearchDialog() {
                 onKeyDown={handleKeyDown}
                 placeholder="חיפוש משימות, יעדים, פריטים..."
                 className={cn(
-                  'flex-1 bg-transparent text-[15px] outline-none',
+                  'flex-1 bg-transparent text-body outline-none',
                   'text-apple-primary dark:text-white',
                   'placeholder:text-apple-tertiary',
                 )}
               />
               <div className="flex items-center gap-1.5">
-                <kbd className="hidden sm:inline-flex h-5 items-center rounded bg-black/[0.06] dark:bg-white/[0.1] px-1.5 text-[10px] font-medium text-apple-secondary">
+                <kbd className="hidden sm:inline-flex h-5 items-center rounded bg-black/[0.06] dark:bg-white/[0.1] px-1.5 text-caption font-medium text-apple-secondary">
                   ESC
                 </kbd>
                 <button
@@ -247,8 +247,8 @@ export function SearchDialog() {
             <div className="max-h-[50vh] overflow-y-auto py-2">
               {filtered.length === 0 && query.trim() && (
                 <div className="px-4 py-8 text-center">
-                  <p className="text-[14px] text-apple-secondary">לא נמצאו תוצאות</p>
-                  <p className="text-[12px] text-apple-tertiary mt-1">נסו לחפש עם מילים אחרות</p>
+                  <p className="text-body text-apple-secondary">לא נמצאו תוצאות</p>
+                  <p className="text-subhead text-apple-tertiary mt-1">נסו לחפש עם מילים אחרות</p>
                 </div>
               )}
 
@@ -274,17 +274,17 @@ export function SearchDialog() {
                       <Icon className="h-4 w-4" style={{ color: result.color }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[14px] font-medium text-apple-primary dark:text-white truncate">
+                      <p className="text-body font-medium text-apple-primary dark:text-white truncate">
                         {result.title}
                       </p>
                       {result.subtitle && (
-                        <p className="text-[11px] text-apple-secondary truncate">
+                        <p className="text-caption text-apple-secondary truncate">
                           {result.subtitle}
                         </p>
                       )}
                     </div>
                     {isSelected && (
-                      <span className="text-[10px] text-apple-tertiary shrink-0">↵</span>
+                      <span className="text-caption text-apple-tertiary shrink-0">↵</span>
                     )}
                   </button>
                 )
@@ -293,12 +293,12 @@ export function SearchDialog() {
 
             {/* Footer */}
             <div className="flex items-center justify-between px-4 py-2 border-t border-black/[0.06] dark:border-white/[0.08]">
-              <div className="flex items-center gap-3 text-[10px] text-apple-tertiary">
+              <div className="flex items-center gap-3 text-caption text-apple-tertiary">
                 <span>↑↓ ניווט</span>
                 <span>↵ בחירה</span>
                 <span>ESC סגירה</span>
               </div>
-              <span className="text-[10px] text-apple-tertiary">{filtered.length} תוצאות</span>
+              <span className="text-caption text-apple-tertiary">{filtered.length} תוצאות</span>
             </div>
           </motion.div>
         </>

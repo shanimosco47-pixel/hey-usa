@@ -23,19 +23,19 @@ export function DailyBudgetView() {
       {/* Summary header */}
       <div className="grid grid-cols-3 gap-3">
         <div className="glass rounded-apple-lg p-3 text-center shadow-sm">
-          <p className="text-[10px] text-apple-secondary">מתוכנן (מלו״ז)</p>
+          <p className="text-caption text-apple-secondary">מתוכנן (מלו״ז)</p>
           <p className="mt-0.5 text-base font-bold text-apple-primary">
             {currency}{totalPlanned.toLocaleString()}
           </p>
         </div>
         <div className="glass rounded-apple-lg p-3 text-center shadow-sm">
-          <p className="text-[10px] text-apple-secondary">בפועל</p>
+          <p className="text-caption text-apple-secondary">בפועל</p>
           <p className="mt-0.5 text-base font-bold text-ios-red">
             {currency}{totalActual.toLocaleString()}
           </p>
         </div>
         <div className="glass rounded-apple-lg p-3 text-center shadow-sm">
-          <p className="text-[10px] text-apple-secondary">ממוצע יומי</p>
+          <p className="text-caption text-apple-secondary">ממוצע יומי</p>
           <p className="mt-0.5 text-base font-bold text-ios-blue">
             {currency}{Math.round(avgDaily).toLocaleString()}
           </p>
@@ -62,7 +62,7 @@ export function DailyBudgetView() {
                     <h4 className="text-sm font-bold text-apple-primary">
                       יום {day.dayNumber} — {day.title}
                     </h4>
-                    <p className="text-[11px] text-apple-secondary">
+                    <p className="text-caption text-apple-secondary">
                       {new Date(day.date).toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'short' })}
                       {day.city && ` · ${day.city}`}
                     </p>
@@ -72,7 +72,7 @@ export function DailyBudgetView() {
                 {(day.plannedTotal > 0 || day.actualTotal > 0) && (
                   <div
                     className={cn(
-                      'flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                      'flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-semibold',
                       isUnder
                         ? 'bg-ios-green/15 text-ios-green'
                         : 'bg-ios-red/15 text-ios-red',

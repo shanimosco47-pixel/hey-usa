@@ -32,21 +32,21 @@ export function DualClock({ usaTimezone = 'America/Los_Angeles' }: DualClockProp
   }, [usaTimezone])
 
   return (
-    <div className="flex items-center gap-1.5 sm:gap-2.5 text-[11px] sm:text-[12px] tabular-nums text-apple-secondary whitespace-nowrap">
+    <div className="flex items-center gap-1.5 sm:gap-2.5 text-caption sm:text-subhead tabular-nums text-apple-secondary whitespace-nowrap">
       <span className="flex items-center gap-1">
-        <span role="img" aria-label="Israel" className="text-[11px]">
+        <span role="img" aria-label="Israel" className="text-caption">
           🇮🇱
         </span>
         <span className="font-medium">{israelTime}</span>
-        <span className="text-[10px] text-apple-tertiary">IL</span>
+        <span className="text-caption text-apple-tertiary">IL</span>
       </span>
       <span className="text-apple-tertiary/50">|</span>
       <span className="flex items-center gap-1">
-        <span role="img" aria-label="USA" className="text-[11px]">
+        <span role="img" aria-label="USA" className="text-caption">
           🇺🇸
         </span>
         <span className="font-medium">{usaTime}</span>
-        <span className="text-[10px] text-apple-tertiary">PT</span>
+        <span className="text-caption text-apple-tertiary">PT</span>
       </span>
     </div>
   )
