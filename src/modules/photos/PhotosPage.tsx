@@ -12,6 +12,7 @@ import {
   Filter,
   Grid3X3,
   LayoutList,
+  Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS_LIST, getFamilyMember } from '@/constants'
@@ -22,7 +23,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { PhotoCapture } from './components/PhotoCapture'
 
 export default function PhotosPage() {
-  const { photos, updatePhoto } = useAppData()
+  const { photos, updatePhoto, deletePhoto } = useAppData()
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
   const [filterFavorites, setFilterFavorites] = useState(false)
   const [filterMember, setFilterMember] = useState<FamilyMemberId | 'all'>('all')
@@ -75,16 +76,28 @@ export default function PhotosPage() {
           >
             <X className="h-5 w-5" />
           </button>
-          <button
-            onClick={() => toggleFavorite(selectedPhoto.id)}
-            className={cn(
-              'rounded-full p-2',
-              selectedPhoto.is_favorite ? 'text-red-400' : 'text-white/50',
-            )}
-            aria-label={selectedPhoto.is_favorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
-          >
-            <Heart className={cn('h-5 w-5', selectedPhoto.is_favorite && 'fill-current')} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                deletePhoto(selectedPhoto.id)
+                setSelectedPhoto(null)
+              }}
+              className="rounded-full p-2 text-white/50 hover:text-red-400 transition-colors"
+              aria-label="מחק תמונה"
+            >
+              <Trash2 className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => toggleFavorite(selectedPhoto.id)}
+              className={cn(
+                'rounded-full p-2',
+                selectedPhoto.is_favorite ? 'text-red-400' : 'text-white/50',
+              )}
+              aria-label={selectedPhoto.is_favorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
+            >
+              <Heart className={cn('h-5 w-5', selectedPhoto.is_favorite && 'fill-current')} />
+            </button>
+          </div>
         </div>
         <div className="flex flex-1 items-center justify-center px-4 relative">
           <button
@@ -216,11 +229,7 @@ export default function PhotosPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState
-          icon={Camera}
-          title="אין תמונות"
-          description="הוסיפו תמונות מהטיול"
-        />
+        <EmptyState icon={Camera} title="אין תמונות" description="הוסיפו תמונות מהטיול" />
       ) : viewMode === 'grid' ? (
         <StaggerContainer className="grid grid-cols-3 gap-1.5">
           {filtered.map((photo) => (
