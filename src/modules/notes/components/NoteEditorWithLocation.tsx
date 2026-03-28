@@ -124,7 +124,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
                 className={cn(
                   'w-full rounded-apple px-3 py-2',
                   'bg-white/50 border border-black/[0.08]',
-                  'text-[13px] text-gray-700',
+                  'text-subhead text-gray-700',
                   'focus:outline-none focus:ring-2 focus:ring-ios-blue/30',
                 )}
                 dir="rtl"

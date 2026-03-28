@@ -196,7 +196,7 @@ export default function BudgetPage() {
     'w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors'
 
   return (
-    <div className="space-y-4 p-4 max-w-5xl mx-auto">
+    <div className="space-y-4 p-4 max-w-4xl mx-auto">
       {/* Header */}
       <motion.div
         className="flex items-center justify-between"
@@ -404,7 +404,7 @@ export default function BudgetPage() {
                           >
                             {label}
                             {isOther && (
-                              <span className="text-[10px] text-apple-tertiary mr-1">
+                              <span className="text-caption text-apple-tertiary me-1">
                                 {' '}
                                 (יתרה אוטומטית)
                               </span>
@@ -465,7 +465,7 @@ export default function BudgetPage() {
                               style={{ width: `${Math.min(Math.max(catPercent, 0), 100)}%` }}
                             />
                           </div>
-                          <span className="text-[10px] text-apple-tertiary whitespace-nowrap">
+                          <span className="text-caption text-apple-tertiary whitespace-nowrap">
                             {settings.currency}
                             {spent.toLocaleString()} / {settings.currency}
                             {planned.toLocaleString()}
@@ -626,7 +626,7 @@ export default function BudgetPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-apple-primary truncate">
                       {isSampleData(expense.id) && (
-                        <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">
+                        <span className="text-caption ms-1 opacity-60" title="דוגמה מאת מוטי">
                           🤖
                         </span>
                       )}

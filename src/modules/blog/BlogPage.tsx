@@ -168,7 +168,7 @@ export default function BlogPage() {
   // Editor view
   if (isEditing) {
     return (
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 p-4 max-w-4xl mx-auto">
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsEditing(false)}
@@ -238,7 +238,7 @@ export default function BlogPage() {
                         <p className="text-xs font-semibold text-apple-primary mt-1 line-clamp-1">
                           {prompt.title}
                         </p>
-                        <p className="text-[10px] text-apple-tertiary mt-0.5 line-clamp-1">
+                        <p className="text-caption text-apple-tertiary mt-0.5 line-clamp-1">
                           {prompt.starter.slice(0, 40)}...
                         </p>
                       </button>
@@ -277,7 +277,7 @@ export default function BlogPage() {
   if (selectedPost) {
     const author = getFamilyMember(selectedPost.author_id)
     return (
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 p-4 max-w-4xl mx-auto">
         <button
           onClick={() => setSelectedPost(null)}
           className="flex items-center gap-1 text-sm text-apple-secondary"
@@ -293,7 +293,7 @@ export default function BlogPage() {
             </span>
             <span>·</span>
             <span>
-              <Calendar className="ml-1 inline h-3.5 w-3.5" />
+              <Calendar className="ms-1 inline h-3.5 w-3.5" />
               {formatDate(selectedPost.created_at)}
             </span>
           </div>
@@ -305,7 +305,7 @@ export default function BlogPage() {
             </div>
           )}
           <div
-            className="mt-6 text-sm text-apple-primary leading-relaxed [&_p]:mb-3 [&_strong]:font-bold [&_ul]:mr-4 [&_ul]:list-disc [&_li]:mb-1"
+            className="mt-6 text-sm text-apple-primary leading-relaxed [&_p]:mb-3 [&_strong]:font-bold [&_ul]:me-4 [&_ul]:list-disc [&_li]:mb-1"
             dir="auto"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedPost.content) }}
           />
@@ -334,7 +334,7 @@ export default function BlogPage() {
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
         <h1 className="text-2xl font-bold text-apple-primary">
-          <BookOpen className="ml-2 inline h-6 w-6" />
+          <BookOpen className="ms-2 inline h-6 w-6" />
           יומן מסע
         </h1>
         <Button onClick={startNewPost} variant="success">
@@ -368,7 +368,7 @@ export default function BlogPage() {
               >
                 <h3 className="text-headline font-bold text-apple-primary">
                   {isSampleData(post.id) && (
-                    <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">
+                    <span className="text-caption ms-1 opacity-60" title="דוגמה מאת מוטי">
                       🤖
                     </span>
                   )}
@@ -390,7 +390,7 @@ export default function BlogPage() {
                       {post.tags.slice(0, 2).map((tag) => (
                         <span
                           key={tag}
-                          className="rounded-full bg-ios-blue/10 px-2 py-0.5 text-[10px] font-medium text-ios-blue"
+                          className="rounded-full bg-ios-blue/10 px-2 py-0.5 text-caption font-medium text-ios-blue"
                         >
                           #{tag}
                         </span>

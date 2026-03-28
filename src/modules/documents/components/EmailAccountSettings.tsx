@@ -81,7 +81,7 @@ export function EmailAccountSettings() {
           חשבונות אימייל מחוברים
         </span>
         {accounts.length > 0 && !expanded && (
-          <span className="rounded-full bg-ios-indigo px-2 py-0.5 text-[11px] font-bold text-white">
+          <span className="rounded-full bg-ios-indigo px-2 py-0.5 text-caption font-bold text-white">
             {accounts.length}
           </span>
         )}
@@ -123,7 +123,7 @@ export function EmailAccountSettings() {
                         <p className="truncate text-sm font-medium text-apple-primary">
                           {account.email}
                         </p>
-                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-black">
+                        <div className="flex items-center gap-1.5 text-caption font-bold text-black">
                           {account.label && (
                             <>
                               <span>{account.label}</span>

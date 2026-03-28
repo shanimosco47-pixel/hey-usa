@@ -74,7 +74,7 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
 
   return (
     <div>
-      <p className="text-[10px] text-apple-secondary mb-1 sm:hidden">
+      <p className="text-caption text-apple-secondary mb-1 sm:hidden">
         גללו ימינה לראות את כל ציר הזמן
       </p>
       <div className="overflow-x-auto">
@@ -103,7 +103,7 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
               {months.map((month, i) => (
                 <div
                   key={i}
-                  className="text-center text-[11px] font-medium text-apple-secondary"
+                  className="text-center text-caption font-medium text-apple-secondary"
                   style={{ width: `${100 / months.length}%` }}
                 >
                   {month.label}
@@ -136,7 +136,7 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
                       className="absolute top-0 bottom-0 w-px bg-ios-red"
                       style={{ right: `${todayPos}%` }}
                     >
-                      <div className="absolute -top-1 -translate-x-1/2 rounded bg-ios-red px-1 py-0.5 text-[9px] font-bold text-white">
+                      <div className="absolute -top-1 -translate-x-1/2 rounded bg-ios-red px-1 py-0.5 text-caption font-bold text-white">
                         היום
                       </div>
                     </div>
@@ -203,7 +203,7 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
             {tasksWithoutDates.length > 0 && (
               <>
                 <div className="border-t-2 border-dashed border-black/[0.04] mt-2 pt-2 px-2">
-                  <span className="text-[11px] font-medium text-apple-secondary/60">
+                  <span className="text-caption font-medium text-apple-secondary/60">
                     ללא תאריך יעד
                   </span>
                 </div>
@@ -233,7 +233,7 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
                       </div>
                     </div>
                     <div className="flex flex-1 items-center px-4">
-                      <span className="text-[11px] text-apple-secondary/40">-</span>
+                      <span className="text-caption text-apple-secondary/40">-</span>
                     </div>
                   </div>
                 ))}

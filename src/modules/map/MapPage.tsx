@@ -145,21 +145,21 @@ export default function MapPage() {
       <div className="flex items-center justify-between px-3 py-1.5">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-bold text-apple-primary">
-            <Map className="ml-1.5 inline h-5 w-5" />
+            <Map className="ms-1.5 inline h-5 w-5" />
             מפת המסלול
           </h1>
-          <span className="text-[11px] text-apple-tertiary font-medium">
+          <span className="text-caption text-apple-tertiary font-medium">
             {ITINERARY_DAYS.length} ימים · {allPoints.length} עצירות
           </span>
         </div>
         <button
           onClick={() => setShowLabels(!showLabels)}
           className={cn(
-            'rounded-lg px-2 py-1 text-[11px] font-medium transition-colors',
+            'rounded-lg px-2 py-1 text-caption font-medium transition-colors',
             showLabels ? 'bg-ios-blue text-white' : 'glass text-apple-secondary',
           )}
         >
-          <Layers className="ml-1 inline h-3 w-3" />
+          <Layers className="ms-1 inline h-3 w-3" />
           תוויות
         </button>
       </div>
@@ -169,13 +169,13 @@ export default function MapPage() {
         <button
           onClick={() => handleDaySelect(null)}
           className={cn(
-            'shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors',
+            'shrink-0 rounded-full px-2.5 py-1 text-caption font-medium transition-colors',
             selectedDay === null
               ? 'bg-apple-primary text-white'
               : 'glass text-apple-secondary',
           )}
         >
-          <Navigation className="ml-1 inline h-2.5 w-2.5" />
+          <Navigation className="ms-1 inline h-2.5 w-2.5" />
           הכל
         </button>
         {ITINERARY_DAYS.map((day, idx) => (
@@ -183,7 +183,7 @@ export default function MapPage() {
             key={day.id}
             onClick={() => handleDaySelect(selectedDay === idx ? null : idx)}
             className={cn(
-              'shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors whitespace-nowrap',
+              'shrink-0 rounded-full px-2.5 py-1 text-caption font-medium transition-colors whitespace-nowrap',
               selectedDay === idx
                 ? 'text-white'
                 : 'glass text-apple-secondary',

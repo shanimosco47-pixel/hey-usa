@@ -44,7 +44,7 @@ export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
     editorProps: {
       attributes: {
         class:
-          'w-full px-4 py-3 text-sm text-apple-primary leading-relaxed min-h-[16rem] outline-none [&_p]:mb-2 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:mb-2 [&_ul]:mr-4 [&_ul]:list-disc [&_ol]:mr-4 [&_ol]:list-decimal [&_li]:mb-1 [&_blockquote]:border-r-2 [&_blockquote]:border-ios-blue/30 [&_blockquote]:pr-3 [&_blockquote]:text-apple-secondary [&_blockquote]:italic',
+          'w-full px-4 py-3 text-sm text-apple-primary leading-relaxed min-h-[16rem] outline-none [&_p]:mb-2 [&_h2]:text-lg [&_h2]:font-bold [&_h2]:mb-2 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:mb-2 [&_ul]:me-4 [&_ul]:list-disc [&_ol]:me-4 [&_ol]:list-decimal [&_li]:mb-1 [&_blockquote]:border-e-2 [&_blockquote]:border-ios-blue/30 [&_blockquote]:pe-3 [&_blockquote]:text-apple-secondary [&_blockquote]:italic',
       },
     },
   })

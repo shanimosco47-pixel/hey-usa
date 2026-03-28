@@ -58,7 +58,7 @@ export default function NotesPage() {
   return (
     <div className="min-h-screen bg-surface-primary">
       {/* Header */}
-      <div className="px-4 pt-6 pb-4 max-w-3xl mx-auto">
+      <div className="px-4 pt-6 pb-4 max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <span className="text-3xl">📋</span>
@@ -80,7 +80,7 @@ export default function NotesPage() {
               key={f.id}
               onClick={() => setFilter(f.id)}
               className={cn(
-                'px-3 py-1.5 rounded-full text-[12px] font-medium transition-all',
+                'px-3 py-1.5 rounded-full text-subhead font-medium transition-all',
                 filter === f.id
                   ? 'bg-ios-blue text-white shadow-sm'
                   : 'bg-black/[0.04] text-apple-secondary hover:bg-black/[0.08]',
@@ -93,7 +93,7 @@ export default function NotesPage() {
       </div>
 
       {/* Notes Grid */}
-      <div className="max-w-3xl mx-auto px-4 pb-24">
+      <div className="max-w-4xl mx-auto px-4 pb-24">
         <StaggerContainer className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {/* Add note button */}
           <motion.button
@@ -124,7 +124,7 @@ export default function NotesPage() {
                 {/* Location badge */}
                 {note.locationId && (
                   <div className="absolute bottom-2 left-2 right-2">
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/60 backdrop-blur-sm text-[9px] text-gray-600 font-medium">
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/60 backdrop-blur-sm text-caption text-gray-600 font-medium">
                       <MapPin className="h-2.5 w-2.5" />
                       {getLocationLabel(note.locationId)}
                     </span>

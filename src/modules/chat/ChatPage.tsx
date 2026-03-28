@@ -117,7 +117,7 @@ function AIBadge() {
   const aiAvailable = isAIMode()
   return (
     <div
-      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-medium ${
         aiAvailable
           ? 'bg-purple-50 text-purple-600'
           : 'bg-gray-100 text-gray-500'
@@ -400,10 +400,10 @@ export default function ChatPage() {
         <BotAvatar />
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-[17px] font-semibold text-apple-primary leading-tight">{BOT_NAME}</h1>
+            <h1 className="text-headline font-semibold text-apple-primary leading-tight">{BOT_NAME}</h1>
             <AIBadge />
           </div>
-          <p className="text-[12px] text-apple-secondary">{BOT_SUBTITLE}</p>
+          <p className="text-subhead text-apple-secondary">{BOT_SUBTITLE}</p>
         </div>
         <button
           onClick={() => navigate('/chat/log')}
@@ -412,7 +412,7 @@ export default function ChatPage() {
         >
           <History className="h-4 w-4" />
           {changeLog.length > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-purple-500 px-1 text-[10px] font-bold text-white">
+            <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-purple-500 px-1 text-caption font-bold text-white">
               {changeLog.length}
             </span>
           )}
@@ -432,7 +432,7 @@ export default function ChatPage() {
           <div className="flex justify-center">
             <button
               onClick={() => setVisibleCount((prev) => prev + 10)}
-              className="flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-4 py-2 text-[13px] font-medium text-apple-secondary hover:bg-surface-primary transition-colors"
+              className="flex items-center gap-1.5 rounded-full border border-black/[0.08] bg-white px-4 py-2 text-subhead font-medium text-apple-secondary hover:bg-surface-primary transition-colors"
               style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}
             >
               <History className="h-3.5 w-3.5" />
@@ -471,11 +471,11 @@ export default function ChatPage() {
                 {msg.hasAction && (
                   <div className="flex items-center gap-1 mb-1.5 text-purple-600">
                     <Zap className="h-3 w-3" />
-                    <span className="text-[10px] font-bold uppercase tracking-wide">פעולה בוצעה</span>
+                    <span className="text-caption font-bold uppercase tracking-wide">פעולה בוצעה</span>
                   </div>
                 )}
                 {msg.sender === 'user' ? (
-                  <p className="text-[15px] leading-relaxed whitespace-pre-line" dir="auto">{msg.text}</p>
+                  <p className="text-body leading-relaxed whitespace-pre-line" dir="auto">{msg.text}</p>
                 ) : (
                   <ChatMarkdown text={msg.text} />
                 )}
@@ -487,7 +487,7 @@ export default function ChatPage() {
                         key={qa}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => sendMessage(qa)}
-                        className="flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-[11px] font-medium text-purple-700 hover:bg-purple-100 transition-colors"
+                        className="flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-caption font-medium text-purple-700 hover:bg-purple-100 transition-colors"
                       >
                         <Zap className="h-2.5 w-2.5" />
                         {qa}
@@ -524,7 +524,7 @@ export default function ChatPage() {
                   key={s}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => sendMessage(s)}
-                  className={`flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[13px] font-medium transition-colors ${
+                  className={`flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-subhead font-medium transition-colors ${
                     isAction
                       ? 'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100'
                       : 'border-black/[0.08] bg-white text-apple-primary hover:bg-surface-primary'
@@ -560,7 +560,7 @@ export default function ChatPage() {
             disabled={isTyping}
             rows={1}
             dir="auto"
-            className="flex-1 rounded-2xl bg-surface-primary px-4 py-2.5 text-[15px] text-apple-primary placeholder:text-apple-tertiary outline-none focus:ring-2 focus:ring-ios-blue/20 transition-shadow disabled:opacity-60 resize-none max-h-32 overflow-y-auto"
+            className="flex-1 rounded-2xl bg-surface-primary px-4 py-2.5 text-body text-apple-primary placeholder:text-apple-tertiary outline-none focus:ring-2 focus:ring-ios-blue/20 transition-shadow disabled:opacity-60 resize-none max-h-32 overflow-y-auto"
             style={{ minHeight: '40px' }}
           />
           {voice.isSupported && (

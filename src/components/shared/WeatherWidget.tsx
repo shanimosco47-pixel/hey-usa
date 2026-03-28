@@ -133,22 +133,22 @@ export default function WeatherWidget({ mode = 'dashboard', date }: WeatherWidge
         {/* Current location - 3 day forecast */}
         <div className="flex items-center gap-1.5 mb-2.5">
           <Thermometer className="h-3.5 w-3.5 text-white/70" />
-          <span className="text-[11px] font-semibold text-white/70 uppercase tracking-wider">
+          <span className="text-caption font-semibold text-white/70 uppercase tracking-wider">
             {isTripTime ? `📍 ${currentForecast[0]?.city}` : 'תחזית לטיול'}
           </span>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {currentForecast.map(({ city, date: d, weather: w, dayLabel }) => (
             <div key={d} className="text-center">
-              <p className="text-[10px] text-white/50 mb-0.5">{dayLabel}</p>
+              <p className="text-caption text-white/50 mb-0.5">{dayLabel}</p>
               <p className="text-lg leading-none">{w.weatherEmoji}</p>
               <p className="text-white font-bold text-sm mt-1">
                 {w.tempMax}°
                 <span className="text-white/50 font-normal text-xs">/{w.tempMin}°</span>
               </p>
-              <p className="text-[10px] text-white/60 mt-0.5 truncate">{city}</p>
+              <p className="text-caption text-white/60 mt-0.5 truncate">{city}</p>
               {w.precipitationProbability > 20 && (
-                <p className="text-[9px] text-sky-200">🌧 {w.precipitationProbability}%</p>
+                <p className="text-caption text-sky-200">🌧 {w.precipitationProbability}%</p>
               )}
             </div>
           ))}
@@ -161,8 +161,8 @@ export default function WeatherWidget({ mode = 'dashboard', date }: WeatherWidge
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <MapPin className="h-3 w-3 text-white/50" />
-                <span className="text-[10px] text-white/50">היעד הבא:</span>
-                <span className="text-[11px] text-white/80 font-medium">{nextDestination.city}</span>
+                <span className="text-caption text-white/50">היעד הבא:</span>
+                <span className="text-caption text-white/80 font-medium">{nextDestination.city}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-sm">{nextDestination.weather.weatherEmoji}</span>

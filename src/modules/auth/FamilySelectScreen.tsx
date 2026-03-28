@@ -231,7 +231,7 @@ export function FamilySelectScreen() {
                         value={editNameValue}
                         onChange={(e) => setEditNameValue(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName() }}
-                        className="w-24 text-center text-[17px] font-bold text-apple-primary bg-white/60 border border-ios-blue/30 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-ios-blue/40"
+                        className="w-24 text-center text-headline font-bold text-apple-primary bg-white/60 border border-ios-blue/30 rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-ios-blue/40"
                         dir="rtl"
                       />
                       <button
@@ -243,7 +243,7 @@ export function FamilySelectScreen() {
                     </div>
                   ) : (
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[17px] font-bold text-apple-primary leading-tight">
+                      <span className="text-headline font-bold text-apple-primary leading-tight">
                         {customNames[id] || member.name}
                       </span>
                       <button
@@ -258,7 +258,7 @@ export function FamilySelectScreen() {
 
                   {/* Role label */}
                   <span
-                    className="text-[12px] font-semibold px-3 py-1 rounded-full"
+                    className="text-subhead font-semibold px-3 py-1 rounded-full"
                     style={{
                       color: member.color,
                       backgroundColor: `${member.color}12`,

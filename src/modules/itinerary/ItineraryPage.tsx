@@ -169,7 +169,7 @@ export default function ItineraryPage() {
 
   if (!currentDay) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-6 pb-24">
+      <div className="mx-auto max-w-4xl px-4 py-6 pb-24">
         <motion.div
           className="flex items-center gap-3 mb-6"
           initial={{ opacity: 0, y: 8 }}
@@ -220,7 +220,7 @@ export default function ItineraryPage() {
   }).format(date)
 
   return (
-    <div className="mx-auto max-w-2xl lg:max-w-6xl pb-24 overflow-x-hidden">
+    <div className="mx-auto max-w-4xl pb-24 overflow-x-hidden">
       {/* Page header */}
       <motion.div
         className="px-4 pt-4 pb-2"
@@ -326,10 +326,10 @@ export default function ItineraryPage() {
                   <ChevronRight className="h-4 w-4" />
                 </button>
                 <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold">
+                  <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-caption font-bold">
                     יום {activeDayIndex + 1}/20
                   </span>
-                  <span className="text-[11px] text-white/70">
+                  <span className="text-caption text-white/70">
                     {hebrewDay}, {format(date, 'd.M.yyyy')}
                   </span>
                 </div>
@@ -377,18 +377,18 @@ export default function ItineraryPage() {
                 {w && (
                   <div className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1">
                     <span className="text-sm">{w.weatherEmoji}</span>
-                    <span className="text-[11px]">
+                    <span className="text-caption">
                       {w.tempMin}°–{w.tempMax}°C
                     </span>
                     {w.precipitationProbability > 20 && (
-                      <span className="text-[10px] text-white/70">
+                      <span className="text-caption text-white/70">
                         💧{w.precipitationProbability}%
                       </span>
                     )}
                   </div>
                 )}
                 {dayCost > 0 && (
-                  <div className="rounded-full bg-white/15 px-2.5 py-1 text-[11px]" dir="ltr">
+                  <div className="rounded-full bg-white/15 px-2.5 py-1 text-caption" dir="ltr">
                     ~${dayCost}
                   </div>
                 )}

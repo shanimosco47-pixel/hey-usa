@@ -94,7 +94,7 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
         {(expired || expiringSoon) && (
           <div
             className={cn(
-              'absolute top-2 start-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold',
+              'absolute top-2 start-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-semibold',
               expired
                 ? 'bg-red-500 text-white'
                 : 'bg-amber-400 text-amber-900',
@@ -116,19 +116,19 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
         <div className="flex flex-wrap items-center gap-1.5">
           <span
             className={cn(
-              'inline-block rounded-full px-2 py-0.5 text-[11px] font-medium',
+              'inline-block rounded-full px-2 py-0.5 text-caption font-medium',
               categoryColors[doc.category] ?? categoryColors.other,
             )}
           >
             {categoryLabel}
           </span>
           {location && (
-            <span className="inline-block rounded-full bg-black/[0.04] px-2 py-0.5 text-[11px] font-medium text-apple-secondary">
+            <span className="inline-block rounded-full bg-black/[0.04] px-2 py-0.5 text-caption font-medium text-apple-secondary">
               {location.emoji} {location.nameHe}
             </span>
           )}
           {doc.file_size && (
-            <span className="text-[11px] text-apple-secondary">
+            <span className="text-caption text-apple-secondary">
               {formatFileSize(doc.file_size)}
             </span>
           )}
@@ -151,7 +151,7 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
           {doc.expiry_date && (
             <span
               className={cn(
-                'text-[11px]',
+                'text-caption',
                 expired
                   ? 'font-semibold text-red-500'
                   : expiringSoon
@@ -166,8 +166,8 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
 
         {sample && (
           <div className="flex items-center gap-1 mt-1 pt-1 border-t border-dashed border-ios-teal/20">
-            <span className="text-[10px]">🤖</span>
-            <span className="text-[10px] text-ios-teal font-medium">דוגמה מאת מוטי — יש להעלות מסמך אמיתי</span>
+            <span className="text-caption">🤖</span>
+            <span className="text-caption text-ios-teal font-medium">דוגמה מאת מוטי — יש להעלות מסמך אמיתי</span>
           </div>
         )}
       </div>
@@ -185,7 +185,7 @@ function CardStatusBadge({ status }: { status: 'reserved' | 'waitlist' | 'both' 
   const config = STATUS_CONFIG[status]
   const Icon = config.icon
   return (
-    <span className={cn('inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-medium', config.className)}>
+    <span className={cn('inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-caption font-medium', config.className)}>
       <Icon className="h-3 w-3" />
       {config.label}
     </span>

@@ -26,7 +26,7 @@ export function Sidebar() {
       )}
     >
       <nav className="flex-1 py-3 px-2.5">
-        <p className="px-3 mb-2 text-[12px] font-semibold uppercase tracking-widest text-apple-tertiary">
+        <p className="px-3 mb-2 text-subhead font-semibold uppercase tracking-widest text-apple-tertiary">
           ניווט
         </p>
         {NAV_ITEMS.map((item, index) => {
@@ -49,7 +49,7 @@ export function Sidebar() {
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-3 px-3 py-2 rounded-[10px] mb-0.5',
-                    'text-[15px] font-medium transition-all duration-150',
+                    'text-body font-medium transition-all duration-150',
                     isActive
                       ? 'bg-ios-blue text-white shadow-[0_2px_8px_rgba(0,122,255,0.3)]'
                       : 'text-apple-secondary hover:bg-black/[0.04] hover:text-apple-primary',
@@ -75,7 +75,7 @@ export function Sidebar() {
           )
         })}
       </nav>
-      <div className="px-4 py-3 border-t border-black/[0.04] text-[10px] text-apple-tertiary text-center leading-relaxed">
+      <div className="px-4 py-3 border-t border-black/[0.04] text-caption text-apple-tertiary text-center leading-relaxed">
         <span>גרסה {APP_VERSION}</span>
         <span className="mx-1">·</span>
         <span>עודכן {buildTimeFormatted()}</span>

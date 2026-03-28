@@ -17,7 +17,7 @@ export function DriveInfo({ driveTime }: DriveInfoProps) {
             <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-ios-teal/15">
               <Car className="h-3.5 w-3.5 text-ios-teal" />
             </div>
-            <span className="text-[11px] text-apple-secondary leading-snug">
+            <span className="text-caption text-apple-secondary leading-snug">
               {driveTime.tips[0]}
             </span>
           </div>
@@ -45,7 +45,7 @@ export function DriveInfo({ driveTime }: DriveInfoProps) {
           {/* Duration */}
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3 text-ios-teal/70 flex-shrink-0" />
-            <span className="text-[12px] font-medium text-ios-teal">{duration}</span>
+            <span className="text-subhead font-medium text-ios-teal">{duration}</span>
           </div>
 
           {/* Separator */}
@@ -54,12 +54,12 @@ export function DriveInfo({ driveTime }: DriveInfoProps) {
           {/* Distance */}
           <div className="flex items-center gap-1">
             <Route className="h-3 w-3 text-ios-teal/70 flex-shrink-0" />
-            <span className="text-[12px] text-apple-secondary" dir="ltr">{distance}</span>
+            <span className="text-subhead text-apple-secondary" dir="ltr">{distance}</span>
           </div>
         </div>
 
         {/* From → To */}
-        <div className="flex-shrink-0 text-[11px] text-apple-secondary/60 hidden sm:block" dir="ltr">
+        <div className="flex-shrink-0 text-caption text-apple-secondary/60 hidden sm:block" dir="ltr">
           {driveTime.from} → {driveTime.to}
         </div>
       </div>
@@ -67,8 +67,8 @@ export function DriveInfo({ driveTime }: DriveInfoProps) {
       {/* Optional tip */}
       {tip && (
         <div className="flex items-start gap-2 px-1">
-          <span className="mt-0.5 text-[10px] text-ios-teal/60">💡</span>
-          <span className="text-[11px] leading-relaxed text-apple-secondary">{tip}</span>
+          <span className="mt-0.5 text-caption text-ios-teal/60">💡</span>
+          <span className="text-caption leading-relaxed text-apple-secondary">{tip}</span>
         </div>
       )}
     </div>

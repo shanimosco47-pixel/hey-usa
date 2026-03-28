@@ -43,25 +43,25 @@ export default function OAuthCallbackPage() {
         {status === 'loading' && (
           <>
             <Loader2 className="h-12 w-12 animate-spin text-ios-blue" />
-            <p className="text-[17px] font-medium text-apple-primary">מחבר את החשבון...</p>
+            <p className="text-headline font-medium text-apple-primary">מחבר את החשבון...</p>
           </>
         )}
 
         {status === 'success' && (
           <>
             <CheckCircle2 className="h-12 w-12 text-green-500" />
-            <p className="text-[17px] font-medium text-apple-primary">
+            <p className="text-headline font-medium text-apple-primary">
               חשבון {email} חובר בהצלחה!
             </p>
-            <p className="text-[14px] text-apple-secondary">מעביר אותך לדוקומנטים...</p>
+            <p className="text-body text-apple-secondary">מעביר אותך לדוקומנטים...</p>
           </>
         )}
 
         {status === 'error' && (
           <>
             <AlertCircle className="h-12 w-12 text-red-500" />
-            <p className="text-[17px] font-medium text-apple-primary">שגיאה בחיבור החשבון</p>
-            <p className="text-[14px] text-apple-secondary">{errorMessage}</p>
+            <p className="text-headline font-medium text-apple-primary">שגיאה בחיבור החשבון</p>
+            <p className="text-body text-apple-secondary">{errorMessage}</p>
           </>
         )}
       </div>

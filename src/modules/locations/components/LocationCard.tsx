@@ -84,12 +84,12 @@ export const LocationCard = memo(function LocationCard({
             {/* Badge counts */}
             <div className="absolute bottom-2 left-2 flex gap-1.5">
               {noteCount > 0 && (
-                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white/90 text-[10px] font-semibold text-gray-700 shadow-sm">
+                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white/90 text-caption font-semibold text-gray-700 shadow-sm">
                   <StickyNoteIcon className="h-3 w-3" /> {noteCount}
                 </span>
               )}
               {docCount > 0 && (
-                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white/90 text-[10px] font-semibold text-gray-700 shadow-sm">
+                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white/90 text-caption font-semibold text-gray-700 shadow-sm">
                   <FileText className="h-3 w-3" /> {docCount}
                 </span>
               )}
@@ -98,11 +98,11 @@ export const LocationCard = memo(function LocationCard({
 
           {/* Name + info */}
           <div className="px-1 text-center">
-            <h3 className="text-[15px] font-bold text-gray-800 leading-tight">{location.nameHe}</h3>
-            <p className="text-[11px] text-gray-500 mt-0.5 font-medium">{location.name}</p>
-            {dateRange && <p className="text-[10px] text-gray-400 mt-1">{dateRange}</p>}
+            <h3 className="text-body font-bold text-gray-800 leading-tight">{location.nameHe}</h3>
+            <p className="text-caption text-gray-500 mt-0.5 font-medium">{location.name}</p>
+            {dateRange && <p className="text-caption text-gray-400 mt-1">{dateRange}</p>}
             {stopCount > 0 && (
-              <p className="text-[10px] text-ios-blue mt-0.5 font-medium">{stopCount} עצירות</p>
+              <p className="text-caption text-ios-blue mt-0.5 font-medium">{stopCount} עצירות</p>
             )}
           </div>
         </div>

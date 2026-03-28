@@ -59,7 +59,7 @@ function KanbanColumn({
         <div className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
         <span className="text-sm font-bold text-apple-primary">{label}</span>
         <span
-          className="mr-auto rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white"
+          className="me-auto rounded-full px-1.5 py-0.5 text-caption font-bold text-white"
           style={{ backgroundColor: color }}
         >
           {tasks.length}
@@ -115,12 +115,12 @@ function MobileKanbanColumn({
         <div className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
         <span className="text-sm font-bold text-apple-primary">{label}</span>
         <span
-          className="rounded-full px-1.5 py-0.5 text-[10px] font-bold text-white"
+          className="rounded-full px-1.5 py-0.5 text-caption font-bold text-white"
           style={{ backgroundColor: color }}
         >
           {tasks.length}
         </span>
-        <span className="mr-auto">
+        <span className="me-auto">
           {isExpanded ? (
             <ChevronDown className="h-4 w-4 text-apple-secondary" />
           ) : (

@@ -131,7 +131,7 @@ export function BottomTabs() {
                 )
               })}
             </div>
-            <div className="px-4 pb-3 text-[12px] text-apple-tertiary text-center leading-relaxed">
+            <div className="px-4 pb-3 text-subhead text-apple-tertiary text-center leading-relaxed">
               <span>גרסה {APP_VERSION}</span>
               <span className="mx-1">·</span>
               <span>עודכן {buildTimeFormatted()}</span>
@@ -160,7 +160,7 @@ export function BottomTabs() {
               className={({ isActive }) =>
                 cn(
                   'flex flex-col items-center gap-0.5 px-4 py-1.5',
-                  'text-[12px] font-medium transition-colors duration-150',
+                  'text-subhead font-medium transition-colors duration-150',
                   isActive ? 'text-ios-blue font-semibold' : 'text-apple-tertiary',
                 )
               }
@@ -193,7 +193,7 @@ export function BottomTabs() {
           aria-label="עוד מודולים"
           className={cn(
             'flex flex-col items-center gap-0.5 px-3 py-1.5',
-            'text-[12px] transition-colors',
+            'text-subhead transition-colors',
             moreOpen ? 'text-ios-blue font-semibold' : 'text-apple-secondary',
           )}
         >

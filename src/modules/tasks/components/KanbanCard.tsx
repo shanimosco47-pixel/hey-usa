@@ -65,7 +65,7 @@ export const KanbanCard = memo(function KanbanCard({ task, onClick }: KanbanCard
       <div className="mb-2 flex items-center justify-between">
         <div
           className={cn(
-            'flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium',
+            'flex items-center gap-1 rounded-md px-1.5 py-0.5 text-caption font-medium',
             priorityConfig.bgClass,
             priorityConfig.className,
           )}
@@ -90,7 +90,7 @@ export const KanbanCard = memo(function KanbanCard({ task, onClick }: KanbanCard
         )}
       >
         {isSampleData(task.id) && (
-          <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">
+          <span className="text-caption ml-1 opacity-60" title="דוגמה מאת מוטי">
             🤖
           </span>
         )}
@@ -107,7 +107,7 @@ export const KanbanCard = memo(function KanbanCard({ task, onClick }: KanbanCard
             return <FamilyAvatar key={memberId} memberId={memberId} size="md" />
           })}
           {task.assigned_to.length > 3 && (
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-[10px] font-bold text-apple-secondary">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-caption font-bold text-apple-secondary">
               +{task.assigned_to.length - 3}
             </div>
           )}
@@ -117,7 +117,7 @@ export const KanbanCard = memo(function KanbanCard({ task, onClick }: KanbanCard
         {task.due_date && (
           <span
             className={cn(
-              'flex items-center gap-1 text-[11px]',
+              'flex items-center gap-1 text-caption',
               overdue ? 'font-semibold text-red-500' : 'text-apple-secondary',
             )}
           >

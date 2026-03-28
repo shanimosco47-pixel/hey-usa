@@ -134,7 +134,7 @@ export const StopCard = memo(function StopCard({ stop, index, onUpdateTime }: St
             </div>
 
             {/* Stop number badge */}
-            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-[10px] font-bold text-apple-secondary">
+            <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-black/[0.04] text-caption font-bold text-apple-secondary">
               {index + 1}
             </span>
           </div>
@@ -201,14 +201,14 @@ export const StopCard = memo(function StopCard({ stop, index, onUpdateTime }: St
           {/* Meta row: cost, booking */}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {stop.cost_estimate != null && stop.cost_estimate > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-lg bg-ios-orange/10 px-2 py-0.5 text-[11px] font-medium text-ios-orange">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-ios-orange/10 px-2 py-0.5 text-caption font-medium text-ios-orange">
                 <DollarSign className="h-3 w-3" />
                 ~${stop.cost_estimate}
               </span>
             )}
 
             {stop.booking_confirmation && (
-              <span className="inline-flex items-center gap-1 rounded-lg bg-ios-green/10 px-2 py-0.5 text-[11px] font-medium text-ios-green">
+              <span className="inline-flex items-center gap-1 rounded-lg bg-ios-green/10 px-2 py-0.5 text-caption font-medium text-ios-green">
                 <ExternalLink className="h-3 w-3" />
                 {stop.booking_confirmation}
               </span>
@@ -217,7 +217,7 @@ export const StopCard = memo(function StopCard({ stop, index, onUpdateTime }: St
             {/* Category label */}
             <span
               className={cn(
-                'inline-flex items-center rounded-lg px-2 py-0.5 text-[11px] font-medium',
+                'inline-flex items-center rounded-lg px-2 py-0.5 text-caption font-medium',
                 config.bgColor,
                 config.color,
               )}
@@ -230,7 +230,7 @@ export const StopCard = memo(function StopCard({ stop, index, onUpdateTime }: St
           {stop.notes && (
             <div className="mt-3 flex gap-2 rounded-lg bg-black/[0.03] p-2">
               <StickyNote className="mt-0.5 h-3 w-3 flex-shrink-0 text-ios-orange" />
-              <p className="text-[11px] leading-relaxed text-apple-secondary" dir="auto">{stop.notes}</p>
+              <p className="text-caption leading-relaxed text-apple-secondary" dir="auto">{stop.notes}</p>
             </div>
           )}
 

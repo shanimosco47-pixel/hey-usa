@@ -174,20 +174,20 @@ export default function LocationHubPage() {
             <h1 className="text-title sm:text-hero text-white drop-shadow-lg mb-1">
               {location.emoji} {location.nameHe}
             </h1>
-            <p className="text-[15px] text-white/80 font-medium mb-3">{location.name}</p>
+            <p className="text-body text-white/80 font-medium mb-3">{location.name}</p>
             <div className="flex flex-wrap gap-2">
               {dateRange && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-[12px] text-white font-medium">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-subhead text-white font-medium">
                   <Clock className="h-3 w-3" />
                   {format(parseISO(dateRange.start), 'dd/MM')}
                   {dateRange.start !== dateRange.end &&
                     ` – ${format(parseISO(dateRange.end), 'dd/MM')}`}
                 </span>
               )}
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-[12px] text-white font-medium">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-subhead text-white font-medium">
                 📍 {totalStops} עצירות
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-[12px] text-white font-medium">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-subhead text-white font-medium">
                 📝 {notes.length} הערות
               </span>
             </div>
@@ -197,23 +197,23 @@ export default function LocationHubPage() {
 
       {/* ── Moti's Summary ──────────────────────────────────── */}
       {(location.summary || location.funFact) && (
-        <div className="max-w-3xl mx-auto px-4 py-4 space-y-3">
+        <div className="max-w-4xl mx-auto px-4 py-4 space-y-3">
           {location.summary && (
             <div className="glass rounded-apple-lg px-4 py-3">
               <div className="flex items-start gap-2">
                 <span className="text-lg shrink-0">🤖</span>
                 <div>
-                  <p className="text-[13px] text-apple-primary leading-relaxed">
+                  <p className="text-subhead text-apple-primary leading-relaxed">
                     {location.summary}
                   </p>
-                  <p className="text-[10px] text-apple-tertiary mt-1 font-medium">— מוטי</p>
+                  <p className="text-caption text-apple-tertiary mt-1 font-medium">— מוטי</p>
                 </div>
               </div>
             </div>
           )}
           {location.funFact && (
             <div className="rounded-apple-lg bg-amber-50 border border-amber-200/60 px-4 py-3">
-              <p className="text-[13px] text-amber-900 leading-relaxed">{location.funFact}</p>
+              <p className="text-subhead text-amber-900 leading-relaxed">{location.funFact}</p>
             </div>
           )}
         </div>
@@ -221,7 +221,7 @@ export default function LocationHubPage() {
 
       {/* ── Tab Navigation ─────────────────────────────────── */}
       <div className="sticky top-14 z-20 bg-surface-primary/90 backdrop-blur-md border-b border-black/[0.06]">
-        <div className="flex gap-1 px-4 py-2 max-w-3xl mx-auto">
+        <div className="flex gap-1 px-4 py-2 max-w-4xl mx-auto">
           {TABS.map((tab) => {
             const Icon = tab.icon
             const isActive = activeTab === tab.id
@@ -245,7 +245,7 @@ export default function LocationHubPage() {
       </div>
 
       {/* ── Tab Content ──────────────────────────────────────── */}
-      <div className="max-w-3xl mx-auto px-4 py-6 pb-24">
+      <div className="max-w-4xl mx-auto px-4 py-6 pb-24">
         <AnimatePresence mode="wait">
           {activeTab === 'notes' && (
             <motion.div
@@ -341,7 +341,7 @@ export default function LocationHubPage() {
                     )}
 
                     {/* Stops */}
-                    <div className="space-y-2 pr-4 border-r-2 border-black/[0.06] mr-2">
+                    <div className="space-y-2 pe-4 border-e-2 border-black/[0.06] me-2">
                       {day.stops.map((stop) => (
                         <motion.div
                           key={stop.id}
@@ -354,34 +354,34 @@ export default function LocationHubPage() {
                               {CATEGORY_ICONS[stop.category || ''] || '📍'}
                             </span>
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-[14px] font-semibold text-apple-primary">
+                              <h4 className="text-body font-semibold text-apple-primary">
                                 {stop.title}
                               </h4>
                               {stop.description && (
-                                <p className="text-[13px] text-apple-secondary mt-0.5 line-clamp-2" dir="auto">
+                                <p className="text-subhead text-apple-secondary mt-0.5 line-clamp-2" dir="auto">
                                   {stop.description}
                                 </p>
                               )}
                               <div className="flex flex-wrap items-center gap-2 mt-2">
                                 {stop.start_time && (
-                                  <span className="text-[11px] text-apple-tertiary font-medium">
+                                  <span className="text-caption text-apple-tertiary font-medium">
                                     🕐 {stop.start_time}
                                     {stop.end_time && ` – ${stop.end_time}`}
                                   </span>
                                 )}
                                 {stop.cost_estimate !== undefined && stop.cost_estimate > 0 && (
-                                  <span className="text-[11px] text-ios-green font-medium">
+                                  <span className="text-caption text-ios-green font-medium">
                                     ~${stop.cost_estimate}
                                   </span>
                                 )}
                                 {stop.booking_confirmation && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-ios-blue/10 text-ios-blue font-semibold">
+                                  <span className="text-caption px-1.5 py-0.5 rounded bg-ios-blue/10 text-ios-blue font-semibold">
                                     ✓ {stop.booking_confirmation}
                                   </span>
                                 )}
                               </div>
                               {stop.notes && (
-                                <p className="text-[12px] text-amber-700 bg-amber-50 rounded-lg px-2 py-1 mt-2" dir="auto">
+                                <p className="text-subhead text-amber-700 bg-amber-50 rounded-lg px-2 py-1 mt-2" dir="auto">
                                   📌 {stop.notes}
                                 </p>
                               )}
@@ -439,20 +439,20 @@ export default function LocationHubPage() {
                         <FileText className="h-5 w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-[14px] font-semibold text-apple-primary">
+                        <h4 className="text-body font-semibold text-apple-primary">
                           {doc.title}
                         </h4>
                         {doc.notes && (
-                          <p className="text-[12px] text-apple-secondary mt-0.5 line-clamp-2" dir="auto">
+                          <p className="text-subhead text-apple-secondary mt-0.5 line-clamp-2" dir="auto">
                             {doc.notes}
                           </p>
                         )}
                         <div className="flex items-center gap-2 mt-1.5">
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-black/[0.04] text-apple-tertiary font-medium">
+                          <span className="text-caption px-1.5 py-0.5 rounded-full bg-black/[0.04] text-apple-tertiary font-medium">
                             {doc.category}
                           </span>
                           {doc.file_size && (
-                            <span className="text-[10px] text-apple-tertiary">
+                            <span className="text-caption text-apple-tertiary">
                               {(doc.file_size / 1_000_000).toFixed(1)} MB
                             </span>
                           )}
