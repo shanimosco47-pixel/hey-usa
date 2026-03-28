@@ -266,22 +266,40 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     async function loadData() {
       try {
         // Step 1: Try Dexie first (instant, offline-ready)
-        const localTasks = await localDb.tasks.toArray()
+        // Check multiple tables — user might have only added photos, not tasks
+        const [taskCount, photoCount, expenseCount, packingCount] = await Promise.all([
+          localDb.tasks.count(),
+          localDb.photos.count(),
+          localDb.expenses.count(),
+          localDb.packingItems.count(),
+        ])
+        const hasLocalData = taskCount > 0 || photoCount > 0 || expenseCount > 0 || packingCount > 0
 
-        if (localTasks.length > 0) {
-          // We have local data — show it immediately
+        if (hasLocalData) {
+          // We have local data — load all tables in parallel
           if (!cancelled) {
-            setTasks(localTasks)
-            setExpenses(await localDb.expenses.toArray())
-            const bs = await localDb.budgetSettings.get('main')
+            const [t, e, bs, pi, bp, ph, d, pl, ln, po] = await Promise.all([
+              localDb.tasks.toArray(),
+              localDb.expenses.toArray(),
+              localDb.budgetSettings.get('main'),
+              localDb.packingItems.toArray(),
+              localDb.blogPosts.toArray(),
+              localDb.photos.toArray(),
+              localDb.documents.toArray(),
+              localDb.playlistItems.toArray(),
+              localDb.locationNotes.toArray(),
+              localDb.polls.toArray(),
+            ])
+            if (t.length > 0) setTasks(t)
+            if (e.length > 0) setExpenses(e)
             if (bs) setBudgetSettings(bs)
-            setPackingItems(await localDb.packingItems.toArray())
-            setBlogPosts(await localDb.blogPosts.toArray())
-            setPhotos(await localDb.photos.toArray())
-            setDocuments(await localDb.documents.toArray())
-            setPlaylistItems(await localDb.playlistItems.toArray())
-            setLocationNotes(await localDb.locationNotes.toArray())
-            setPolls(await localDb.polls.toArray())
+            if (pi.length > 0) setPackingItems(pi)
+            if (bp.length > 0) setBlogPosts(bp)
+            if (ph.length > 0) setPhotos(ph)
+            if (d.length > 0) setDocuments(d)
+            if (pl.length > 0) setPlaylistItems(pl)
+            if (ln.length > 0) setLocationNotes(ln)
+            if (po.length > 0) setPolls(po)
             setIsLoading(false)
           }
         }
@@ -306,17 +324,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           await hydrateAvatarsFromSupabase()
         }
 
-        // Step 3: If no local data and no Supabase, seed Dexie from sample data
-        if (localTasks.length === 0 && !pulled) {
-          await localDb.tasks.bulkPut(sampleTasks)
-          await localDb.expenses.bulkPut(SAMPLE_EXPENSES)
-          await localDb.budgetSettings.put({ ...SAMPLE_BUDGET_SETTINGS, id: 'main' })
-          await localDb.packingItems.bulkPut(SAMPLE_PACKING_ITEMS)
-          await localDb.blogPosts.bulkPut(SAMPLE_BLOG_POSTS)
-          await localDb.photos.bulkPut(SAMPLE_PHOTOS)
-          await localDb.documents.bulkPut(SAMPLE_DOCUMENTS)
-          await localDb.playlistItems.bulkPut(SAMPLE_PLAYLIST)
-          await localDb.locationNotes.bulkPut(SAMPLE_LOCATION_NOTES)
+        // Step 3: If no local data and no Supabase, seed Dexie with sample data
+        // so that future user writes persist alongside samples on refresh
+        if (!hasLocalData && !pulled) {
+          await Promise.all([
+            localDb.tasks.bulkPut(sampleTasks),
+            localDb.expenses.bulkPut(SAMPLE_EXPENSES),
+            localDb.budgetSettings.put({ ...SAMPLE_BUDGET_SETTINGS, id: 'main' }),
+            localDb.packingItems.bulkPut(SAMPLE_PACKING_ITEMS),
+            localDb.blogPosts.bulkPut(SAMPLE_BLOG_POSTS),
+            localDb.photos.bulkPut(SAMPLE_PHOTOS),
+            localDb.documents.bulkPut(SAMPLE_DOCUMENTS),
+            localDb.playlistItems.bulkPut(SAMPLE_PLAYLIST),
+            localDb.locationNotes.bulkPut(SAMPLE_LOCATION_NOTES),
+          ])
           // State already has sample data as defaults — no need to set again
         }
 
