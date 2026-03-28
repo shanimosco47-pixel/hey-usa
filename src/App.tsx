@@ -21,11 +21,33 @@ class ChunkErrorBoundary extends Component<{ children: ReactNode }, { hasError: 
     return { hasError: true }
   }
   componentDidCatch() {
-    // Chunk load failure — reload to get fresh assets
-    window.location.reload()
+    // Chunk load failure — reload once to get fresh assets
+    const key = 'hey-usa-chunk-reload'
+    const last = sessionStorage.getItem(key)
+    const now = Date.now()
+    // Only auto-reload if we haven't reloaded in the last 10 seconds
+    if (!last || now - Number(last) > 10_000) {
+      sessionStorage.setItem(key, String(now))
+      window.location.reload()
+    }
   }
   render() {
-    if (this.state.hasError) return null
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center">
+          <p className="text-lg font-bold text-apple-primary">שגיאה בטעינת העמוד</p>
+          <button
+            onClick={() => {
+              sessionStorage.removeItem('hey-usa-chunk-reload')
+              window.location.reload()
+            }}
+            className="rounded-apple bg-ios-blue px-4 py-2 text-sm font-medium text-white"
+          >
+            רענן את הדף
+          </button>
+        </div>
+      )
+    }
     return this.props.children
   }
 }
