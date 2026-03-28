@@ -61,6 +61,10 @@ src/modules/{name}/
 - **Always run `npm run build` before committing** — CI treats warnings as errors
 - **Never push broken code** — the `formatDateRange` incident: unused variable broke the deploy
 - Commit message format: lowercase, concise, explains why not what
+- **SYNC FIRST:** At the start of EVERY session, run `git pull --rebase origin master` before making any changes
+- **PUSH AFTER EVERY COMMIT:** Run `git push origin master` immediately after each commit, not in batches. This prevents divergence with other sessions.
+- **Never work on feature branches for more than 1 commit** without pushing — other environments won't see your changes
+- **If push is rejected:** Run `git pull --rebase origin master`, resolve conflicts, then push again
 
 ## Deploy
 
