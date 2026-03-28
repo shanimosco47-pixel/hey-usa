@@ -196,7 +196,7 @@ ol {
 @layer utilities {
   /* Level 1 — Raised glass */
   .glass {
-    background: rgba(255, 255, 255, 0.78);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 0.5px solid rgba(38, 204, 194, 0.12);
@@ -455,4 +455,11 @@ ol {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.25);
+}
+
+/* Desktop typography scaling */
+@media (min-width: 1024px) {
+  html {
+    font-size: 17px;
+  }
 }

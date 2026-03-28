@@ -196,7 +196,7 @@ export default function BudgetPage() {
     'w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors'
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4 p-4 max-w-5xl mx-auto">
       {/* Header */}
       <motion.div
         className="flex items-center justify-between"
@@ -357,6 +357,9 @@ export default function BudgetPage() {
             )}
           </div>
 
+          {/* Desktop: category budgets + bar chart side by side */}
+          <div className="lg:grid lg:grid-cols-2 lg:gap-4">
+
           {/* Category Budgets */}
           <div className="glass rounded-apple-lg p-4 shadow-sm">
             <h3 className="text-sm font-bold text-apple-primary mb-3">תקציב לפי קטגוריה</h3>
@@ -489,6 +492,8 @@ export default function BudgetPage() {
               <BudgetBarChart data={barData} currency={settings.currency} />
             </Suspense>
           </div>
+
+          </div>{/* end lg:grid */}
         </motion.div>
       )}
 
@@ -576,6 +581,9 @@ export default function BudgetPage() {
             </div>
           )}
 
+          {/* Desktop: pie chart + expense list side by side */}
+          <div className="lg:grid lg:grid-cols-[1fr_1fr] lg:gap-4 lg:items-start">
+
           {/* Pie Chart */}
           {pieData.length > 0 && (
             <div className="glass rounded-apple-lg p-4 shadow-sm">
@@ -654,7 +662,9 @@ export default function BudgetPage() {
                 </div>
               )
             })}
-          </div>
+          </div>{/* end expense list */}
+
+          </div>{/* end lg:grid */}
         </motion.div>
       )}
 

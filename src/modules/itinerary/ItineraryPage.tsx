@@ -220,7 +220,7 @@ export default function ItineraryPage() {
   }).format(date)
 
   return (
-    <div className="mx-auto max-w-2xl pb-24 overflow-x-hidden">
+    <div className="mx-auto max-w-2xl lg:max-w-6xl pb-24 overflow-x-hidden">
       {/* Page header */}
       <motion.div
         className="px-4 pt-4 pb-2"
@@ -279,8 +279,13 @@ export default function ItineraryPage() {
         </div>
       </motion.div>
 
-      {/* Day selector strip */}
+      {/* Day selector strip — always above on mobile, becomes left sidebar on desktop */}
       <DaySelector days={ITINERARY_DAYS} activeDay={activeDayIndex} onDayChange={handleDayChange} />
+
+      {/* Desktop: side-by-side layout. Mobile: single column */}
+      <div className="lg:flex lg:gap-6 lg:px-4 lg:pt-3">
+        {/* Main content column */}
+        <div className="lg:flex-1 lg:min-w-0">
 
       {/* Day hero banner */}
       {(() => {
@@ -489,6 +494,9 @@ export default function ItineraryPage() {
           ))}
         </div>
       </div>
+
+        </div>{/* end main content column */}
+      </div>{/* end lg:flex */}
     </div>
   )
 }

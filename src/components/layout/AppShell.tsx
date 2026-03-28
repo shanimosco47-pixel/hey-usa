@@ -31,32 +31,34 @@ export function AppShell() {
             isDesktop ? 'mr-64' : 'pb-16',
           )}
         >
-          <PageErrorBoundary>
-            <Suspense
-              fallback={
-                <div className="flex min-h-[50vh] items-center justify-center">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-black/[0.06] border-t-ios-blue" />
-                </div>
-              }
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={location.pathname}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 300,
-                    damping: 30,
-                    mass: 0.8,
-                  }}
-                >
-                  <Outlet />
-                </motion.div>
-              </AnimatePresence>
-            </Suspense>
-          </PageErrorBoundary>
+          <div className="w-full max-w-7xl mx-auto">
+            <PageErrorBoundary>
+              <Suspense
+                fallback={
+                  <div className="flex min-h-[50vh] items-center justify-center">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-black/[0.06] border-t-ios-blue" />
+                  </div>
+                }
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={location.pathname}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 300,
+                      damping: 30,
+                      mass: 0.8,
+                    }}
+                  >
+                    <Outlet />
+                  </motion.div>
+                </AnimatePresence>
+              </Suspense>
+            </PageErrorBoundary>
+          </div>
         </main>
       </div>
 
