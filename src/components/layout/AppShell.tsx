@@ -14,7 +14,10 @@ export function AppShell() {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen bg-surface-primary" dir="rtl">
+    <div className="min-h-screen bg-surface-primary dark:bg-black" dir="rtl">
+      <a href="#main-content" className="skip-link">
+        דלג לתוכן הראשי
+      </a>
       <OfflineBanner />
       <TopBar />
 
@@ -22,6 +25,7 @@ export function AppShell() {
         {isDesktop && <Sidebar />}
 
         <main
+          id="main-content"
           className={cn(
             'flex-1 min-w-0 min-h-[calc(100vh-3.5rem)] overflow-x-hidden',
             isDesktop ? 'mr-64' : 'pb-16',

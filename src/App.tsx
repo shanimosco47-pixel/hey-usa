@@ -8,6 +8,7 @@ import AppShell from '@/components/layout/AppShell'
 import SplashScreen from '@/components/shared/SplashScreen'
 import NotFoundPage from '@/components/shared/NotFoundPage'
 import { PageErrorBoundary } from '@/components/shared/PageErrorBoundary'
+import { SearchDialog } from '@/components/shared/SearchDialog'
 
 // Auth screens (small, loaded eagerly for fast first paint)
 import { PinScreen } from '@/modules/auth/PinScreen'
@@ -152,6 +153,9 @@ function AppInner() {
           </Routes>
         </Suspense>
       </ChunkErrorBoundary>
+
+      {/* Global search (Cmd+K) */}
+      <SearchDialog />
 
       {/* Splash overlay — stays until data is ready */}
       {!splashDone && <SplashScreen onFinished={handleSplashFinished} dataReady={!isLoading} />}
