@@ -196,7 +196,7 @@ export default function BudgetPage() {
     'w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors'
 
   return (
-    <div className="space-y-4 p-4 max-w-5xl mx-auto">
+    <div className="space-y-4 p-4 max-w-4xl mx-auto">
       {/* Header */}
       <motion.div
         className="flex items-center justify-between"

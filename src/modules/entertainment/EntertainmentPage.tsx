@@ -73,7 +73,7 @@ export default function EntertainmentPage() {
   ]
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4 p-4 max-w-4xl mx-auto">
       <motion.h1
         className="text-2xl font-bold text-apple-primary"
         initial={{ opacity: 0, y: 8 }}

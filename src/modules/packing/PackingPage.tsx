@@ -106,7 +106,7 @@ export default function PackingPage() {
   }
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4 p-4 max-w-4xl mx-auto">
       {/* Header */}
       <motion.div
         className="flex items-center justify-between"

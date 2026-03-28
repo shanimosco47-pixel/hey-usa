@@ -169,7 +169,7 @@ export default function ItineraryPage() {
 
   if (!currentDay) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-6 pb-24">
+      <div className="mx-auto max-w-4xl px-4 py-6 pb-24">
         <motion.div
           className="flex items-center gap-3 mb-6"
           initial={{ opacity: 0, y: 8 }}
@@ -220,7 +220,7 @@ export default function ItineraryPage() {
   }).format(date)
 
   return (
-    <div className="mx-auto max-w-2xl lg:max-w-6xl pb-24 overflow-x-hidden">
+    <div className="mx-auto max-w-4xl pb-24 overflow-x-hidden">
       {/* Page header */}
       <motion.div
         className="px-4 pt-4 pb-2"

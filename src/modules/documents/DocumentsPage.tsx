@@ -105,7 +105,7 @@ export default function DocumentsPage() {
   )
 
   return (
-    <div className="min-h-full px-4 pb-24 pt-4 sm:px-6 overflow-x-hidden" dir="rtl">
+    <div className="min-h-full px-4 pb-24 pt-4 sm:px-6 overflow-x-hidden max-w-6xl mx-auto" dir="rtl">
       {/* Header */}
       <motion.div
         className="mb-5 flex items-center justify-between"

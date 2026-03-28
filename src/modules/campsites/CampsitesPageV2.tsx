@@ -563,7 +563,7 @@ export default function CampsitesPageV2() {
   }, [])
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pb-24 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 pb-24 space-y-6">
       {/* ── Action Items — Planning Dashboard ────────── */}
       {actionItems.length > 0 && (
         <GlassCard elevation={2} padding="md">

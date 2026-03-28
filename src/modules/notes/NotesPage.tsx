@@ -58,7 +58,7 @@ export default function NotesPage() {
   return (
     <div className="min-h-screen bg-surface-primary">
       {/* Header */}
-      <div className="px-4 pt-6 pb-4 max-w-3xl mx-auto">
+      <div className="px-4 pt-6 pb-4 max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <span className="text-3xl">📋</span>
@@ -93,7 +93,7 @@ export default function NotesPage() {
       </div>
 
       {/* Notes Grid */}
-      <div className="max-w-3xl mx-auto px-4 pb-24">
+      <div className="max-w-4xl mx-auto px-4 pb-24">
         <StaggerContainer className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {/* Add note button */}
           <motion.button

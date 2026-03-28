@@ -150,7 +150,7 @@ export default function PhotosPage() {
   }
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4 p-4 max-w-6xl mx-auto">
       <motion.div
         className="flex items-center justify-between"
         initial={{ opacity: 0, y: 8 }}

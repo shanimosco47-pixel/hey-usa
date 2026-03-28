@@ -168,7 +168,7 @@ export default function BlogPage() {
   // Editor view
   if (isEditing) {
     return (
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 p-4 max-w-4xl mx-auto">
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsEditing(false)}
@@ -277,7 +277,7 @@ export default function BlogPage() {
   if (selectedPost) {
     const author = getFamilyMember(selectedPost.author_id)
     return (
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 p-4 max-w-4xl mx-auto">
         <button
           onClick={() => setSelectedPost(null)}
           className="flex items-center gap-1 text-sm text-apple-secondary"

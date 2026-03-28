@@ -195,7 +195,7 @@ export default function DashboardPage() {
       {/* Scroll Progress Bar */}
       <ScrollProgress className="h-[3px]" />
 
-      <div className="relative z-10 mx-auto max-w-2xl lg:max-w-5xl px-5 pt-8 pb-28">
+      <div className="relative z-10 mx-auto max-w-4xl px-5 pt-8 pb-28">
         {/* ── Hero Section — Passport Stamp Aesthetic ── */}
         <BlurFade delay={0} duration={0.5}>
           <div className="mb-6">

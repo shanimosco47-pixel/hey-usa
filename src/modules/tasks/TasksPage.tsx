@@ -220,7 +220,7 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 pb-24 overflow-x-hidden">
+    <div className="mx-auto max-w-4xl px-4 py-6 pb-24 overflow-x-hidden">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
