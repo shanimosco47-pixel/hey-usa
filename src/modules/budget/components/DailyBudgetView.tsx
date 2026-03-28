@@ -91,7 +91,7 @@ export function DailyBudgetView() {
                     <Bed className="h-3.5 w-3.5" />
                     <span className="truncate">{day.accommodation.name}</span>
                     {day.accommodation.cost > 0 && (
-                      <span className="font-medium text-apple-primary mr-auto">
+                      <span className="font-medium text-apple-primary me-auto">
                         {currency}{day.accommodation.cost}
                       </span>
                     )}
@@ -101,7 +101,7 @@ export function DailyBudgetView() {
                   <div className="flex items-center gap-1.5 text-apple-secondary">
                     <Activity className="h-3.5 w-3.5" />
                     <span>פעילויות</span>
-                    <span className="font-medium text-apple-primary mr-auto">
+                    <span className="font-medium text-apple-primary me-auto">
                       {currency}{day.plannedActivities.toLocaleString()}
                     </span>
                   </div>
@@ -110,7 +110,7 @@ export function DailyBudgetView() {
                   <div className="flex items-center gap-1.5 text-apple-secondary">
                     <Car className="h-3.5 w-3.5" />
                     <span>נסיעות</span>
-                    <span className="font-medium text-apple-primary mr-auto">
+                    <span className="font-medium text-apple-primary me-auto">
                       {currency}{day.plannedDriving.toLocaleString()}
                     </span>
                   </div>

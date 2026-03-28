@@ -125,7 +125,7 @@ export default function PackingPage() {
       <div className="glass rounded-apple-lg p-4 shadow-sm">
         <div className="flex items-center justify-between text-sm">
           <span className="text-apple-secondary">
-            <Package className="ml-1 inline h-4 w-4" />
+            <Package className="ms-1 inline h-4 w-4" />
             {packedItems} מתוך {totalItems} ארוזים
           </span>
           <span
@@ -321,7 +321,7 @@ export default function PackingPage() {
                             >
                               {isSampleData(item.id) && (
                                 <span
-                                  className="text-[10px] ml-1 opacity-60"
+                                  className="text-[10px] ms-1 opacity-60"
                                   title="דוגמה מאת מוטי"
                                 >
                                   🤖
@@ -329,7 +329,7 @@ export default function PackingPage() {
                               )}
                               {item.name}
                               {item.quantity > 1 && (
-                                <span className="mr-1 text-xs text-apple-secondary">
+                                <span className="me-1 text-xs text-apple-secondary">
                                   ×{item.quantity}
                                 </span>
                               )}

@@ -293,7 +293,7 @@ export default function BlogPage() {
             </span>
             <span>·</span>
             <span>
-              <Calendar className="ml-1 inline h-3.5 w-3.5" />
+              <Calendar className="ms-1 inline h-3.5 w-3.5" />
               {formatDate(selectedPost.created_at)}
             </span>
           </div>
@@ -305,7 +305,7 @@ export default function BlogPage() {
             </div>
           )}
           <div
-            className="mt-6 text-sm text-apple-primary leading-relaxed [&_p]:mb-3 [&_strong]:font-bold [&_ul]:mr-4 [&_ul]:list-disc [&_li]:mb-1"
+            className="mt-6 text-sm text-apple-primary leading-relaxed [&_p]:mb-3 [&_strong]:font-bold [&_ul]:me-4 [&_ul]:list-disc [&_li]:mb-1"
             dir="auto"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedPost.content) }}
           />
@@ -334,7 +334,7 @@ export default function BlogPage() {
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
         <h1 className="text-2xl font-bold text-apple-primary">
-          <BookOpen className="ml-2 inline h-6 w-6" />
+          <BookOpen className="ms-2 inline h-6 w-6" />
           יומן מסע
         </h1>
         <Button onClick={startNewPost} variant="success">
@@ -368,7 +368,7 @@ export default function BlogPage() {
               >
                 <h3 className="text-headline font-bold text-apple-primary">
                   {isSampleData(post.id) && (
-                    <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">
+                    <span className="text-[10px] ms-1 opacity-60" title="דוגמה מאת מוטי">
                       🤖
                     </span>
                   )}

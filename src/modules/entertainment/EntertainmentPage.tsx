@@ -80,7 +80,7 @@ export default function EntertainmentPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
-        <Music className="ml-2 inline h-6 w-6" />
+        <Music className="ms-2 inline h-6 w-6" />
         בידור
       </motion.h1>
 
@@ -171,7 +171,7 @@ export default function EntertainmentPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-apple-primary truncate">
                     {isSampleData(song.id) && (
-                      <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">
+                      <span className="text-[10px] ms-1 opacity-60" title="דוגמה מאת מוטי">
                         🤖
                       </span>
                     )}
@@ -215,7 +215,7 @@ export default function EntertainmentPage() {
                   </button>
                   <button
                     onClick={() => deleteSong(song.id)}
-                    className="mr-1 rounded-lg p-1 text-apple-tertiary/30 hover:text-ios-red"
+                    className="me-1 rounded-lg p-1 text-apple-tertiary/30 hover:text-ios-red"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>

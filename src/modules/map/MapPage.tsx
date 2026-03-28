@@ -145,7 +145,7 @@ export default function MapPage() {
       <div className="flex items-center justify-between px-3 py-1.5">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-bold text-apple-primary">
-            <Map className="ml-1.5 inline h-5 w-5" />
+            <Map className="ms-1.5 inline h-5 w-5" />
             מפת המסלול
           </h1>
           <span className="text-[11px] text-apple-tertiary font-medium">
@@ -159,7 +159,7 @@ export default function MapPage() {
             showLabels ? 'bg-ios-blue text-white' : 'glass text-apple-secondary',
           )}
         >
-          <Layers className="ml-1 inline h-3 w-3" />
+          <Layers className="ms-1 inline h-3 w-3" />
           תוויות
         </button>
       </div>
@@ -175,7 +175,7 @@ export default function MapPage() {
               : 'glass text-apple-secondary',
           )}
         >
-          <Navigation className="ml-1 inline h-2.5 w-2.5" />
+          <Navigation className="ms-1 inline h-2.5 w-2.5" />
           הכל
         </button>
         {ITINERARY_DAYS.map((day, idx) => (

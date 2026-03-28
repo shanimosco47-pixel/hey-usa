@@ -341,7 +341,7 @@ export default function LocationHubPage() {
                     )}
 
                     {/* Stops */}
-                    <div className="space-y-2 pr-4 border-r-2 border-black/[0.06] mr-2">
+                    <div className="space-y-2 pe-4 border-e-2 border-black/[0.06] me-2">
                       {day.stops.map((stop) => (
                         <motion.div
                           key={stop.id}

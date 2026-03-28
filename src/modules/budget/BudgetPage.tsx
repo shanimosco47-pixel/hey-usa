@@ -404,7 +404,7 @@ export default function BudgetPage() {
                           >
                             {label}
                             {isOther && (
-                              <span className="text-[10px] text-apple-tertiary mr-1">
+                              <span className="text-[10px] text-apple-tertiary me-1">
                                 {' '}
                                 (יתרה אוטומטית)
                               </span>
@@ -626,7 +626,7 @@ export default function BudgetPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-apple-primary truncate">
                       {isSampleData(expense.id) && (
-                        <span className="text-[10px] ml-1 opacity-60" title="דוגמה מאת מוטי">
+                        <span className="text-[10px] ms-1 opacity-60" title="דוגמה מאת מוטי">
                           🤖
                         </span>
                       )}
