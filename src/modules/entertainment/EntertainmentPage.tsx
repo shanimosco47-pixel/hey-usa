@@ -10,6 +10,7 @@ import type { FamilyMemberId } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAppData } from '@/contexts/AppDataContext'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 
 type Tab = 'playlist' | 'games' | 'trivia'
 
@@ -149,11 +150,7 @@ export default function EntertainmentPage() {
           )}
 
           {sortedPlaylist.length === 0 && (
-            <EmptyState
-              icon={Music}
-              title="אין שירים"
-              description="הוסיפו שירים לפלייליסט"
-            />
+            <EmptyState icon={Music} title="אין שירים" description="הוסיפו שירים לפלייליסט" />
           )}
 
           {sortedPlaylist.map((song, idx) => {
@@ -179,7 +176,12 @@ export default function EntertainmentPage() {
                   </p>
                   <p className="text-xs text-apple-secondary">
                     {song.artist && <span>{song.artist} · </span>}
-                    {adder.avatar_emoji} {adder.name}
+                    <FamilyAvatar
+                      memberId={song.added_by}
+                      size="xs"
+                      className="inline-flex align-middle"
+                    />{' '}
+                    {adder.name}
                   </p>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">

@@ -12,6 +12,7 @@ import { KanbanView } from './components/KanbanView'
 import { TimelineView } from './components/TimelineView'
 import { TaskDialog, type TaskFormData } from './components/TaskDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 
 interface TaskFilters {
   search?: string
@@ -376,7 +377,7 @@ export default function TasksPage() {
                   title={member.name}
                   aria-label={`סינון לפי ${member.name}`}
                 >
-                  {member.emoji}
+                  <FamilyAvatar memberId={member.id} size="xs" />
                 </button>
               )
             })}

@@ -20,6 +20,7 @@ import { useAppData } from '@/contexts/AppDataContext'
 import type { Photo, FamilyMemberId } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import { PhotoCapture } from './components/PhotoCapture'
 
 export default function PhotosPage() {
@@ -32,7 +33,7 @@ export default function PhotosPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const toggleSelect = (id: string) => {
-    setSelectedIds(prev => {
+    setSelectedIds((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
@@ -41,7 +42,7 @@ export default function PhotosPage() {
   }
 
   const deleteSelected = () => {
-    selectedIds.forEach(id => deletePhoto(id))
+    selectedIds.forEach((id) => deletePhoto(id))
     setSelectedIds(new Set())
     setSelectMode(false)
   }
@@ -148,9 +149,9 @@ export default function PhotosPage() {
             <p className="text-base font-medium">{selectedPhoto.caption}</p>
           )}
           <div className="mt-2 flex items-center justify-center gap-4 text-sm text-white/60">
-            {photographer && (
-              <span>
-                {photographer.avatar_emoji} {photographer.name}
+            {photographer && selectedPhoto.taken_by && (
+              <span className="inline-flex items-center gap-1">
+                <FamilyAvatar memberId={selectedPhoto.taken_by} size="xs" /> {photographer.name}
               </span>
             )}
             {selectedPhoto.location && (
@@ -223,9 +224,7 @@ export default function PhotosPage() {
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-between rounded-apple-lg glass px-4 py-3 shadow-glass"
         >
-          <span className="text-sm font-medium text-apple-primary">
-            {selectedIds.size} נבחרו
-          </span>
+          <span className="text-sm font-medium text-apple-primary">{selectedIds.size} נבחרו</span>
           <div className="flex items-center gap-2">
             <button
               onClick={cancelSelection}
@@ -283,7 +282,7 @@ export default function PhotosPage() {
               filterMember === m.id ? 'bg-apple-primary text-white' : 'glass text-apple-secondary',
             )}
           >
-            {m.avatar_emoji} {m.name}
+            <FamilyAvatar memberId={m.id} size="xs" className="inline-flex" /> {m.name}
           </button>
         ))}
       </div>
@@ -299,7 +298,7 @@ export default function PhotosPage() {
           {filtered.map((photo) => (
             <StaggerItem key={photo.id}>
               <button
-                onClick={() => selectMode ? toggleSelect(photo.id) : setSelectedPhoto(photo)}
+                onClick={() => (selectMode ? toggleSelect(photo.id) : setSelectedPhoto(photo))}
                 className={cn(
                   'group relative aspect-square w-full overflow-hidden rounded-xl bg-black/[0.04]',
                   isSampleData(photo.id) && 'ring-1 ring-dashed ring-ios-teal/30',
@@ -321,15 +320,23 @@ export default function PhotosPage() {
                   </span>
                 )}
                 {selectMode && (
-                  <div className={cn(
-                    'absolute top-1.5 right-1.5 h-5 w-5 rounded-full border-2 flex items-center justify-center',
-                    selectedIds.has(photo.id)
-                      ? 'bg-ios-blue border-ios-blue'
-                      : 'bg-black/30 border-white/80',
-                  )}>
+                  <div
+                    className={cn(
+                      'absolute top-1.5 right-1.5 h-5 w-5 rounded-full border-2 flex items-center justify-center',
+                      selectedIds.has(photo.id)
+                        ? 'bg-ios-blue border-ios-blue'
+                        : 'bg-black/30 border-white/80',
+                    )}
+                  >
                     {selectedIds.has(photo.id) && (
                       <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
-                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path
+                          d="M2 6l3 3 5-5"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
                       </svg>
                     )}
                   </div>
@@ -345,7 +352,7 @@ export default function PhotosPage() {
             return (
               <StaggerItem key={photo.id}>
                 <button
-                  onClick={() => selectMode ? toggleSelect(photo.id) : setSelectedPhoto(photo)}
+                  onClick={() => (selectMode ? toggleSelect(photo.id) : setSelectedPhoto(photo))}
                   className={cn(
                     'flex w-full items-center gap-3 rounded-apple-lg glass p-2 text-right shadow-sm',
                     selectMode && selectedIds.has(photo.id) && 'ring-2 ring-ios-blue',
@@ -362,21 +369,35 @@ export default function PhotosPage() {
                       {photo.caption || 'ללא כיתוב'}
                     </p>
                     <p className="text-xs text-apple-secondary">
-                      {photographer && <span>{photographer.avatar_emoji} </span>}
+                      {photographer && photo.taken_by && (
+                        <FamilyAvatar
+                          memberId={photo.taken_by}
+                          size="xs"
+                          className="inline-flex align-middle"
+                        />
+                      )}
                       {photo.location && <span>{photo.location} · </span>}
                       {photo.taken_at && formatDate(photo.taken_at)}
                     </p>
                   </div>
                   {selectMode ? (
-                    <div className={cn(
-                      'h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center',
-                      selectedIds.has(photo.id)
-                        ? 'bg-ios-blue border-ios-blue'
-                        : 'border-apple-secondary/40',
-                    )}>
+                    <div
+                      className={cn(
+                        'h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center',
+                        selectedIds.has(photo.id)
+                          ? 'bg-ios-blue border-ios-blue'
+                          : 'border-apple-secondary/40',
+                      )}
+                    >
                       {selectedIds.has(photo.id) && (
                         <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
-                          <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path
+                            d="M2 6l3 3 5-5"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         </svg>
                       )}
                     </div>

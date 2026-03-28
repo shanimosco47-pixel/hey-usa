@@ -19,6 +19,7 @@ import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS, DOCUMENT_CATEGORIES } from '@/constants'
 import { getLocationById } from '@/data/locations'
 import { isSampleData } from '@/lib/sampleData'
+import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import type { Document } from '@/types'
 
 interface DocumentViewerProps {
@@ -69,7 +70,17 @@ function hasRealFile(doc: Document): boolean {
 }
 
 /** Fetches HTML from Supabase (served as text/plain) and renders via blob URL so the browser treats it as HTML */
-function HtmlPreview({ url, title, notes, onOpen }: { url: string; title: string; notes?: string; onOpen: () => void }) {
+function HtmlPreview({
+  url,
+  title,
+  notes,
+  onOpen,
+}: {
+  url: string
+  title: string
+  notes?: string
+  onOpen: () => void
+}) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [error, setError] = useState(false)
   const [hasUsefulContent, setHasUsefulContent] = useState(true)
@@ -82,7 +93,10 @@ function HtmlPreview({ url, title, notes, onOpen }: { url: string; title: string
         if (revoked) return
 
         // Check if the HTML has meaningful text content (not just images/logos)
-        const textContent = html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+        const textContent = html
+          .replace(/<[^>]*>/g, '')
+          .replace(/\s+/g, ' ')
+          .trim()
         // If the text content is very short (< 50 chars after stripping tags),
         // it's likely just a logo page with no real reservation data
         if (textContent.length < 50) {
@@ -104,7 +118,10 @@ function HtmlPreview({ url, title, notes, onOpen }: { url: string; title: string
     // If HTML failed to load but we have notes, show them instead of an error
     if (notes) {
       return (
-        <div className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]" dir="rtl">
+        <div
+          className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]"
+          dir="rtl"
+        >
           <div className="flex items-center gap-2 mb-3">
             <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
             <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
@@ -133,7 +150,10 @@ function HtmlPreview({ url, title, notes, onOpen }: { url: string; title: string
   if (!hasUsefulContent && notes) {
     return (
       <div className="w-full space-y-3">
-        <div className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]" dir="rtl">
+        <div
+          className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]"
+          dir="rtl"
+        >
           <div className="flex items-center gap-2 mb-3">
             <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
             <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
@@ -180,7 +200,10 @@ function HtmlPreview({ url, title, notes, onOpen }: { url: string; title: string
       </div>
       {/* Show notes below the HTML preview when they exist */}
       {notes && (
-        <div className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[30vh]" dir="rtl">
+        <div
+          className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[30vh]"
+          dir="rtl"
+        >
           <div className="flex items-center gap-2 mb-3">
             <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
             <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
@@ -200,12 +223,8 @@ function NotesBlock({ doc, subtitle }: { doc: Document; subtitle?: string }) {
         <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
         <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
       </div>
-      <p className="text-sm text-apple-primary whitespace-pre-wrap leading-relaxed">
-        {doc.notes}
-      </p>
-      {subtitle && (
-        <p className="mt-4 text-xs text-amber-600 font-medium">{subtitle}</p>
-      )}
+      <p className="text-sm text-apple-primary whitespace-pre-wrap leading-relaxed">{doc.notes}</p>
+      {subtitle && <p className="mt-4 text-xs text-amber-600 font-medium">{subtitle}</p>}
     </div>
   )
 }
@@ -228,10 +247,7 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
   // No real file — show notes/booking details as the main content
   if (!realFile && doc.notes) {
     return (
-      <NotesBlock
-        doc={doc}
-        subtitle="📎 הקובץ טרם הועלה — ניתן להעלות דרך כפתור ״העלה מסמך״"
-      />
+      <NotesBlock doc={doc} subtitle="📎 הקובץ טרם הועלה — ניתן להעלות דרך כפתור ״העלה מסמך״" />
     )
   }
 
@@ -251,7 +267,9 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
             className="h-10 w-auto object-contain rounded opacity-60"
             loading="lazy"
           />
-          <span className="text-xs text-apple-secondary">קובץ מצורף ({formatFileSize(doc.file_size)})</span>
+          <span className="text-xs text-apple-secondary">
+            קובץ מצורף ({formatFileSize(doc.file_size)})
+          </span>
         </div>
       </div>
     )
@@ -269,9 +287,7 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
           />
         </div>
         {/* If we have notes, show them below the image too */}
-        {doc.notes && (
-          <NotesBlock doc={doc} />
-        )}
+        {doc.notes && <NotesBlock doc={doc} />}
       </div>
     )
   }
@@ -327,7 +343,7 @@ function DetailRow({
 }: {
   icon: React.ComponentType<{ className?: string }>
   label: string
-  value: string
+  value: React.ReactNode
   valueClassName?: string
 }) {
   return (
@@ -335,7 +351,7 @@ function DetailRow({
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-apple-secondary" />
       <div className="min-w-0">
         <p className="text-xs text-apple-secondary">{label}</p>
-        <p className={cn('text-sm text-apple-primary break-words', valueClassName)}>{value}</p>
+        <div className={cn('text-sm text-apple-primary break-words', valueClassName)}>{value}</div>
       </div>
     </div>
   )
@@ -444,11 +460,15 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
                   />
                 )}
 
-                {member && (
+                {member && doc.family_member_id && (
                   <DetailRow
                     icon={User}
                     label="בן משפחה"
-                    value={`${member.emoji} ${member.name}`}
+                    value={
+                      <span className="inline-flex items-center gap-1">
+                        <FamilyAvatar memberId={doc.family_member_id} size="xs" /> {member.name}
+                      </span>
+                    }
                   />
                 )}
 

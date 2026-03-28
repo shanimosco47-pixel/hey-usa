@@ -22,11 +22,12 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
-import { PACKING_CATEGORIES, FAMILY_MEMBERS_LIST, getFamilyMember } from '@/constants'
+import { PACKING_CATEGORIES, FAMILY_MEMBERS_LIST } from '@/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import type { FamilyMemberId } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
   clothing: Shirt,
@@ -190,7 +191,7 @@ export default function PackingPage() {
               filterMember === m.id ? 'bg-apple-primary text-white' : 'glass text-apple-secondary',
             )}
           >
-            {m.avatar_emoji} {m.name}
+            <FamilyAvatar memberId={m.id} size="xs" className="inline-flex" /> {m.name}
           </button>
         ))}
       </div>
@@ -253,11 +254,7 @@ export default function PackingPage() {
 
       {/* Category Groups */}
       {filtered.length === 0 ? (
-        <EmptyState
-          icon={Luggage}
-          title="רשימת האריזה ריקה"
-          description="הוסיפו פריטים לאריזה"
-        />
+        <EmptyState icon={Luggage} title="רשימת האריזה ריקה" description="הוסיפו פריטים לאריזה" />
       ) : (
         <StaggerContainer className="space-y-2">
           {Object.entries(PACKING_CATEGORIES).map(([catKey, { label }]) => {
@@ -269,90 +266,87 @@ export default function PackingPage() {
 
             return (
               <StaggerItem key={catKey}>
-              <div className="glass rounded-apple-lg shadow-sm overflow-hidden">
-                <button
-                  onClick={() => toggleCategory(catKey)}
-                  className="flex w-full items-center gap-3 p-3"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/[0.04]">
-                    <IconComp className="h-4 w-4 text-apple-secondary" />
-                  </div>
-                  <span className="flex-1 text-right text-sm font-bold text-apple-primary">
-                    {label} {catPacked === catItems.length && '✅'}
-                  </span>
-                  <span className="text-xs text-apple-secondary">
-                    {catPacked}/{catItems.length}
-                  </span>
-                  {isExpanded ? (
-                    <ChevronUp className="h-4 w-4 text-apple-secondary" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 text-apple-secondary" />
-                  )}
-                </button>
+                <div className="glass rounded-apple-lg shadow-sm overflow-hidden">
+                  <button
+                    onClick={() => toggleCategory(catKey)}
+                    className="flex w-full items-center gap-3 p-3"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/[0.04]">
+                      <IconComp className="h-4 w-4 text-apple-secondary" />
+                    </div>
+                    <span className="flex-1 text-right text-sm font-bold text-apple-primary">
+                      {label} {catPacked === catItems.length && '✅'}
+                    </span>
+                    <span className="text-xs text-apple-secondary">
+                      {catPacked}/{catItems.length}
+                    </span>
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4 text-apple-secondary" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-apple-secondary" />
+                    )}
+                  </button>
 
-                {isExpanded && (
-                  <div className="border-t border-black/[0.06] px-3 pb-2">
-                    {catItems.map((item) => {
-                      const member = getFamilyMember(item.assigned_to)
-                      return (
-                        <div
-                          key={item.id}
-                          className="flex items-center gap-3 py-2 border-b border-black/[0.04] last:border-0"
-                        >
-                          <button
-                            onClick={() => togglePacked(item.id)}
-                            className={cn(
-                              'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 transition-colors',
-                              item.is_packed
-                                ? 'border-ios-green bg-ios-green text-white'
-                                : 'border-apple-tertiary/30 bg-transparent',
-                            )}
+                  {isExpanded && (
+                    <div className="border-t border-black/[0.06] px-3 pb-2">
+                      {catItems.map((item) => {
+                        return (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-3 py-2 border-b border-black/[0.04] last:border-0"
                           >
-                            {item.is_packed && <Check className="h-3.5 w-3.5" />}
-                          </button>
-                          <div className="flex-1 min-w-0">
-                            <p
+                            <button
+                              onClick={() => togglePacked(item.id)}
                               className={cn(
-                                'text-sm',
+                                'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 transition-colors',
                                 item.is_packed
-                                  ? 'text-apple-secondary line-through'
-                                  : 'text-apple-primary',
+                                  ? 'border-ios-green bg-ios-green text-white'
+                                  : 'border-apple-tertiary/30 bg-transparent',
                               )}
                             >
-                              {isSampleData(item.id) && (
-                                <span
-                                  className="text-caption ms-1 opacity-60"
-                                  title="דוגמה מאת מוטי"
-                                >
-                                  🤖
-                                </span>
+                              {item.is_packed && <Check className="h-3.5 w-3.5" />}
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <p
+                                className={cn(
+                                  'text-sm',
+                                  item.is_packed
+                                    ? 'text-apple-secondary line-through'
+                                    : 'text-apple-primary',
+                                )}
+                              >
+                                {isSampleData(item.id) && (
+                                  <span
+                                    className="text-caption ms-1 opacity-60"
+                                    title="דוגמה מאת מוטי"
+                                  >
+                                    🤖
+                                  </span>
+                                )}
+                                {item.name}
+                                {item.quantity > 1 && (
+                                  <span className="me-1 text-xs text-apple-secondary">
+                                    ×{item.quantity}
+                                  </span>
+                                )}
+                              </p>
+                              {item.notes && (
+                                <p className="text-xs text-apple-tertiary">{item.notes}</p>
                               )}
-                              {item.name}
-                              {item.quantity > 1 && (
-                                <span className="me-1 text-xs text-apple-secondary">
-                                  ×{item.quantity}
-                                </span>
-                              )}
-                            </p>
-                            {item.notes && (
-                              <p className="text-xs text-apple-tertiary">{item.notes}</p>
-                            )}
+                            </div>
+                            <FamilyAvatar memberId={item.assigned_to} size="xs" />
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="shrink-0 rounded-lg p-1 text-apple-tertiary/30 hover:bg-ios-red/10 hover:text-ios-red"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
                           </div>
-                          <span className="text-xs" title={member.name}>
-                            {member.avatar_emoji}
-                          </span>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="shrink-0 rounded-lg p-1 text-apple-tertiary/30 hover:bg-ios-red/10 hover:text-ios-red"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               </StaggerItem>
             )
           })}

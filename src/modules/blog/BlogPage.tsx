@@ -18,6 +18,7 @@ import { useAppData } from '@/contexts/AppDataContext'
 import type { BlogPost, FamilyMemberId } from '@/lib/types'
 import { useAuth } from '@/contexts/AuthContext'
 import { isSampleData } from '@/lib/sampleData'
+import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import DOMPurify from 'dompurify'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { DailyTemplates } from './components/DailyTemplates'
@@ -288,8 +289,8 @@ export default function BlogPage() {
         <div className="rounded-apple-lg glass p-6 shadow-sm">
           <h1 className="text-2xl font-bold text-apple-primary">{selectedPost.title}</h1>
           <div className="mt-3 flex items-center gap-3 text-sm text-apple-secondary">
-            <span>
-              {author.avatar_emoji} {author.name}
+            <span className="inline-flex items-center gap-1">
+              <FamilyAvatar memberId={selectedPost.author_id} size="xs" /> {author.name}
             </span>
             <span>·</span>
             <span>
@@ -374,13 +375,16 @@ export default function BlogPage() {
                   )}
                   {post.title}
                 </h3>
-                <p className="mt-1.5 text-subhead text-apple-secondary leading-relaxed line-clamp-2" dir="auto">
+                <p
+                  className="mt-1.5 text-subhead text-apple-secondary leading-relaxed line-clamp-2"
+                  dir="auto"
+                >
                   {excerpt}...
                 </p>
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs text-apple-secondary">
-                    <span>
-                      {author.avatar_emoji} {author.name}
+                    <span className="inline-flex items-center gap-1">
+                      <FamilyAvatar memberId={post.author_id} size="xs" /> {author.name}
                     </span>
                     <span>·</span>
                     <span>{formatDate(post.created_at)}</span>
