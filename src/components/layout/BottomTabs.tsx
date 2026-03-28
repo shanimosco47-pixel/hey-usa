@@ -1,10 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Home, ClipboardCheck, MapPinned, MapPin, ImagePlus, MoreHorizontal,
-  CalendarDays, FolderOpen, Notebook, Wallet, Headphones, Luggage, Bot, X,
-  StickyNote, Tent,
+  Home,
+  ClipboardCheck,
+  MapPinned,
+  MapPin,
+  ImagePlus,
+  MoreHorizontal,
+  CalendarDays,
+  FolderOpen,
+  Notebook,
+  Wallet,
+  Headphones,
+  Luggage,
+  Bot,
+  X,
+  StickyNote,
+  Tent,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { BOTTOM_TAB_ITEMS, MORE_MENU_ITEMS } from '@/constants'
@@ -12,13 +25,35 @@ import { APP_VERSION, buildTimeFormatted } from '@/lib/version'
 import type { LucideIcon } from 'lucide-react'
 
 const ICON_MAP: Record<string, LucideIcon> = {
-  Home, ClipboardCheck, MapPinned, MapPin, ImagePlus, CalendarDays,
-  FolderOpen, Notebook, Wallet, Headphones, Luggage, Bot, StickyNote, Tent,
+  Home,
+  ClipboardCheck,
+  MapPinned,
+  MapPin,
+  ImagePlus,
+  CalendarDays,
+  FolderOpen,
+  Notebook,
+  Wallet,
+  Headphones,
+  Luggage,
+  Bot,
+  StickyNote,
+  Tent,
 }
 
 export function BottomTabs() {
   const [moreOpen, setMoreOpen] = useState(false)
   const navigate = useNavigate()
+
+  // Close drawer on Escape key
+  useEffect(() => {
+    if (!moreOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMoreOpen(false)
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [moreOpen])
 
   return (
     <>
@@ -40,6 +75,8 @@ export function BottomTabs() {
       <AnimatePresence>
         {moreOpen && (
           <motion.div
+            role="dialog"
+            aria-label="מודולים נוספים"
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -51,7 +88,9 @@ export function BottomTabs() {
             )}
           >
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
-              <h3 className="text-caption uppercase tracking-wide text-apple-secondary">עוד מודולים</h3>
+              <h3 className="text-caption uppercase tracking-wide text-apple-secondary">
+                עוד מודולים
+              </h3>
               <motion.button
                 whileTap={{ scale: 0.85, rotate: 90 }}
                 onClick={() => setMoreOpen(false)}
@@ -103,6 +142,7 @@ export function BottomTabs() {
 
       {/* Bottom Tab Bar */}
       <nav
+        aria-label="ניווט ראשי"
         className={cn(
           'fixed bottom-0 left-0 right-0 z-30',
           'flex h-16 items-center justify-around',
@@ -121,9 +161,7 @@ export function BottomTabs() {
                 cn(
                   'flex flex-col items-center gap-0.5 px-4 py-1.5',
                   'text-[12px] font-medium transition-colors duration-150',
-                  isActive
-                    ? 'text-ios-blue font-semibold'
-                    : 'text-apple-tertiary',
+                  isActive ? 'text-ios-blue font-semibold' : 'text-apple-tertiary',
                 )
               }
             >
@@ -151,6 +189,8 @@ export function BottomTabs() {
         <motion.button
           whileTap={{ scale: 0.85 }}
           onClick={() => setMoreOpen((prev) => !prev)}
+          aria-expanded={moreOpen}
+          aria-label="עוד מודולים"
           className={cn(
             'flex flex-col items-center gap-0.5 px-3 py-1.5',
             'text-[12px] transition-colors',

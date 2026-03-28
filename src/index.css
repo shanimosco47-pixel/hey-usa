@@ -5,24 +5,24 @@
 @layer base {
   :root {
     /* iOS System Colors */
-    --color-blue: #007AFF;
-    --color-green: #34C759;
-    --color-red: #FF3B30;
-    --color-orange: #FF9500;
-    --color-yellow: #FFCC00;
-    --color-purple: #AF52DE;
-    --color-indigo: #5856D6;
-    --color-teal: #5AC8FA;
-    --color-pink: #FF2D55;
+    --color-blue: #007aff;
+    --color-green: #34c759;
+    --color-red: #ff3b30;
+    --color-orange: #ff9500;
+    --color-yellow: #ffcc00;
+    --color-purple: #af52de;
+    --color-indigo: #5856d6;
+    --color-teal: #5ac8fa;
+    --color-pink: #ff2d55;
 
     /* Trip palette */
-    --trip-mint: #6AECE1;
-    --trip-teal: #26CCC2;
-    --trip-yellow: #FFF57E;
-    --trip-orange: #FFB76C;
+    --trip-mint: #6aece1;
+    --trip-teal: #26ccc2;
+    --trip-yellow: #fff57e;
+    --trip-orange: #ffb76c;
 
     /* Surfaces */
-    --bg-primary: #E8FAF8;
+    --bg-primary: #e8faf8;
     --bg-elevated: rgba(255, 255, 255, 0.75);
     --bg-card: rgba(255, 255, 255, 0.82);
     --bg-dark: #1d1d1f;
@@ -34,15 +34,15 @@
     --text-tertiary: #aeaeb2;
 
     /* Status */
-    --status-todo: #FF3B30;
-    --status-progress: #FF9500;
-    --status-done: #34C759;
-    --status-waiting: #8E8E93;
+    --status-todo: #ff3b30;
+    --status-progress: #ff9500;
+    --status-done: #34c759;
+    --status-waiting: #8e8e93;
 
     /* Phase */
-    --phase-pre: #5856D6;
-    --phase-during: #34C759;
-    --phase-post: #007AFF;
+    --phase-pre: #5856d6;
+    --phase-during: #34c759;
+    --phase-post: #007aff;
 
     /* Easing */
     --ease-default: cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -96,7 +96,12 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  font-family: 'Inter', 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    'Inter',
+    'Heebo',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   background-color: #faf8f5;
   color: var(--text-primary);
   line-height: 1.6;
@@ -166,7 +171,7 @@ ol {
     -webkit-backdrop-filter: blur(40px);
     border: 0.5px solid rgba(38, 204, 194, 0.15);
     border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
   }
 
   /* Navigation glass */
@@ -186,7 +191,9 @@ ol {
 
   /* Card hover effect */
   .card-hover {
-    transition: transform 200ms var(--ease-default), box-shadow 200ms var(--ease-default);
+    transition:
+      transform 200ms var(--ease-default),
+      box-shadow 200ms var(--ease-default);
   }
   .card-hover:hover {
     transform: translateY(-2px);
@@ -242,6 +249,24 @@ ol {
     border-radius: 12px;
   }
 
+  /* Skip-to-content link (a11y) */
+  .skip-link {
+    position: fixed;
+    top: -100%;
+    right: 1rem;
+    z-index: 9999;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-blue);
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 0 0 12px 12px;
+    transition: top 150ms var(--ease-default);
+  }
+  .skip-link:focus {
+    top: 0;
+  }
+
   /* Fun bounce animation */
   .fun-bounce {
     display: inline-block;
@@ -249,18 +274,38 @@ ol {
   }
 
   @keyframes fun-bounce {
-    0% { transform: scale(0); opacity: 0; }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.2);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 
   /* ── Sticky Note Colors ──────────────────────────────────── */
-  .sticky-yellow { background: #fff9c4; }
-  .sticky-pink { background: #fce4ec; }
-  .sticky-blue { background: #e3f2fd; }
-  .sticky-green { background: #e8f5e9; }
-  .sticky-orange { background: #fff3e0; }
-  .sticky-purple { background: #f3e5f5; }
+  .sticky-yellow {
+    background: #fff9c4;
+  }
+  .sticky-pink {
+    background: #fce4ec;
+  }
+  .sticky-blue {
+    background: #e3f2fd;
+  }
+  .sticky-green {
+    background: #e8f5e9;
+  }
+  .sticky-orange {
+    background: #fff3e0;
+  }
+  .sticky-purple {
+    background: #f3e5f5;
+  }
 
   /* Sticky note base style */
   .sticky-note {
@@ -269,7 +314,9 @@ ol {
     box-shadow:
       2px 3px 8px rgba(0, 0, 0, 0.12),
       0 1px 2px rgba(0, 0, 0, 0.08);
-    transition: transform 200ms var(--ease-default), box-shadow 200ms var(--ease-default);
+    transition:
+      transform 200ms var(--ease-default),
+      box-shadow 200ms var(--ease-default);
   }
   .sticky-note:hover {
     box-shadow:
@@ -319,6 +366,18 @@ ol {
       inset 0 1px 2px rgba(255, 255, 255, 0.3);
     z-index: 2;
   }
+}
+
+/* Global focus-visible for keyboard navigation (a11y) */
+:focus-visible {
+  outline: 2px solid rgba(0, 122, 255, 0.6);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove focus outline for mouse/touch users */
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
 /* Custom scrollbar — thin & rounded */

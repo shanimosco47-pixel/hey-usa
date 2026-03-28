@@ -19,8 +19,9 @@ import { isChild } from '@/lib/familyRoles'
 import { useAppData } from '@/contexts/AppDataContext'
 import { KidsDashboard } from './components/KidsDashboard'
 import { ParentDashboard } from './components/ParentDashboard'
+import { TripRouteProgress } from './components/TripRouteProgress'
 import type { Task } from '@/lib/types'
-import { FAMILY_MEMBERS, TRIP_START_DATE, TRIP_END_DATE, ROUTE_COLORS } from '@/constants'
+import { FAMILY_MEMBERS, TRIP_START_DATE, TRIP_END_DATE } from '@/constants'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import type { FamilyMemberId } from '@/lib/types'
 import WeatherWidget from '@/components/shared/WeatherWidget'
@@ -40,16 +41,76 @@ const TRIP_END = new Date(`${TRIP_END_DATE}T00:00:00`)
 
 /* ── Destinations for Marquee ── */
 const DESTINATIONS = [
-  { name: 'Bozeman', emoji: '✈️', days: 'Sep 10-11', state: 'MT', gradient: 'linear-gradient(135deg, #38bdf8, #6366f1)' },
-  { name: 'Yellowstone', emoji: '🌋', days: 'Sep 11-14', state: 'WY', gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)' },
-  { name: 'Grand Teton', emoji: '🏔️', days: 'Sep 14-16', state: 'WY', gradient: 'linear-gradient(135deg, #3b82f6, #1e3a5f)' },
-  { name: 'Salt Lake City', emoji: '🏛️', days: 'Sep 16', state: 'UT', gradient: 'linear-gradient(135deg, #64748b, #3b82f6)' },
-  { name: 'Bryce Canyon', emoji: '🪨', days: 'Sep 17-18', state: 'UT', gradient: 'linear-gradient(135deg, #ea580c, #dc2626)' },
-  { name: 'Zion', emoji: '⛰️', days: 'Sep 18-20', state: 'UT', gradient: 'linear-gradient(135deg, #dc2626, #f97316)' },
-  { name: 'Las Vegas', emoji: '🎰', days: 'Sep 20-21', state: 'NV', gradient: 'linear-gradient(135deg, #a855f7, #ec4899)' },
-  { name: 'Mammoth Lakes', emoji: '🎿', days: 'Sep 21-22', state: 'CA', gradient: 'linear-gradient(135deg, #3b82f6, #4f46e5)' },
-  { name: 'Yosemite', emoji: '🌲', days: 'Sep 22-25', state: 'CA', gradient: 'linear-gradient(135deg, #16a34a, #0d9488)' },
-  { name: 'San Francisco', emoji: '🌉', days: 'Sep 25-30', state: 'CA', gradient: 'linear-gradient(135deg, #f97316, #dc2626)' },
+  {
+    name: 'Bozeman',
+    emoji: '✈️',
+    days: 'Sep 10-11',
+    state: 'MT',
+    gradient: 'linear-gradient(135deg, #38bdf8, #6366f1)',
+  },
+  {
+    name: 'Yellowstone',
+    emoji: '🌋',
+    days: 'Sep 11-14',
+    state: 'WY',
+    gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+  },
+  {
+    name: 'Grand Teton',
+    emoji: '🏔️',
+    days: 'Sep 14-16',
+    state: 'WY',
+    gradient: 'linear-gradient(135deg, #3b82f6, #1e3a5f)',
+  },
+  {
+    name: 'Salt Lake City',
+    emoji: '🏛️',
+    days: 'Sep 16',
+    state: 'UT',
+    gradient: 'linear-gradient(135deg, #64748b, #3b82f6)',
+  },
+  {
+    name: 'Bryce Canyon',
+    emoji: '🪨',
+    days: 'Sep 17-18',
+    state: 'UT',
+    gradient: 'linear-gradient(135deg, #ea580c, #dc2626)',
+  },
+  {
+    name: 'Zion',
+    emoji: '⛰️',
+    days: 'Sep 18-20',
+    state: 'UT',
+    gradient: 'linear-gradient(135deg, #dc2626, #f97316)',
+  },
+  {
+    name: 'Las Vegas',
+    emoji: '🎰',
+    days: 'Sep 20-21',
+    state: 'NV',
+    gradient: 'linear-gradient(135deg, #a855f7, #ec4899)',
+  },
+  {
+    name: 'Mammoth Lakes',
+    emoji: '🎿',
+    days: 'Sep 21-22',
+    state: 'CA',
+    gradient: 'linear-gradient(135deg, #3b82f6, #4f46e5)',
+  },
+  {
+    name: 'Yosemite',
+    emoji: '🌲',
+    days: 'Sep 22-25',
+    state: 'CA',
+    gradient: 'linear-gradient(135deg, #16a34a, #0d9488)',
+  },
+  {
+    name: 'San Francisco',
+    emoji: '🌉',
+    days: 'Sep 25-30',
+    state: 'CA',
+    gradient: 'linear-gradient(135deg, #f97316, #dc2626)',
+  },
 ]
 
 const MODULE_CARDS: {
@@ -59,20 +120,28 @@ const MODULE_CARDS: {
   color: string
   countKey?: 'tasks' | 'photos' | 'packing' | 'expenses'
 }[] = [
-  { path: '/tasks', icon: CheckCircle2, label: 'משימות', color: '#007AFF', countKey: 'tasks' },    // ios-blue
-  { path: '/itinerary', icon: CalendarRange, label: 'לוח זמנים', color: '#FF9500' },              // ios-orange
-  { path: '/documents', icon: FolderClosed, label: 'מסמכים', color: '#FF3B30' },                  // ios-red
-  { path: '/map', icon: Map, label: 'מפה', color: '#5856D6' },                                    // ios-indigo
-  { path: '/photos', icon: Camera, label: 'תמונות', color: '#FF2D55', countKey: 'photos' },       // ios-pink
-  { path: '/blog', icon: PenLine, label: 'בלוג', color: '#34C759' },                              // ios-green
-  { path: '/budget', icon: CreditCard, label: 'תקציב', color: '#FF9500', countKey: 'expenses' },  // ios-orange
-  { path: '/entertainment', icon: Music, label: 'בידור', color: '#AF52DE' },                      // ios-purple
-  { path: '/packing', icon: Briefcase, label: 'אריזה', color: '#5AC8FA', countKey: 'packing' },   // ios-teal
-  { path: '/locations', icon: MapPin, label: 'יעדים', color: '#FF9500' },                         // ios-orange
+  { path: '/tasks', icon: CheckCircle2, label: 'משימות', color: '#007AFF', countKey: 'tasks' }, // ios-blue
+  { path: '/itinerary', icon: CalendarRange, label: 'לוח זמנים', color: '#FF9500' }, // ios-orange
+  { path: '/documents', icon: FolderClosed, label: 'מסמכים', color: '#FF3B30' }, // ios-red
+  { path: '/map', icon: Map, label: 'מפה', color: '#5856D6' }, // ios-indigo
+  { path: '/photos', icon: Camera, label: 'תמונות', color: '#FF2D55', countKey: 'photos' }, // ios-pink
+  { path: '/blog', icon: PenLine, label: 'בלוג', color: '#34C759' }, // ios-green
+  { path: '/budget', icon: CreditCard, label: 'תקציב', color: '#FF9500', countKey: 'expenses' }, // ios-orange
+  { path: '/entertainment', icon: Music, label: 'בידור', color: '#AF52DE' }, // ios-purple
+  { path: '/packing', icon: Briefcase, label: 'אריזה', color: '#5AC8FA', countKey: 'packing' }, // ios-teal
+  { path: '/locations', icon: MapPin, label: 'יעדים', color: '#FF9500' }, // ios-orange
 ]
 
 /* ── Passport Stamp decorative element ── */
-function PassportStamp({ text, date, rotation = -12 }: { text: string; date: string; rotation?: number }) {
+function PassportStamp({
+  text,
+  date,
+  rotation = -12,
+}: {
+  text: string
+  date: string
+  rotation?: number
+}) {
   return (
     <div
       className="inline-flex flex-col items-center justify-center shrink-0"
@@ -87,7 +156,10 @@ function PassportStamp({ text, date, rotation = -12 }: { text: string; date: str
         opacity: 0.85,
       }}
     >
-      <div className="absolute rounded-full" style={{ inset: 4, border: '1px dashed rgba(180, 83, 9, 0.4)' }} />
+      <div
+        className="absolute rounded-full"
+        style={{ inset: 4, border: '1px dashed rgba(180, 83, 9, 0.4)' }}
+      />
       <span className="font-serif text-[9px] font-semibold uppercase tracking-wider">{text}</span>
       <span className="font-serif text-[11px] font-bold">{date}</span>
     </div>
@@ -246,19 +318,25 @@ export default function DashboardPage() {
                     <div className="font-serif text-[36px] font-bold leading-none">
                       <NumberTicker value={daysLeft} delay={0.2} />
                     </div>
-                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">ימים לטיסה</div>
+                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">
+                      ימים לטיסה
+                    </div>
                   </div>
                   <div className="border-x border-white/10">
                     <div className="font-serif text-[36px] font-bold leading-none">
                       <NumberTicker value={2400} delay={0.4} />
                     </div>
-                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">מיילים</div>
+                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">
+                      מיילים
+                    </div>
                   </div>
                   <div>
                     <div className="font-serif text-[36px] font-bold leading-none">
                       <NumberTicker value={21} delay={0.6} />
                     </div>
-                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">ימי טיול</div>
+                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">
+                      ימי טיול
+                    </div>
                   </div>
                 </div>
               </div>
@@ -279,7 +357,9 @@ export default function DashboardPage() {
                 >
                   <span className="text-[20px]">{d.emoji}</span>
                   <span className="text-[14px] font-semibold">{d.name}</span>
-                  <span className="text-[11px] opacity-85">{d.days} · {d.state}</span>
+                  <span className="text-[11px] opacity-85">
+                    {d.days} · {d.state}
+                  </span>
                 </div>
               ))}
             </Marquee>
@@ -303,7 +383,9 @@ export default function DashboardPage() {
               style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
             >
               <p className="text-caption text-apple-secondary font-medium">תקציב</p>
-              <p className={`text-body font-bold ${budgetPercent > 80 ? 'text-ios-red' : 'text-ios-blue'}`}>
+              <p
+                className={`text-body font-bold ${budgetPercent > 80 ? 'text-ios-red' : 'text-ios-blue'}`}
+              >
                 {budgetPercent}%
               </p>
             </div>
@@ -312,9 +394,7 @@ export default function DashboardPage() {
               style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
             >
               <p className="text-caption text-apple-secondary font-medium">אריזה</p>
-              <p className="text-body font-bold text-ios-teal">
-                {packingPercent}%
-              </p>
+              <p className="text-body font-bold text-ios-teal">{packingPercent}%</p>
             </div>
           </div>
         </BlurFade>
@@ -323,126 +403,11 @@ export default function DashboardPage() {
         {itineraryDays.length > 0 && (
           <BlurFade delay={0.3} duration={0.5}>
             <div className="mb-4">
-              <div
-                className="rounded-apple-lg bg-white px-4 py-3.5"
-                style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[14px] font-semibold text-passport-slate">🛣️ מסלול הטיול</span>
-                  {tripDayIndex !== null && (
-                    <span className="text-[11px] font-bold text-white bg-ios-green rounded-full px-2 py-0.5">
-                      יום {tripDayIndex + 1} מתוך {itineraryDays.length}
-                    </span>
-                  )}
-                  {tripDayIndex === null && daysLeft > 0 && (
-                    <span className="text-[11px] font-medium text-apple-secondary">
-                      עוד {daysLeft} ימים
-                    </span>
-                  )}
-                </div>
-                <div className="overflow-x-auto -mx-1 px-1 pb-1">
-                  <div className="flex items-center gap-0 min-w-max">
-                    {(() => {
-                      const allFuture = tripDayIndex === null
-                      return itineraryDays.map((day, i) => {
-                        const isCurrent = tripDayIndex === i
-                        const isPast = tripDayIndex !== null && i < tripDayIndex
-                        const cityShort =
-                          day.city?.split('→')[0]?.trim()?.split(',')[0]?.trim()?.slice(0, 10) || ''
-                        const dotColor = isPast
-                          ? '#34C759'
-                          : isCurrent
-                            ? '#007AFF'
-                            : allFuture
-                              ? ROUTE_COLORS[i % ROUTE_COLORS.length]
-                              : '#E5E5EA'
-                        const dayNumColor = isCurrent
-                          ? '#007AFF'
-                          : isPast
-                            ? '#34C759'
-                            : allFuture
-                              ? ROUTE_COLORS[i % ROUTE_COLORS.length]
-                              : '#8E8E93'
-                        const cityColor = isCurrent
-                          ? '#007AFF'
-                          : isPast
-                            ? '#8E8E93'
-                            : allFuture
-                              ? '#6B6B6B'
-                              : '#C7C7CC'
-                        const lineColor = isPast
-                          ? '#34C759'
-                          : allFuture
-                            ? `${ROUTE_COLORS[i % ROUTE_COLORS.length]}60`
-                            : '#E5E5EA'
-                        return (
-                          <div key={day.id} className="flex items-center">
-                            <div className="flex flex-col items-center" style={{ width: 38 }}>
-                              <div
-                                className="relative flex items-center justify-center rounded-full transition-all"
-                                style={{
-                                  width: isCurrent ? 20 : 10,
-                                  height: isCurrent ? 20 : 10,
-                                  backgroundColor: dotColor,
-                                  boxShadow: isCurrent ? '0 0 0 4px rgba(0,122,255,0.2)' : 'none',
-                                }}
-                              >
-                                {isCurrent && (
-                                  <motion.div
-                                    animate={{ scale: [1, 1.4, 1] }}
-                                    transition={{ duration: 2, repeat: Infinity }}
-                                    className="absolute inset-0 rounded-full"
-                                    style={{ backgroundColor: 'rgba(0,122,255,0.25)' }}
-                                  />
-                                )}
-                                {isPast && (
-                                  <svg viewBox="0 0 10 10" width={6} height={6}>
-                                    <path
-                                      d="M2 5 L4 7 L8 3"
-                                      stroke="white"
-                                      strokeWidth="2"
-                                      fill="none"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
-                                )}
-                                {isCurrent && <span className="text-[8px]">📍</span>}
-                              </div>
-                              <span
-                                className="text-[9px] mt-1 font-medium text-center leading-tight"
-                                style={{
-                                  color: dayNumColor,
-                                  fontWeight: isCurrent ? 700 : allFuture ? 600 : 500,
-                                }}
-                              >
-                                {i + 1}
-                              </span>
-                              {cityShort && (
-                                <span
-                                  className="text-[7px] text-center leading-tight truncate max-w-[38px]"
-                                  style={{ color: cityColor, fontWeight: allFuture ? 500 : 400 }}
-                                >
-                                  {cityShort}
-                                </span>
-                              )}
-                            </div>
-                            {i < itineraryDays.length - 1 && (
-                              <div
-                                className="h-[2px] shrink-0"
-                                style={{
-                                  width: 8,
-                                  backgroundColor: lineColor,
-                                }}
-                              />
-                            )}
-                          </div>
-                        )
-                      })
-                    })()}
-                  </div>
-                </div>
-              </div>
+              <TripRouteProgress
+                itineraryDays={itineraryDays}
+                tripDayIndex={tripDayIndex}
+                daysLeft={daysLeft}
+              />
             </div>
           </BlurFade>
         )}
@@ -461,22 +426,15 @@ export default function DashboardPage() {
                       style={{
                         boxShadow: '0 1px 4px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04)',
                         background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFFFF 100%)',
-                        borderInlineStart: '4px solid #FF9500', /* ios-orange */
+                        borderInlineStart: '4px solid #FF9500' /* ios-orange */,
                       }}
                     >
                       <div className="px-4 pt-3.5 pb-1 flex items-center gap-2">
-                        <div
-                          className="flex h-7 w-7 items-center justify-center rounded-apple-sm bg-ios-orange/10"
-                        >
-                          <AlertTriangle
-                            className="h-4 w-4 text-ios-orange"
-                            strokeWidth={2.2}
-                          />
+                        <div className="flex h-7 w-7 items-center justify-center rounded-apple-sm bg-ios-orange/10">
+                          <AlertTriangle className="h-4 w-4 text-ios-orange" strokeWidth={2.2} />
                         </div>
                         <h3 className="text-[14px] font-bold text-passport-slate">דורש תשומת לב</h3>
-                        <span
-                          className="ms-auto text-caption font-semibold rounded-full px-2 py-0.5 bg-ios-orange/10 text-ios-orange"
-                        >
+                        <span className="ms-auto text-caption font-semibold rounded-full px-2 py-0.5 bg-ios-orange/10 text-ios-orange">
                           {attentionItems.length}
                         </span>
                       </div>
@@ -497,10 +455,13 @@ export default function DashboardPage() {
                               </span>
                               {item.task.due_date && (
                                 <span className="text-[11px] text-apple-secondary shrink-0 font-medium tabular-nums">
-                                  {new Date(item.task.due_date + 'T00:00:00').toLocaleDateString('he-IL', {
-                                    day: 'numeric',
-                                    month: 'short',
-                                  })}
+                                  {new Date(item.task.due_date + 'T00:00:00').toLocaleDateString(
+                                    'he-IL',
+                                    {
+                                      day: 'numeric',
+                                      month: 'short',
+                                    },
+                                  )}
                                 </span>
                               )}
                             </div>
@@ -519,13 +480,13 @@ export default function DashboardPage() {
                     <Link to="/itinerary">
                       <div
                         className="rounded-apple-lg bg-white p-4"
-                        style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
+                        style={{
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)',
+                        }}
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
-                            <div
-                              className="flex h-8 w-8 items-center justify-center rounded-apple-sm bg-ios-orange/10"
-                            >
+                            <div className="flex h-8 w-8 items-center justify-center rounded-apple-sm bg-ios-orange/10">
                               <MapPin className="h-4 w-4 text-ios-orange" strokeWidth={2} />
                             </div>
                             <div>
@@ -546,7 +507,9 @@ export default function DashboardPage() {
                         {nextDay.stops.slice(0, 2).map((stop, i) => (
                           <div key={stop.id || i} className="flex items-center gap-2 py-1.5">
                             <div className="h-1.5 w-1.5 rounded-full bg-ios-orange shrink-0" />
-                            <span className="text-[13px] text-apple-secondary truncate">{stop.title}</span>
+                            <span className="text-[13px] text-apple-secondary truncate">
+                              {stop.title}
+                            </span>
                             {stop.start_time && (
                               <span className="text-[11px] text-apple-secondary ms-auto">
                                 {stop.start_time}
@@ -575,7 +538,8 @@ export default function DashboardPage() {
 
         {/* ── Module Grid with MagicCard ── */}
         <BlurFade delay={0.5} duration={0.5}>
-          <p className="text-caption uppercase tracking-wider text-apple-secondary mb-3">מודולים</p>  {/* already uses token */}
+          <p className="text-caption uppercase tracking-wider text-apple-secondary mb-3">מודולים</p>{' '}
+          {/* already uses token */}
           <div className="grid grid-cols-3 gap-3">
             {MODULE_CARDS.map(({ path, icon: Icon, label, color, countKey }, i) => (
               <BlurFade key={path} delay={0.55 + i * 0.04} duration={0.4}>
@@ -619,7 +583,8 @@ export default function DashboardPage() {
             className="fixed bottom-24 start-5 z-20 flex h-28 w-28 items-center justify-center rounded-full overflow-hidden"
             style={{
               background: 'linear-gradient(145deg, #E8FAF8, #B8F0EA)',
-              boxShadow: '0 6px 28px rgba(38, 204, 194, 0.25), inset 0 1px 2px rgba(255,255,255,0.8)',
+              boxShadow:
+                '0 6px 28px rgba(38, 204, 194, 0.25), inset 0 1px 2px rgba(255,255,255,0.8)',
               border: '2px solid rgba(38,204,194,0.2)',
             }}
           >
