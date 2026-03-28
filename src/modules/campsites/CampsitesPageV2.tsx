@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import {
@@ -385,13 +386,13 @@ function BookingCard({
 
           {/* Document link */}
           {booking.document_id && (
-            <a
-              href={`/hey-usa/documents?doc=${booking.document_id}`}
+            <Link
+              to={`/documents?doc=${booking.document_id}`}
               className="inline-flex items-center gap-1 text-caption text-ios-purple hover:underline font-medium"
             >
               <Link2 className="w-3 h-3" />
               מסמך
-            </a>
+            </Link>
           )}
 
           {/* Notes toggle */}

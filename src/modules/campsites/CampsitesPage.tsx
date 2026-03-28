@@ -615,7 +615,7 @@ export default function CampsitesPage() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
-                                navigate(`/hey-usa/documents?doc=${b.document_id}`)
+                                navigate(`/documents?doc=${b.document_id}`)
                               }}
                               className="text-ios-blue shrink-0 hover:text-ios-blue/70 transition-colors"
                               title="צפה במסמך"

@@ -26,6 +26,7 @@ import { EXPENSE_CATEGORIES, FAMILY_MEMBERS_LIST, getFamilyMember } from '@/cons
 import { useAppData } from '@/contexts/AppDataContext'
 import type { Expense } from '@/lib/types'
 import { isSampleData } from '@/lib/sampleData'
+import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import { DailyBudgetTable } from './components/DailyBudgetTable'
 import { DailyBudgetView } from './components/DailyBudgetView'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -359,141 +360,142 @@ export default function BudgetPage() {
 
           {/* Desktop: category budgets + bar chart side by side */}
           <div className="lg:grid lg:grid-cols-2 lg:gap-4">
+            {/* Category Budgets */}
+            <div className="glass rounded-apple-lg p-4 shadow-sm">
+              <h3 className="text-sm font-bold text-apple-primary mb-3">תקציב לפי קטגוריה</h3>
+              <div className="space-y-2">
+                {Object.entries(EXPENSE_CATEGORIES).map(([cat, { label }]) => {
+                  const IconComp = CATEGORY_ICONS[cat] || DollarSign
+                  const isOther = cat === 'other'
+                  const planned = isOther
+                    ? otherBudgetRemainder
+                    : settings.category_budgets[cat] || 0
+                  const spent = categoryTotals[cat] || 0
+                  const catPercent = planned > 0 ? (spent / planned) * 100 : 0
+                  const isEditing = editingCategory === cat
 
-          {/* Category Budgets */}
-          <div className="glass rounded-apple-lg p-4 shadow-sm">
-            <h3 className="text-sm font-bold text-apple-primary mb-3">תקציב לפי קטגוריה</h3>
-            <div className="space-y-2">
-              {Object.entries(EXPENSE_CATEGORIES).map(([cat, { label }]) => {
-                const IconComp = CATEGORY_ICONS[cat] || DollarSign
-                const isOther = cat === 'other'
-                const planned = isOther ? otherBudgetRemainder : settings.category_budgets[cat] || 0
-                const spent = categoryTotals[cat] || 0
-                const catPercent = planned > 0 ? (spent / planned) * 100 : 0
-                const isEditing = editingCategory === cat
-
-                return (
-                  <div
-                    key={cat}
-                    className={cn(
-                      'rounded-xl border p-3',
-                      isOther ? 'border-black/[0.08] bg-black/[0.02]' : 'border-black/[0.04]',
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-                          isOther ? 'bg-black/[0.06]' : 'bg-black/[0.04]',
-                        )}
-                      >
-                        <IconComp
+                  return (
+                    <div
+                      key={cat}
+                      className={cn(
+                        'rounded-xl border p-3',
+                        isOther ? 'border-black/[0.08] bg-black/[0.02]' : 'border-black/[0.04]',
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
                           className={cn(
-                            'h-4 w-4',
-                            isOther ? 'text-apple-tertiary' : 'text-apple-secondary',
+                            'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                            isOther ? 'bg-black/[0.06]' : 'bg-black/[0.04]',
                           )}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span
+                        >
+                          <IconComp
                             className={cn(
-                              'text-sm font-medium',
-                              isOther ? 'text-apple-secondary' : 'text-apple-primary',
+                              'h-4 w-4',
+                              isOther ? 'text-apple-tertiary' : 'text-apple-secondary',
                             )}
-                          >
-                            {label}
-                            {isOther && (
-                              <span className="text-caption text-apple-tertiary me-1">
-                                {' '}
-                                (יתרה אוטומטית)
-                              </span>
-                            )}
-                          </span>
-                          {isOther ? (
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
                             <span
                               className={cn(
                                 'text-sm font-medium',
-                                planned < 0 ? 'text-ios-red' : 'text-apple-secondary',
+                                isOther ? 'text-apple-secondary' : 'text-apple-primary',
                               )}
                             >
+                              {label}
+                              {isOther && (
+                                <span className="text-caption text-apple-tertiary me-1">
+                                  {' '}
+                                  (יתרה אוטומטית)
+                                </span>
+                              )}
+                            </span>
+                            {isOther ? (
+                              <span
+                                className={cn(
+                                  'text-sm font-medium',
+                                  planned < 0 ? 'text-ios-red' : 'text-apple-secondary',
+                                )}
+                              >
+                                {settings.currency}
+                                {planned.toLocaleString()}
+                              </span>
+                            ) : isEditing ? (
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  value={editValue}
+                                  onChange={(e) => setEditValue(e.target.value)}
+                                  onKeyDown={(e) => e.key === 'Enter' && handleSaveCategory(cat)}
+                                  className="w-24 rounded-lg border border-ios-blue/30 bg-surface-primary px-2 py-1 text-sm text-left font-medium focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+                                  autoFocus
+                                  dir="ltr"
+                                />
+                                <button
+                                  onClick={() => handleSaveCategory(cat)}
+                                  className="rounded-lg p-1 text-ios-green hover:bg-ios-green/10"
+                                  aria-label="שמירה"
+                                >
+                                  <Check className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleEditCategory(cat)}
+                                className="flex items-center gap-1 text-sm font-medium text-apple-primary hover:text-ios-blue"
+                              >
+                                {settings.currency}
+                                {planned.toLocaleString()}
+                                <Pencil className="h-3 w-3 text-apple-tertiary" />
+                              </button>
+                            )}
+                          </div>
+                          {/* Mini progress bar */}
+                          <div className="mt-1.5 flex items-center gap-2">
+                            <div className="flex-1 h-1.5 rounded-full bg-black/[0.04]">
+                              <div
+                                className={cn(
+                                  'h-full rounded-full transition-all',
+                                  catPercent > 100
+                                    ? 'bg-ios-red'
+                                    : catPercent > 70
+                                      ? 'bg-ios-orange'
+                                      : 'bg-ios-blue',
+                                )}
+                                style={{ width: `${Math.min(Math.max(catPercent, 0), 100)}%` }}
+                              />
+                            </div>
+                            <span className="text-caption text-apple-tertiary whitespace-nowrap">
                               {settings.currency}
+                              {spent.toLocaleString()} / {settings.currency}
                               {planned.toLocaleString()}
                             </span>
-                          ) : isEditing ? (
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSaveCategory(cat)}
-                                className="w-24 rounded-lg border border-ios-blue/30 bg-surface-primary px-2 py-1 text-sm text-left font-medium focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
-                                autoFocus
-                                dir="ltr"
-                              />
-                              <button
-                                onClick={() => handleSaveCategory(cat)}
-                                className="rounded-lg p-1 text-ios-green hover:bg-ios-green/10"
-                                aria-label="שמירה"
-                              >
-                                <Check className="h-4 w-4" />
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => handleEditCategory(cat)}
-                              className="flex items-center gap-1 text-sm font-medium text-apple-primary hover:text-ios-blue"
-                            >
-                              {settings.currency}
-                              {planned.toLocaleString()}
-                              <Pencil className="h-3 w-3 text-apple-tertiary" />
-                            </button>
-                          )}
-                        </div>
-                        {/* Mini progress bar */}
-                        <div className="mt-1.5 flex items-center gap-2">
-                          <div className="flex-1 h-1.5 rounded-full bg-black/[0.04]">
-                            <div
-                              className={cn(
-                                'h-full rounded-full transition-all',
-                                catPercent > 100
-                                  ? 'bg-ios-red'
-                                  : catPercent > 70
-                                    ? 'bg-ios-orange'
-                                    : 'bg-ios-blue',
-                              )}
-                              style={{ width: `${Math.min(Math.max(catPercent, 0), 100)}%` }}
-                            />
                           </div>
-                          <span className="text-caption text-apple-tertiary whitespace-nowrap">
-                            {settings.currency}
-                            {spent.toLocaleString()} / {settings.currency}
-                            {planned.toLocaleString()}
-                          </span>
                         </div>
                       </div>
                     </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Bar Chart: Budget vs Actual */}
+            <div className="glass rounded-apple-lg p-4 shadow-sm">
+              <h3 className="mb-2 text-sm font-bold text-apple-primary">תקציב מול הוצאות</h3>
+              <Suspense
+                fallback={
+                  <div className="h-[200px] flex items-center justify-center">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-black/[0.06] border-t-ios-blue" />
                   </div>
-                )
-              })}
+                }
+              >
+                <BudgetBarChart data={barData} currency={settings.currency} />
+              </Suspense>
             </div>
           </div>
-
-          {/* Bar Chart: Budget vs Actual */}
-          <div className="glass rounded-apple-lg p-4 shadow-sm">
-            <h3 className="mb-2 text-sm font-bold text-apple-primary">תקציב מול הוצאות</h3>
-            <Suspense
-              fallback={
-                <div className="h-[200px] flex items-center justify-center">
-                  <div className="h-6 w-6 animate-spin rounded-full border-2 border-black/[0.06] border-t-ios-blue" />
-                </div>
-              }
-            >
-              <BudgetBarChart data={barData} currency={settings.currency} />
-            </Suspense>
-          </div>
-
-          </div>{/* end lg:grid */}
+          {/* end lg:grid */}
         </motion.div>
       )}
 
@@ -583,88 +585,93 @@ export default function BudgetPage() {
 
           {/* Desktop: pie chart + expense list side by side */}
           <div className="lg:grid lg:grid-cols-[1fr_1fr] lg:gap-4 lg:items-start">
-
-          {/* Pie Chart */}
-          {pieData.length > 0 && (
-            <div className="glass rounded-apple-lg p-4 shadow-sm">
-              <h3 className="mb-2 text-sm font-bold text-apple-primary">חלוקת הוצאות בפועל</h3>
-              <Suspense
-                fallback={
-                  <div className="h-[200px] flex items-center justify-center">
-                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-black/[0.06] border-t-ios-blue" />
-                  </div>
-                }
-              >
-                <BudgetPieChart data={pieData} currency={settings.currency} />
-              </Suspense>
-            </div>
-          )}
-
-          {/* Expense List */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-bold text-apple-primary">הוצאות ({expenses.length})</h3>
-            {expenses.length === 0 && (
-              <EmptyState
-                icon={Receipt}
-                title="אין הוצאות"
-                description="הוסיפו הוצאה ראשונה למעקב התקציב"
-                action={{ label: 'הוסף הוצאה', onClick: () => setShowAddForm(true) }}
-              />
-            )}
-            {expenses.map((expense) => {
-              const IconComp = CATEGORY_ICONS[expense.category] || DollarSign
-              const member = getFamilyMember(expense.paid_by)
-              const planned = settings.category_budgets[expense.category] || 0
-              return (
-                <div
-                  key={expense.id}
-                  className="flex items-center gap-3 glass rounded-apple-lg p-3 shadow-sm"
+            {/* Pie Chart */}
+            {pieData.length > 0 && (
+              <div className="glass rounded-apple-lg p-4 shadow-sm">
+                <h3 className="mb-2 text-sm font-bold text-apple-primary">חלוקת הוצאות בפועל</h3>
+                <Suspense
+                  fallback={
+                    <div className="h-[200px] flex items-center justify-center">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-black/[0.06] border-t-ios-blue" />
+                    </div>
+                  }
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/[0.04]">
-                    <IconComp className="h-5 w-5 text-apple-secondary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-apple-primary truncate">
-                      {isSampleData(expense.id) && (
-                        <span className="text-caption ms-1 opacity-60" title="דוגמה מאת מוטי">
-                          🤖
-                        </span>
-                      )}
-                      {expense.title}
-                    </p>
-                    <p className="text-xs text-apple-secondary">
-                      {member.avatar_emoji} {member.name} · {expense.date}
-                    </p>
-                  </div>
-                  <div className="text-left shrink-0">
-                    <p className="text-sm font-bold text-ios-red">
-                      {expense.currency}
-                      {expense.amount.toLocaleString()}
-                    </p>
-                    <p className="text-xs text-apple-secondary">
-                      {EXPENSE_CATEGORIES[expense.category]?.label}
-                      {planned > 0 && (
-                        <span className="text-apple-tertiary">
-                          {' '}
-                          / {expense.currency}
-                          {planned.toLocaleString()}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => deleteExpense(expense.id)}
-                    className="shrink-0 rounded-lg p-1.5 text-apple-tertiary hover:bg-ios-red/10 hover:text-ios-red"
-                    aria-label="מחיקה"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              )
-            })}
-          </div>{/* end expense list */}
+                  <BudgetPieChart data={pieData} currency={settings.currency} />
+                </Suspense>
+              </div>
+            )}
 
-          </div>{/* end lg:grid */}
+            {/* Expense List */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-bold text-apple-primary">הוצאות ({expenses.length})</h3>
+              {expenses.length === 0 && (
+                <EmptyState
+                  icon={Receipt}
+                  title="אין הוצאות"
+                  description="הוסיפו הוצאה ראשונה למעקב התקציב"
+                  action={{ label: 'הוסף הוצאה', onClick: () => setShowAddForm(true) }}
+                />
+              )}
+              {expenses.map((expense) => {
+                const IconComp = CATEGORY_ICONS[expense.category] || DollarSign
+                const member = getFamilyMember(expense.paid_by)
+                const planned = settings.category_budgets[expense.category] || 0
+                return (
+                  <div
+                    key={expense.id}
+                    className="flex items-center gap-3 glass rounded-apple-lg p-3 shadow-sm"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/[0.04]">
+                      <IconComp className="h-5 w-5 text-apple-secondary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-apple-primary truncate">
+                        {isSampleData(expense.id) && (
+                          <span className="text-caption ms-1 opacity-60" title="דוגמה מאת מוטי">
+                            🤖
+                          </span>
+                        )}
+                        {expense.title}
+                      </p>
+                      <p className="text-xs text-apple-secondary">
+                        <FamilyAvatar
+                          memberId={expense.paid_by}
+                          size="xs"
+                          className="inline-flex align-middle"
+                        />{' '}
+                        {member.name} · {expense.date}
+                      </p>
+                    </div>
+                    <div className="text-left shrink-0">
+                      <p className="text-sm font-bold text-ios-red">
+                        {expense.currency}
+                        {expense.amount.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-apple-secondary">
+                        {EXPENSE_CATEGORIES[expense.category]?.label}
+                        {planned > 0 && (
+                          <span className="text-apple-tertiary">
+                            {' '}
+                            / {expense.currency}
+                            {planned.toLocaleString()}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => deleteExpense(expense.id)}
+                      className="shrink-0 rounded-lg p-1.5 text-apple-tertiary hover:bg-ios-red/10 hover:text-ios-red"
+                      aria-label="מחיקה"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+            {/* end expense list */}
+          </div>
+          {/* end lg:grid */}
         </motion.div>
       )}
 

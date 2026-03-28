@@ -3,6 +3,7 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { X, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS } from '@/constants'
+import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import type { Task, TaskStatus, TaskPriority, TaskGroup, FamilyMemberId } from '@/types'
 
 interface TaskDialogProps {
@@ -182,7 +183,9 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                 <label className="mb-1 block text-sm font-medium text-apple-primary">עדיפות</label>
                 <select
                   value={form.priority}
-                  onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value as TaskPriority }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, priority: e.target.value as TaskPriority }))
+                  }
                   className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                 >
                   {PRIORITY_OPTIONS.map((opt) => (
@@ -193,7 +196,9 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-apple-primary">תאריך יעד</label>
+                <label className="mb-1 block text-sm font-medium text-apple-primary">
+                  תאריך יעד
+                </label>
                 <input
                   type="date"
                   value={form.due_date}
@@ -226,7 +231,7 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                         color: isSelected ? member.color : undefined,
                       }}
                     >
-                      <span>{member.emoji}</span>
+                      <FamilyAvatar memberId={member.id} size="xs" />
                       <span>{member.name}</span>
                     </button>
                   )
