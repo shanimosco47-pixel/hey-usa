@@ -48,6 +48,7 @@ const LocationsPage = lazy(() => import('@/modules/locations/LocationsPage'))
 const LocationHubPage = lazy(() => import('@/modules/locations/LocationHubPage'))
 const NotesPage = lazy(() => import('@/modules/notes/NotesPage'))
 const CampsitesPage = lazy(() => import('@/modules/campsites/CampsitesPage'))
+const CampsitesPageV2 = lazy(() => import('@/modules/campsites/CampsitesPageV2'))
 
 function LoadingFallback() {
   return (
@@ -132,6 +133,7 @@ function AppInner() {
               <Route path="itinerary" element={<ItineraryPage />} />
               <Route path="itinerary/:day" element={<ItineraryPage />} />
               <Route path="campsites" element={<CampsitesPage />} />
+              <Route path="campsites/v2" element={<CampsitesPageV2 />} />
               <Route path="documents" element={<DocumentsPage />} />
               <Route path="map" element={<MapPage />} />
               <Route path="photos" element={<PhotosPage />} />
