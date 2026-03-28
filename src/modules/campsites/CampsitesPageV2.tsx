@@ -306,6 +306,36 @@ function BookingCard({
           <span>{formatRange(booking.check_in, booking.check_out)}</span>
         </div>
 
+        {/* Registration opens date */}
+        {booking.registration_opens &&
+          booking.status === 'not_open' &&
+          (() => {
+            const daysUntil = daysBetween(
+              new Date().toISOString().slice(0, 10),
+              booking.registration_opens,
+            )
+            const passed = daysUntil < 0
+            return (
+              <div
+                className={cn(
+                  'mt-2 flex items-center gap-1.5 text-caption rounded-apple-sm px-2 py-1',
+                  passed
+                    ? 'bg-ios-red/10 text-ios-red font-semibold'
+                    : daysUntil <= 14
+                      ? 'bg-ios-orange/10 text-ios-orange font-semibold'
+                      : 'bg-ios-blue/10 text-ios-blue',
+                )}
+              >
+                <Calendar className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  {passed
+                    ? `הרשמה נפתחה ב-${formatDay(booking.registration_opens)} — הזמינו!`
+                    : `הרשמה נפתחת ב-${formatDay(booking.registration_opens)} (בעוד ${daysUntil} ימים)`}
+                </span>
+              </div>
+            )
+          })()}
+
         {/* Cost + Confirmation row */}
         {(booking.cost != null || booking.confirmation) && (
           <div className="flex items-center gap-3 mt-2 flex-wrap">
@@ -388,12 +418,121 @@ function BookingCard({
   )
 }
 
+// ── Action item types ────────────────────────────────────────────
+interface ActionItem {
+  id: string
+  type: 'registration_soon' | 'registration_passed' | 'not_booked' | 'cancel_deadline' | 'duplicate'
+  priority: number // lower = more urgent
+  title: string
+  subtitle: string
+  color: string
+  bookingId: string
+  url?: string
+}
+
+function buildActionItems(bookings: CampsiteBooking[]): ActionItem[] {
+  const items: ActionItem[] = []
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const primary = bookings.filter((b) => b.priority === 'primary')
+
+  for (const b of primary) {
+    // Registration opening soon (within 30 days) or already passed
+    if (b.registration_opens && b.status === 'not_open') {
+      const daysUntil = daysBetween(todayStr, b.registration_opens)
+      if (daysUntil < 0) {
+        items.push({
+          id: `reg-passed-${b.id}`,
+          type: 'registration_passed',
+          priority: 0,
+          title: `⚠️ ההרשמה ל-${b.location} כבר נפתחה!`,
+          subtitle: `נפתחה ב-${formatDay(b.registration_opens)} — הזמינו עכשיו לפני שנגמר`,
+          color: 'text-ios-red',
+          bookingId: b.id,
+          url: b.booking_url,
+        })
+      } else if (daysUntil <= 30) {
+        items.push({
+          id: `reg-soon-${b.id}`,
+          type: 'registration_soon',
+          priority: 1,
+          title: `🗓️ הרשמה ל-${b.location} נפתחת בעוד ${daysUntil} ימים`,
+          subtitle: `${formatDay(b.registration_opens)} — הכינו תזכורת!`,
+          color: 'text-ios-orange',
+          bookingId: b.id,
+          url: b.booking_url,
+        })
+      }
+    }
+
+    // Cancellation deadline approaching (within 30 days)
+    if (b.cancellation_deadline && b.status === 'confirmed') {
+      const daysUntil = daysBetween(todayStr, b.cancellation_deadline)
+      if (daysUntil >= 0 && daysUntil <= 30) {
+        items.push({
+          id: `cancel-${b.id}`,
+          type: 'cancel_deadline',
+          priority: 2,
+          title: `⏰ מועד ביטול ל-${b.location} בעוד ${daysUntil} ימים`,
+          subtitle: `עד ${formatDay(b.cancellation_deadline)} · החזר $${b.refund_amount ?? 0}`,
+          color: 'text-ios-purple',
+          bookingId: b.id,
+        })
+      }
+    }
+  }
+
+  // Check for date overlaps (potential duplicates)
+  for (let i = 0; i < primary.length; i++) {
+    for (let j = i + 1; j < primary.length; j++) {
+      const a = primary[i]
+      const b = primary[j]
+      if (a.check_in === b.check_in && a.status !== 'cancelled' && b.status !== 'cancelled') {
+        items.push({
+          id: `dup-${a.id}-${b.id}`,
+          type: 'duplicate',
+          priority: 3,
+          title: `🔄 הזמנה כפולה ב-${formatDay(a.check_in)}`,
+          subtitle: `${a.location} + ${b.location} — באותו תאריך`,
+          color: 'text-ios-red',
+          bookingId: a.id,
+        })
+      }
+    }
+  }
+
+  // Not booked items (sorted by date)
+  const notBooked = primary.filter((b) => b.status === 'not_open' && !b.registration_opens)
+  for (const b of notBooked) {
+    items.push({
+      id: `unbooked-${b.id}`,
+      type: 'not_booked',
+      priority: 4,
+      title: `📋 ${b.location} — טרם הוזמן`,
+      subtitle: `${formatDay(b.check_in)} · ${b.area}`,
+      color: 'text-apple-secondary',
+      bookingId: b.id,
+      url: b.booking_url,
+    })
+  }
+
+  return items.sort((a, b) => a.priority - b.priority)
+}
+
+// ── Status filter ───────────────────────────────────────────────
+type StatusFilter = 'all' | BookingStatus
+
 // ── Main Page ────────────────────────────────────────────────────
 export default function CampsitesPageV2() {
   const { bookings, updateBooking, confirmedCount, totalNights } = useCampsiteBookings()
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
   const timeline = useMemo(() => buildTimeline(bookings), [bookings])
-  const groups = useMemo(() => groupBookings(bookings), [bookings])
+  const filteredBookings = useMemo(
+    () => (statusFilter === 'all' ? bookings : bookings.filter((b) => b.status === statusFilter)),
+    [bookings, statusFilter],
+  )
+  const groups = useMemo(() => groupBookings(filteredBookings), [filteredBookings])
+  const actionItems = useMemo(() => buildActionItems(bookings), [bookings])
 
   const totalConfirmedCost = useMemo(
     () =>
@@ -402,6 +541,17 @@ export default function CampsitesPageV2() {
         .reduce((sum, b) => sum + (b.cost ?? 0), 0),
     [bookings],
   )
+
+  // Status counts for filter badges
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: bookings.filter((b) => b.priority === 'primary').length,
+    }
+    for (const b of bookings.filter((b) => b.priority === 'primary')) {
+      counts[b.status] = (counts[b.status] || 0) + 1
+    }
+    return counts
+  }, [bookings])
 
   const pct = totalNights > 0 ? Math.round((confirmedCount / totalNights) * 100) : 0
 
@@ -414,7 +564,33 @@ export default function CampsitesPageV2() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 pb-24 space-y-6">
-      {/* ── Section 1: Summary Header ────────────────── */}
+      {/* ── Action Items — Planning Dashboard ────────── */}
+      {actionItems.length > 0 && (
+        <GlassCard elevation={2} padding="md">
+          <h2 className="text-headline text-apple-primary dark:text-white mb-3">
+            🎯 דורש טיפול ({actionItems.length})
+          </h2>
+          <div className="space-y-2">
+            {actionItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() =>
+                  item.url ? window.open(item.url, '_blank') : scrollToBooking(item.bookingId)
+                }
+                className="w-full flex items-start gap-3 p-2.5 rounded-apple-lg hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-colors text-right"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className={cn('text-subhead font-semibold', item.color)}>{item.title}</p>
+                  <p className="text-caption text-apple-secondary mt-0.5">{item.subtitle}</p>
+                </div>
+                {item.url && <ExternalLink className="w-3.5 h-3.5 text-ios-blue shrink-0 mt-1" />}
+              </button>
+            ))}
+          </div>
+        </GlassCard>
+      )}
+
+      {/* ── Summary Header ───────────────────────────── */}
       <GlassCard elevation={2} padding="md">
         <h2 className="text-title text-apple-primary dark:text-white mb-3">סיכום הזמנות לינה</h2>
 
@@ -491,7 +667,36 @@ export default function CampsitesPageV2() {
         </div>
       </GlassCard>
 
-      {/* ── Section 3: Grouped Booking Cards ─────────── */}
+      {/* ── Status Filter Bar ────────────────────────── */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {(
+          ['all', 'not_open', 'confirmed', 'pending', 'waitlist', 'cancelled'] as StatusFilter[]
+        ).map((s) => {
+          const count = statusCounts[s] || 0
+          if (s !== 'all' && count === 0) return null
+          const label = s === 'all' ? 'הכל' : STATUS_META[s].label
+          const isActive = statusFilter === s
+          return (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={cn(
+                'shrink-0 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-caption font-semibold transition-colors',
+                isActive
+                  ? s === 'all'
+                    ? 'bg-apple-primary dark:bg-white text-white dark:text-black'
+                    : cn(STATUS_META[s].bg, STATUS_META[s].text)
+                  : 'glass text-apple-secondary',
+              )}
+            >
+              {label}
+              <span className="text-[10px] opacity-70">{count}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* ── Grouped Booking Cards ────────────────────── */}
       {groups.map((group) => (
         <section key={`${group.region}-${group.bookings[0].check_in}`}>
           <div className="flex items-center justify-between mb-2">
