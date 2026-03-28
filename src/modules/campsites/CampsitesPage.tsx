@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import { cn } from '@/lib/cn'
 import {
   Tent,
@@ -15,6 +15,8 @@ import { useNavigate } from 'react-router-dom'
 import type { CampsiteBooking, BookingStatus, AccommodationType, BookingPriority } from '@/types'
 import { useCampsiteBookings } from './hooks/useCampsiteBookings'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { findMissingNights, findDoubleBookings } from './helpers/accommodationAnalysis'
+import { AccommodationAlerts } from './components/AccommodationAlerts'
 
 // ── Status config ─────────────────────────────────────────────────
 const STATUS_CONFIG: Record<
@@ -450,6 +452,10 @@ export default function CampsitesPage() {
     setColWidths((prev) => ({ ...prev, [col]: w }))
   }, [])
 
+  // Accommodation gap & overlap analysis
+  const missingNights = useMemo(() => findMissingNights(bookings), [bookings])
+  const doubleBookings = useMemo(() => findDoubleBookings(bookings), [bookings])
+
   const handleStatusChange = (id: string, newStatus: BookingStatus) => {
     if (newStatus === 'cancelled') {
       setConfirmCancel(id)
@@ -497,6 +503,9 @@ export default function CampsitesPage() {
           style={{ width: `${totalNights > 0 ? (confirmedCount / totalNights) * 100 : 0}%` }}
         />
       </div>
+
+      {/* Accommodation alerts — missing nights & double bookings */}
+      <AccommodationAlerts missingNights={missingNights} doubleBookings={doubleBookings} />
 
       {/* Empty state */}
       {bookings.length === 0 && (
