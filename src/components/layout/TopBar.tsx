@@ -1,6 +1,7 @@
 import { Sun, Moon, Search, Bell, BellOff } from 'lucide-react'
 import { DualClock } from '@/components/shared/DualClock'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
+import { RvSpecsModal } from '@/components/shared/RvSpecsModal'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAppData } from '@/contexts/AppDataContext'
 import { useCampsiteBookings } from '@/modules/campsites/hooks/useCampsiteBookings'
@@ -35,6 +36,7 @@ export function TopBar() {
         ) : (
           <div className="h-8 w-8 rounded-full bg-surface-primary" />
         )}
+        <RvSpecsModal />
         <button
           onClick={toggleTheme}
           aria-label={isDark ? 'מצב בהיר' : 'מצב כהה'}
