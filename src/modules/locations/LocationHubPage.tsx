@@ -11,19 +11,27 @@ import {
   Plus,
   Clock,
   ExternalLink,
+  Bed,
 } from 'lucide-react'
 import { useAppData } from '@/contexts/AppDataContext'
-import { getLocationById, getDaysForLocation, getLocationDateRange } from '@/data/locations'
+import {
+  getLocationById,
+  getDaysForLocation,
+  getLocationDateRange,
+  getLocationForArea,
+} from '@/data/locations'
+import { useCampsiteBookings } from '@/modules/campsites/hooks/useCampsiteBookings'
 import { StickyNote } from './components/StickyNote'
 import { NoteEditor } from './components/NoteEditor'
 import type { LocationNote, NoteColor, FamilyMemberId } from '@/lib/types'
 import { cn } from '@/lib/cn'
 
-type Tab = 'notes' | 'plan' | 'documents'
+type Tab = 'notes' | 'plan' | 'lodging' | 'documents'
 
 const TABS: { id: Tab; label: string; icon: typeof StickyNoteIcon }[] = [
   { id: 'notes', label: 'הערות', icon: StickyNoteIcon },
   { id: 'plan', label: 'תכנון', icon: Calendar },
+  { id: 'lodging', label: 'לינה', icon: Bed },
   { id: 'documents', label: 'מסמכים', icon: FileText },
 ]
 
@@ -54,6 +62,7 @@ export default function LocationHubPage() {
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingNote, setEditingNote] = useState<LocationNote | null>(null)
 
+  const { bookings } = useCampsiteBookings()
   const location = getLocationById(locationId || '')
 
   const matchingDays = useMemo(
@@ -74,6 +83,15 @@ export default function LocationHubPage() {
   const locationDocs = useMemo(
     () => documents.filter((d) => d.locationId === locationId),
     [documents, locationId],
+  )
+
+  const locationBookings = useMemo(
+    () =>
+      bookings.filter((b) => {
+        const bLoc = getLocationForArea(b.area)
+        return bLoc?.id === locationId && b.priority === 'primary'
+      }),
+    [bookings, locationId],
   )
 
   if (!location) {
@@ -190,6 +208,11 @@ export default function LocationHubPage() {
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-subhead text-white font-medium">
                 📝 {notes.length} הערות
               </span>
+              {locationBookings.length > 0 && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-subhead text-white font-medium">
+                  🏕️ {locationBookings.length} לינה
+                </span>
+              )}
             </div>
           </motion.div>
         </div>
@@ -335,7 +358,10 @@ export default function LocationHubPage() {
 
                     {/* Day notes */}
                     {day.notes && (
-                      <div className="glass rounded-apple-lg px-4 py-3 text-body text-apple-secondary" dir="auto">
+                      <div
+                        className="glass rounded-apple-lg px-4 py-3 text-body text-apple-secondary"
+                        dir="auto"
+                      >
                         💡 {day.notes}
                       </div>
                     )}
@@ -358,7 +384,10 @@ export default function LocationHubPage() {
                                 {stop.title}
                               </h4>
                               {stop.description && (
-                                <p className="text-subhead text-apple-secondary mt-0.5 line-clamp-2" dir="auto">
+                                <p
+                                  className="text-subhead text-apple-secondary mt-0.5 line-clamp-2"
+                                  dir="auto"
+                                >
                                   {stop.description}
                                 </p>
                               )}
@@ -381,7 +410,10 @@ export default function LocationHubPage() {
                                 )}
                               </div>
                               {stop.notes && (
-                                <p className="text-subhead text-amber-700 bg-amber-50 rounded-lg px-2 py-1 mt-2" dir="auto">
+                                <p
+                                  className="text-subhead text-amber-700 bg-amber-50 rounded-lg px-2 py-1 mt-2"
+                                  dir="auto"
+                                >
                                   📌 {stop.notes}
                                 </p>
                               )}
@@ -393,6 +425,121 @@ export default function LocationHubPage() {
                   </div>
                 ))
               )}
+            </motion.div>
+          )}
+
+          {activeTab === 'lodging' && (
+            <motion.div
+              key="lodging"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-3"
+            >
+              {locationBookings.length === 0 ? (
+                <div className="text-center py-12">
+                  <span className="text-4xl block mb-3">🏕️</span>
+                  <p className="text-body text-apple-secondary">אין הזמנות לינה ביעד הזה</p>
+                  <Link
+                    to="/campsites"
+                    className="inline-flex items-center gap-1 mt-3 text-ios-blue text-subhead font-medium hover:underline"
+                  >
+                    <Bed className="h-4 w-4" />
+                    עבור להזמנות לינה
+                  </Link>
+                </div>
+              ) : (
+                locationBookings.map((booking) => {
+                  const nights = Math.round(
+                    (new Date(booking.check_out + 'T00:00:00').getTime() -
+                      new Date(booking.check_in + 'T00:00:00').getTime()) /
+                      86400000,
+                  )
+                  const statusColors: Record<string, string> = {
+                    confirmed: 'bg-ios-green/10 text-ios-green border-ios-green',
+                    pending: 'bg-ios-orange/10 text-ios-orange border-ios-orange',
+                    waitlist: 'bg-ios-blue/10 text-ios-blue border-ios-blue',
+                    not_open: 'bg-gray-100 text-apple-secondary border-gray-300',
+                    cancelled: 'bg-ios-red/10 text-ios-red border-ios-red',
+                  }
+                  const statusLabels: Record<string, string> = {
+                    confirmed: 'מאושר',
+                    pending: 'בטיפול',
+                    waitlist: 'המתנה',
+                    not_open: 'לא הוזמן',
+                    cancelled: 'בוטל',
+                  }
+                  return (
+                    <motion.div
+                      key={booking.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={cn(
+                        'glass rounded-apple-lg px-4 py-3.5 border-r-4',
+                        statusColors[booking.status]?.split(' ')[2] || '',
+                      )}
+                    >
+                      <div className="flex items-start justify-between mb-1">
+                        <h4 className="text-body font-semibold text-apple-primary">
+                          {booking.location}
+                        </h4>
+                        <span
+                          className={cn(
+                            'text-caption px-2 py-0.5 rounded-full font-semibold',
+                            statusColors[booking.status] || '',
+                          )}
+                        >
+                          {statusLabels[booking.status] || booking.status}
+                        </span>
+                      </div>
+                      <p className="text-caption text-apple-secondary">{booking.area}</p>
+                      <div
+                        className="flex items-center gap-3 mt-2 text-subhead text-apple-secondary"
+                        dir="ltr"
+                      >
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {new Date(booking.check_in + 'T00:00:00').getDate()} —{' '}
+                          {new Date(booking.check_out + 'T00:00:00').getDate()} ספט
+                        </span>
+                        <span>
+                          {nights} {nights === 1 ? 'לילה' : 'לילות'}
+                        </span>
+                        {booking.cost != null && <span>${booking.cost}</span>}
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        {booking.booking_url && (
+                          <a
+                            href={booking.booking_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-caption text-ios-blue hover:underline font-medium flex items-center gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            אתר
+                          </a>
+                        )}
+                        {booking.document_id && (
+                          <Link
+                            to={`/documents?doc=${booking.document_id}`}
+                            className="text-caption text-ios-purple hover:underline font-medium flex items-center gap-1"
+                          >
+                            <FileText className="h-3 w-3" />
+                            מסמך
+                          </Link>
+                        )}
+                      </div>
+                    </motion.div>
+                  )
+                })
+              )}
+              <Link
+                to="/campsites"
+                className="block text-center text-subhead text-ios-blue font-medium hover:underline mt-2"
+              >
+                כל הזמנות הלינה →
+              </Link>
             </motion.div>
           )}
 
@@ -439,11 +586,12 @@ export default function LocationHubPage() {
                         <FileText className="h-5 w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-body font-semibold text-apple-primary">
-                          {doc.title}
-                        </h4>
+                        <h4 className="text-body font-semibold text-apple-primary">{doc.title}</h4>
                         {doc.notes && (
-                          <p className="text-subhead text-apple-secondary mt-0.5 line-clamp-2" dir="auto">
+                          <p
+                            className="text-subhead text-apple-secondary mt-0.5 line-clamp-2"
+                            dir="auto"
+                          >
                             {doc.notes}
                           </p>
                         )}

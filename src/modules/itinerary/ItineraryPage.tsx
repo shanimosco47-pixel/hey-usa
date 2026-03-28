@@ -27,6 +27,8 @@ import { cn } from '@/lib/cn'
 import { exportItineraryText } from '@/lib/export'
 import { fetchTripWeather, getWeatherForDate, type DestinationWeather } from '@/lib/weather'
 import { getPrimaryLocationForCity } from '@/data/locations'
+import { CrossLinks, type CrossLink } from '@/components/shared/CrossLinks'
+import { useCampsiteBookings } from '@/modules/campsites/hooks/useCampsiteBookings'
 
 // City-themed gradients, emojis & hero photos for visual flair
 const CITY_THEMES: Record<string, { gradient: string; emoji: string; photo?: string }> = {
@@ -141,8 +143,11 @@ export default function ItineraryPage() {
     addPoll,
     votePoll,
     deletePoll,
+    locationNotes,
+    documents,
   } = useAppData()
   const { currentMember } = useAuth()
+  const { bookings } = useCampsiteBookings()
 
   // Parse route param or use smart default
   const initialIndex = useMemo(() => {
@@ -286,217 +291,257 @@ export default function ItineraryPage() {
       <div className="lg:flex lg:gap-6 lg:px-4 lg:pt-3">
         {/* Main content column */}
         <div className="lg:flex-1 lg:min-w-0">
+          {/* Day hero banner */}
+          {(() => {
+            const theme = getCityTheme(currentDay.city)
+            const w = getWeatherForDate(weatherData, currentDay.date)
+            return (
+              <div
+                className="mx-4 mt-3 rounded-apple-xl p-4 text-white relative overflow-hidden"
+                style={{ minHeight: '160px' }}
+              >
+                {/* Background photo */}
+                {theme.photo && (
+                  <img
+                    src={theme.photo}
+                    alt={`${currentDay.city} — תמונת רקע`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                )}
+                {/* Gradient overlay */}
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} ${theme.photo ? 'opacity-60' : ''}`}
+                />
 
-      {/* Day hero banner */}
-      {(() => {
-        const theme = getCityTheme(currentDay.city)
-        const w = getWeatherForDate(weatherData, currentDay.date)
-        return (
-          <div
-            className="mx-4 mt-3 rounded-apple-xl p-4 text-white relative overflow-hidden"
-            style={{ minHeight: '160px' }}
-          >
-            {/* Background photo */}
-            {theme.photo && (
-              <img
-                src={theme.photo}
-                alt={`${currentDay.city} — תמונת רקע`}
-                className="absolute inset-0 w-full h-full object-cover"
-                loading="lazy"
-              />
-            )}
-            {/* Gradient overlay */}
-            <div
-              className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} ${theme.photo ? 'opacity-60' : ''}`}
-            />
+                {/* Background emoji */}
+                <span className="absolute -bottom-2 -left-2 text-[80px] opacity-10 pointer-events-none select-none z-[1]">
+                  {theme.emoji}
+                </span>
 
-            {/* Background emoji */}
-            <span className="absolute -bottom-2 -left-2 text-[80px] opacity-10 pointer-events-none select-none z-[1]">
-              {theme.emoji}
-            </span>
-
-            {/* Nav + content */}
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-2">
-                <button
-                  onClick={handleNextDay}
-                  disabled={activeDayIndex >= ITINERARY_DAYS.length - 1}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 disabled:opacity-30"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-caption font-bold">
-                    יום {activeDayIndex + 1}/20
-                  </span>
-                  <span className="text-caption text-white/70">
-                    {hebrewDay}, {format(date, 'd.M.yyyy')}
-                  </span>
-                </div>
-                <button
-                  onClick={handlePrevDay}
-                  disabled={activeDayIndex <= 0}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 disabled:opacity-30"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-              </div>
-
-              <h2 className="text-headline font-bold text-center drop-shadow-sm">
-                {currentDay.title}
-              </h2>
-
-              {currentDay.city &&
-                (() => {
-                  const loc = getPrimaryLocationForCity(currentDay.city)
-                  return loc ? (
-                    <Link
-                      to={`/locations/${loc.id}`}
-                      className="flex items-center justify-center gap-1 mt-1 hover:bg-white/10 rounded-full px-2 py-0.5 transition-colors"
+                {/* Nav + content */}
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-2">
+                    <button
+                      onClick={handleNextDay}
+                      disabled={activeDayIndex >= ITINERARY_DAYS.length - 1}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 disabled:opacity-30"
                     >
-                      <MapPin className="h-3 w-3 text-white/70" />
-                      <span
-                        className="text-xs text-white/80 underline decoration-white/30"
-                        dir="ltr"
-                      >
-                        {currentDay.city}
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-caption font-bold">
+                        יום {activeDayIndex + 1}/20
                       </span>
-                    </Link>
-                  ) : (
-                    <div className="flex items-center justify-center gap-1 mt-1">
-                      <MapPin className="h-3 w-3 text-white/70" />
-                      <span className="text-xs text-white/80" dir="ltr">
-                        {currentDay.city}
+                      <span className="text-caption text-white/70">
+                        {hebrewDay}, {format(date, 'd.M.yyyy')}
                       </span>
                     </div>
-                  )
-                })()}
+                    <button
+                      onClick={handlePrevDay}
+                      disabled={activeDayIndex <= 0}
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 disabled:opacity-30"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                  </div>
 
-              {/* Weather + cost strip */}
-              <div className="flex items-center justify-center gap-3 mt-2">
-                {w && (
-                  <div className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1">
-                    <span className="text-sm">{w.weatherEmoji}</span>
-                    <span className="text-caption">
-                      {w.tempMin}°–{w.tempMax}°C
-                    </span>
-                    {w.precipitationProbability > 20 && (
-                      <span className="text-caption text-white/70">
-                        💧{w.precipitationProbability}%
-                      </span>
+                  <h2 className="text-headline font-bold text-center drop-shadow-sm">
+                    {currentDay.title}
+                  </h2>
+
+                  {currentDay.city &&
+                    (() => {
+                      const loc = getPrimaryLocationForCity(currentDay.city)
+                      return loc ? (
+                        <Link
+                          to={`/locations/${loc.id}`}
+                          className="flex items-center justify-center gap-1 mt-1 hover:bg-white/10 rounded-full px-2 py-0.5 transition-colors"
+                        >
+                          <MapPin className="h-3 w-3 text-white/70" />
+                          <span
+                            className="text-xs text-white/80 underline decoration-white/30"
+                            dir="ltr"
+                          >
+                            {currentDay.city}
+                          </span>
+                        </Link>
+                      ) : (
+                        <div className="flex items-center justify-center gap-1 mt-1">
+                          <MapPin className="h-3 w-3 text-white/70" />
+                          <span className="text-xs text-white/80" dir="ltr">
+                            {currentDay.city}
+                          </span>
+                        </div>
+                      )
+                    })()}
+
+                  {/* Weather + cost strip */}
+                  <div className="flex items-center justify-center gap-3 mt-2">
+                    {w && (
+                      <div className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1">
+                        <span className="text-sm">{w.weatherEmoji}</span>
+                        <span className="text-caption">
+                          {w.tempMin}°–{w.tempMax}°C
+                        </span>
+                        {w.precipitationProbability > 20 && (
+                          <span className="text-caption text-white/70">
+                            💧{w.precipitationProbability}%
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {dayCost > 0 && (
+                      <div className="rounded-full bg-white/15 px-2.5 py-1 text-caption" dir="ltr">
+                        ~${dayCost}
+                      </div>
                     )}
                   </div>
-                )}
-                {dayCost > 0 && (
-                  <div className="rounded-full bg-white/15 px-2.5 py-1 text-caption" dir="ltr">
-                    ~${dayCost}
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Day description */}
+          {currentDay.description && (
+            <p className="mx-4 mt-2 text-center text-xs leading-relaxed text-apple-secondary">
+              {currentDay.description}
+            </p>
+          )}
+
+          {/* Cross-links to related pages */}
+          {(() => {
+            const loc = currentDay.city ? getPrimaryLocationForCity(currentDay.city) : undefined
+            const dayDate = currentDay.date
+            const dayBookings = bookings.filter(
+              (b) => b.priority === 'primary' && b.check_in <= dayDate && b.check_out > dayDate,
+            )
+            const links: CrossLink[] = []
+            if (loc) {
+              const noteCount = locationNotes.filter((n) => n.locationId === loc.id).length
+              const docCount = documents.filter((d) => d.locationId === loc.id).length
+              links.push({ to: `/locations/${loc.id}`, label: loc.nameHe, icon: 'location' })
+              if (noteCount > 0)
+                links.push({
+                  to: `/locations/${loc.id}`,
+                  label: 'פתקים',
+                  icon: 'notes',
+                  count: noteCount,
+                })
+              if (docCount > 0)
+                links.push({
+                  to: `/locations/${loc.id}`,
+                  label: 'מסמכים',
+                  icon: 'documents',
+                  count: docCount,
+                })
+            }
+            if (dayBookings.length > 0)
+              links.push({
+                to: '/campsites',
+                label: 'לינה',
+                icon: 'campsites',
+                count: dayBookings.length,
+              })
+            links.push({ to: '/map', label: 'מפה', icon: 'map' })
+            return links.length > 1 ? (
+              <CrossLinks links={links} className="mx-4 mt-3 justify-center" />
+            ) : null
+          })()}
+
+          {/* Stops: list or timeline view */}
+          {currentDay.stops.length === 0 ? (
+            <div className="mx-4 mt-4 flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
+              <Map className="h-12 w-12 text-apple-secondary/30" />
+              <p className="mt-4 text-apple-secondary">אין עצירות להצגה</p>
+            </div>
+          ) : viewMode === 'timeline' ? (
+            <DayPlannerBoard day={currentDay} />
+          ) : (
+            <motion.div
+              className="px-4 pt-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
+            >
+              <div className="flex flex-col">
+                <DriveInfo driveTime={DRIVE_TIMES[currentDay?.id ?? '']} />
+                {currentDay.stops.map((stop, index) => (
+                  <div key={stop.id}>
+                    <StopCard
+                      stop={stop}
+                      index={index}
+                      onUpdateTime={(stopId, start_time, end_time) =>
+                        updateItineraryStop(currentDay.id, stopId, { start_time, end_time })
+                      }
+                    />
+                    {index < currentDay.stops.length - 1 && <DriveSegment />}
                   </div>
-                )}
+                ))}
               </div>
-            </div>
-          </div>
-        )
-      })()}
+            </motion.div>
+          )}
 
-      {/* Day description */}
-      {currentDay.description && (
-        <p className="mx-4 mt-2 text-center text-xs leading-relaxed text-apple-secondary">
-          {currentDay.description}
-        </p>
-      )}
-
-      {/* Stops: list or timeline view */}
-      {currentDay.stops.length === 0 ? (
-        <div className="mx-4 mt-4 flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
-          <Map className="h-12 w-12 text-apple-secondary/30" />
-          <p className="mt-4 text-apple-secondary">אין עצירות להצגה</p>
-        </div>
-      ) : viewMode === 'timeline' ? (
-        <DayPlannerBoard day={currentDay} />
-      ) : (
-        <motion.div
-          className="px-4 pt-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-        >
-          <div className="flex flex-col">
-            <DriveInfo driveTime={DRIVE_TIMES[currentDay?.id ?? '']} />
-            {currentDay.stops.map((stop, index) => (
-              <div key={stop.id}>
-                <StopCard
-                  stop={stop}
-                  index={index}
-                  onUpdateTime={(stopId, start_time, end_time) =>
-                    updateItineraryStop(currentDay.id, stopId, { start_time, end_time })
-                  }
+          {/* Activity Polls */}
+          {dayPolls.length > 0 && (
+            <div className="flex flex-col gap-3 mt-4 px-4">
+              {dayPolls.map((poll) => (
+                <ActivityPoll
+                  key={poll.id}
+                  poll={poll}
+                  onVote={(pollId, optionIndex) => {
+                    if (currentMember) votePoll(pollId, optionIndex, currentMember)
+                  }}
+                  onDelete={currentMember && isParent(currentMember) ? deletePoll : undefined}
                 />
-                {index < currentDay.stops.length - 1 && <DriveSegment />}
+              ))}
+            </div>
+          )}
+
+          {/* Create Poll Button */}
+          {currentDay && (
+            <div className="mt-3 px-4">
+              <CreatePollButton dayId={currentDay.id} onCreatePoll={addPoll} />
+            </div>
+          )}
+
+          {/* Day notes */}
+          {currentDay.notes && (
+            <div className="mx-4 mt-4 rounded-apple-lg border border-ios-orange/30 bg-ios-orange/5 p-3">
+              <div className="flex gap-2">
+                <StickyNote className="mt-0.5 h-4 w-4 flex-shrink-0 text-ios-orange" />
+                <div>
+                  <h4 className="text-xs font-bold text-ios-orange">הערות ליום</h4>
+                  <p className="mt-1 text-xs leading-relaxed text-apple-secondary">
+                    {currentDay.notes}
+                  </p>
+                </div>
               </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
+            </div>
+          )}
 
-      {/* Activity Polls */}
-      {dayPolls.length > 0 && (
-        <div className="flex flex-col gap-3 mt-4 px-4">
-          {dayPolls.map((poll) => (
-            <ActivityPoll
-              key={poll.id}
-              poll={poll}
-              onVote={(pollId, optionIndex) => {
-                if (currentMember) votePoll(pollId, optionIndex, currentMember)
-              }}
-              onDelete={currentMember && isParent(currentMember) ? deletePoll : undefined}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Create Poll Button */}
-      {currentDay && (
-        <div className="mt-3 px-4">
-          <CreatePollButton dayId={currentDay.id} onCreatePoll={addPoll} />
-        </div>
-      )}
-
-      {/* Day notes */}
-      {currentDay.notes && (
-        <div className="mx-4 mt-4 rounded-apple-lg border border-ios-orange/30 bg-ios-orange/5 p-3">
-          <div className="flex gap-2">
-            <StickyNote className="mt-0.5 h-4 w-4 flex-shrink-0 text-ios-orange" />
-            <div>
-              <h4 className="text-xs font-bold text-ios-orange">הערות ליום</h4>
-              <p className="mt-1 text-xs leading-relaxed text-apple-secondary">
-                {currentDay.notes}
-              </p>
+          {/* Day progress indicator */}
+          <div className="mt-6 flex justify-center">
+            <div className="flex items-center gap-1">
+              {ITINERARY_DAYS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleDayChange(i)}
+                  className={cn(
+                    'h-1.5 rounded-full transition-all',
+                    i === activeDayIndex
+                      ? 'w-6 bg-ios-blue'
+                      : 'w-1.5 bg-black/[0.06] hover:bg-apple-secondary',
+                  )}
+                  aria-label={`יום ${i + 1}`}
+                />
+              ))}
             </div>
           </div>
         </div>
-      )}
-
-      {/* Day progress indicator */}
-      <div className="mt-6 flex justify-center">
-        <div className="flex items-center gap-1">
-          {ITINERARY_DAYS.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => handleDayChange(i)}
-              className={cn(
-                'h-1.5 rounded-full transition-all',
-                i === activeDayIndex
-                  ? 'w-6 bg-ios-blue'
-                  : 'w-1.5 bg-black/[0.06] hover:bg-apple-secondary',
-              )}
-              aria-label={`יום ${i + 1}`}
-            />
-          ))}
-        </div>
+        {/* end main content column */}
       </div>
-
-        </div>{/* end main content column */}
-      </div>{/* end lg:flex */}
+      {/* end lg:flex */}
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { StaggerContainer, StaggerItem } from '@/components/ui/motion'
 import { Plus, MapPin, StickyNote as StickyNoteIcon } from 'lucide-react'
@@ -13,9 +14,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 type FilterMode = 'all' | 'general' | 'location'
 
 export default function NotesPage() {
-  const {
-    locationNotes, addLocationNote, updateLocationNote, deleteLocationNote,
-  } = useAppData()
+  const { locationNotes, addLocationNote, updateLocationNote, deleteLocationNote } = useAppData()
 
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingNote, setEditingNote] = useState<LocationNote | null>(null)
@@ -29,8 +28,11 @@ export default function NotesPage() {
   }, [locationNotes, filter])
 
   function handleSaveNote(data: {
-    text: string; color: NoteColor; pinned: boolean;
-    author: FamilyMemberId; locationId: string | null
+    text: string
+    color: NoteColor
+    pinned: boolean
+    author: FamilyMemberId
+    locationId: string | null
   }) {
     if (editingNote) {
       updateLocationNote(editingNote.id, data)
@@ -71,11 +73,19 @@ export default function NotesPage() {
 
         {/* Filter pills */}
         <div className="flex gap-2">
-          {([
+          {[
             { id: 'all' as FilterMode, label: 'הכל', count: locationNotes.length },
-            { id: 'general' as FilterMode, label: 'כללי', count: locationNotes.filter((n) => !n.locationId).length },
-            { id: 'location' as FilterMode, label: 'מקושר ליעד', count: locationNotes.filter((n) => n.locationId).length },
-          ]).map((f) => (
+            {
+              id: 'general' as FilterMode,
+              label: 'כללי',
+              count: locationNotes.filter((n) => !n.locationId).length,
+            },
+            {
+              id: 'location' as FilterMode,
+              label: 'מקושר ליעד',
+              count: locationNotes.filter((n) => n.locationId).length,
+            },
+          ].map((f) => (
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
@@ -99,7 +109,10 @@ export default function NotesPage() {
           <motion.button
             whileHover={{ scale: 1.03, rotate: 0 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => { setEditingNote(null); setEditorOpen(true) }}
+            onClick={() => {
+              setEditingNote(null)
+              setEditorOpen(true)
+            }}
             className={cn(
               'sticky-note sticky-yellow',
               'min-h-[140px] p-5',
@@ -121,13 +134,17 @@ export default function NotesPage() {
                   onDelete={deleteLocationNote}
                   onTogglePin={handleTogglePin}
                 />
-                {/* Location badge */}
+                {/* Location badge — links to location hub */}
                 {note.locationId && (
                   <div className="absolute bottom-2 left-2 right-2">
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/60 backdrop-blur-sm text-caption text-gray-600 font-medium">
+                    <Link
+                      to={`/locations/${note.locationId}`}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/60 backdrop-blur-sm text-caption text-ios-blue font-medium hover:bg-white/80 transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <MapPin className="h-2.5 w-2.5" />
                       {getLocationLabel(note.locationId)}
-                    </span>
+                    </Link>
                   </div>
                 )}
               </div>
@@ -137,11 +154,7 @@ export default function NotesPage() {
 
         {notes.length === 0 && (
           <div className="col-span-2 md:col-span-3">
-            <EmptyState
-              icon={StickyNoteIcon}
-              title="אין פתקים"
-              description="הוסיפו פתק ראשון"
-            />
+            <EmptyState icon={StickyNoteIcon} title="אין פתקים" description="הוסיפו פתק ראשון" />
           </div>
         )}
       </div>
@@ -149,7 +162,10 @@ export default function NotesPage() {
       {/* Note Editor */}
       <NoteEditor
         isOpen={editorOpen}
-        onClose={() => { setEditorOpen(false); setEditingNote(null) }}
+        onClose={() => {
+          setEditorOpen(false)
+          setEditingNote(null)
+        }}
         onSave={handleSaveNote}
         editingNote={editingNote}
       />

@@ -1,4 +1,5 @@
-import { FileText, Image, File, AlertTriangle, CheckCircle2, Clock } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { FileText, Image, File, AlertTriangle, CheckCircle2, Clock, MapPin } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS, DOCUMENT_CATEGORIES } from '@/constants'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
@@ -71,9 +72,7 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
   const categoryLabel = DOCUMENT_CATEGORIES[doc.category]?.label ?? doc.category
   const expired = isExpired(doc.expiry_date)
   const expiringSoon = !expired && isExpiringWithin6Months(doc.expiry_date)
-  const memberName = doc.family_member_id
-    ? FAMILY_MEMBERS[doc.family_member_id]?.name
-    : null
+  const memberName = doc.family_member_id ? FAMILY_MEMBERS[doc.family_member_id]?.name : null
   const location = doc.locationId ? getLocationById(doc.locationId) : null
   const sample = isSampleData(doc.id)
 
@@ -85,7 +84,11 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
         'group flex w-full flex-col overflow-hidden rounded-apple-lg border text-right',
         'glass shadow-glass transition-all hover:shadow-glass-hover hover:bg-white/80',
         'focus:outline-none focus:ring-2 focus:ring-sky/40',
-        expired ? 'border-red-300' : sample ? 'border-dashed border-ios-teal/40' : 'border-black/[0.06]',
+        expired
+          ? 'border-red-300'
+          : sample
+            ? 'border-dashed border-ios-teal/40'
+            : 'border-black/[0.06]',
       )}
     >
       {/* Thumbnail / Icon area */}
@@ -95,9 +98,7 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
           <div
             className={cn(
               'absolute top-2 start-2 flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-semibold',
-              expired
-                ? 'bg-red-500 text-white'
-                : 'bg-amber-400 text-amber-900',
+              expired ? 'bg-red-500 text-white' : 'bg-amber-400 text-amber-900',
             )}
           >
             <AlertTriangle className="h-3 w-3" />
@@ -123,18 +124,21 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
             {categoryLabel}
           </span>
           {location && (
-            <span className="inline-block rounded-full bg-black/[0.04] px-2 py-0.5 text-caption font-medium text-apple-secondary">
+            <Link
+              to={`/locations/${location.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-0.5 rounded-full bg-ios-blue/10 px-2 py-0.5 text-caption font-medium text-ios-blue hover:bg-ios-blue/20 transition-colors"
+            >
+              <MapPin className="h-2.5 w-2.5" />
               {location.emoji} {location.nameHe}
-            </span>
+            </Link>
           )}
           {doc.file_size && (
             <span className="text-caption text-apple-secondary">
               {formatFileSize(doc.file_size)}
             </span>
           )}
-          {doc.status && (
-            <CardStatusBadge status={doc.status} />
-          )}
+          {doc.status && <CardStatusBadge status={doc.status} />}
         </div>
 
         {/* Family member + expiry row */}
@@ -167,7 +171,9 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
         {sample && (
           <div className="flex items-center gap-1 mt-1 pt-1 border-t border-dashed border-ios-teal/20">
             <span className="text-caption">🤖</span>
-            <span className="text-caption text-ios-teal font-medium">דוגמה מאת מוטי — יש להעלות מסמך אמיתי</span>
+            <span className="text-caption text-ios-teal font-medium">
+              דוגמה מאת מוטי — יש להעלות מסמך אמיתי
+            </span>
           </div>
         )}
       </div>
@@ -185,7 +191,12 @@ function CardStatusBadge({ status }: { status: 'reserved' | 'waitlist' | 'both' 
   const config = STATUS_CONFIG[status]
   const Icon = config.icon
   return (
-    <span className={cn('inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-caption font-medium', config.className)}>
+    <span
+      className={cn(
+        'inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-caption font-medium',
+        config.className,
+      )}
+    >
       <Icon className="h-3 w-3" />
       {config.label}
     </span>
