@@ -4,7 +4,7 @@
 
 import type { MotiAction } from '@/contexts/AppDataContext'
 import type { FamilyMemberId } from '@/lib/types'
-import { EXPENSE_CATEGORIES } from '@/constants'
+import { EXPENSE_CATEGORIES, FAMILY_MEMBERS } from '@/constants'
 import { convertCurrency } from '@/lib/currency'
 
 export interface ChatMessage {
@@ -36,24 +36,24 @@ export const BOT_SUBTITLE = 'יועץ טיולים ציני (מופעל ע"י AI
 // ─── Category Mapping (Hebrew → key) ───────────────────────────────
 
 const CATEGORY_MAP: Record<string, string> = {
-  'טיסות': 'flights',
-  'טיסה': 'flights',
-  'לינה': 'accommodation',
-  'מלון': 'accommodation',
-  'אירוח': 'accommodation',
-  'אוכל': 'food',
-  'מזון': 'food',
-  'תחבורה': 'transport',
-  'הסעות': 'transport',
-  'רכב': 'transport',
-  'אטרקציות': 'attractions',
-  'כרטיסים': 'attractions',
-  'קניות': 'shopping',
-  'שופינג': 'shopping',
-  'תקשורת': 'communication',
-  'סים': 'communication',
-  'ביטוח': 'insurance',
-  'אחר': 'other',
+  טיסות: 'flights',
+  טיסה: 'flights',
+  לינה: 'accommodation',
+  מלון: 'accommodation',
+  אירוח: 'accommodation',
+  אוכל: 'food',
+  מזון: 'food',
+  תחבורה: 'transport',
+  הסעות: 'transport',
+  רכב: 'transport',
+  אטרקציות: 'attractions',
+  כרטיסים: 'attractions',
+  קניות: 'shopping',
+  שופינג: 'shopping',
+  תקשורת: 'communication',
+  סים: 'communication',
+  ביטוח: 'insurance',
+  אחר: 'other',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {}
@@ -252,7 +252,12 @@ export function parseActions(message: string): MotiAction[] {
       // Specific conversion: "כמה זה 100 דולר בשקל"
       const from = isDollarSource ? 'USD' : 'ILS'
       const to = isDollarSource ? 'ILS' : 'USD'
-      actions.push({ type: 'CONVERT_CURRENCY', amount, from: from as 'ILS' | 'USD', to: to as 'ILS' | 'USD' })
+      actions.push({
+        type: 'CONVERT_CURRENCY',
+        amount,
+        from: from as 'ILS' | 'USD',
+        to: to as 'ILS' | 'USD',
+      })
       return actions
     } else {
       // General question: "מה שער הדולר", "שער חליפין", "כמה שווה דולר"
@@ -303,7 +308,9 @@ export async function initConversationFromDb() {
   try {
     // Load weather data for Moti's context
     fetchTripWeather()
-      .then((data) => { weatherContext = getWeatherSummaryForMoti(data) })
+      .then((data) => {
+        weatherContext = getWeatherSummaryForMoti(data)
+      })
       .catch(() => {})
 
     // Load memory summary
@@ -345,8 +352,8 @@ async function generateMemorySummary(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseKey}`,
-        'apikey': supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        apikey: supabaseKey,
       },
       body: JSON.stringify({
         messages: [
@@ -370,22 +377,26 @@ async function generateMemorySummary(
 
 // ─── Tool Use → MotiAction Mapper ────────────────────────────────
 
-function mapToolUseToActions(toolUses: Array<{ tool: string; input: Record<string, unknown> }>): MotiAction[] {
+function mapToolUseToActions(
+  toolUses: Array<{ tool: string; input: Record<string, unknown> }>,
+): MotiAction[] {
   const mapped: MotiAction[] = []
 
   for (const { tool, input } of toolUses) {
     switch (tool) {
       case 'update_budget_category':
         if (input.category && input.amount)
-          mapped.push({ type: 'UPDATE_BUDGET_CATEGORY', category: String(input.category), amount: Number(input.amount) })
+          mapped.push({
+            type: 'UPDATE_BUDGET_CATEGORY',
+            category: String(input.category),
+            amount: Number(input.amount),
+          })
         break
       case 'update_total_budget':
-        if (input.amount)
-          mapped.push({ type: 'UPDATE_TOTAL_BUDGET', amount: Number(input.amount) })
+        if (input.amount) mapped.push({ type: 'UPDATE_TOTAL_BUDGET', amount: Number(input.amount) })
         break
       case 'update_daily_budget':
-        if (input.amount)
-          mapped.push({ type: 'UPDATE_DAILY_BUDGET', amount: Number(input.amount) })
+        if (input.amount) mapped.push({ type: 'UPDATE_DAILY_BUDGET', amount: Number(input.amount) })
         break
       case 'add_expense':
         if (input.title && input.amount)
@@ -425,7 +436,9 @@ function mapToolUseToActions(toolUses: Array<{ tool: string; input: Record<strin
           note: {
             text: String(input.text),
             author: (input.author as 'aba' | 'ima' | 'kid1' | 'kid2' | 'kid3') || 'aba',
-            color: (input.color as 'yellow' | 'pink' | 'blue' | 'green' | 'orange' | 'purple') || 'yellow',
+            color:
+              (input.color as 'yellow' | 'pink' | 'blue' | 'green' | 'orange' | 'purple') ||
+              'yellow',
             locationId: input.location_id ? String(input.location_id) : null,
             pinned: Boolean(input.pinned),
           },
@@ -459,7 +472,10 @@ function mapToolUseToActions(toolUses: Array<{ tool: string; input: Record<strin
             title: `[תזכורת] ${String(input.text)}`,
             status: 'todo',
             priority: 'high',
-            group: input.trigger_date && String(input.trigger_date) >= '2026-09-11' ? 'during_trip' : 'pre_trip',
+            group:
+              input.trigger_date && String(input.trigger_date) >= '2026-09-11'
+                ? 'during_trip'
+                : 'pre_trip',
             assigned_to: ['aba'],
             due_date: input.trigger_date ? String(input.trigger_date) : undefined,
           },
@@ -515,23 +531,42 @@ export async function getBotResponseAsync(
     return { text: confirmText, actions, card, quickActions }
   }
 
-  // Build family member context
+  // Build family member context with real data
   let familyContext = ''
-  if (familyMemberId === 'kid1' || familyMemberId === 'kid2' || familyMemberId === 'kid3') {
-    familyContext = `## בן/בת משפחה נוכחי/ת
-המשתמש הנוכחי הוא ילד/ה. התאם את הטון:
-- השתמש בשפה פשוטה יותר ובהסברים קצרים
+  if (familyMemberId) {
+    const member = FAMILY_MEMBERS[familyMemberId as FamilyMemberId]
+    if (member) {
+      const isChild =
+        familyMemberId === 'kid1' || familyMemberId === 'kid2' || familyMemberId === 'kid3'
+
+      familyContext = `## מי מדבר איתך עכשיו
+שם: ${member.name} (${member.name_en})
+תפקיד: ${isChild ? 'ילד/ה' : 'הורה'}
+מזהה: ${member.id}
+
+${
+  isChild
+    ? `### התאמת טון לילד/ה
+- פנה אליו/ה בשם "${member.name}"
+- השתמש בשפה פשוטה, מעודדת ומשעשעת
 - הוסף עובדות מהנות וטריוויה על המקומות
-- היה מעודד ומשעשע
-- אל תציף במידע תקציבי או לוגיסטי מורכב
-- תן תשובות קצרות יותר`
-  } else if (familyMemberId === 'aba' || familyMemberId === 'ima') {
-    familyContext = `## בן/בת משפחה נוכחי/ת
-המשתמש הנוכחי הוא הורה. התאם את הטון:
+- אל תציף במידע תקציבי או לוגיסטי
+- תן תשובות קצרות יותר
+- תשתמש באימוג'ים`
+    : `### התאמת טון להורה
+- פנה אליו/ה בשם "${member.name}"
 - התמקד בתכנון, תקציב, לוגיסטיקה
 - תן עצות פרקטיות ומדויקות
 - הצע פתרונות ואלטרנטיבות כשרלוונטי
 - אפשר לדבר על תקציב ומסמכים בפירוט`
+}
+
+### המשפחה המלאה
+${Object.values(FAMILY_MEMBERS)
+  .filter((m) => m.id !== 'moti')
+  .map((m) => `- ${m.emoji} ${m.name} (${m.name_en}) — ${m.id}`)
+  .join('\n')}`
+    }
   }
 
   // Try AI via direct fetch (more reliable than supabase.functions.invoke)
@@ -546,23 +581,30 @@ export async function getBotResponseAsync(
         const contextParts: string[] = []
         if (memorySummary) contextParts.push(`[זיכרון משיחות קודמות: ${memorySummary}]`)
         if (weatherContext) contextParts.push(`[${weatherContext}]`)
-        messagesWithMemory.unshift({
-          role: 'user',
-          content: contextParts.join('\n\n'),
-        }, {
-          role: 'assistant',
-          content: 'תודה, אני מעודכן. במה אפשר לעזור?',
-        })
+        messagesWithMemory.unshift(
+          {
+            role: 'user',
+            content: contextParts.join('\n\n'),
+          },
+          {
+            role: 'assistant',
+            content: 'תודה, אני מעודכן. במה אפשר לעזור?',
+          },
+        )
       }
 
       const response = await fetch(`${supabaseUrl}/functions/v1/moti-chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseKey}`,
-          'apikey': supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          apikey: supabaseKey,
         },
-        body: JSON.stringify({ messages: messagesWithMemory, appContext: appContext || '', familyContext }),
+        body: JSON.stringify({
+          messages: messagesWithMemory,
+          appContext: appContext || '',
+          familyContext,
+        }),
       })
 
       if (response.ok) {
@@ -616,9 +658,7 @@ async function generateActionConfirmation(actions: MotiAction[]): Promise<string
         )
         break
       case 'UPDATE_DAILY_BUDGET':
-        parts.push(
-          `בוצע! עדכנתי את **התקציב היומי** ל-**₪${action.amount.toLocaleString()}**. ✅`,
-        )
+        parts.push(`בוצע! עדכנתי את **התקציב היומי** ל-**₪${action.amount.toLocaleString()}**. ✅`)
         break
       case 'ADD_EXPENSE':
         parts.push(
@@ -637,19 +677,19 @@ async function generateActionConfirmation(actions: MotiAction[]): Promise<string
         break
       case 'CONVERT_CURRENCY': {
         const { result, rate } = await convertCurrency(action.amount, action.from, action.to)
-        const displayRate = action.from === 'USD' ? rate : (1 / rate)
+        const displayRate = action.from === 'USD' ? rate : 1 / rate
         if (action.amount === 1 && action.from === 'USD') {
           // General rate query: "מה שער הדולר"
           parts.push(
             `📊 **שער דולר-שקל עדכני: ₪${rate.toFixed(2)}**\n\n` +
-            `כמה דוגמאות מהירות:\n` +
-            `• $10 = ₪${(10 * rate).toFixed(0)}\n` +
-            `• $50 = ₪${(50 * rate).toFixed(0)}\n` +
-            `• $100 = ₪${(100 * rate).toFixed(0)}\n` +
-            `• ₪100 = $${(100 / rate).toFixed(1)}\n` +
-            `• ₪1,000 = $${(1000 / rate).toFixed(0)}\n\n` +
-            `💡 *השער נשלף מהאינטרנט ומתעדכן כל 24 שעות.*\n` +
-            `*רוצים המרה ספציפית? כתבו למשל: "כמה זה 250 דולר בשקל"*`,
+              `כמה דוגמאות מהירות:\n` +
+              `• $10 = ₪${(10 * rate).toFixed(0)}\n` +
+              `• $50 = ₪${(50 * rate).toFixed(0)}\n` +
+              `• $100 = ₪${(100 * rate).toFixed(0)}\n` +
+              `• ₪100 = $${(100 / rate).toFixed(1)}\n` +
+              `• ₪1,000 = $${(1000 / rate).toFixed(0)}\n\n` +
+              `💡 *השער נשלף מהאינטרנט ומתעדכן כל 24 שעות.*\n` +
+              `*רוצים המרה ספציפית? כתבו למשל: "כמה זה 250 דולר בשקל"*`,
           )
         } else {
           // Specific conversion
@@ -657,8 +697,8 @@ async function generateActionConfirmation(actions: MotiAction[]): Promise<string
           const toSymbol = action.to === 'USD' ? '$' : '₪'
           parts.push(
             `**${fromSymbol}${action.amount.toLocaleString()}** = **${toSymbol}${result.toLocaleString()}**\n\n` +
-            `(לפי שער של ₪${displayRate.toFixed(2)} לדולר)\n\n` +
-            `💡 *השער נשלף מהאינטרנט ומתעדכן כל 24 שעות.*`,
+              `(לפי שער של ₪${displayRate.toFixed(2)} לדולר)\n\n` +
+              `💡 *השער נשלף מהאינטרנט ומתעדכן כל 24 שעות.*`,
           )
         }
         break
@@ -668,9 +708,11 @@ async function generateActionConfirmation(actions: MotiAction[]): Promise<string
         if (driveResult) {
           parts.push(
             `🚗 **${driveResult.from} → ${driveResult.to}**\n\n` +
-            `⏱️ זמן נסיעה: **${formatDuration(driveResult.durationMinutes)}**\n` +
-            `📏 מרחק: **${formatDistance(driveResult.distanceKm)}**\n\n` +
-            (driveResult.tips.length > 0 ? driveResult.tips.map((t) => `💡 ${t}`).join('\n') : ''),
+              `⏱️ זמן נסיעה: **${formatDuration(driveResult.durationMinutes)}**\n` +
+              `📏 מרחק: **${formatDistance(driveResult.distanceKm)}**\n\n` +
+              (driveResult.tips.length > 0
+                ? driveResult.tips.map((t) => `💡 ${t}`).join('\n')
+                : ''),
           )
         } else {
           parts.push(
@@ -711,7 +753,9 @@ function detectCard(text: string, actions: MotiAction[]): MessageCard | undefine
   }
 
   // Detect drive time mentions in text
-  const driveMatch = text.match(/(?:נסיעה|דרך|כביש).*?(?:מ|from)\s*(.+?)\s*(?:ל|ל-|to)\s*(.+?)[\s.!?،,]/i)
+  const driveMatch = text.match(
+    /(?:נסיעה|דרך|כביש).*?(?:מ|from)\s*(.+?)\s*(?:ל|ל-|to)\s*(.+?)[\s.!?،,]/i,
+  )
   if (driveMatch) {
     const result = findDriveTime(driveMatch[1].trim(), driveMatch[2].trim())
     if (result) {
@@ -767,7 +811,8 @@ function detectQuickActions(_text: string, actions: MotiAction[]): string[] | un
 const TRIP = {
   dates: '10-30 בספטמבר 2026',
   duration: '21 יום',
-  route: 'תל אביב → דנבר → בוזמן → ילוסטון → ג\'קסון → ברייס קניון → זאיון → לאס וגאס → יוסמיטי → סן פרנסיסקו → תל אביב',
+  route:
+    "תל אביב → דנבר → בוזמן → ילוסטון → ג'קסון → ברייס קניון → זאיון → לאס וגאס → יוסמיטי → סן פרנסיסקו → תל אביב",
   flights: {
     outbound: 'El Al LY001, TLV→DEN, 10 בספטמבר 2026',
     return: 'SFO→TLV, 30 בספטמבר 2026',
@@ -819,218 +864,234 @@ interface MatchRule {
 const rules: MatchRule[] = [
   {
     keywords: ['ביטוח', 'insurance'],
-    response: () => wrap(
-      `ביטוח נסיעות — תזמינו **לפחות חודש לפני** הטיסה. יש לכם תקציב של ${TRIP.budget.insurance} לביטוח.\n\n` +
-      `כמה טיפים ממוטי:\n` +
-      `• קנו ביטוח עם כיסוי רפואי של לפחות $1M — אמריקה זו לא קופת חולים\n` +
-      `• וודאו שהביטוח מכסה פעילות אתגרית (הייקינג בגרנד קניון זה לא טיול בפארק הירקון)\n` +
-      `• שמרו את הפוליסה בנייד + עותק מודפס\n` +
-      `• שימו לב שהביטוח מכסה את כל 5 בני המשפחה\n\n` +
-      `💡 *רוצים לעדכן את תקציב הביטוח? כתבו: "עדכן תקציב ביטוח ל-3000"*`
-    ),
+    response: () =>
+      wrap(
+        `ביטוח נסיעות — תזמינו **לפחות חודש לפני** הטיסה. יש לכם תקציב של ${TRIP.budget.insurance} לביטוח.\n\n` +
+          `כמה טיפים ממוטי:\n` +
+          `• קנו ביטוח עם כיסוי רפואי של לפחות $1M — אמריקה זו לא קופת חולים\n` +
+          `• וודאו שהביטוח מכסה פעילות אתגרית (הייקינג בגרנד קניון זה לא טיול בפארק הירקון)\n` +
+          `• שמרו את הפוליסה בנייד + עותק מודפס\n` +
+          `• שימו לב שהביטוח מכסה את כל 5 בני המשפחה\n\n` +
+          `💡 *רוצים לעדכן את תקציב הביטוח? כתבו: "עדכן תקציב ביטוח ל-3000"*`,
+      ),
   },
   {
     keywords: ['תקציב', 'כסף', 'budget', 'עלות', 'מחיר'],
-    response: () => wrap(
-      `התקציב הכולל: **${TRIP.budget.total}**\n\n` +
-      `הנה הפירוט (תחזיקו חזק):\n` +
-      `✈️ טיסות: ${TRIP.budget.flights}\n` +
-      `🏨 לינה: ${TRIP.budget.accommodation}\n` +
-      `🍔 אוכל: ${TRIP.budget.food}\n` +
-      `🚗 תחבורה: ${TRIP.budget.transport}\n` +
-      `🎢 אטרקציות: ${TRIP.budget.attractions}\n` +
-      `🛍️ קניות: ${TRIP.budget.shopping}\n` +
-      `🛡️ ביטוח: ${TRIP.budget.insurance}\n\n` +
-      `תקציב יומי: **${TRIP.budget.daily}**. כלומר, תשכחו מסטייקים כל ערב. אבל In-N-Out Burger? חובה.\n\n` +
-      `💡 *רוצים לשנות? כתבו למשל: "עדכן תקציב ביטוח ל-3000" או "שנה תקציב כולל ל-60000"*`
-    ),
+    response: () =>
+      wrap(
+        `התקציב הכולל: **${TRIP.budget.total}**\n\n` +
+          `הנה הפירוט (תחזיקו חזק):\n` +
+          `✈️ טיסות: ${TRIP.budget.flights}\n` +
+          `🏨 לינה: ${TRIP.budget.accommodation}\n` +
+          `🍔 אוכל: ${TRIP.budget.food}\n` +
+          `🚗 תחבורה: ${TRIP.budget.transport}\n` +
+          `🎢 אטרקציות: ${TRIP.budget.attractions}\n` +
+          `🛍️ קניות: ${TRIP.budget.shopping}\n` +
+          `🛡️ ביטוח: ${TRIP.budget.insurance}\n\n` +
+          `תקציב יומי: **${TRIP.budget.daily}**. כלומר, תשכחו מסטייקים כל ערב. אבל In-N-Out Burger? חובה.\n\n` +
+          `💡 *רוצים לשנות? כתבו למשל: "עדכן תקציב ביטוח ל-3000" או "שנה תקציב כולל ל-60000"*`,
+      ),
   },
   {
     keywords: ['טיסה', 'טיסות', 'flight', 'לטוס', 'שדה תעופה'],
-    response: () => wrap(
-      `פרטי הטיסות שלכם:\n\n` +
-      `**הלוך:** ${TRIP.flights.outbound}\n` +
-      `**חזור:** ${TRIP.flights.return}\n\n` +
-      `טיפ ממוטי: תגיעו 3 שעות לפני לנתב"ג. כן, אני יודע שכולם אומרים את זה. אבל עם 5 בני משפחה? תגיעו 4.\n\n` +
-      `וגם: הזמינו מושבים מראש אם לא עשיתם. 5 אנשים מפוזרים במטוס = ילדים שמפריעים לזרים = הורים מתים מבושה.`
-    ),
+    response: () =>
+      wrap(
+        `פרטי הטיסות שלכם:\n\n` +
+          `**הלוך:** ${TRIP.flights.outbound}\n` +
+          `**חזור:** ${TRIP.flights.return}\n\n` +
+          `טיפ ממוטי: תגיעו 3 שעות לפני לנתב"ג. כן, אני יודע שכולם אומרים את זה. אבל עם 5 בני משפחה? תגיעו 4.\n\n` +
+          `וגם: הזמינו מושבים מראש אם לא עשיתם. 5 אנשים מפוזרים במטוס = ילדים שמפריעים לזרים = הורים מתים מבושה.`,
+      ),
   },
   {
     keywords: ['קרוואן', 'rv', 'נהיגה', 'רכב'],
-    response: () => wrap(
-      `הקרוואן: **${TRIP.rv}**\n\n` +
-      `כמה דברים חשובים:\n` +
-      `• צריך **רישיון נהיגה בינלאומי** — זה במשימות שלכם, מקווה שטיפלתם\n` +
-      `• Class C זה קרוואן על בסיס משאית — לא קטן, לא ענק, בדיוק מספיק ל-5\n` +
-      `• תדלקו לפני שהמחוג מגיע לרבע — בגרנד קניון אין תחנת דלק בכל פינה\n` +
-      `• נהיגה בצד ימין, לא שמאל. כן, אני צריך לומר את זה.`
-    ),
+    response: () =>
+      wrap(
+        `הקרוואן: **${TRIP.rv}**\n\n` +
+          `כמה דברים חשובים:\n` +
+          `• צריך **רישיון נהיגה בינלאומי** — זה במשימות שלכם, מקווה שטיפלתם\n` +
+          `• Class C זה קרוואן על בסיס משאית — לא קטן, לא ענק, בדיוק מספיק ל-5\n` +
+          `• תדלקו לפני שהמחוג מגיע לרבע — בגרנד קניון אין תחנת דלק בכל פינה\n` +
+          `• נהיגה בצד ימין, לא שמאל. כן, אני צריך לומר את זה.`,
+      ),
   },
   {
     keywords: ['ילוסטון', 'yellowstone', 'גייזר', 'old faithful'],
-    response: () => wrap(
-      `ילוסטון — **12-14 בספטמבר** (3 ימים!).\n\n` +
-      `הפארק הלאומי הראשון בעולם. ואתם הולכים לראות למה.\n\n` +
-      `טיפים ממוטי:\n` +
-      `• Mammoth Hot Springs — טראסות גיר מטורפות, בוקר מוקדם\n` +
-      `• עמק לאמאר — "הסרנגטי של אמריקה". משקפת חובה! זאבים, ביזונים, דובים\n` +
-      `• Old Faithful — התפרצות כל ~90 דקות. תבדקו לוח זמנים ב-Visitor Center\n` +
-      `• Grand Prismatic Spring — הצבעים האלה אמיתיים. רציני.\n` +
-      `• $35 כניסה לרכב, תקף 7 ימים — מכסה גם את גרנד טיטון`
-    ),
+    response: () =>
+      wrap(
+        `ילוסטון — **12-14 בספטמבר** (3 ימים!).\n\n` +
+          `הפארק הלאומי הראשון בעולם. ואתם הולכים לראות למה.\n\n` +
+          `טיפים ממוטי:\n` +
+          `• Mammoth Hot Springs — טראסות גיר מטורפות, בוקר מוקדם\n` +
+          `• עמק לאמאר — "הסרנגטי של אמריקה". משקפת חובה! זאבים, ביזונים, דובים\n` +
+          `• Old Faithful — התפרצות כל ~90 דקות. תבדקו לוח זמנים ב-Visitor Center\n` +
+          `• Grand Prismatic Spring — הצבעים האלה אמיתיים. רציני.\n` +
+          `• $35 כניסה לרכב, תקף 7 ימים — מכסה גם את גרנד טיטון`,
+      ),
   },
   {
     keywords: ['ברייס', 'bryce', 'הודו', 'hoodoo'],
-    response: () => wrap(
-      `ברייס קניון — **18 בספטמבר**.\n\n` +
-      `זה אחד מהמקומות האלה שאתה מגיע ופתאום מבין שהטבע אמן טירוף. עמודי ההודו האלה? לא נורמלי.\n\n` +
-      `טיפים:\n` +
-      `• Navajo Loop + Queen's Garden Trail — מסלול מעגלי מושלם למשפחה\n` +
-      `• **שקיעה מ-Bryce Point** — הצבעים משתגעים\n` +
-      `• $35 כניסה לרכב, תקף 7 ימים\n` +
-      `• הגובה 2,400 מ' — קצת קר בערב בספטמבר, תביאו שכבות`
-    ),
+    response: () =>
+      wrap(
+        `ברייס קניון — **18 בספטמבר**.\n\n` +
+          `זה אחד מהמקומות האלה שאתה מגיע ופתאום מבין שהטבע אמן טירוף. עמודי ההודו האלה? לא נורמלי.\n\n` +
+          `טיפים:\n` +
+          `• Navajo Loop + Queen's Garden Trail — מסלול מעגלי מושלם למשפחה\n` +
+          `• **שקיעה מ-Bryce Point** — הצבעים משתגעים\n` +
+          `• $35 כניסה לרכב, תקף 7 ימים\n` +
+          `• הגובה 2,400 מ' — קצת קר בערב בספטמבר, תביאו שכבות`,
+      ),
   },
   {
     keywords: ['יוסמיטי', 'yosemite'],
-    response: () => wrap(
-      `יוסמיטי — **24-26 בספטמבר** (3 ימים!).\n\n` +
-      `שלושה ימים ביוסמיטי זה מושלם. בניגוד לרוב ההחלטות שלכם (צחוק, צחוק).\n\n` +
-      `חובה:\n` +
-      `• Half Dome View מ-Glacier Point\n` +
-      `• Yosemite Falls Trail (הייק קל יחסית, מתאים לילדים)\n` +
-      `• Tunnel View — העצירה הראשונה, הכי מצולמת\n` +
-      `• Mariposa Grove — עצי סקויה ענקיים!\n\n` +
-      `שימו לב: ספטמבר = פחות מפלים (סוף הקיץ), אבל פחות המוני אנשים. Win.`
-    ),
+    response: () =>
+      wrap(
+        `יוסמיטי — **24-26 בספטמבר** (3 ימים!).\n\n` +
+          `שלושה ימים ביוסמיטי זה מושלם. בניגוד לרוב ההחלטות שלכם (צחוק, צחוק).\n\n` +
+          `חובה:\n` +
+          `• Half Dome View מ-Glacier Point\n` +
+          `• Yosemite Falls Trail (הייק קל יחסית, מתאים לילדים)\n` +
+          `• Tunnel View — העצירה הראשונה, הכי מצולמת\n` +
+          `• Mariposa Grove — עצי סקויה ענקיים!\n\n` +
+          `שימו לב: ספטמבר = פחות מפלים (סוף הקיץ), אבל פחות המוני אנשים. Win.`,
+      ),
   },
   {
     keywords: ['זאיון', 'zion'],
-    response: () => wrap(
-      `זאיון — **16 בספטמבר**.\n\n` +
-      `Angels Landing? עם ילדים? אממ... Narrows יותר בטוח ומדהים.\n\n` +
-      `• The Narrows = הליכה בתוך הנהר, בין קירות סלע ענקיים. הילדים יאהבו.\n` +
-      `• קחו נעלי מים (או שכרו ציוד בכניסה לפארק)\n` +
-      `• Emerald Pools Trail — קל, יפה, לכל המשפחה\n` +
-      `• השאטל בתוך הפארק חינמי — אל תנסו להיכנס ברכב`
-    ),
+    response: () =>
+      wrap(
+        `זאיון — **16 בספטמבר**.\n\n` +
+          `Angels Landing? עם ילדים? אממ... Narrows יותר בטוח ומדהים.\n\n` +
+          `• The Narrows = הליכה בתוך הנהר, בין קירות סלע ענקיים. הילדים יאהבו.\n` +
+          `• קחו נעלי מים (או שכרו ציוד בכניסה לפארק)\n` +
+          `• Emerald Pools Trail — קל, יפה, לכל המשפחה\n` +
+          `• השאטל בתוך הפארק חינמי — אל תנסו להיכנס ברכב`,
+      ),
   },
   {
     keywords: ['וגאס', 'vegas', 'לאס וגאס'],
-    response: () => wrap(
-      `לאס וגאס עם ילדים. כן, אנשים עושים את זה. לא, זה לא מוזר. (קצת מוזר.)\n\n` +
-      `אטרקציות למשפחה:\n` +
-      `• High Roller — הגלגל הכי גדול בעולם, נוף מטורף\n` +
-      `• Shark Reef ב-Mandalay Bay\n` +
-      `• ה-Strip בלילה — פשוט ללכת ולהסתכל (חינם!)\n` +
-      `• Bellagio Fountains — מופע מים חינמי שגורם לילדים לפעור פה\n\n` +
-      `יש לכם מלון שם כבר, אז לפחות את זה סגרתם. 👏`
-    ),
+    response: () =>
+      wrap(
+        `לאס וגאס עם ילדים. כן, אנשים עושים את זה. לא, זה לא מוזר. (קצת מוזר.)\n\n` +
+          `אטרקציות למשפחה:\n` +
+          `• High Roller — הגלגל הכי גדול בעולם, נוף מטורף\n` +
+          `• Shark Reef ב-Mandalay Bay\n` +
+          `• ה-Strip בלילה — פשוט ללכת ולהסתכל (חינם!)\n` +
+          `• Bellagio Fountains — מופע מים חינמי שגורם לילדים לפעור פה\n\n` +
+          `יש לכם מלון שם כבר, אז לפחות את זה סגרתם. 👏`,
+      ),
   },
   {
     keywords: ['אריזה', 'packing', 'לארוז', 'מזוודה'],
-    response: () => wrap(
-      `אריזה ל-20 יום עם 5 בני משפחה. בהצלחה.\n\n` +
-      `הדברים שאנשים **תמיד** שוכחים:\n` +
-      `• מתאם חשמל לארה"ב (Type A/B — אלה עם שני פינים שטוחים)\n` +
-      `• תרופות מרשם + צילום המרשם באנגלית\n` +
-      `• קרם הגנה SPF50+ (ספטמבר במדבר = שמש רצחנית)\n` +
-      `• בגדי שכבות — יוסמיטי בלילה קר, וגאס ביום רותח\n` +
-      `• נעלי הייקינג מנוסות (לא חדשות! שבירה של נעלים בגרנד קניון = סיוט)\n\n` +
-      `יש לכם רשימת אריזה מלאה במודול האריזה. תשתמשו בה. בבקשה.`
-    ),
+    response: () =>
+      wrap(
+        `אריזה ל-20 יום עם 5 בני משפחה. בהצלחה.\n\n` +
+          `הדברים שאנשים **תמיד** שוכחים:\n` +
+          `• מתאם חשמל לארה"ב (Type A/B — אלה עם שני פינים שטוחים)\n` +
+          `• תרופות מרשם + צילום המרשם באנגלית\n` +
+          `• קרם הגנה SPF50+ (ספטמבר במדבר = שמש רצחנית)\n` +
+          `• בגדי שכבות — יוסמיטי בלילה קר, וגאס ביום רותח\n` +
+          `• נעלי הייקינג מנוסות (לא חדשות! שבירה של נעלים בגרנד קניון = סיוט)\n\n` +
+          `יש לכם רשימת אריזה מלאה במודול האריזה. תשתמשו בה. בבקשה.`,
+      ),
   },
   {
     keywords: ['מסמכים', 'דרכון', 'visa', 'esta', 'ויזה'],
-    response: () => wrap(
-      `מסמכים — הדבר הכי משעמם והכי חשוב:\n\n` +
-      `✅ 5 דרכונים — וודאו שתקפים לפחות 6 חודשים אחרי 30/9/2026\n` +
-      `✅ ESTA — צריך לכל 5 בני המשפחה, גם הילדים\n` +
-      `✅ ביטוח נסיעות\n` +
-      `✅ רישיון נהיגה בינלאומי (לקרוואן!)\n` +
-      `✅ אישורי הזמנות (טיסות, קרוואן, מלונות, דיסנילנד)\n\n` +
-      `טיפ: תשמרו הכל גם בענן וגם מודפס. כי WiFi בגרנד קניון? 😂`
-    ),
+    response: () =>
+      wrap(
+        `מסמכים — הדבר הכי משעמם והכי חשוב:\n\n` +
+          `✅ 5 דרכונים — וודאו שתקפים לפחות 6 חודשים אחרי 30/9/2026\n` +
+          `✅ ESTA — צריך לכל 5 בני המשפחה, גם הילדים\n` +
+          `✅ ביטוח נסיעות\n` +
+          `✅ רישיון נהיגה בינלאומי (לקרוואן!)\n` +
+          `✅ אישורי הזמנות (טיסות, קרוואן, מלונות, דיסנילנד)\n\n` +
+          `טיפ: תשמרו הכל גם בענן וגם מודפס. כי WiFi בגרנד קניון? 😂`,
+      ),
   },
   {
     keywords: ['מתי', 'לוח זמנים', 'תאריך', 'מסלול', 'route', 'itinerary'],
-    response: () => wrap(
-      `המסלול המלא:\n\n` +
-      `📅 **${TRIP.dates}** (${TRIP.duration})\n\n` +
-      `${TRIP.route}\n\n` +
-      `**תחנות עיקריות:**\n` +
-      `• 10/9 — נחיתה בדנבר\n` +
-      `• 11/9 — טיסה לבוזמן, איסוף קרוואן\n` +
-      `• 12-14/9 — ילוסטון\n` +
-      `• 15-16/9 — גרנד טיטון וג'קסון\n` +
-      `• 17/9 — יום קריעת כביש דרומה\n` +
-      `• 18/9 — ברייס קניון\n` +
-      `• 19-20/9 — זאיון\n` +
-      `• 21-22/9 — לאס וגאס\n` +
-      `• 23/9 — כביש 395 ל-Mammoth Lakes\n` +
-      `• 24-26/9 — יוסמיטי\n` +
-      `• 27-28/9 — נסיעה לסן פרנסיסקו\n` +
-      `• 29/9 — החזרת קרוואן\n` +
-      `• 30/9 — סן פרנסיסקו וטיסה הביתה\n\n` +
-      `21 יום. 5 בני משפחה. קרוואן אחד. מונטנה עד קליפורניה. מה יכול להשתבש? 😄\n\n` +
-      `💡 *רוצים להוסיף עצירה? כתבו: "תוסיף עצירה ביום 5: ביקור במוזיאון"*`
-    ),
+    response: () =>
+      wrap(
+        `המסלול המלא:\n\n` +
+          `📅 **${TRIP.dates}** (${TRIP.duration})\n\n` +
+          `${TRIP.route}\n\n` +
+          `**תחנות עיקריות:**\n` +
+          `• 10/9 — נחיתה בדנבר\n` +
+          `• 11/9 — טיסה לבוזמן, איסוף קרוואן\n` +
+          `• 12-14/9 — ילוסטון\n` +
+          `• 15-16/9 — גרנד טיטון וג'קסון\n` +
+          `• 17/9 — יום קריעת כביש דרומה\n` +
+          `• 18/9 — ברייס קניון\n` +
+          `• 19-20/9 — זאיון\n` +
+          `• 21-22/9 — לאס וגאס\n` +
+          `• 23/9 — כביש 395 ל-Mammoth Lakes\n` +
+          `• 24-26/9 — יוסמיטי\n` +
+          `• 27-28/9 — נסיעה לסן פרנסיסקו\n` +
+          `• 29/9 — החזרת קרוואן\n` +
+          `• 30/9 — סן פרנסיסקו וטיסה הביתה\n\n` +
+          `21 יום. 5 בני משפחה. קרוואן אחד. מונטנה עד קליפורניה. מה יכול להשתבש? 😄\n\n` +
+          `💡 *רוצים להוסיף עצירה? כתבו: "תוסיף עצירה ביום 5: ביקור במוזיאון"*`,
+      ),
   },
   {
     keywords: ['אוכל', 'מסעדה', 'לאכול', 'food', 'restaurant'],
-    response: () => wrap(
-      `אוכל בארה"ב! תקציב: **${TRIP.budget.food}** לכל הטיול.\n\n` +
-      `המלצות ממוטי (שאכל כל מה שאפשר):\n` +
-      `• **In-N-Out Burger** — חובה ביום הראשון. Double-Double, Animal Style. תודו לי.\n` +
-      `• **Trader Joe's** — סופר מעולה לקניות לקרוואן, חוסך המון\n` +
-      `• **Costco** — חברות יומית ב-$5, שווה לקניית מים וחטיפים בכמויות\n` +
-      `• סן פרנסיסקו: Clam Chowder ב-Fisherman's Wharf\n` +
-      `• וגאס: Buffet — הילדים יאכלו ב-$15-20 ואתם תוציאו את הכסף\n\n` +
-      `עם קרוואן, בשלו לעצמכם ארוחות בוקר וצהריים. מסעדות רק בערב = שורדים בתקציב.`
-    ),
+    response: () =>
+      wrap(
+        `אוכל בארה"ב! תקציב: **${TRIP.budget.food}** לכל הטיול.\n\n` +
+          `המלצות ממוטי (שאכל כל מה שאפשר):\n` +
+          `• **In-N-Out Burger** — חובה ביום הראשון. Double-Double, Animal Style. תודו לי.\n` +
+          `• **Trader Joe's** — סופר מעולה לקניות לקרוואן, חוסך המון\n` +
+          `• **Costco** — חברות יומית ב-$5, שווה לקניית מים וחטיפים בכמויות\n` +
+          `• סן פרנסיסקו: Clam Chowder ב-Fisherman's Wharf\n` +
+          `• וגאס: Buffet — הילדים יאכלו ב-$15-20 ואתם תוציאו את הכסף\n\n` +
+          `עם קרוואן, בשלו לעצמכם ארוחות בוקר וצהריים. מסעדות רק בערב = שורדים בתקציב.`,
+      ),
   },
   {
     keywords: ['san francisco', 'סן פרנסיסקו', 'sf'],
-    response: () => wrap(
-      `סן פרנסיסקו — הסיום המושלם! **28-30 בספטמבר** (מלון).\n\n` +
-      `אחרי 16 יום בקרוואן, מלון ירגיש כמו ארמון.\n\n` +
-      `חובה:\n` +
-      `• Golden Gate Bridge (הפתעה, נכון?)\n` +
-      `• Fisherman's Wharf + Pier 39 (כלבי ים!)\n` +
-      `• כבל קאר — הילדים ישתגעו\n` +
-      `• Alcatraz — אם הזמנתם מראש (מומלץ!)\n` +
-      `• Ghirardelli Square — שוקולד חינמי בחנות\n\n` +
-      `וה-Fog? זה לא ערפל, זה אווירה. 😎`
-    ),
+    response: () =>
+      wrap(
+        `סן פרנסיסקו — הסיום המושלם! **28-30 בספטמבר** (מלון).\n\n` +
+          `אחרי 16 יום בקרוואן, מלון ירגיש כמו ארמון.\n\n` +
+          `חובה:\n` +
+          `• Golden Gate Bridge (הפתעה, נכון?)\n` +
+          `• Fisherman's Wharf + Pier 39 (כלבי ים!)\n` +
+          `• כבל קאר — הילדים ישתגעו\n` +
+          `• Alcatraz — אם הזמנתם מראש (מומלץ!)\n` +
+          `• Ghirardelli Square — שוקולד חינמי בחנות\n\n` +
+          `וה-Fog? זה לא ערפל, זה אווירה. 😎`,
+      ),
   },
   {
     // Note: currency keyword rule should rarely trigger — parseActions catches most currency intents
     // This is only reached if parseActions somehow misses it
     keywords: ['דולר', 'שקל', 'dollar', 'shekel', 'המרה', 'currency', 'שער'],
-    response: () => wrap(
-      `אני יכול לבדוק שער דולר-שקל **חי** מהאינטרנט!\n\n` +
-      `נסו לכתוב:\n` +
-      `• "מה שער הדולר"\n` +
-      `• "כמה זה 100 דולר בשקל"\n` +
-      `• "כמה שווים 500 שקל בדולר"`,
-    ),
+    response: () =>
+      wrap(
+        `אני יכול לבדוק שער דולר-שקל **חי** מהאינטרנט!\n\n` +
+          `נסו לכתוב:\n` +
+          `• "מה שער הדולר"\n` +
+          `• "כמה זה 100 דולר בשקל"\n` +
+          `• "כמה שווים 500 שקל בדולר"`,
+      ),
   },
   {
     keywords: ['נסיעה', 'כמה זמן', 'כמה רחוק', 'מרחק', 'drive'],
-    response: () => wrap(
-      `זמני נסיעה מרכזיים במסלול (בקרוואן):\n\n` +
-      `🚗 **בוזמן → ילוסטון** — 2 שעות\n` +
-      `🚗 **ילוסטון → ג'קסון** — 1.5 שעות\n` +
-      `🚗 **ג'קסון → פרובו** — 5.5 שעות\n` +
-      `🚗 **פרובו → ברייס קניון** — 4 שעות\n` +
-      `🚗 **ברייס → זאיון** — 1:40 שעות\n` +
-      `🚗 **זאיון → לאס וגאס** — 3 שעות\n` +
-      `🚗 **לאס וגאס → גרנד קניון** — 4.5 שעות\n` +
-      `🚗 **וגאס → ממות לייקס** — 6 שעות\n` +
-      `🚗 **ממות לייקס → יוסמיטי** — 2 שעות\n` +
-      `🚗 **יוסמיטי → סן פרנסיסקו** — 4 שעות\n\n` +
-      `💡 *רוצים מסלול ספציפי? כתבו: "כמה זמן נסיעה מוגאס לגרנד קניון"*`,
-    ),
+    response: () =>
+      wrap(
+        `זמני נסיעה מרכזיים במסלול (בקרוואן):\n\n` +
+          `🚗 **בוזמן → ילוסטון** — 2 שעות\n` +
+          `🚗 **ילוסטון → ג'קסון** — 1.5 שעות\n` +
+          `🚗 **ג'קסון → פרובו** — 5.5 שעות\n` +
+          `🚗 **פרובו → ברייס קניון** — 4 שעות\n` +
+          `🚗 **ברייס → זאיון** — 1:40 שעות\n` +
+          `🚗 **זאיון → לאס וגאס** — 3 שעות\n` +
+          `🚗 **לאס וגאס → גרנד קניון** — 4.5 שעות\n` +
+          `🚗 **וגאס → ממות לייקס** — 6 שעות\n` +
+          `🚗 **ממות לייקס → יוסמיטי** — 2 שעות\n` +
+          `🚗 **יוסמיטי → סן פרנסיסקו** — 4 שעות\n\n` +
+          `💡 *רוצים מסלול ספציפי? כתבו: "כמה זמן נסיעה מוגאס לגרנד קניון"*`,
+      ),
   },
   {
     keywords: ['עזרה', 'help', 'מה אתה', 'מי אתה'],
@@ -1057,9 +1118,9 @@ const rules: MatchRule[] = [
 ]
 
 const FALLBACKS = [
-  `שאלה מעניינת, אבל מוטי במצב אופליין כרגע ולא מחובר ל-AI. 🔌\n\nנסו לשאול על משהו ספציפי — טיסות, ביטוח, תקציב, אריזה, או כל מקום במסלול!\n\nאו פשוט תכתבו "עזרה" ואני אראה לכם מה אני יודע.`,
-  `אממ... מוטי לא מחובר ל-AI כרגע, אז אני עובד במצב בסיסי. 🤖\n\nאני מומחה לטיול שלכם לארה"ב — שאלו אותי על המסלול, התקציב, המסמכים, או כל אטרקציה ספציפית!`,
-  `לא הבנתי, אבל אל תיקחו את זה אישית — אני במצב אופליין. 😅\n\nשאלו על הטיול: ביטוח? דיסנילנד? גרנד קניון? אריזה? תקציב? אני פה!`,
+  `שאלה מעניינת, אבל מוטי במצב אופליין כרגע ולא מחובר ל-AI. 🔌\n\nנסו לשאול על משהו ספציפי — טיסות, ביטוח, תקציב, אריזה, או כל מקום במסלול!\n\n💡 **טיפ:** נסו Cmd+K לחיפוש מהיר באפליקציה, או לחצו על "עזרה" ואני אראה לכם מה אני יודע.`,
+  `אממ... מוטי לא מחובר ל-AI כרגע, אז אני עובד במצב בסיסי. 🤖\n\nאני מומחה לטיול שלכם — Bozeman דרך ילוסטון, גרנד טטון, זאיון, ווגאס, יוסמיטי ועד סן פרנסיסקו!\n\nשאלו על המסלול, התקציב, או כל אטרקציה ספציפית.`,
+  `לא הבנתי, אבל אל תיקחו את זה אישית — אני במצב אופליין. 😅\n\nשאלו על הטיול: ילוסטון? זאיון? יוסמיטי? תקציב? אריזה?\n\nאו השתמשו ב-Cmd+K לחיפוש מהיר בכל האפליקציה!`,
 ]
 
 function getKeywordResponse(message: string): string {
@@ -1067,7 +1128,7 @@ function getKeywordResponse(message: string): string {
 
   // Check for greeting
   if (/^(היי|הי|שלום|בוקר|ערב|מה נשמע|אהלן|hey|hi|hello)/.test(lower)) {
-    return `שלום שלום! 👋 אני מוטי, היועץ הציני שלכם לטיול לארה"ב.\n\nמה רוצים לדעת? יש לי דעה על הכל — ביטוח, תקציב, דיסנילנד, גרנד קניון... רק תשאלו.\n\n🔧 **חידוש:** אני יכול גם לעדכן דברים באתר! נסו: "עדכן תקציב ביטוח ל-3000"`
+    return `שלום שלום! 👋 אני מוטי, היועץ הציני שלכם לטיול לארה"ב.\n\nמה רוצים לדעת? יש לי דעה על הכל — ילוסטון, גרנד טטון, זאיון, יוסמיטי, סן פרנסיסקו... רק תשאלו.\n\n🔧 **אני גם יכול לעדכן דברים באתר!** נסו: "עדכן תקציב ביטוח ל-3000" או "תוסיף משימה: להזמין כרטיסים לאלקטרז"`
   }
 
   // Check rules by keyword match

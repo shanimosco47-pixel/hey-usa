@@ -331,7 +331,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
 
     loadData()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   // ─── Online listener — flush pending sync queue ──────────────
@@ -799,7 +801,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       prev.map((p) => {
         if (p.id !== pollId) return p
         const filtered = p.votes.filter((v) => v.member_id !== memberId)
-        const updated = { ...p, votes: [...filtered, { member_id: memberId, option_index: optionIndex }] }
+        const updated = {
+          ...p,
+          votes: [...filtered, { member_id: memberId, option_index: optionIndex }],
+        }
         localDb.polls.put(updated).catch(() => {})
         queueSync('polls', pollId, 'upsert').catch(() => {})
         db.upsertActivityPoll(updated).catch(() => {})
@@ -922,13 +927,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
     const openTasks = tasks.filter((t) => t.status !== 'done')
     const urgentTasks = openTasks.filter((t) => t.priority === 'urgent' || t.priority === 'high')
+    const todayStr = new Date().toISOString().split('T')[0]
+    const overdueTasks = openTasks.filter((t) => t.due_date && t.due_date < todayStr)
 
     const totalPacking = packingItems.length
     const packedCount = packingItems.filter((p) => p.is_packed).length
     const packingPercent = totalPacking > 0 ? Math.round((packedCount / totalPacking) * 100) : 0
 
     const daysUntilTrip = Math.ceil(
-      (new Date('2026-09-11').getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+      (new Date('2026-09-10').getTime() - Date.now()) / (1000 * 60 * 60 * 24),
     )
 
     const recentExpenses = expenses
@@ -936,19 +943,64 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       .map((e) => `${e.title}: ₪${e.amount}`)
       .join(', ')
 
+    // Itinerary summary — give Moti knowledge of each day
+    const itinerarySummary = itineraryDays
+      .map((day, i) => {
+        const stopNames = day.stops
+          .slice(0, 4)
+          .map((s) => s.title)
+          .join(', ')
+        const extra = day.stops.length > 4 ? ` +${day.stops.length - 4} עוד` : ''
+        return `  יום ${i + 1} (${day.date}): ${day.city || day.title} — ${stopNames}${extra}`
+      })
+      .join('\n')
+
+    // Category budget breakdown
+    const categoryBudget = Object.entries(budgetSettings.category_budgets)
+      .filter(([, v]) => v > 0)
+      .map(([cat, v]) => {
+        const catLabel = EXPENSE_CATEGORIES[cat]?.label || cat
+        const catSpent = expenses
+          .filter((e) => e.category === cat)
+          .reduce((s, e) => s + e.amount, 0)
+        return `  ${catLabel}: ₪${catSpent.toLocaleString()} / ₪${v.toLocaleString()}`
+      })
+      .join('\n')
+
     const lines = [
+      `## סטטיסטיקות`,
       `ימים לטיול: ${daysUntilTrip}`,
+      `תאריך היום: ${todayStr}`,
       `תקציב: ₪${totalSpent.toLocaleString()} מתוך ₪${totalBudget.toLocaleString()} (${budgetPercent}% נוצל)`,
-      `תקציב יומי: ₪${(budgetSettings.daily_budget ?? 0).toLocaleString()}`,
+      categoryBudget ? `פירוט תקציב:\n${categoryBudget}` : '',
       `משימות: ${openTasks.length} פתוחות מתוך ${tasks.length} (${urgentTasks.length} דחופות)`,
+      overdueTasks.length > 0
+        ? `משימות באיחור: ${overdueTasks.map((t) => `${t.title} (${t.due_date})`).join(', ')}`
+        : '',
+      urgentTasks.length > 0 ? `משימות דחופות: ${urgentTasks.map((t) => t.title).join(', ')}` : '',
       `אריזה: ${packingPercent}% ארוז (${packedCount}/${totalPacking})`,
       `פתקים: ${locationNotes.length}`,
+      `מסמכים: ${documents.length}`,
+      `תמונות: ${photos.length}`,
+      `פוסטים בבלוג: ${blogPosts.length}`,
       recentExpenses ? `הוצאות אחרונות: ${recentExpenses}` : '',
-      urgentTasks.length > 0 ? `משימות דחופות: ${urgentTasks.map((t) => t.title).join(', ')}` : '',
+      '',
+      `## מסלול מקוצר`,
+      itinerarySummary,
     ]
 
     return lines.filter(Boolean).join('\n')
-  }, [budgetSettings, expenses, tasks, packingItems, locationNotes])
+  }, [
+    budgetSettings,
+    expenses,
+    tasks,
+    packingItems,
+    locationNotes,
+    itineraryDays,
+    documents,
+    photos,
+    blogPosts,
+  ])
 
   // ─── Execute Moti Action ────────────────────────────────────────
 
