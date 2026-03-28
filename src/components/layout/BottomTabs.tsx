@@ -84,7 +84,7 @@ export function BottomTabs() {
             className={cn(
               'fixed bottom-16 left-0 right-0 z-50',
               'glass-float rounded-t-apple-xl shadow-glass-float',
-              'border-t border-black/[0.06]',
+              'border-t border-black/[0.06] dark:border-white/[0.06]',
             )}
           >
             <div className="flex items-center justify-between px-4 pt-4 pb-2">
@@ -94,10 +94,10 @@ export function BottomTabs() {
               <motion.button
                 whileTap={{ scale: 0.85, rotate: 90 }}
                 onClick={() => setMoreOpen(false)}
-                className="rounded-full p-1 hover:bg-black/[0.04] transition-colors"
+                className="rounded-full p-1 hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors"
                 aria-label="סגור"
               >
-                <X className="h-6 w-6 text-apple-secondary" />
+                <X className="h-6 w-6 text-apple-secondary dark:text-white/60" />
               </motion.button>
             </div>
             <div className="grid grid-cols-3 gap-1 px-4 pb-4">
@@ -121,8 +121,8 @@ export function BottomTabs() {
                     }}
                     className={cn(
                       'flex flex-col items-center gap-1.5 rounded-apple py-3 px-2',
-                      'hover:bg-black/[0.04] transition-colors',
-                      'text-apple-primary',
+                      'hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors',
+                      'text-apple-primary dark:text-white',
                     )}
                   >
                     {Icon && <Icon className="h-6 w-6" />}
