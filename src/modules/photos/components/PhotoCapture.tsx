@@ -36,17 +36,23 @@ export function PhotoCapture({ dayId, location }: PhotoCaptureProps) {
 
     setIsUploading(true)
     try {
-      const compressed = await imageCompression(file, {
-        maxSizeMB: 0.5,
-        maxWidthOrHeight: 1600,
-        useWebWorker: true,
-      })
+      let compressed: Blob
+      try {
+        compressed = await imageCompression(file, {
+          maxSizeMB: 0.5,
+          maxWidthOrHeight: 1600,
+          useWebWorker: false, // WebWorker can fail under strict CSP
+        })
+      } catch (compressionErr) {
+        console.warn('Image compression failed, using original file:', compressionErr)
+        compressed = file // Use original if compression fails
+      }
 
       let url: string
 
       if (supabase) {
         try {
-          const fileName = `${Date.now()}-${compressed.name}`
+          const fileName = `${Date.now()}-${file.name}`
           const { data, error } = await supabase.storage
             .from('photos')
             .upload(`trip/${fileName}`, compressed)
@@ -91,7 +97,13 @@ export function PhotoCapture({ dayId, location }: PhotoCaptureProps) {
     <div className="flex gap-2">
       <Button
         variant="outline"
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => {
+          // Camera button — add capture attribute for mobile camera
+          if (fileInputRef.current) {
+            fileInputRef.current.setAttribute('capture', 'environment')
+            fileInputRef.current.click()
+          }
+        }}
         disabled={isUploading}
         className="flex-1"
       >
@@ -105,10 +117,10 @@ export function PhotoCapture({ dayId, location }: PhotoCaptureProps) {
       <Button
         variant="outline"
         onClick={() => {
+          // Upload button — remove capture so file picker opens
           if (fileInputRef.current) {
             fileInputRef.current.removeAttribute('capture')
             fileInputRef.current.click()
-            setTimeout(() => fileInputRef.current?.setAttribute('capture', 'environment'), 100)
           }
         }}
         disabled={isUploading}
@@ -119,7 +131,6 @@ export function PhotoCapture({ dayId, location }: PhotoCaptureProps) {
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={handleCapture}
         className="hidden"
       />
