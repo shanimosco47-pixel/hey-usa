@@ -1,0 +1,461 @@
+import { useState, useRef, useCallback, useMemo } from 'react'
+import { motion } from 'framer-motion'
+import { cn } from '@/lib/cn'
+import {
+  CheckCircle2,
+  Clock,
+  XCircle,
+  AlertCircle,
+  HelpCircle,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  DollarSign,
+  FileText,
+  Pencil,
+} from 'lucide-react'
+import type { CampsiteBooking, BookingStatus, AccommodationType } from '@/types'
+import { useCampsiteBookings } from './hooks/useCampsiteBookings'
+import { GlassCard } from '@/components/shared/GlassCard'
+
+// ── Region mapping ───────────────────────────────────────────────
+function getRegion(area: string): string {
+  if (area.includes('Yellowstone') || area.includes('Gardiner')) return 'Yellowstone'
+  if (area.includes('Jackson')) return 'Grand Teton / Jackson'
+  if (area.includes('Provo') || area.includes('Nephi')) return 'Utah Transit'
+  if (area.includes('Bryce')) return 'Bryce Canyon'
+  if (area.includes('Zion')) return 'Zion'
+  if (area.includes('Las Vegas')) return 'Las Vegas'
+  if (area.includes('Mammoth')) return 'Mammoth Lakes'
+  if (area.includes('Yosemite')) return 'Yosemite'
+  if (area.includes('Oakland') || area.includes('Marin') || area.includes('San Francisco'))
+    return 'San Francisco Bay'
+  if (area.includes('Denver')) return 'Denver'
+  return area
+}
+
+// ── Status config ────────────────────────────────────────────────
+const STATUS_META: Record<
+  BookingStatus,
+  {
+    label: string
+    dot: string
+    bg: string
+    border: string
+    text: string
+    icon: typeof CheckCircle2
+  }
+> = {
+  confirmed: {
+    label: 'מאושר',
+    dot: 'bg-ios-green',
+    bg: 'bg-ios-green/10 dark:bg-ios-green/20',
+    border: 'border-ios-green',
+    text: 'text-ios-green',
+    icon: CheckCircle2,
+  },
+  pending: {
+    label: 'בטיפול',
+    dot: 'bg-ios-orange',
+    bg: 'bg-ios-orange/10 dark:bg-ios-orange/20',
+    border: 'border-ios-orange',
+    text: 'text-ios-orange',
+    icon: Clock,
+  },
+  waitlist: {
+    label: 'המתנה',
+    dot: 'bg-ios-blue',
+    bg: 'bg-ios-blue/10 dark:bg-ios-blue/20',
+    border: 'border-ios-blue',
+    text: 'text-ios-blue',
+    icon: Clock,
+  },
+  not_open: {
+    label: 'לא הוזמן',
+    dot: 'bg-gray-300 dark:bg-gray-600',
+    bg: 'bg-gray-100 dark:bg-gray-800',
+    border: 'border-gray-300 dark:border-gray-600',
+    text: 'text-apple-secondary',
+    icon: HelpCircle,
+  },
+  cancelled: {
+    label: 'בוטל',
+    dot: 'bg-ios-red',
+    bg: 'bg-ios-red/10 dark:bg-ios-red/20',
+    border: 'border-ios-red',
+    text: 'text-ios-red',
+    icon: XCircle,
+  },
+}
+
+const LEGEND: { status: BookingStatus; emoji: string }[] = [
+  { status: 'confirmed', emoji: '🟢' },
+  { status: 'pending', emoji: '🟡' },
+  { status: 'waitlist', emoji: '🔵' },
+  { status: 'not_open', emoji: '⚪' },
+  { status: 'cancelled', emoji: '🔴' },
+]
+
+const TYPE_ICON: Record<AccommodationType, { icon: string; label: string }> = {
+  campground: { icon: '⛺', label: 'קמפינג' },
+  rv_park: { icon: '🚐', label: 'RV פארק' },
+  hotel: { icon: '🏨', label: 'מלון' },
+  overnight_parking: { icon: '🅿️', label: 'חניית לילה' },
+  unknown: { icon: '❓', label: 'לא ידוע' },
+}
+
+// ── Date helpers ─────────────────────────────────────────────────
+function formatDay(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00')
+  return `${d.getDate()} ספט`
+}
+
+function formatRange(checkIn: string, checkOut: string): string {
+  return `${formatDay(checkIn)} — ${formatDay(checkOut)}`
+}
+
+function daysBetween(a: string, b: string): number {
+  return (new Date(b + 'T00:00:00').getTime() - new Date(a + 'T00:00:00').getTime()) / 86400000
+}
+
+function isWithin14Days(deadline?: string): boolean {
+  if (!deadline) return false
+  const diff = daysBetween(new Date().toISOString().slice(0, 10), deadline)
+  return diff >= 0 && diff <= 14
+}
+
+// ── Grouping logic ───────────────────────────────────────────────
+interface BookingGroup {
+  region: string
+  bookings: CampsiteBooking[]
+  dateRange: string
+}
+
+function groupBookings(bookings: CampsiteBooking[]): BookingGroup[] {
+  const primary = bookings.filter((b) => b.priority === 'primary')
+  const sorted = [...primary].sort((a, b) => a.check_in.localeCompare(b.check_in))
+
+  const groups: BookingGroup[] = []
+  for (const b of sorted) {
+    const region = getRegion(b.area)
+    const last = groups[groups.length - 1]
+    if (last && last.region === region) {
+      const lastBooking = last.bookings[last.bookings.length - 1]
+      if (daysBetween(lastBooking.check_out, b.check_in) <= 1) {
+        last.bookings.push(b)
+        continue
+      }
+    }
+    groups.push({ region, bookings: [b], dateRange: '' })
+  }
+
+  for (const g of groups) {
+    const first = g.bookings[0]
+    const last = g.bookings[g.bookings.length - 1]
+    g.dateRange = formatRange(first.check_in, last.check_out)
+  }
+  return groups
+}
+
+// ── Generate timeline nights ─────────────────────────────────────
+interface TimelineNight {
+  date: string
+  dayNum: number
+  status: BookingStatus | 'none'
+  type: AccommodationType | null
+  bookingId: string | null
+}
+
+function buildTimeline(bookings: CampsiteBooking[]): TimelineNight[] {
+  const nights: TimelineNight[] = []
+  const primary = bookings.filter((b) => b.priority === 'primary')
+
+  for (let d = 10; d <= 29; d++) {
+    const date = `2026-09-${String(d).padStart(2, '0')}`
+    const match = primary.find((b) => b.check_in <= date && b.check_out > date)
+    nights.push({
+      date,
+      dayNum: d,
+      status: match ? match.status : 'none',
+      type: match ? match.type : null,
+      bookingId: match ? match.id : null,
+    })
+  }
+  return nights
+}
+
+// ── Inline edit field ────────────────────────────────────────────
+function InlineEdit({
+  value,
+  field,
+  onSave,
+}: {
+  value: string
+  field: string
+  onSave: (field: string, val: string) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(value)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const handleSave = useCallback(() => {
+    if (draft !== value) onSave(field, draft)
+    setEditing(false)
+  }, [draft, value, field, onSave])
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => {
+          setEditing(true)
+          setDraft(value)
+          setTimeout(() => inputRef.current?.focus(), 0)
+        }}
+        className="inline-flex items-center gap-1 text-apple-secondary hover:text-ios-blue transition-colors"
+      >
+        <Pencil className="w-3 h-3" />
+      </button>
+    )
+  }
+  return (
+    <input
+      ref={inputRef}
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={handleSave}
+      onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+      className="border border-ios-blue/30 rounded-apple-sm px-2 py-0.5 text-subhead bg-white dark:bg-gray-900 w-full"
+      dir="ltr"
+    />
+  )
+}
+
+// ── Booking Card ─────────────────────────────────────────────────
+function BookingCard({
+  booking,
+  onUpdate,
+}: {
+  booking: CampsiteBooking
+  onUpdate: (id: string, changes: Partial<CampsiteBooking>) => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const meta = STATUS_META[booking.status]
+  const typeInfo = TYPE_ICON[booking.type] ?? TYPE_ICON.unknown
+  const deadlineWarning = isWithin14Days(booking.cancellation_deadline)
+
+  const handleFieldSave = useCallback(
+    (field: string, val: string) => {
+      onUpdate(booking.id, { [field]: field === 'cost' ? Number(val) || undefined : val })
+    },
+    [booking.id, onUpdate],
+  )
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+      id={`booking-${booking.id}`}
+    >
+      <GlassCard padding="sm" className={cn('border-r-4', meta.border)}>
+        {/* Status badge */}
+        <div className="flex items-center justify-between mb-2">
+          <span
+            className={cn(
+              'text-caption px-2 py-0.5 rounded-full font-semibold',
+              meta.bg,
+              meta.text,
+            )}
+          >
+            {meta.label}
+          </span>
+          <span className="text-lg">{typeInfo.icon}</span>
+        </div>
+
+        {/* Location */}
+        <h4 className="text-headline text-apple-primary dark:text-white truncate">
+          {booking.location}
+        </h4>
+
+        {/* Dates */}
+        <p className="text-subhead text-apple-secondary mt-1" dir="ltr">
+          <Calendar className="w-3.5 h-3.5 inline-block ml-1" />
+          {formatRange(booking.check_in, booking.check_out)}
+        </p>
+
+        {/* Type */}
+        <p className="text-caption text-apple-secondary mt-1">
+          {typeInfo.icon} {typeInfo.label}
+        </p>
+
+        {/* Cost */}
+        {booking.cost != null && (
+          <p className="text-subhead text-apple-primary dark:text-white mt-1" dir="ltr">
+            <DollarSign className="w-3.5 h-3.5 inline-block ml-1" />${booking.cost}
+            <InlineEdit value={String(booking.cost)} field="cost" onSave={handleFieldSave} />
+          </p>
+        )}
+
+        {/* Confirmation */}
+        {booking.confirmation && (
+          <p className="text-caption text-apple-secondary mt-1 truncate" dir="ltr">
+            <FileText className="w-3 h-3 inline-block ml-1" />
+            {booking.confirmation}
+          </p>
+        )}
+
+        {/* Cancellation warning */}
+        {deadlineWarning && (
+          <div className="mt-2 flex items-center gap-1 text-caption text-ios-red">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <span>ביטול עד {formatDay(booking.cancellation_deadline!)}</span>
+          </div>
+        )}
+
+        {/* Expand toggle for notes */}
+        {booking.notes && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="mt-2 flex items-center gap-1 text-caption text-ios-blue hover:underline"
+          >
+            {expanded ? (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
+            )}
+            {expanded ? 'הסתר הערות' : 'הערות'}
+          </button>
+        )}
+        {expanded && booking.notes && (
+          <p className="mt-1 text-caption text-apple-secondary whitespace-pre-wrap">
+            {booking.notes}
+          </p>
+        )}
+      </GlassCard>
+    </motion.div>
+  )
+}
+
+// ── Main Page ────────────────────────────────────────────────────
+export default function CampsitesPageV2() {
+  const { bookings, updateBooking, confirmedCount, totalNights } = useCampsiteBookings()
+
+  const timeline = useMemo(() => buildTimeline(bookings), [bookings])
+  const groups = useMemo(() => groupBookings(bookings), [bookings])
+
+  const totalConfirmedCost = useMemo(
+    () =>
+      bookings
+        .filter((b) => b.status === 'confirmed' && b.priority === 'primary')
+        .reduce((sum, b) => sum + (b.cost ?? 0), 0),
+    [bookings],
+  )
+
+  const pct = totalNights > 0 ? Math.round((confirmedCount / totalNights) * 100) : 0
+
+  const scrollToBooking = useCallback((id: string | null) => {
+    if (!id) return
+    document
+      .getElementById(`booking-${id}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [])
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 pb-24 space-y-6">
+      {/* ── Section 1: Summary Header ────────────────── */}
+      <GlassCard elevation={2} padding="md">
+        <h2 className="text-title text-apple-primary dark:text-white mb-3">סיכום הזמנות לינה</h2>
+
+        {/* Progress bar */}
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-2 overflow-hidden">
+          <div
+            className="bg-ios-green h-full rounded-full transition-all duration-500"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="text-subhead text-apple-secondary mb-3" dir="ltr">
+          {confirmedCount}/{totalNights} ({pct}%)
+        </p>
+
+        {/* Stats row */}
+        <div className="flex flex-wrap gap-4 text-subhead">
+          <span className="text-apple-primary dark:text-white">
+            <strong>{totalNights}</strong> לילות
+          </span>
+          <span className="text-ios-green">
+            <strong>{confirmedCount}</strong> מאושר
+          </span>
+          {totalConfirmedCost > 0 && (
+            <span className="text-apple-primary dark:text-white" dir="ltr">
+              <strong>${totalConfirmedCost}</strong>
+            </span>
+          )}
+        </div>
+
+        {/* Legend */}
+        <div className="flex flex-wrap gap-3 mt-3">
+          {LEGEND.map((l) => (
+            <span
+              key={l.status}
+              className="text-caption text-apple-secondary flex items-center gap-1"
+            >
+              {l.emoji} {STATUS_META[l.status].label}
+            </span>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* ── Section 2: Mini Timeline Strip ───────────── */}
+      <GlassCard padding="sm">
+        <h3 className="text-headline text-apple-primary dark:text-white mb-2">ציר זמן</h3>
+        <div className="overflow-x-auto -mx-3 px-3" dir="ltr">
+          <div className="flex gap-1.5 min-w-max pb-1">
+            {timeline.map((n) => {
+              const bg =
+                n.status === 'none'
+                  ? 'bg-gray-100 dark:bg-gray-800 text-apple-secondary'
+                  : cn(STATUS_META[n.status].bg, STATUS_META[n.status].text)
+              return (
+                <button
+                  key={n.date}
+                  onClick={() => scrollToBooking(n.bookingId)}
+                  className={cn(
+                    'flex flex-col items-center justify-center w-10 h-12 rounded-apple-sm text-center transition-transform hover:scale-110',
+                    bg,
+                    n.bookingId && 'cursor-pointer',
+                    !n.bookingId && 'cursor-default opacity-60',
+                  )}
+                >
+                  <span className="text-caption font-bold leading-none">{n.dayNum}</span>
+                  {n.type && (
+                    <span className="text-[10px] leading-none mt-0.5">
+                      {TYPE_ICON[n.type]?.icon}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </GlassCard>
+
+      {/* ── Section 3: Grouped Booking Cards ─────────── */}
+      {groups.map((group) => (
+        <section key={`${group.region}-${group.bookings[0].check_in}`}>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-headline text-apple-primary dark:text-white">{group.region}</h3>
+            <span className="text-caption text-apple-secondary" dir="ltr">
+              {group.dateRange} · {group.bookings.length}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {group.bookings.map((b) => (
+              <BookingCard key={b.id} booking={b} onUpdate={updateBooking} />
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  )
+}
