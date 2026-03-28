@@ -1,15 +1,30 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { StaggerContainer, StaggerItem } from '@/components/ui/motion'
 import * as Tabs from '@radix-ui/react-tabs'
-import { FileText, Plus, Search, LayoutGrid, List, FolderOpen, Calendar, ArrowUpDown, CheckCircle2, Clock, Paperclip, AlertTriangle } from 'lucide-react'
+import {
+  FileText,
+  Plus,
+  Search,
+  LayoutGrid,
+  List,
+  FolderOpen,
+  Calendar,
+  ArrowUpDown,
+  CheckCircle2,
+  Clock,
+  Paperclip,
+  AlertTriangle,
+  MapPin,
+} from 'lucide-react'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import { DOCUMENT_CATEGORIES } from '@/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import { isSampleData } from '@/lib/sampleData'
+import { getLocationById } from '@/data/locations'
 import { DocumentCard } from './components/DocumentCard'
 import { UploadDialog } from './components/UploadDialog'
 import { DocumentViewer } from './components/DocumentViewer'
@@ -67,10 +82,11 @@ export default function DocumentsPage() {
   }, [allDocuments, activeCategory, searchQuery, sortBy])
 
   const expiringDocs = useMemo(
-    () => allDocuments.filter((d) => {
-      if (!d.expiry_date) return false
-      return new Date(d.expiry_date) < new Date('2026-09-10')
-    }),
+    () =>
+      allDocuments.filter((d) => {
+        if (!d.expiry_date) return false
+        return new Date(d.expiry_date) < new Date('2026-09-10')
+      }),
     [allDocuments],
   )
 
@@ -105,7 +121,10 @@ export default function DocumentsPage() {
   )
 
   return (
-    <div className="min-h-full px-4 pb-24 pt-4 sm:px-6 overflow-x-hidden max-w-6xl mx-auto" dir="rtl">
+    <div
+      className="min-h-full px-4 pb-24 pt-4 sm:px-6 overflow-x-hidden max-w-6xl mx-auto"
+      dir="rtl"
+    >
       {/* Header */}
       <motion.div
         className="mb-5 flex items-center justify-between"
@@ -119,9 +138,7 @@ export default function DocumentsPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-apple-primary">מסמכים</h1>
-            <p className="text-xs text-apple-secondary">
-              {allDocuments.length} מסמכים
-            </p>
+            <p className="text-xs text-apple-secondary">{allDocuments.length} מסמכים</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -204,11 +221,7 @@ export default function DocumentsPage() {
       </div>
 
       {/* Category tabs */}
-      <Tabs.Root
-        value={activeCategory}
-        onValueChange={setActiveCategory}
-        dir="rtl"
-      >
+      <Tabs.Root value={activeCategory} onValueChange={setActiveCategory} dir="rtl">
         <Tabs.List className="mb-5 flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {CATEGORY_TABS.map((tab) => (
             <Tabs.Trigger
@@ -278,11 +291,7 @@ export default function DocumentsPage() {
         onUpload={handleUpload}
         onAddExpense={addExpense}
       />
-      <DocumentViewer
-        document={viewerDoc}
-        open={viewerOpen}
-        onOpenChange={setViewerOpen}
-      />
+      <DocumentViewer document={viewerDoc} open={viewerOpen} onOpenChange={setViewerOpen} />
     </div>
   )
 }
@@ -304,7 +313,12 @@ function StatusBadge({ status }: { status: 'reserved' | 'waitlist' | 'both' }) {
   const config = STATUS_CONFIG[status]
   const Icon = config.icon
   return (
-    <span className={cn('shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-semibold', config.className)}>
+    <span
+      className={cn(
+        'shrink-0 flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-semibold',
+        config.className,
+      )}
+    >
       <Icon className="h-3 w-3" />
       {config.label}
     </span>
@@ -321,6 +335,7 @@ function ListRow({
   onClick: (doc: Document) => void
 }) {
   const categoryLabel = DOCUMENT_CATEGORIES[doc.category]?.label ?? doc.category
+  const location = doc.locationId ? getLocationById(doc.locationId) : null
 
   const isExpired = doc.expiry_date ? new Date(doc.expiry_date) < new Date() : false
   const isExpiringSoon = (() => {
@@ -362,6 +377,19 @@ function ListRow({
         <p className="truncate text-sm font-medium text-apple-primary">{doc.title}</p>
         <div className="flex items-center gap-2 text-xs text-apple-secondary">
           <span>{categoryLabel}</span>
+          {location && (
+            <>
+              <span className="text-apple-tertiary">|</span>
+              <Link
+                to={`/locations/${location.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-0.5 text-ios-blue hover:underline"
+              >
+                <MapPin className="h-2.5 w-2.5" />
+                {location.emoji} {location.nameHe}
+              </Link>
+            </>
+          )}
           {doc.file_size ? (
             <>
               <span className="text-apple-tertiary">|</span>
@@ -372,9 +400,7 @@ function ListRow({
       </div>
 
       {/* Status badge */}
-      {doc.status && (
-        <StatusBadge status={doc.status} />
-      )}
+      {doc.status && <StatusBadge status={doc.status} />}
 
       {/* File indicator */}
       {hasRealFile(doc) ? (

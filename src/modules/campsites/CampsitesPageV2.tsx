@@ -18,6 +18,9 @@ import {
 import type { CampsiteBooking, BookingStatus, AccommodationType } from '@/types'
 import { useCampsiteBookings } from './hooks/useCampsiteBookings'
 import { GlassCard } from '@/components/shared/GlassCard'
+import { CrossLinks, type CrossLink } from '@/components/shared/CrossLinks'
+import { getLocationForArea } from '@/data/locations'
+import { useAppData } from '@/contexts/AppDataContext'
 
 // ── Region mapping ───────────────────────────────────────────────
 function getRegion(area: string): string {
@@ -524,6 +527,7 @@ type StatusFilter = 'all' | BookingStatus
 // ── Main Page ────────────────────────────────────────────────────
 export default function CampsitesPageV2() {
   const { bookings, updateBooking, confirmedCount, totalNights } = useCampsiteBookings()
+  const { locationNotes, documents } = useAppData()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
   const timeline = useMemo(() => buildTimeline(bookings), [bookings])
@@ -697,23 +701,48 @@ export default function CampsitesPageV2() {
       </div>
 
       {/* ── Grouped Booking Cards ────────────────────── */}
-      {groups.map((group) => (
-        <section key={`${group.region}-${group.bookings[0].check_in}`}>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-headline text-apple-primary dark:text-white">
-              {REGION_EMOJI[group.region] || '📍'} {group.region}
-            </h3>
-            <span className="text-caption text-apple-secondary" dir="ltr">
-              {group.dateRange} · {group.bookings.length}
-            </span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {group.bookings.map((b) => (
-              <BookingCard key={b.id} booking={b} onUpdate={updateBooking} />
-            ))}
-          </div>
-        </section>
-      ))}
+      {groups.map((group) => {
+        const loc = getLocationForArea(group.bookings[0].area)
+        const regionLinks: CrossLink[] = []
+        if (loc) {
+          regionLinks.push({ to: `/locations/${loc.id}`, label: loc.nameHe, icon: 'location' })
+          const noteCount = locationNotes.filter((n) => n.locationId === loc.id).length
+          if (noteCount > 0)
+            regionLinks.push({
+              to: `/locations/${loc.id}`,
+              label: 'פתקים',
+              icon: 'notes',
+              count: noteCount,
+            })
+          const docCount = documents.filter((d) => d.locationId === loc.id).length
+          if (docCount > 0)
+            regionLinks.push({
+              to: `/locations/${loc.id}`,
+              label: 'מסמכים',
+              icon: 'documents',
+              count: docCount,
+            })
+          regionLinks.push({ to: '/map', label: 'מפה', icon: 'map' })
+        }
+        return (
+          <section key={`${group.region}-${group.bookings[0].check_in}`}>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-headline text-apple-primary dark:text-white">
+                {REGION_EMOJI[group.region] || '📍'} {group.region}
+              </h3>
+              <span className="text-caption text-apple-secondary" dir="ltr">
+                {group.dateRange} · {group.bookings.length}
+              </span>
+            </div>
+            {regionLinks.length > 0 && <CrossLinks links={regionLinks} className="mb-2" />}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {group.bookings.map((b) => (
+                <BookingCard key={b.id} booking={b} onUpdate={updateBooking} />
+              ))}
+            </div>
+          </section>
+        )
+      })}
     </div>
   )
 }
