@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { useMemo, useRef, useCallback } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   CheckCircle2,
@@ -189,6 +189,70 @@ function formatHebrewDate(): string {
     month: 'long',
     year: 'numeric',
   }).format(new Date())
+}
+
+function MotiFloatingButton() {
+  const navigate = useNavigate()
+  const isDragging = useRef(false)
+
+  const handleDragStart = useCallback(() => {
+    isDragging.current = true
+  }, [])
+
+  const handleDragEnd = useCallback(() => {
+    // Small delay so the click handler can check isDragging
+    setTimeout(() => {
+      isDragging.current = false
+    }, 150)
+  }, [])
+
+  const handleClick = useCallback(() => {
+    if (!isDragging.current) {
+      navigate('/chat')
+    }
+  }, [navigate])
+
+  return (
+    <motion.div
+      drag
+      dragMomentum={false}
+      dragElastic={0.15}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onClick={handleClick}
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{
+        opacity: { delay: 0.6 },
+        scale: { delay: 0.6, type: 'spring', stiffness: 300, damping: 20 },
+      }}
+      whileTap={{ scale: 0.95 }}
+      className="fixed bottom-24 start-5 z-20 flex h-28 w-28 cursor-grab active:cursor-grabbing items-center justify-center rounded-full overflow-hidden touch-none select-none"
+      style={{
+        background: 'linear-gradient(145deg, #E8FAF8, #B8F0EA)',
+        boxShadow: '0 6px 28px rgba(38, 204, 194, 0.25), inset 0 1px 2px rgba(255,255,255,0.8)',
+        border: '2px solid rgba(38,204,194,0.2)',
+      }}
+      aria-label="צ'אט עם מוטי — גרור להזזה"
+      role="button"
+    >
+      <motion.div
+        animate={{ y: [0, -4, 0], rotate: [0, 3, -3, 0] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        className="pointer-events-none"
+      >
+        {getAvatarPhoto('moti') ? (
+          <img
+            src={getAvatarPhoto('moti')!}
+            alt="מוטי"
+            className="h-20 w-20 rounded-full object-cover"
+          />
+        ) : (
+          <MotiRobot size={72} animated={false} />
+        )}
+      </motion.div>
+    </motion.div>
+  )
 }
 
 export default function DashboardPage() {
@@ -569,41 +633,8 @@ export default function DashboardPage() {
           </div>
         </BlurFade>
 
-        {/* Floating chat button — Moti robot */}
-        <Link to="/chat" aria-label="צ'אט עם מוטי">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{
-              opacity: { delay: 0.6 },
-              scale: { delay: 0.6, type: 'spring', stiffness: 300, damping: 20 },
-            }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            className="fixed bottom-24 start-5 z-20 flex h-28 w-28 items-center justify-center rounded-full overflow-hidden"
-            style={{
-              background: 'linear-gradient(145deg, #E8FAF8, #B8F0EA)',
-              boxShadow:
-                '0 6px 28px rgba(38, 204, 194, 0.25), inset 0 1px 2px rgba(255,255,255,0.8)',
-              border: '2px solid rgba(38,204,194,0.2)',
-            }}
-          >
-            <motion.div
-              animate={{ y: [0, -4, 0], rotate: [0, 3, -3, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              {getAvatarPhoto('moti') ? (
-                <img
-                  src={getAvatarPhoto('moti')!}
-                  alt="מוטי"
-                  className="h-20 w-20 rounded-full object-cover"
-                />
-              ) : (
-                <MotiRobot size={72} animated={false} />
-              )}
-            </motion.div>
-          </motion.div>
-        </Link>
+        {/* Floating chat button — Moti robot (draggable) */}
+        <MotiFloatingButton />
       </div>
     </div>
   )
