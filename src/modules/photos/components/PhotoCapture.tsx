@@ -8,6 +8,16 @@ import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/shared/ToastContext'
 import type { FamilyMemberId } from '@/lib/types'
 
+/** Convert a Blob/File to a persistent data URL (base64) for local storage */
+async function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
+}
+
 interface PhotoCaptureProps {
   dayId?: string
   location?: string
@@ -27,28 +37,33 @@ export function PhotoCapture({ dayId, location }: PhotoCaptureProps) {
     setIsUploading(true)
     try {
       const compressed = await imageCompression(file, {
-        maxSizeMB: 1,
-        maxWidthOrHeight: 1920,
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 1600,
         useWebWorker: true,
       })
 
       let url: string
 
       if (supabase) {
-        const fileName = `${Date.now()}-${compressed.name}`
-        const { data, error } = await supabase.storage
-          .from('photos')
-          .upload(`trip/${fileName}`, compressed)
+        try {
+          const fileName = `${Date.now()}-${compressed.name}`
+          const { data, error } = await supabase.storage
+            .from('photos')
+            .upload(`trip/${fileName}`, compressed)
 
-        if (error) throw error
+          if (error) throw error
 
-        const { data: publicUrl } = supabase.storage
-          .from('photos')
-          .getPublicUrl(data.path)
+          const { data: publicUrl } = supabase.storage.from('photos').getPublicUrl(data.path)
 
-        url = publicUrl.publicUrl
+          url = publicUrl.publicUrl
+        } catch (storageErr) {
+          console.warn('Supabase storage failed, saving locally:', storageErr)
+          // Fall back to local data URL
+          url = await blobToDataUrl(compressed)
+        }
       } else {
-        url = URL.createObjectURL(compressed)
+        // No Supabase — save as persistent data URL (survives page reload)
+        url = await blobToDataUrl(compressed)
       }
 
       addPhoto({
