@@ -146,7 +146,7 @@ export function BottomTabs() {
         className={cn(
           'fixed bottom-0 left-0 right-0 z-30',
           'flex h-16 items-center justify-around',
-          'glass-nav border-t border-black/[0.06]',
+          'glass-nav border-t border-black/[0.06] dark:border-white/[0.06]',
           'pb-safe',
         )}
       >

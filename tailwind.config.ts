@@ -2,10 +2,8 @@ import type { Config } from 'tailwindcss'
 import tailwindcssAnimate from 'tailwindcss-animate'
 
 export default {
-  content: [
-    './index.html',
-    './src/**/*.{ts,tsx}',
-  ],
+  darkMode: 'class',
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     container: {
       center: true,
@@ -120,19 +118,19 @@ export default {
         serif: ['Playfair Display', 'serif'],
       },
       fontSize: {
-        'hero': ['34px', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-1.5px' }],
-        'title': ['22px', { lineHeight: '1.3', fontWeight: '700', letterSpacing: '-0.5px' }],
-        'headline': ['17px', { lineHeight: '1.4', fontWeight: '600', letterSpacing: '-0.3px' }],
-        'body': ['15px', { lineHeight: '1.6', fontWeight: '400', letterSpacing: '0' }],
-        'subhead': ['13px', { lineHeight: '1.5', fontWeight: '500', letterSpacing: '0' }],
-        'caption': ['11px', { lineHeight: '1.4', fontWeight: '600', letterSpacing: '0.5px' }],
+        hero: ['34px', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-1.5px' }],
+        title: ['22px', { lineHeight: '1.3', fontWeight: '700', letterSpacing: '-0.5px' }],
+        headline: ['17px', { lineHeight: '1.4', fontWeight: '600', letterSpacing: '-0.3px' }],
+        body: ['15px', { lineHeight: '1.6', fontWeight: '400', letterSpacing: '0' }],
+        subhead: ['13px', { lineHeight: '1.5', fontWeight: '500', letterSpacing: '0' }],
+        caption: ['11px', { lineHeight: '1.4', fontWeight: '600', letterSpacing: '0.5px' }],
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
         'apple-sm': '8px',
-        'apple': '12px',
+        apple: '12px',
         'apple-md': '12px',
         'apple-lg': '16px',
         'apple-xl': '20px',
@@ -196,7 +194,7 @@ export default {
         'spin-around': 'spin-around calc(var(--speed) * 2) infinite linear',
       },
       boxShadow: {
-        'glass': '0 1px 3px rgba(0, 0, 0, 0.04)',
+        glass: '0 1px 3px rgba(0, 0, 0, 0.04)',
         'glass-hover': '0 4px 12px rgba(0, 0, 0, 0.08)',
         'glass-float': '0 8px 30px rgba(0, 0, 0, 0.12)',
         'dark-card': '0 8px 30px rgba(0, 0, 0, 0.15)',

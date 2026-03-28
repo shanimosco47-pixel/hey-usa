@@ -75,6 +75,41 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
+
+  .dark {
+    /* Surfaces — iOS dark mode palette */
+    --bg-primary: #000000;
+    --bg-elevated: rgba(28, 28, 30, 0.85);
+    --bg-card: rgba(44, 44, 46, 0.82);
+    --bg-dark: #f5f5f7;
+    --bg-dark-secondary: #e5e5e7;
+
+    /* Text */
+    --text-primary: #f5f5f7;
+    --text-secondary: #98989d;
+    --text-tertiary: #636366;
+
+    /* shadcn/ui dark mode */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 96%;
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 96%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 0 0% 96%;
+    --muted: 0 0% 17%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 17%;
+    --accent-foreground: 0 0% 96%;
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 83%;
+  }
 }
 
 html {
@@ -108,6 +143,11 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+.dark body,
+body:is(.dark *) {
+  background-color: #000000;
 }
 
 #root {
@@ -179,6 +219,19 @@ ol {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Dark mode glass overrides */
+  .dark .glass {
+    background: rgba(44, 44, 46, 0.78);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .dark .glass-float {
+    background: rgba(44, 44, 46, 0.92);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .dark .glass-nav {
+    background: rgba(28, 28, 30, 0.88);
   }
 
   /* Dark hero card */

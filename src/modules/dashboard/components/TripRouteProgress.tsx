@@ -20,7 +20,7 @@ export const TripRouteProgress = memo(function TripRouteProgress({
 
   return (
     <div
-      className="rounded-apple-lg bg-white px-4 py-3.5"
+      className="rounded-apple-lg bg-white dark:bg-white/[0.08] px-4 py-3.5"
       style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
     >
       <div className="flex items-center gap-2 mb-3">

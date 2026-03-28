@@ -297,7 +297,7 @@ export default function DashboardPage() {
             {/* Date & greeting */}
             <div className="mb-4">
               <p className="text-[13px] text-apple-secondary tracking-wide">{todayDate}</p>
-              <p className="mt-0.5 text-[17px] font-semibold text-passport-slate">
+              <p className="mt-0.5 text-[17px] font-semibold text-passport-slate dark:text-white">
                 {memberData ? `שלום, ${memberData.name}` : 'שלום!'}
               </p>
             </div>
@@ -370,7 +370,7 @@ export default function DashboardPage() {
         <BlurFade delay={0.25} duration={0.5}>
           <div className="mb-6 flex gap-2">
             <div
-              className="flex-1 rounded-apple bg-white px-3 py-2.5 text-center"
+              className="flex-1 rounded-apple bg-white dark:bg-white/[0.08] px-3 py-2.5 text-center"
               style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
             >
               <p className="text-caption text-apple-secondary font-medium">משימות</p>
@@ -379,7 +379,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div
-              className="flex-1 rounded-apple bg-white px-3 py-2.5 text-center"
+              className="flex-1 rounded-apple bg-white dark:bg-white/[0.08] px-3 py-2.5 text-center"
               style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
             >
               <p className="text-caption text-apple-secondary font-medium">תקציב</p>
@@ -390,7 +390,7 @@ export default function DashboardPage() {
               </p>
             </div>
             <div
-              className="flex-1 rounded-apple bg-white px-3 py-2.5 text-center"
+              className="flex-1 rounded-apple bg-white dark:bg-white/[0.08] px-3 py-2.5 text-center"
               style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
             >
               <p className="text-caption text-apple-secondary font-medium">אריזה</p>
