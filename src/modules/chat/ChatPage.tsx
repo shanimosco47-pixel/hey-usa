@@ -1,9 +1,26 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Send, ArrowRight, Sparkles, WifiOff, Zap, History, Mic, MicOff, MessageCircle } from 'lucide-react'
+import {
+  Send,
+  ArrowRight,
+  Sparkles,
+  WifiOff,
+  Zap,
+  History,
+  Mic,
+  MicOff,
+  MessageCircle,
+  Paperclip,
+} from 'lucide-react'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { getBotResponseAsync, BOT_NAME, BOT_SUBTITLE, isAIMode, initConversationFromDb } from './botEngine'
+import {
+  getBotResponseAsync,
+  BOT_NAME,
+  BOT_SUBTITLE,
+  isAIMode,
+  initConversationFromDb,
+} from './botEngine'
 import type { MessageCard } from './botEngine'
 import { useAppData } from '@/contexts/AppDataContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -11,6 +28,9 @@ import { MotiAvatar } from '@/components/shared/MotiRobot'
 import * as db from '@/lib/database'
 import { TRIP_START_DATE } from '@/constants'
 import { triggerEmailScan } from '@/lib/emailScan'
+import { suggestDocumentMeta } from '@/modules/documents/utils/suggestDocumentMeta'
+import { LOCATIONS } from '@/data/locations'
+import { DOCUMENT_CATEGORIES } from '@/constants'
 import { ChatMarkdown } from './components/ChatMarkdown'
 import { WeatherCard } from './components/WeatherCard'
 import { BudgetCard } from './components/BudgetCard'
@@ -118,9 +138,7 @@ function AIBadge() {
   return (
     <div
       className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-medium ${
-        aiAvailable
-          ? 'bg-purple-50 text-purple-600'
-          : 'bg-gray-100 text-gray-500'
+        aiAvailable ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-gray-500'
       }`}
     >
       {aiAvailable ? (
@@ -154,27 +172,44 @@ function MessageCardRenderer({ card }: { card: MessageCard }) {
 }
 
 export default function ChatPage() {
-  const { executeMotiAction, buildMotiContext, changeLog, tasks, packingItems, expenses, budgetSettings } = useAppData()
+  const {
+    executeMotiAction,
+    buildMotiContext,
+    changeLog,
+    tasks,
+    packingItems,
+    expenses,
+    budgetSettings,
+  } = useAppData()
   const { currentMember } = useAuth()
   const navigate = useNavigate()
 
   const tasksTotal = tasks.length
   const tasksDone = tasks.filter((t) => t.status === 'done').length
   const packedCount = packingItems.filter((p) => p.is_packed).length
-  const packingPercent = packingItems.length > 0 ? Math.round((packedCount / packingItems.length) * 100) : 0
+  const packingPercent =
+    packingItems.length > 0 ? Math.round((packedCount / packingItems.length) * 100) : 0
   const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0)
-  const budgetPercent = budgetSettings.total_budget > 0 ? Math.round((totalSpent / budgetSettings.total_budget) * 100) : 0
-  const daysUntilTrip = Math.max(0, Math.ceil(
-    (new Date(TRIP_START_DATE).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  ))
+  const budgetPercent =
+    budgetSettings.total_budget > 0
+      ? Math.round((totalSpent / budgetSettings.total_budget) * 100)
+      : 0
+  const daysUntilTrip = Math.max(
+    0,
+    Math.ceil((new Date(TRIP_START_DATE).getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
+  )
 
-  const suggestions = useMemo(() => getSmartSuggestions({
-    tasksTotal,
-    tasksDone,
-    packingPercent,
-    budgetPercent,
-    daysUntilTrip,
-  }), [tasksTotal, tasksDone, packingPercent, budgetPercent, daysUntilTrip])
+  const suggestions = useMemo(
+    () =>
+      getSmartSuggestions({
+        tasksTotal,
+        tasksDone,
+        packingPercent,
+        budgetPercent,
+        daysUntilTrip,
+      }),
+    [tasksTotal, tasksDone, packingPercent, budgetPercent, daysUntilTrip],
+  )
 
   const voice = useVoiceInput()
 
@@ -238,19 +273,23 @@ export default function ChatPage() {
       } catch (err) {
         console.warn('[Moti] Failed to load chat history:', err)
         // Fallback welcome
-        setMessages([{
-          id: 'welcome',
-          text: `אהלן! אני **${BOT_NAME}** — ${BOT_SUBTITLE}. 😏\n\nשאלו אותי כל דבר על הטיול!`,
-          sender: 'bot',
-          timestamp: new Date(),
-        }])
+        setMessages([
+          {
+            id: 'welcome',
+            text: `אהלן! אני **${BOT_NAME}** — ${BOT_SUBTITLE}. 😏\n\nשאלו אותי כל דבר על הטיול!`,
+            sender: 'bot',
+            timestamp: new Date(),
+          },
+        ])
       } finally {
         if (!cancelled) setIsLoadingHistory(false)
       }
     }
 
     loadHistory()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const scrollToBottom = useCallback((instant = false) => {
@@ -310,7 +349,11 @@ export default function ChatPage() {
     }).catch(() => {})
 
     try {
-      const response = await getBotResponseAsync(text, buildMotiContext(), currentMember || undefined)
+      const response = await getBotResponseAsync(
+        text,
+        buildMotiContext(),
+        currentMember || undefined,
+      )
 
       // Execute any actions Moti returned
       if (response.actions.length > 0) {
@@ -321,19 +364,21 @@ export default function ChatPage() {
             triggerEmailScan('targeted', action.query)
               .then(() => {
                 // Refresh chat messages so Moti's notification appears
-                db.fetchChatMessages(200).then((history) => {
-                  if (history.length > 0) {
-                    setMessages(
-                      history.map((msg) => ({
-                        id: msg.id,
-                        text: msg.content,
-                        sender: msg.role === 'user' ? 'user' : 'bot',
-                        timestamp: new Date(msg.created_at),
-                        hasAction: msg.has_action,
-                      })),
-                    )
-                  }
-                }).catch(() => {})
+                db.fetchChatMessages(200)
+                  .then((history) => {
+                    if (history.length > 0) {
+                      setMessages(
+                        history.map((msg) => ({
+                          id: msg.id,
+                          text: msg.content,
+                          sender: msg.role === 'user' ? 'user' : 'bot',
+                          timestamp: new Date(msg.created_at),
+                          hasAction: msg.has_action,
+                        })),
+                      )
+                    }
+                  })
+                  .catch(() => {})
               })
               .catch(() => {})
             continue
@@ -382,6 +427,96 @@ export default function ChatPage() {
     sendMessage(input)
   }
 
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+      // Reset input so the same file can be re-selected
+      e.target.value = ''
+
+      const title = file.name.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' ')
+      const meta = suggestDocumentMeta(title)
+      const category = meta.category || 'other'
+      const locationId = meta.locationId || undefined
+      const locationDef = locationId ? LOCATIONS.find((l) => l.id === locationId) : undefined
+      const categoryLabel = DOCUMENT_CATEGORIES[category]?.label || category
+
+      // Read file as data URL for storage
+      const fileUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader()
+        reader.onload = () => resolve(reader.result as string)
+        reader.readAsDataURL(file)
+      })
+
+      // Show user message
+      const userMsg: Message = {
+        id: `user-${Date.now()}`,
+        text: `📎 העלאת מסמך: ${file.name}`,
+        sender: 'user',
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, userMsg])
+      setIsTyping(true)
+
+      // Create document via MotiAction
+      const docAction = {
+        type: 'ADD_DOCUMENT' as const,
+        document: {
+          title,
+          category,
+          locationId: locationId || undefined,
+          file_url: fileUrl,
+          file_type: file.type,
+          file_size: file.size,
+          notes: `הועלה דרך מוטי`,
+        },
+      }
+      executeMotiAction(docAction)
+
+      // Build Moti's response
+      const parts: string[] = [`📄 שמרתי את המסמך **"${title}"**`]
+      parts.push(`📂 קטגוריה: **${categoryLabel}**`)
+      if (locationDef) {
+        parts.push(`📍 קישרתי ליעד: **${locationDef.emoji} ${locationDef.nameHe}**`)
+      }
+      parts.push('')
+      parts.push('אפשר למצוא אותו בדף המסמכים. רוצים שאקשר אותו למשהו נוסף? 😊')
+
+      // Short delay for natural feel
+      await new Promise((r) => setTimeout(r, 800))
+
+      const botMsg: Message = {
+        id: `bot-${Date.now()}`,
+        text: parts.join('\n'),
+        sender: 'bot',
+        timestamp: new Date(),
+        hasAction: true,
+        quickActions: locationDef ? undefined : ['קשר ליעד', 'זה אישור לינה', 'זה כרטיס טיסה'],
+      }
+      setMessages((prev) => [...prev, botMsg])
+      setIsTyping(false)
+
+      // Persist messages
+      db.insertChatMessage({
+        id: userMsg.id,
+        role: 'user',
+        content: userMsg.text,
+        has_action: false,
+        created_at: new Date().toISOString(),
+      }).catch(() => {})
+      db.insertChatMessage({
+        id: botMsg.id,
+        role: 'assistant',
+        content: botMsg.text,
+        has_action: true,
+        created_at: new Date().toISOString(),
+      }).catch(() => {})
+    },
+    [executeMotiAction],
+  )
+
   const showSuggestions = visibleMessages.length <= 1 && !isTyping
 
   if (isLoadingHistory) {
@@ -400,7 +535,9 @@ export default function ChatPage() {
         <BotAvatar />
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-headline font-semibold text-apple-primary leading-tight">{BOT_NAME}</h1>
+            <h1 className="text-headline font-semibold text-apple-primary leading-tight">
+              {BOT_NAME}
+            </h1>
             <AIBadge />
           </div>
           <p className="text-subhead text-apple-secondary">{BOT_SUBTITLE}</p>
@@ -471,11 +608,15 @@ export default function ChatPage() {
                 {msg.hasAction && (
                   <div className="flex items-center gap-1 mb-1.5 text-purple-600">
                     <Zap className="h-3 w-3" />
-                    <span className="text-caption font-bold uppercase tracking-wide">פעולה בוצעה</span>
+                    <span className="text-caption font-bold uppercase tracking-wide">
+                      פעולה בוצעה
+                    </span>
                   </div>
                 )}
                 {msg.sender === 'user' ? (
-                  <p className="text-body leading-relaxed whitespace-pre-line" dir="auto">{msg.text}</p>
+                  <p className="text-body leading-relaxed whitespace-pre-line" dir="auto">
+                    {msg.text}
+                  </p>
                 ) : (
                   <ChatMarkdown text={msg.text} />
                 )}
@@ -501,10 +642,7 @@ export default function ChatPage() {
         </AnimatePresence>
 
         {isTyping && (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
             <TypingIndicator />
           </motion.div>
         )}
@@ -546,6 +684,22 @@ export default function ChatPage() {
       {/* Input */}
       <div className="border-t border-black/[0.04] px-4 py-3 pb-safe bg-white/80 backdrop-blur-xl">
         <form onSubmit={handleSubmit} className="flex items-end gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.txt"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          <motion.button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            whileTap={{ scale: 0.9 }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-primary text-apple-secondary hover:bg-black/[0.06] transition-colors"
+            aria-label="העלאת מסמך"
+          >
+            <Paperclip className="h-[18px] w-[18px]" />
+          </motion.button>
           <textarea
             ref={inputRef}
             value={input}
@@ -576,7 +730,11 @@ export default function ChatPage() {
                   : 'bg-surface-primary text-apple-secondary hover:bg-black/[0.06]'
               }`}
             >
-              {voice.isListening ? <MicOff className="h-[18px] w-[18px]" /> : <Mic className="h-[18px] w-[18px]" />}
+              {voice.isListening ? (
+                <MicOff className="h-[18px] w-[18px]" />
+              ) : (
+                <Mic className="h-[18px] w-[18px]" />
+              )}
             </motion.button>
           )}
           <motion.button
