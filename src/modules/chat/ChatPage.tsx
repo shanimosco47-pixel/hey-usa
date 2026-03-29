@@ -575,11 +575,21 @@ export default function ChatPage() {
     }).catch(() => {})
 
     try {
-      const response = await getBotResponseAsync(
-        text,
-        buildMotiContext(),
-        currentMember || undefined,
-      )
+      // Build context with campsite bookings included
+      const bookingsSummary = bookings
+        .filter((b) => b.priority === 'primary')
+        .map(
+          (b) =>
+            `  ${b.check_in} — ${b.location} (${b.area}) — ${b.status === 'confirmed' ? '✅ מאושר' : b.status === 'not_open' ? '❌ לא הוזמן' : b.status}${b.confirmation ? ` #${b.confirmation}` : ''}`,
+        )
+        .join('\n')
+      const fullContext =
+        buildMotiContext() +
+        '\n\n## הזמנות לינה\n' +
+        bookingsSummary +
+        '\n\nאם משתמש שולח אישור הזמנה — השתמש ב-add_document כדי לשמור אותו. חלץ מספר אישור, תאריכים, עלות, מיקום.'
+
+      const response = await getBotResponseAsync(text, fullContext, currentMember || undefined)
 
       // Execute any actions Moti returned
       if (response.actions.length > 0) {

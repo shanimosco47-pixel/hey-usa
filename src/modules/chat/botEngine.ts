@@ -502,6 +502,19 @@ function mapToolUseToActions(
           dayNumber: Number(input.day_number),
         })
         break
+      case 'add_document':
+        mapped.push({
+          type: 'ADD_DOCUMENT',
+          document: {
+            title: String(input.title || 'מסמך'),
+            category: String(input.category || 'other'),
+            locationId: input.location_id ? String(input.location_id) : undefined,
+            notes: input.notes ? String(input.notes) : undefined,
+            visit_date: input.visit_date ? String(input.visit_date) : undefined,
+            status: input.status as 'reserved' | 'waitlist' | undefined,
+          },
+        })
+        break
     }
   }
 
