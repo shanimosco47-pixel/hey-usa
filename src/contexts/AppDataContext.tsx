@@ -79,6 +79,7 @@ export type MotiAction =
       }
     }
   | { type: 'TOGGLE_PACKING_ITEM'; itemName: string }
+  | { type: 'ADD_DOCUMENT'; document: Omit<Document, 'id' | 'created_at' | 'updated_at'> }
   | { type: 'ASK_CLARIFICATION'; question: string }
   | { type: 'SEARCH_EMAIL'; query: string }
   | { type: 'CONVERT_CURRENCY'; amount: number; from: 'ILS' | 'USD'; to: 'ILS' | 'USD' }
@@ -122,6 +123,8 @@ function describeAction(action: MotiAction): string {
       return `הוספת פתק: ${action.note.text.slice(0, 30)}${action.note.text.length > 30 ? '...' : ''}`
     case 'TOGGLE_PACKING_ITEM':
       return `שינוי סטטוס אריזה: ${action.itemName}`
+    case 'ADD_DOCUMENT':
+      return `הוספת מסמך: ${action.document.title}`
     case 'ASK_CLARIFICATION':
       return `שאלת הבהרה`
     case 'SEARCH_EMAIL':
@@ -1087,6 +1090,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           addToLog(action, item.is_packed, !item.is_packed)
           return null
         }
+        case 'ADD_DOCUMENT': {
+          addDocument(action.document)
+          addToLog(action, null, action.document.title)
+          return null
+        }
         case 'ASK_CLARIFICATION':
           return null
         case 'SEARCH_EMAIL': {
@@ -1116,6 +1124,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updatePackingItem,
       addTask,
       addLocationNote,
+      addDocument,
       addToLog,
     ],
   )
