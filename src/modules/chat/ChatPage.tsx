@@ -329,84 +329,155 @@ export default function ChatPage() {
 
   /**
    * Detect if pasted text is a booking confirmation email.
+   * Handles multiple formats: Xanterra (Yellowstone), Recreation.gov, Booking.com, etc.
    * Returns parsed data or null.
    */
   const parseBookingConfirmation = useCallback(
     (text: string) => {
-      // Must contain confirmation/reservation keywords + dates
+      const MONTH_NAMES: Record<string, string> = {
+        jan: '01',
+        january: '01',
+        feb: '02',
+        february: '02',
+        mar: '03',
+        march: '03',
+        apr: '04',
+        april: '04',
+        may: '05',
+        jun: '06',
+        june: '06',
+        jul: '07',
+        july: '07',
+        aug: '08',
+        august: '08',
+        sep: '09',
+        sept: '09',
+        september: '09',
+        oct: '10',
+        october: '10',
+        nov: '11',
+        november: '11',
+        dec: '12',
+        december: '12',
+      }
+
+      /** Parse "Sep 18, 2026" or "September 5, 2026" → "2026-09-18" */
+      function parseMonthDate(str: string): string | undefined {
+        const m = str.match(/(\w+)\s+(\d{1,2}),?\s*(\d{4})/)
+        if (!m) return undefined
+        const monthNum = MONTH_NAMES[m[1].toLowerCase()]
+        if (!monthNum) return undefined
+        return `${m[3]}-${monthNum}-${m[2].padStart(2, '0')}`
+      }
+
+      /** Parse "9/18/2026" → "2026-09-18" */
+      function parseSlashDate(str: string): string | undefined {
+        const m = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/)
+        if (!m) return undefined
+        return `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`
+      }
+
+      // Must contain confirmation/reservation keywords
       const hasConfirmationKeywords =
-        /(?:confirmation|itinerary\s*#|reservation\s*(?:status|total)|check.?in|check.?out)/i.test(
+        /(?:confirmation|itinerary\s*#|reservation\s*(?:status|total|details|confirmation)|check.?in|check.?out|your\s+reservation)/i.test(
           text,
         )
+      // Must contain dates in some format
       const hasDatePattern =
-        /\d{1,2}\/\d{1,2}\/\d{4}|\b(?:sep|sept|september|oct|october)\w*\s+\d{1,2}/i.test(text)
+        /\d{1,2}\/\d{1,2}\/\d{4}|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{1,2},?\s*\d{4}/i.test(
+          text,
+        )
 
       if (!hasConfirmationKeywords || !hasDatePattern) return null
 
-      // Extract confirmation/itinerary number
-      const confMatch = text.match(/(?:itinerary|confirmation)\s*#?\s*(\d{5,})/i)
+      // ── Extract confirmation/reservation number ──
+      // Matches: "Itinerary # 20452131", "reservation 0853039963-1", "Confirmation #ABC123"
+      const confMatch = text.match(/(?:itinerary|confirmation|reservation)\s*#?\s*([\d][\d-]{4,})/i)
       const confirmationNum = confMatch ? confMatch[1] : undefined
 
-      // Extract check-in date (MM/DD/YYYY or month name)
-      const checkInMatch = text.match(/check.?in[^]*?(\d{1,2})\/(\d{1,2})\/(\d{4})/i)
+      // ── Collect all dates in the text ──
+      const allDates: { date: string; index: number }[] = []
+      // Slash format: 9/12/2026
+      for (const m of text.matchAll(/(\d{1,2}\/\d{1,2}\/\d{4})/gi)) {
+        const d = parseSlashDate(m[1])
+        if (d) allDates.push({ date: d, index: m.index! })
+      }
+      // Month name format: Sep 18, 2026
+      for (const m of text.matchAll(
+        /(\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{1,2},?\s*\d{4})/gi,
+      )) {
+        const d = parseMonthDate(m[1])
+        if (d) allDates.push({ date: d, index: m.index! })
+      }
+      allDates.sort((a, b) => a.index - b.index)
+
+      // Find check-in: first date that's Sep 2026
       let checkIn: string | undefined
-      if (checkInMatch) {
-        const [, m, d, y] = checkInMatch
-        checkIn = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
-      }
-
-      // Extract check-out date
-      const checkOutMatch = text.match(/check.?out[^]*?(\d{1,2})\/(\d{1,2})\/(\d{4})/i)
       let checkOut: string | undefined
-      if (checkOutMatch) {
-        const [, m, d, y] = checkOutMatch
-        checkOut = `${m.padStart(2, '0')}` // just need the date
-        checkOut = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+      const tripDates = allDates.filter((d) => d.date.startsWith('2026-09'))
+      if (tripDates.length >= 2) {
+        checkIn = tripDates[0].date
+        checkOut = tripDates[1].date
+      } else if (tripDates.length === 1) {
+        checkIn = tripDates[0].date
       }
 
-      // Extract total cost
+      // ── Extract cost ──
+      // "Reservation Total $51.51" or "refund of $20.00"
       const costMatch = text.match(
-        /(?:reservation\s+total|lodging\s+total)[^$]*\$(\d+(?:\.\d{2})?)/i,
+        /(?:reservation\s+total|lodging\s+total|order\s+total|total\s+cost)[^$]*\$(\d+(?:\.\d{2})?)/i,
       )
       const cost = costMatch ? parseFloat(costMatch[1]) : undefined
 
-      // Extract cancellation deadline
-      const cancelMatch = text.match(
-        /cancell(?:ed|ation)\s+after\s+\w+\s+(\w+)\s+(\d{1,2}),?\s*(\d{4})/i,
-      )
+      // ── Extract cancellation deadline ──
       let cancellationDeadline: string | undefined
-      if (cancelMatch) {
-        const monthNames: Record<string, string> = {
-          january: '01',
-          february: '02',
-          march: '03',
-          april: '04',
-          may: '05',
-          june: '06',
-          july: '07',
-          august: '08',
-          september: '09',
-          october: '10',
-          november: '11',
-          december: '12',
-        }
-        const monthNum = monthNames[cancelMatch[1].toLowerCase()]
-        if (monthNum) {
-          cancellationDeadline = `${cancelMatch[3]}-${monthNum}-${cancelMatch[2].padStart(2, '0')}`
-        }
+      // "cancelled after Saturday September 5, 2026"
+      const cancelAfter = text.match(
+        /cancell?(?:ed|ation)\s+(?:after|on\s+or\s+after)\s+\w+,?\s+(\w+\s+\d{1,2},?\s*\d{4})/i,
+      )
+      if (cancelAfter) cancellationDeadline = parseMonthDate(cancelAfter[1])
+      // "cancel on or before Wed, Sep 16, 2026" → deadline is that date
+      if (!cancellationDeadline) {
+        const cancelBefore = text.match(
+          /cancel[^]*?on\s+or\s+before\s+\w+,?\s+(\w+\s+\d{1,2},?\s*\d{4})/i,
+        )
+        if (cancelBefore) cancellationDeadline = parseMonthDate(cancelBefore[1])
       }
 
-      // Extract location name from the text
-      const locationMatch = text.match(
-        /(?:canyon|madison|grant|bridge bay|mammoth|tower|indian creek|pebble creek|slough creek|norris|lewis lake)\s*(?:campground|camp|lodge)?/i,
-      )
-      const locationName = locationMatch ? locationMatch[0].trim() : undefined
+      // ── Extract cancellation refund amount ──
+      const refundMatch = text.match(/(?:refund|penalty)[^$]*\$(\d+(?:\.\d{2})?)/i)
+      const refundAmount = refundMatch ? parseFloat(refundMatch[1]) : undefined
 
-      // Detect which park/area
+      // ── Extract location/campground name ──
+      const campgroundPatterns = [
+        /(?:north|south|canyon|madison|grant|bridge bay|mammoth|tower|indian creek|pebble creek|slough creek|norris|lewis lake|watchman|lava point|upper pines|lower pines|north pines|crane flat|hodgdon meadow|wawona|bridalveil creek)\s*(?:campground|camp)?/i,
+      ]
+      let locationName: string | undefined
+      for (const pat of campgroundPatterns) {
+        const m = text.match(pat)
+        if (m) {
+          locationName = m[0].trim()
+          break
+        }
+      }
+      // Also try the first prominent name in the email (e.g., "North Campground (UT)")
+      if (!locationName) {
+        const namedCamp = text.match(
+          /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s*(?:campground|camp|lodge)/i,
+        )
+        if (namedCamp) locationName = namedCamp[0].trim()
+      }
+
+      // ── Detect park/area ──
       const isYellowstone = /yellowstone/i.test(text)
       const isYosemite = /yosemite/i.test(text)
       const isZion = /zion/i.test(text)
       const isBryce = /bryce/i.test(text)
+      const isGrandTeton = /grand\s*teton|jenny\s*lake|colter\s*bay|gros\s*ventre/i.test(text)
+      const isLasVegas = /las\s*vegas/i.test(text)
+      const isMammoth = /mammoth\s*lakes/i.test(text)
+      const isDenver = /denver/i.test(text)
+      const isSF = /san\s*francisco|oakland|marin/i.test(text)
       const area = isYellowstone
         ? 'Yellowstone NP'
         : isYosemite
@@ -415,18 +486,26 @@ export default function ChatPage() {
             ? 'Zion NP'
             : isBryce
               ? 'Bryce Canyon'
-              : undefined
+              : isGrandTeton
+                ? 'Grand Teton'
+                : isLasVegas
+                  ? 'Las Vegas'
+                  : isMammoth
+                    ? 'Mammoth Lakes'
+                    : isDenver
+                      ? 'Denver'
+                      : isSF
+                        ? 'San Francisco'
+                        : undefined
 
-      // Extract room/site type
-      const roomMatch = text.match(/room\s+type\s+(.+)/i)
-      const roomType = roomMatch ? roomMatch[1].trim() : undefined
-      const isRV = /rv|camper|motorhome/i.test(text)
-      const isCamp = /campground|camping|tent/i.test(text)
-      const type = isRV ? 'rv_park' : isCamp ? 'campground' : 'hotel'
+      // ── Detect accommodation type ──
+      const isRV = /\brv\b|camper|motorhome|recreational\s+vehicle/i.test(text)
+      const isCamp = /campground|camping|campsite/i.test(text)
+      const type = isRV || isCamp ? 'campground' : 'hotel'
 
       if (!checkIn) return null
 
-      // Try to match to existing booking
+      // Try to match to existing booking by date
       const matchingBooking = bookings.find(
         (b) =>
           b.check_in === checkIn &&
@@ -440,9 +519,9 @@ export default function ChatPage() {
         checkOut,
         cost,
         cancellationDeadline,
+        refundAmount,
         locationName,
         area,
-        roomType,
         type: type as 'rv_park' | 'campground' | 'hotel',
         matchingBooking,
       }
@@ -485,6 +564,8 @@ export default function ChatPage() {
         if (booking.cost) updates.cost = booking.cost
         if (booking.cancellationDeadline)
           updates.cancellation_deadline = booking.cancellationDeadline
+        if (booking.refundAmount !== undefined) updates.refund_amount = booking.refundAmount
+        if (booking.locationName) updates.location = booking.locationName
 
         updateBooking(booking.matchingBooking.id, updates)
 
