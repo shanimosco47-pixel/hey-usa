@@ -31,6 +31,7 @@ import { triggerEmailScan } from '@/lib/emailScan'
 import { suggestDocumentMeta } from '@/modules/documents/utils/suggestDocumentMeta'
 import { LOCATIONS } from '@/data/locations'
 import { DOCUMENT_CATEGORIES } from '@/constants'
+import { useCampsiteBookings } from '@/modules/campsites/hooks/useCampsiteBookings'
 import { ChatMarkdown } from './components/ChatMarkdown'
 import { WeatherCard } from './components/WeatherCard'
 import { BudgetCard } from './components/BudgetCard'
@@ -183,6 +184,7 @@ export default function ChatPage() {
   } = useAppData()
   const { currentMember } = useAuth()
   const navigate = useNavigate()
+  const { bookings, updateBooking } = useCampsiteBookings()
 
   const tasksTotal = tasks.length
   const tasksDone = tasks.filter((t) => t.status === 'done').length
@@ -325,8 +327,232 @@ export default function ChatPage() {
     }
   }, [isLoadingHistory, scrollToBottom])
 
+  /**
+   * Detect if pasted text is a booking confirmation email.
+   * Returns parsed data or null.
+   */
+  const parseBookingConfirmation = useCallback(
+    (text: string) => {
+      // Must contain confirmation/reservation keywords + dates
+      const hasConfirmationKeywords =
+        /(?:confirmation|itinerary\s*#|reservation\s*(?:status|total)|check.?in|check.?out)/i.test(
+          text,
+        )
+      const hasDatePattern =
+        /\d{1,2}\/\d{1,2}\/\d{4}|\b(?:sep|sept|september|oct|october)\w*\s+\d{1,2}/i.test(text)
+
+      if (!hasConfirmationKeywords || !hasDatePattern) return null
+
+      // Extract confirmation/itinerary number
+      const confMatch = text.match(/(?:itinerary|confirmation)\s*#?\s*(\d{5,})/i)
+      const confirmationNum = confMatch ? confMatch[1] : undefined
+
+      // Extract check-in date (MM/DD/YYYY or month name)
+      const checkInMatch = text.match(/check.?in[^]*?(\d{1,2})\/(\d{1,2})\/(\d{4})/i)
+      let checkIn: string | undefined
+      if (checkInMatch) {
+        const [, m, d, y] = checkInMatch
+        checkIn = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+      }
+
+      // Extract check-out date
+      const checkOutMatch = text.match(/check.?out[^]*?(\d{1,2})\/(\d{1,2})\/(\d{4})/i)
+      let checkOut: string | undefined
+      if (checkOutMatch) {
+        const [, m, d, y] = checkOutMatch
+        checkOut = `${m.padStart(2, '0')}` // just need the date
+        checkOut = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+      }
+
+      // Extract total cost
+      const costMatch = text.match(
+        /(?:reservation\s+total|lodging\s+total)[^$]*\$(\d+(?:\.\d{2})?)/i,
+      )
+      const cost = costMatch ? parseFloat(costMatch[1]) : undefined
+
+      // Extract cancellation deadline
+      const cancelMatch = text.match(
+        /cancell(?:ed|ation)\s+after\s+\w+\s+(\w+)\s+(\d{1,2}),?\s*(\d{4})/i,
+      )
+      let cancellationDeadline: string | undefined
+      if (cancelMatch) {
+        const monthNames: Record<string, string> = {
+          january: '01',
+          february: '02',
+          march: '03',
+          april: '04',
+          may: '05',
+          june: '06',
+          july: '07',
+          august: '08',
+          september: '09',
+          october: '10',
+          november: '11',
+          december: '12',
+        }
+        const monthNum = monthNames[cancelMatch[1].toLowerCase()]
+        if (monthNum) {
+          cancellationDeadline = `${cancelMatch[3]}-${monthNum}-${cancelMatch[2].padStart(2, '0')}`
+        }
+      }
+
+      // Extract location name from the text
+      const locationMatch = text.match(
+        /(?:canyon|madison|grant|bridge bay|mammoth|tower|indian creek|pebble creek|slough creek|norris|lewis lake)\s*(?:campground|camp|lodge)?/i,
+      )
+      const locationName = locationMatch ? locationMatch[0].trim() : undefined
+
+      // Detect which park/area
+      const isYellowstone = /yellowstone/i.test(text)
+      const isYosemite = /yosemite/i.test(text)
+      const isZion = /zion/i.test(text)
+      const isBryce = /bryce/i.test(text)
+      const area = isYellowstone
+        ? 'Yellowstone NP'
+        : isYosemite
+          ? 'Yosemite NP'
+          : isZion
+            ? 'Zion NP'
+            : isBryce
+              ? 'Bryce Canyon'
+              : undefined
+
+      // Extract room/site type
+      const roomMatch = text.match(/room\s+type\s+(.+)/i)
+      const roomType = roomMatch ? roomMatch[1].trim() : undefined
+      const isRV = /rv|camper|motorhome/i.test(text)
+      const isCamp = /campground|camping|tent/i.test(text)
+      const type = isRV ? 'rv_park' : isCamp ? 'campground' : 'hotel'
+
+      if (!checkIn) return null
+
+      // Try to match to existing booking
+      const matchingBooking = bookings.find(
+        (b) =>
+          b.check_in === checkIn &&
+          b.priority === 'primary' &&
+          (b.status === 'not_open' || b.status === 'pending' || b.status === 'waitlist'),
+      )
+
+      return {
+        confirmationNum,
+        checkIn,
+        checkOut,
+        cost,
+        cancellationDeadline,
+        locationName,
+        area,
+        roomType,
+        type: type as 'rv_park' | 'campground' | 'hotel',
+        matchingBooking,
+      }
+    },
+    [bookings],
+  )
+
   const sendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return
+
+    // ── Check for pasted booking confirmation ──
+    const booking = parseBookingConfirmation(text)
+    if (booking) {
+      const userMsg: Message = {
+        id: `user-${Date.now()}`,
+        text: text.length > 200 ? text.slice(0, 200) + '...' : text,
+        sender: 'user',
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, userMsg])
+      setIsTyping(true)
+
+      // Persist user message
+      db.insertChatMessage({
+        id: userMsg.id,
+        role: 'user',
+        content: userMsg.text,
+        has_action: false,
+        created_at: new Date().toISOString(),
+      }).catch(() => {})
+
+      await new Promise((r) => setTimeout(r, 1000))
+
+      const parts: string[] = ['🔍 זיהיתי אישור הזמנה!', '']
+
+      // Update existing booking if found
+      if (booking.matchingBooking) {
+        const updates: Record<string, unknown> = { status: 'confirmed' }
+        if (booking.confirmationNum) updates.confirmation = `#${booking.confirmationNum}`
+        if (booking.cost) updates.cost = booking.cost
+        if (booking.cancellationDeadline)
+          updates.cancellation_deadline = booking.cancellationDeadline
+
+        updateBooking(booking.matchingBooking.id, updates)
+
+        parts.push(`✅ עדכנתי את **${booking.matchingBooking.location}** לסטטוס **מאושר**`)
+        if (booking.confirmationNum) parts.push(`🔖 מספר אישור: **#${booking.confirmationNum}**`)
+        if (booking.cost) parts.push(`💰 עלות: **$${booking.cost}**`)
+        if (booking.cancellationDeadline) {
+          const d = new Date(booking.cancellationDeadline + 'T00:00:00')
+          parts.push(`⏰ ביטול עד: **${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}**`)
+        }
+        if (booking.checkIn && booking.checkOut) {
+          const inD = new Date(booking.checkIn + 'T00:00:00')
+          const outD = new Date(booking.checkOut + 'T00:00:00')
+          parts.push(`📅 ${inD.getDate()} — ${outD.getDate()} ספטמבר`)
+        }
+      } else {
+        parts.push('⚠️ לא מצאתי הזמנה קיימת שתואמת לתאריך הזה.')
+        if (booking.locationName) parts.push(`📍 מיקום: **${booking.locationName}**`)
+        if (booking.checkIn) parts.push(`📅 צ׳ק-אין: **${booking.checkIn}**`)
+        if (booking.confirmationNum) parts.push(`🔖 אישור: **#${booking.confirmationNum}**`)
+      }
+
+      // Also create a document
+      const locationId = booking.area?.includes('Yellowstone')
+        ? 'yellowstone'
+        : booking.area?.includes('Yosemite')
+          ? 'yosemite'
+          : booking.area?.includes('Zion')
+            ? 'zion'
+            : booking.area?.includes('Bryce')
+              ? 'bryce-canyon'
+              : undefined
+
+      executeMotiAction({
+        type: 'ADD_DOCUMENT',
+        document: {
+          title: `אישור הזמנה — ${booking.locationName || booking.area || 'לינה'}`,
+          category: 'accommodation',
+          locationId,
+          notes: booking.confirmationNum
+            ? `Confirmation #${booking.confirmationNum}`
+            : 'אישור הזמנה מהמייל',
+          status: 'reserved',
+          visit_date: booking.checkIn,
+        },
+      })
+      parts.push('')
+      parts.push('📄 שמרתי גם כמסמך בדף המסמכים.')
+
+      const botMsg: Message = {
+        id: `bot-${Date.now()}`,
+        text: parts.join('\n'),
+        sender: 'bot',
+        timestamp: new Date(),
+        hasAction: true,
+      }
+      setMessages((prev) => [...prev, botMsg])
+      setIsTyping(false)
+
+      db.insertChatMessage({
+        id: botMsg.id,
+        role: 'assistant',
+        content: botMsg.text,
+        has_action: true,
+        created_at: new Date().toISOString(),
+      }).catch(() => {})
+      return
+    }
 
     const userMsg: Message = {
       id: `user-${Date.now()}`,
