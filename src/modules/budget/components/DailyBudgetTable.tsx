@@ -470,7 +470,7 @@ export function DailyBudgetTable() {
                         return next
                       })
                     }}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 bg-black/[0.02] active:bg-black/[0.04]"
+                    className="flex w-full items-center gap-2 px-3 py-2.5 min-h-[44px] bg-black/[0.02] active:bg-black/[0.04]"
                   >
                     <span className="text-xs font-bold text-apple-primary">יום {i + 1}</span>
                     {day.city && (

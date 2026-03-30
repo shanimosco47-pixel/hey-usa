@@ -56,7 +56,7 @@ export const DaySelector = memo(function DaySelector({
               ref={isActive ? activeRef : undefined}
               onClick={() => onDayChange(index)}
               className={cn(
-                'flex min-w-[72px] flex-shrink-0 flex-col items-center gap-0.5 rounded-apple-lg px-3 py-2 transition-all',
+                'flex min-w-[72px] min-h-[44px] flex-shrink-0 flex-col items-center gap-0.5 rounded-apple-lg px-3 py-2 transition-all',
                 isActive
                   ? 'bg-ios-blue text-white shadow-glass-hover scale-105'
                   : 'glass text-apple-primary border border-black/[0.06] hover:bg-white/80',
