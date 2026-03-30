@@ -1,7 +1,16 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import * as Select from '@radix-ui/react-select'
-import { Upload, X, FileText, ChevronDown, Check, Receipt, Loader2, AlertTriangle } from 'lucide-react'
+import {
+  Upload,
+  X,
+  FileText,
+  ChevronDown,
+  Check,
+  Receipt,
+  Loader2,
+  AlertTriangle,
+} from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS, DOCUMENT_CATEGORIES } from '@/constants'
 import { LOCATIONS } from '@/data/locations'
@@ -176,7 +185,22 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
     setUploading(false)
     resetForm()
     onOpenChange(false)
-  }, [title, category, memberId, notes, expiryDate, locationId, selectedFile, onUpload, resetForm, onOpenChange, alsoLogExpense, onAddExpense, expenseAmount, expensePaidBy])
+  }, [
+    title,
+    category,
+    memberId,
+    notes,
+    expiryDate,
+    locationId,
+    selectedFile,
+    onUpload,
+    resetForm,
+    onOpenChange,
+    alsoLogExpense,
+    onAddExpense,
+    expenseAmount,
+    expensePaidBy,
+  ])
 
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -227,7 +251,9 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
                 <FileText className="h-8 w-8 text-ios-blue" />
                 <div className="text-right">
                   <p className="text-sm font-medium text-apple-primary">{selectedFile.name}</p>
-                  <p className="text-xs text-apple-secondary">{formatFileSize(selectedFile.size)}</p>
+                  <p className="text-xs text-apple-secondary">
+                    {formatFileSize(selectedFile.size)}
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -261,7 +287,10 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
 
           {/* File warning */}
           {fileWarning && (
-            <div className="mb-3 flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5" dir="rtl">
+            <div
+              className="mb-3 flex items-start gap-2 rounded-apple-lg bg-ios-orange/10 border border-ios-orange/20 px-3 py-2.5"
+              dir="rtl"
+            >
               <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
               <p className="text-xs text-amber-700 leading-relaxed">{fileWarning}</p>
             </div>
@@ -271,7 +300,10 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
           <div className="space-y-3">
             {/* Title */}
             <div>
-              <label htmlFor="doc-title" className="mb-1 block text-sm font-medium text-apple-primary">
+              <label
+                htmlFor="doc-title"
+                className="mb-1 block text-sm font-medium text-apple-primary"
+              >
                 כותרת
               </label>
               <input
@@ -280,7 +312,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="שם המסמך"
-                className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+                className="w-full rounded-apple-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
               />
             </div>
 
@@ -290,7 +322,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
               <Select.Root value={category} onValueChange={setCategory} dir="rtl">
                 <Select.Trigger
                   className={cn(
-                    'flex w-full items-center justify-between rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
+                    'flex w-full items-center justify-between rounded-apple-lg border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
                     category ? 'text-apple-primary' : 'text-apple-tertiary',
                   )}
                 >
@@ -333,7 +365,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
               <Select.Root value={locationId} onValueChange={setLocationId} dir="rtl">
                 <Select.Trigger
                   className={cn(
-                    'flex w-full items-center justify-between rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
+                    'flex w-full items-center justify-between rounded-apple-lg border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
                     locationId ? 'text-apple-primary' : 'text-apple-tertiary',
                   )}
                 >
@@ -378,7 +410,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
               <Select.Root value={memberId} onValueChange={setMemberId} dir="rtl">
                 <Select.Trigger
                   className={cn(
-                    'flex w-full items-center justify-between rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
+                    'flex w-full items-center justify-between rounded-apple-lg border border-black/[0.06] glass px-3 py-2 text-sm focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30',
                     memberId ? 'text-apple-primary' : 'text-apple-tertiary',
                   )}
                 >
@@ -417,7 +449,10 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
 
             {/* Expiry date */}
             <div>
-              <label htmlFor="doc-expiry" className="mb-1 block text-sm font-medium text-apple-primary">
+              <label
+                htmlFor="doc-expiry"
+                className="mb-1 block text-sm font-medium text-apple-primary"
+              >
                 תאריך תפוגה (אופציונלי)
               </label>
               <input
@@ -431,7 +466,10 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
 
             {/* Notes */}
             <div>
-              <label htmlFor="doc-notes" className="mb-1 block text-sm font-medium text-apple-primary">
+              <label
+                htmlFor="doc-notes"
+                className="mb-1 block text-sm font-medium text-apple-primary"
+              >
                 הערות (אופציונלי)
               </label>
               <textarea
@@ -446,7 +484,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
 
             {/* Also log as expense */}
             {showExpenseSection && (
-              <div className="rounded-xl border border-black/[0.06] bg-ios-blue/[0.03] p-3 space-y-2">
+              <div className="rounded-apple-lg border border-black/[0.06] bg-ios-blue/[0.03] p-3 space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -468,10 +506,12 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
                       placeholder="סכום ב-₪"
                       className="w-full rounded-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                     />
-                    <Select.Root value={expensePaidBy} onValueChange={(v) => setExpensePaidBy(v as FamilyMemberId)} dir="rtl">
-                      <Select.Trigger
-                        className="flex w-full items-center justify-between rounded-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
-                      >
+                    <Select.Root
+                      value={expensePaidBy}
+                      onValueChange={(v) => setExpensePaidBy(v as FamilyMemberId)}
+                      dir="rtl"
+                    >
+                      <Select.Trigger className="flex w-full items-center justify-between rounded-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30">
                         <Select.Value />
                         <Select.Icon>
                           <ChevronDown className="h-4 w-4 text-apple-secondary" />
@@ -515,7 +555,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
               type="button"
               onClick={handleSubmit}
               disabled={!title.trim() || !category || uploading}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-ios-blue px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ios-blue/80 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex-1 flex items-center justify-center gap-2 rounded-apple-lg bg-ios-blue px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-ios-blue/80 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {uploading ? (
                 <>
@@ -529,7 +569,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="rounded-xl border border-black/[0.06] glass px-4 py-2.5 text-sm font-medium text-apple-secondary transition-colors hover:bg-black/[0.04]"
+                className="rounded-apple-lg border border-black/[0.06] glass px-4 py-2.5 text-sm font-medium text-apple-secondary transition-colors hover:bg-black/[0.04]"
               >
                 ביטול
               </button>

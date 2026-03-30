@@ -205,13 +205,13 @@ export default function PackingPage() {
             placeholder="שם הפריט"
             value={newItem.name}
             onChange={(e) => setNewItem((p) => ({ ...p, name: e.target.value }))}
-            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
+            className="w-full rounded-apple-lg border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
           />
           <div className="grid grid-cols-2 gap-2">
             <select
               value={newItem.category}
               onChange={(e) => setNewItem((p) => ({ ...p, category: e.target.value }))}
-              className="rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
+              className="rounded-apple-lg border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
             >
               {Object.entries(PACKING_CATEGORIES).map(([key, { label }]) => (
                 <option key={key} value={key}>
@@ -224,7 +224,7 @@ export default function PackingPage() {
               onChange={(e) =>
                 setNewItem((p) => ({ ...p, assigned_to: e.target.value as FamilyMemberId }))
               }
-              className="rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
+              className="rounded-apple-lg border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
             >
               {FAMILY_MEMBERS_LIST.map((m) => (
                 <option key={m.id} value={m.id}>
@@ -239,7 +239,7 @@ export default function PackingPage() {
             placeholder="כמות"
             value={newItem.quantity}
             onChange={(e) => setNewItem((p) => ({ ...p, quantity: Number(e.target.value) }))}
-            className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
+            className="w-full rounded-apple-lg border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary"
           />
           <div className="flex gap-2">
             <Button onClick={handleAddItem} variant="success" className="flex-1">

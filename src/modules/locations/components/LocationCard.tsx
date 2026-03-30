@@ -59,14 +59,14 @@ export const LocationCard = memo(function LocationCard({
         {/* Polaroid card */}
         <div
           className={cn(
-            'bg-white rounded-sm p-2 pb-4',
+            'bg-white rounded-apple-sm p-2 pb-4',
             'shadow-[3px_4px_12px_rgba(0,0,0,0.2),_0_1px_3px_rgba(0,0,0,0.1)]',
             'hover:shadow-[5px_8px_20px_rgba(0,0,0,0.25)]',
             'transition-shadow duration-300',
           )}
         >
           {/* Photo */}
-          <div className="relative aspect-[4/3] overflow-hidden rounded-sm mb-3">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-apple-sm mb-3">
             <img
               src={location.photo}
               alt={location.name}
@@ -84,12 +84,12 @@ export const LocationCard = memo(function LocationCard({
             {/* Badge counts */}
             <div className="absolute bottom-2 left-2 flex gap-1.5">
               {noteCount > 0 && (
-                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white/90 text-caption font-semibold text-gray-700 shadow-sm">
+                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white/90 text-caption font-semibold text-apple-primary shadow-glass">
                   <StickyNoteIcon className="h-3 w-3" /> {noteCount}
                 </span>
               )}
               {docCount > 0 && (
-                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white/90 text-caption font-semibold text-gray-700 shadow-sm">
+                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-white/90 text-caption font-semibold text-apple-primary shadow-glass">
                   <FileText className="h-3 w-3" /> {docCount}
                 </span>
               )}
@@ -98,9 +98,11 @@ export const LocationCard = memo(function LocationCard({
 
           {/* Name + info */}
           <div className="px-1 text-center">
-            <h3 className="text-body font-bold text-gray-800 leading-tight">{location.nameHe}</h3>
-            <p className="text-caption text-gray-500 mt-0.5 font-medium">{location.name}</p>
-            {dateRange && <p className="text-caption text-gray-400 mt-1">{dateRange}</p>}
+            <h3 className="text-body font-bold text-apple-primary leading-tight">
+              {location.nameHe}
+            </h3>
+            <p className="text-caption text-apple-secondary mt-0.5 font-medium">{location.name}</p>
+            {dateRange && <p className="text-caption text-apple-tertiary mt-1">{dateRange}</p>}
             {stopCount > 0 && (
               <p className="text-caption text-ios-blue mt-0.5 font-medium">{stopCount} עצירות</p>
             )}

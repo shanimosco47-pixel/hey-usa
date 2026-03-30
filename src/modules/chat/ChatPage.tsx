@@ -211,7 +211,7 @@ const ChatBubble = memo(function ChatBubble({
                 key={qa}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onQuickAction(qa)}
-                className="flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-caption font-medium text-purple-700 hover:bg-purple-100 transition-colors"
+                className="flex items-center gap-1 rounded-full border border-ios-purple/20 bg-ios-purple/10 px-2.5 py-1 text-caption font-medium text-ios-purple hover:bg-ios-purple/20 transition-colors"
               >
                 <Zap className="h-2.5 w-2.5" />
                 {qa}
@@ -933,7 +933,7 @@ export default function ChatPage() {
         </div>
         <button
           onClick={() => navigate('/chat/log')}
-          className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-purple-50 text-purple-500 hover:bg-purple-100 transition-colors"
+          className="relative flex h-9 w-9 items-center justify-center rounded-apple bg-ios-purple/10 text-ios-purple hover:bg-ios-purple/20 transition-colors"
           title="יומן שינויים"
         >
           <History className="h-4 w-4" />
@@ -995,7 +995,7 @@ export default function ChatPage() {
                   onClick={() => sendMessage(s)}
                   className={`flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-subhead font-medium transition-colors ${
                     isAction
-                      ? 'border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100'
+                      ? 'border-ios-purple/20 bg-ios-purple/10 text-ios-purple hover:bg-ios-purple/20'
                       : 'border-black/[0.08] bg-white text-apple-primary hover:bg-surface-primary'
                   }`}
                   style={{ boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}

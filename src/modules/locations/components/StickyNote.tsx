@@ -60,14 +60,17 @@ export const StickyNote = memo(function StickyNote({
       onMouseLeave={() => setShowActions(false)}
     >
       {/* Note text */}
-      <p className="text-body leading-relaxed text-gray-800 font-medium whitespace-pre-wrap break-words" dir="auto">
+      <p
+        className="text-body leading-relaxed text-apple-primary font-medium whitespace-pre-wrap break-words"
+        dir="auto"
+      >
         {note.text}
       </p>
 
       {/* Bottom row: avatar + time */}
       <div className="flex items-center justify-between mt-3 pt-2 border-t border-black/[0.06]">
         <FamilyAvatar memberId={note.author} size="xs" />
-        <span className="text-caption text-gray-500">{timeAgo(note.updated_at)}</span>
+        <span className="text-caption text-apple-secondary">{timeAgo(note.updated_at)}</span>
       </div>
 
       {/* Pin indicator */}
@@ -92,7 +95,7 @@ export const StickyNote = memo(function StickyNote({
             className="p-1.5 rounded-full bg-white/80 hover:bg-white shadow-sm transition-colors"
             title="ערוך"
           >
-            <Pencil className="h-3.5 w-3.5 text-gray-600" />
+            <Pencil className="h-3.5 w-3.5 text-apple-secondary" />
           </button>
           <button
             onClick={(e) => {
@@ -105,7 +108,7 @@ export const StickyNote = memo(function StickyNote({
             <Pin
               className={cn(
                 'h-3.5 w-3.5',
-                note.pinned ? 'text-red-500 fill-red-500' : 'text-gray-600',
+                note.pinned ? 'text-red-500 fill-red-500' : 'text-apple-secondary',
               )}
             />
           </button>

@@ -65,7 +65,7 @@ export const KanbanCard = memo(function KanbanCard({ task, onClick }: KanbanCard
       <div className="mb-2 flex items-center justify-between">
         <div
           className={cn(
-            'flex items-center gap-1 rounded-md px-1.5 py-0.5 text-caption font-medium',
+            'flex items-center gap-1 rounded-apple-sm px-1.5 py-0.5 text-caption font-medium',
             priorityConfig.bgClass,
             priorityConfig.className,
           )}

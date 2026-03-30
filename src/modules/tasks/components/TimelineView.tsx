@@ -84,14 +84,14 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
             {(Object.keys(GROUP_COLORS) as TaskGroup[]).map((group) => (
               <div key={group} className="flex items-center gap-1.5">
                 <div
-                  className="h-3 w-3 rounded-sm"
+                  className="h-3 w-3 rounded-apple-sm"
                   style={{ backgroundColor: GROUP_COLORS[group] }}
                 />
                 <span className="text-xs text-apple-secondary">{GROUP_LABELS[group]}</span>
               </div>
             ))}
             <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded-sm bg-red-400 opacity-60" />
+              <div className="h-3 w-3 rounded-apple-sm bg-red-400 opacity-60" />
               <span className="text-xs text-apple-secondary">באיחור</span>
             </div>
           </div>
@@ -182,7 +182,7 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
                   <div className="relative flex-1">
                     <div
                       className={cn(
-                        'absolute h-5 rounded-md transition-all group-hover:h-6 group-hover:-translate-y-0.5',
+                        'absolute h-5 rounded-apple-sm transition-all group-hover:h-6 group-hover:-translate-y-0.5',
                         overdue && 'animate-pulse',
                       )}
                       style={{

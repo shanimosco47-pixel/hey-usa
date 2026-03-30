@@ -12,15 +12,60 @@ const END_HOUR = 23
 const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i)
 
 const CATEGORY_COLORS: Record<string, { bg: string; border: string; text: string; dot: string }> = {
-  drive:    { bg: 'bg-indigo-500/10', border: 'border-indigo-500/30', text: 'text-indigo-600',  dot: '#6366F1' },
-  hike:     { bg: 'bg-amber-500/10',  border: 'border-amber-500/30',  text: 'text-amber-600',   dot: '#F59E0B' },
-  activity: { bg: 'bg-amber-500/10',  border: 'border-amber-500/30',  text: 'text-amber-600',   dot: '#F59E0B' },
-  scenic:   { bg: 'bg-amber-500/10',  border: 'border-amber-500/30',  text: 'text-amber-600',   dot: '#F59E0B' },
-  food:     { bg: 'bg-green-500/10',  border: 'border-green-500/30',  text: 'text-green-600',   dot: '#22C55E' },
-  camp:     { bg: 'bg-violet-500/10', border: 'border-violet-500/30', text: 'text-violet-600',  dot: '#8B5CF6' },
-  rest:     { bg: 'bg-violet-500/10', border: 'border-violet-500/30', text: 'text-violet-600',  dot: '#8B5CF6' },
-  city:     { bg: 'bg-slate-500/10',  border: 'border-slate-500/30',  text: 'text-slate-600',   dot: '#64748B' },
-  other:    { bg: 'bg-slate-500/10',  border: 'border-slate-500/30',  text: 'text-slate-600',   dot: '#64748B' },
+  drive: {
+    bg: 'bg-indigo-500/10',
+    border: 'border-indigo-500/30',
+    text: 'text-indigo-600',
+    dot: '#6366F1',
+  },
+  hike: {
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/30',
+    text: 'text-amber-600',
+    dot: '#F59E0B',
+  },
+  activity: {
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/30',
+    text: 'text-amber-600',
+    dot: '#F59E0B',
+  },
+  scenic: {
+    bg: 'bg-amber-500/10',
+    border: 'border-amber-500/30',
+    text: 'text-amber-600',
+    dot: '#F59E0B',
+  },
+  food: {
+    bg: 'bg-green-500/10',
+    border: 'border-green-500/30',
+    text: 'text-green-600',
+    dot: '#22C55E',
+  },
+  camp: {
+    bg: 'bg-violet-500/10',
+    border: 'border-violet-500/30',
+    text: 'text-violet-600',
+    dot: '#8B5CF6',
+  },
+  rest: {
+    bg: 'bg-violet-500/10',
+    border: 'border-violet-500/30',
+    text: 'text-violet-600',
+    dot: '#8B5CF6',
+  },
+  city: {
+    bg: 'bg-slate-500/10',
+    border: 'border-slate-500/30',
+    text: 'text-slate-600',
+    dot: '#64748B',
+  },
+  other: {
+    bg: 'bg-slate-500/10',
+    border: 'border-slate-500/30',
+    text: 'text-slate-600',
+    dot: '#64748B',
+  },
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────
@@ -45,11 +90,7 @@ function getCategoryStyle(category?: string) {
 function isToday(dateStr: string): boolean {
   const today = new Date()
   const [year, month, day] = dateStr.split('-').map(Number)
-  return (
-    today.getFullYear() === year &&
-    today.getMonth() + 1 === month &&
-    today.getDate() === day
-  )
+  return today.getFullYear() === year && today.getMonth() + 1 === month && today.getDate() === day
 }
 
 function getCurrentTimeOffset(): number | null {
@@ -74,14 +115,14 @@ function TimelineStop({ stop }: { stop: ItineraryStop }) {
   const timeRange =
     stop.start_time && stop.end_time
       ? `${stop.start_time} – ${stop.end_time}`
-      : stop.start_time ?? ''
+      : (stop.start_time ?? '')
 
   return (
     <motion.div
       className={cn(
-        'absolute left-0 right-14 rounded-xl border px-3 py-2 overflow-hidden cursor-default',
+        'absolute left-0 right-14 rounded-apple-lg border px-3 py-2 overflow-hidden cursor-default',
         style.bg,
-        style.border
+        style.border,
       )}
       style={{
         top: `${top}px`,
@@ -131,9 +172,9 @@ function UnscheduledStop({ stop }: { stop: ItineraryStop }) {
   return (
     <motion.div
       className={cn(
-        'rounded-xl border px-3 py-2.5 relative overflow-hidden',
+        'rounded-apple-lg border px-3 py-2.5 relative overflow-hidden',
         style.bg,
-        style.border
+        style.border,
       )}
       style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
       initial={{ opacity: 0, y: 8 }}
@@ -198,7 +239,7 @@ export function DayPlannerBoard({ day }: DayPlannerBoardProps) {
     const set = new Set<number>()
     for (const stop of scheduled) {
       const start = parseTime(stop.start_time!)!
-      const end = stop.end_time ? parseTime(stop.end_time) ?? start + 0.5 : start + 0.5
+      const end = stop.end_time ? (parseTime(stop.end_time) ?? start + 0.5) : start + 0.5
       for (let h = Math.floor(start); h < Math.ceil(end); h++) {
         set.add(h)
       }
@@ -214,10 +255,7 @@ export function DayPlannerBoard({ day }: DayPlannerBoardProps) {
       transition={{ delay: 0.1, duration: 0.3 }}
     >
       {/* Timeline */}
-      <div
-        className="relative"
-        style={{ height: `${totalHeight}px` }}
-      >
+      <div className="relative" style={{ height: `${totalHeight}px` }}>
         {/* Hour grid lines */}
         {HOURS.map((hour) => {
           const top = (hour - START_HOUR) * HOUR_HEIGHT
@@ -240,9 +278,7 @@ export function DayPlannerBoard({ day }: DayPlannerBoardProps) {
               <div
                 className={cn(
                   'absolute left-0 right-14 top-0 h-px',
-                  isOccupied
-                    ? 'bg-black/[0.06]'
-                    : 'border-t border-dashed border-black/[0.08]'
+                  isOccupied ? 'bg-black/[0.06]' : 'border-t border-dashed border-black/[0.08]',
                 )}
               />
             </div>
@@ -271,9 +307,7 @@ export function DayPlannerBoard({ day }: DayPlannerBoardProps) {
         <div className="mt-6 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <AlertCircle className="h-4 w-4 text-apple-secondary" />
-            <h3 className="text-sm font-bold text-apple-secondary">
-              לא מתוזמן
-            </h3>
+            <h3 className="text-sm font-bold text-apple-secondary">לא מתוזמן</h3>
           </div>
           <div className="flex flex-col gap-2">
             {unscheduled.map((stop) => (

@@ -40,14 +40,12 @@ export default function MotiLogPage() {
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100">
+          <div className="flex h-10 w-10 items-center justify-center rounded-apple bg-ios-purple/15">
             <History className="h-5 w-5 text-purple-600" />
           </div>
           <div className="flex-1">
             <h1 className="text-title font-bold text-apple-primary">יומן שינויים — מוטי</h1>
-            <p className="text-caption text-apple-secondary">
-              כל השינויים שמוטי ביצע באתר
-            </p>
+            <p className="text-caption text-apple-secondary">כל השינויים שמוטי ביצע באתר</p>
           </div>
         </div>
       </motion.div>
@@ -84,9 +82,7 @@ export default function MotiLogPage() {
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-purple-50 mb-4">
             <Bot className="h-8 w-8 text-purple-400" />
           </div>
-          <p className="text-apple-secondary text-sm">
-            מוטי עדיין לא ביצע שינויים.
-          </p>
+          <p className="text-apple-secondary text-sm">מוטי עדיין לא ביצע שינויים.</p>
           <p className="text-apple-tertiary text-xs mt-1">
             כשתבקשו ממוטי לעדכן תקציב, מסלול או כל דבר אחר — השינויים יופיעו כאן.
           </p>
@@ -108,9 +104,7 @@ export default function MotiLogPage() {
                 <Zap className="h-4 w-4 text-ios-purple" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-subhead font-medium text-apple-primary">
-                  {entry.description}
-                </p>
+                <p className="text-subhead font-medium text-apple-primary">{entry.description}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-caption text-apple-tertiary">
                     {formatTimestamp(entry.timestamp)}

@@ -194,7 +194,7 @@ export default function BudgetPage() {
   }
 
   const inputClass =
-    'w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors'
+    'w-full rounded-apple-lg border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors'
 
   return (
     <div className="space-y-4 p-4 max-w-4xl mx-auto">
@@ -205,7 +205,7 @@ export default function BudgetPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
-        <h1 className="text-2xl font-bold text-apple-primary">תקציב</h1>
+        <h1 className="text-title font-bold text-apple-primary">תקציב</h1>
         {expenses.length > 0 && (
           <Button variant="outline" onClick={() => exportExpensesCsv(expenses)}>
             <Download className="h-4 w-4" />
@@ -216,21 +216,21 @@ export default function BudgetPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="glass rounded-apple-lg p-4 text-center shadow-sm">
+        <div className="glass rounded-apple-lg p-4 text-center shadow-glass">
           <p className="text-xs text-apple-secondary">תקציב כולל</p>
           <p className="mt-1 text-lg font-bold text-apple-primary">
             {settings.currency}
             {settings.total_budget.toLocaleString()}
           </p>
         </div>
-        <div className="glass rounded-apple-lg p-4 text-center shadow-sm">
+        <div className="glass rounded-apple-lg p-4 text-center shadow-glass">
           <p className="text-xs text-apple-secondary">הוצאות</p>
           <p className="mt-1 text-lg font-bold text-ios-red">
             {settings.currency}
             {totalSpent.toLocaleString()}
           </p>
         </div>
-        <div className="glass rounded-apple-lg p-4 text-center shadow-sm">
+        <div className="glass rounded-apple-lg p-4 text-center shadow-glass">
           <p className="text-xs text-apple-secondary">נותר</p>
           <p
             className={cn(
@@ -245,7 +245,7 @@ export default function BudgetPage() {
       </div>
 
       {/* Progress Bar */}
-      <div className="glass rounded-apple-lg p-4 shadow-sm">
+      <div className="glass rounded-apple-lg p-4 shadow-glass">
         <div className="flex items-center justify-between text-sm">
           <span className="text-apple-secondary">ניצול תקציב</span>
           <span className={cn('font-bold', spentPercent > 80 ? 'text-ios-red' : 'text-ios-green')}>
@@ -269,11 +269,11 @@ export default function BudgetPage() {
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex gap-1 rounded-apple-lg glass p-1 shadow-sm">
+      <div className="flex gap-1 rounded-apple-lg glass p-1 shadow-glass">
         <button
           onClick={() => setActiveTab('planning')}
           className={cn(
-            'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+            'flex flex-1 items-center justify-center gap-1.5 rounded-apple px-3 py-2 text-sm font-medium transition-all',
             activeTab === 'planning'
               ? 'bg-white text-apple-primary shadow-sm'
               : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
@@ -285,7 +285,7 @@ export default function BudgetPage() {
         <button
           onClick={() => setActiveTab('actual')}
           className={cn(
-            'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+            'flex flex-1 items-center justify-center gap-1.5 rounded-apple px-3 py-2 text-sm font-medium transition-all',
             activeTab === 'actual'
               ? 'bg-white text-apple-primary shadow-sm'
               : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
@@ -297,7 +297,7 @@ export default function BudgetPage() {
         <button
           onClick={() => setActiveTab('daily')}
           className={cn(
-            'flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+            'flex flex-1 items-center justify-center gap-1.5 rounded-apple px-3 py-2 text-sm font-medium transition-all',
             activeTab === 'daily'
               ? 'bg-white text-apple-primary shadow-sm'
               : 'text-apple-secondary hover:text-apple-primary hover:bg-black/[0.04]',
@@ -317,7 +317,7 @@ export default function BudgetPage() {
           transition={{ duration: 0.2 }}
         >
           {/* Total Budget Editor */}
-          <div className="glass rounded-apple-lg p-4 shadow-sm">
+          <div className="glass rounded-apple-lg p-4 shadow-glass">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-bold text-apple-primary">תקציב כולל לטיול</h3>
               {!editingTotal ? (
@@ -361,7 +361,7 @@ export default function BudgetPage() {
           {/* Desktop: category budgets + bar chart side by side */}
           <div className="lg:grid lg:grid-cols-2 lg:gap-4">
             {/* Category Budgets */}
-            <div className="glass rounded-apple-lg p-4 shadow-sm">
+            <div className="glass rounded-apple-lg p-4 shadow-glass">
               <h3 className="text-sm font-bold text-apple-primary mb-3">תקציב לפי קטגוריה</h3>
               <div className="space-y-2">
                 {Object.entries(EXPENSE_CATEGORIES).map(([cat, { label }]) => {
@@ -378,7 +378,7 @@ export default function BudgetPage() {
                     <div
                       key={cat}
                       className={cn(
-                        'rounded-xl border p-3',
+                        'rounded-apple border p-3',
                         isOther ? 'border-black/[0.08] bg-black/[0.02]' : 'border-black/[0.04]',
                       )}
                     >
@@ -482,7 +482,7 @@ export default function BudgetPage() {
             </div>
 
             {/* Bar Chart: Budget vs Actual */}
-            <div className="glass rounded-apple-lg p-4 shadow-sm">
+            <div className="glass rounded-apple-lg p-4 shadow-glass">
               <h3 className="mb-2 text-sm font-bold text-apple-primary">תקציב מול הוצאות</h3>
               <Suspense
                 fallback={
@@ -517,7 +517,7 @@ export default function BudgetPage() {
 
           {/* Add Expense Form */}
           {showAddForm && (
-            <div className="glass rounded-apple-lg p-4 shadow-sm space-y-3">
+            <div className="glass rounded-apple-lg p-4 shadow-glass space-y-3">
               <h3 className="font-bold text-apple-primary">הוצאה חדשה</h3>
               <input
                 type="text"
@@ -587,7 +587,7 @@ export default function BudgetPage() {
           <div className="lg:grid lg:grid-cols-[1fr_1fr] lg:gap-4 lg:items-start">
             {/* Pie Chart */}
             {pieData.length > 0 && (
-              <div className="glass rounded-apple-lg p-4 shadow-sm">
+              <div className="glass rounded-apple-lg p-4 shadow-glass">
                 <h3 className="mb-2 text-sm font-bold text-apple-primary">חלוקת הוצאות בפועל</h3>
                 <Suspense
                   fallback={
@@ -619,9 +619,9 @@ export default function BudgetPage() {
                 return (
                   <div
                     key={expense.id}
-                    className="flex items-center gap-3 glass rounded-apple-lg p-3 shadow-sm"
+                    className="flex items-center gap-3 glass rounded-apple-lg p-3 shadow-glass"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/[0.04]">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-apple bg-black/[0.04]">
                       <IconComp className="h-5 w-5 text-apple-secondary" />
                     </div>
                     <div className="flex-1 min-w-0">

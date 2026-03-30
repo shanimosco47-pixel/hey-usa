@@ -50,7 +50,7 @@ function KanbanColumn({
   return (
     <div
       className={cn(
-        'flex h-full min-w-[260px] flex-col rounded-xl border border-black/[0.06] bg-black/[0.03] transition-colors',
+        'flex h-full min-w-[260px] flex-col rounded-apple-lg border border-black/[0.06] bg-black/[0.03] transition-colors',
         isOver && 'bg-ios-blue/5 ring-2 ring-ios-blue/30',
       )}
     >
@@ -106,7 +106,7 @@ function MobileKanbanColumn({
   const { setNodeRef } = useDroppable({ id: status })
 
   return (
-    <div className="rounded-xl border border-black/[0.06] bg-black/[0.03] overflow-hidden">
+    <div className="rounded-apple-lg border border-black/[0.06] bg-black/[0.03] overflow-hidden">
       {/* Collapsible header */}
       <button
         onClick={onToggle}

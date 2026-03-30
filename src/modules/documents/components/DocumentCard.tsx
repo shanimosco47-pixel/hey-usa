@@ -37,20 +37,20 @@ function isExpired(dateStr?: string): boolean {
 function FileIcon({ fileType }: { fileType?: string }) {
   if (fileType?.includes('pdf')) {
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-t-xl bg-red-50">
+      <div className="flex h-full w-full items-center justify-center rounded-t-apple-lg bg-ios-red/10">
         <FileText className="h-10 w-10 text-red-400" />
       </div>
     )
   }
   if (fileType?.includes('image')) {
     return (
-      <div className="flex h-full w-full items-center justify-center rounded-t-xl bg-sky-50">
+      <div className="flex h-full w-full items-center justify-center rounded-t-apple-lg bg-ios-teal/10">
         <Image className="h-10 w-10 text-ios-teal/70" />
       </div>
     )
   }
   return (
-    <div className="flex h-full w-full items-center justify-center rounded-t-xl bg-black/[0.04]">
+    <div className="flex h-full w-full items-center justify-center rounded-t-apple-lg bg-black/[0.04]">
       <File className="h-10 w-10 text-apple-secondary" />
     </div>
   )

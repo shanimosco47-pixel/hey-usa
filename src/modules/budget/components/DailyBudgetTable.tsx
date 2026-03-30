@@ -332,7 +332,7 @@ export function DailyBudgetTable() {
       </div>
 
       {/* Pre-trip table */}
-      <div className="glass rounded-apple-lg shadow-sm overflow-hidden">
+      <div className="glass rounded-apple-lg shadow-glass overflow-hidden">
         <div className="px-3 py-2 border-b border-black/[0.06] bg-ios-blue/5">
           <h3 className="text-sm font-bold text-apple-primary">✈️ הוצאות טרום-טיול</h3>
         </div>
@@ -368,7 +368,7 @@ export function DailyBudgetTable() {
       </div>
 
       {/* Daily budget table */}
-      <div className="glass rounded-apple-lg shadow-sm overflow-hidden">
+      <div className="glass rounded-apple-lg shadow-glass overflow-hidden">
         <div className="px-3 py-2 border-b border-black/[0.06] bg-ios-green/5">
           <h3 className="text-sm font-bold text-apple-primary">📅 תקציב יומי</h3>
           {isDesktop && (
@@ -429,7 +429,7 @@ export function DailyBudgetTable() {
                 ))}
                 {/* Daily totals row */}
                 <tr className="bg-black/[0.02] border-t border-black/[0.08]">
-                  <td className="sticky right-0 z-10 bg-gray-50/90 backdrop-blur-sm py-2 px-2 text-right text-caption font-bold text-apple-primary border-l border-black/[0.06]">
+                  <td className="sticky right-0 z-10 bg-surface-primary/90 backdrop-blur-sm py-2 px-2 text-right text-caption font-bold text-apple-primary border-l border-black/[0.06]">
                     סה״כ יומי
                   </td>
                   {itineraryDays.map((day) => (
@@ -532,7 +532,7 @@ export function DailyBudgetTable() {
       </div>
 
       {/* Grand total */}
-      <div className="glass rounded-apple-lg p-4 shadow-sm">
+      <div className="glass rounded-apple-lg p-4 shadow-glass">
         <div className="flex items-center justify-between">
           <span className="text-sm font-bold text-apple-primary">
             סה״כ כללי (טרום-טיול + ימי טיול)

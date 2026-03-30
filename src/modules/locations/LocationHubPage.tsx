@@ -411,7 +411,7 @@ export default function LocationHubPage() {
                               </div>
                               {stop.notes && (
                                 <p
-                                  className="text-subhead text-amber-700 bg-amber-50 rounded-lg px-2 py-1 mt-2"
+                                  className="text-subhead text-ios-orange bg-ios-orange/10 rounded-apple-sm px-2 py-1 mt-2"
                                   dir="auto"
                                 >
                                   📌 {stop.notes}

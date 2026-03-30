@@ -76,7 +76,7 @@ export default function EntertainmentPage() {
   return (
     <div className="space-y-4 p-4 max-w-4xl mx-auto">
       <motion.h1
-        className="text-2xl font-bold text-apple-primary"
+        className="text-title font-bold text-apple-primary"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
@@ -92,7 +92,7 @@ export default function EntertainmentPage() {
             key={id}
             onClick={() => setActiveTab(id)}
             className={cn(
-              'flex flex-1 items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-medium transition-colors',
+              'flex flex-1 items-center justify-center gap-1.5 rounded-apple py-2.5 text-sm font-medium transition-colors',
               activeTab === id ? 'bg-white text-apple-primary shadow-sm' : 'text-apple-secondary',
             )}
           >
@@ -109,7 +109,7 @@ export default function EntertainmentPage() {
             <p className="text-sm text-apple-secondary">{playlistItems.length} שירים</p>
             <button
               onClick={() => setShowAddSong(!showAddSong)}
-              className="flex items-center gap-1.5 rounded-xl bg-ios-indigo px-3 py-1.5 text-xs font-medium text-white"
+              className="flex items-center gap-1.5 rounded-apple bg-ios-indigo px-3 py-1.5 text-xs font-medium text-white"
             >
               <Plus className="h-3.5 w-3.5" />
               הוסף שיר
@@ -117,31 +117,31 @@ export default function EntertainmentPage() {
           </div>
 
           {showAddSong && (
-            <div className="glass rounded-apple-lg p-4 shadow-sm space-y-2">
+            <div className="glass rounded-apple-lg p-4 shadow-glass space-y-2">
               <input
                 type="text"
                 placeholder="שם השיר"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
-                className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
+                className="w-full rounded-apple-lg border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
               />
               <input
                 type="text"
                 placeholder="אמן (אופציונלי)"
                 value={newArtist}
                 onChange={(e) => setNewArtist(e.target.value)}
-                className="w-full rounded-xl border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
+                className="w-full rounded-apple-lg border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
               />
               <div className="flex gap-2">
                 <button
                   onClick={addSong}
-                  className="flex-1 rounded-xl bg-ios-indigo px-4 py-2 text-sm font-medium text-white"
+                  className="flex-1 rounded-apple bg-ios-indigo px-4 py-2 text-sm font-medium text-white"
                 >
                   הוסף
                 </button>
                 <button
                   onClick={() => setShowAddSong(false)}
-                  className="rounded-xl bg-black/[0.04] px-4 py-2 text-sm font-medium text-apple-secondary"
+                  className="rounded-apple bg-black/[0.04] px-4 py-2 text-sm font-medium text-apple-secondary"
                 >
                   ביטול
                 </button>
@@ -160,7 +160,7 @@ export default function EntertainmentPage() {
             return (
               <div
                 key={song.id}
-                className="flex items-center gap-3 glass rounded-apple-lg p-3 shadow-sm"
+                className="flex items-center gap-3 glass rounded-apple-lg p-3 shadow-glass"
               >
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ios-indigo/10 text-sm font-bold text-ios-indigo">
                   {idx + 1}
@@ -233,7 +233,7 @@ export default function EntertainmentPage() {
         <div className="space-y-3">
           <p className="text-sm text-apple-secondary">משחקים לדרך - כיף לכל המשפחה!</p>
           {ROAD_TRIP_GAMES.map((game) => (
-            <div key={game.id} className="glass rounded-apple-lg p-4 shadow-sm">
+            <div key={game.id} className="glass rounded-apple-lg p-4 shadow-glass">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">{game.icon}</span>
                 <div className="flex-1">
@@ -253,7 +253,7 @@ export default function EntertainmentPage() {
       {activeTab === 'trivia' && (
         <div className="space-y-4">
           <p className="text-sm text-apple-secondary">חידון ארה"ב - בדקו את הידע שלכם!</p>
-          <div className="glass rounded-apple-lg p-6 shadow-sm text-center">
+          <div className="glass rounded-apple-lg p-6 shadow-glass text-center">
             <Badge className="bg-ios-teal/10 text-ios-teal">
               {USA_TRIVIA[triviaIndex].category}
             </Badge>
@@ -264,7 +264,7 @@ export default function EntertainmentPage() {
               שאלה {triviaIndex + 1} מתוך {USA_TRIVIA.length}
             </p>
             {showAnswer ? (
-              <div className="mt-4 rounded-xl bg-ios-green/10 p-4">
+              <div className="mt-4 rounded-apple-lg bg-ios-green/10 p-4">
                 <p className="text-base font-bold text-ios-green">
                   {USA_TRIVIA[triviaIndex].answer}
                 </p>
@@ -272,7 +272,7 @@ export default function EntertainmentPage() {
             ) : (
               <button
                 onClick={() => setShowAnswer(true)}
-                className="mt-4 flex items-center gap-1.5 mx-auto rounded-xl bg-ios-teal/10 px-4 py-2 text-sm font-medium text-ios-teal"
+                className="mt-4 flex items-center gap-1.5 mx-auto rounded-apple bg-ios-teal/10 px-4 py-2 text-sm font-medium text-ios-teal"
               >
                 <Eye className="h-4 w-4" />
                 גלה תשובה
@@ -280,7 +280,7 @@ export default function EntertainmentPage() {
             )}
             <button
               onClick={nextTrivia}
-              className="mt-4 w-full rounded-xl bg-ios-teal px-4 py-3 text-sm font-medium text-white"
+              className="mt-4 w-full rounded-apple bg-ios-teal px-4 py-3 text-sm font-medium text-white"
             >
               שאלה הבאה
             </button>

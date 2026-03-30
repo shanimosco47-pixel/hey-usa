@@ -187,7 +187,7 @@ export default function PhotosPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            className="rounded-xl glass p-2 text-apple-secondary"
+            className="rounded-apple-lg glass p-2 text-apple-secondary"
             aria-label={viewMode === 'grid' ? 'תצוגת רשימה' : 'תצוגת רשת'}
           >
             {viewMode === 'grid' ? (
@@ -199,7 +199,7 @@ export default function PhotosPage() {
           <button
             onClick={() => setFilterFavorites(!filterFavorites)}
             className={cn(
-              'rounded-xl p-2',
+              'rounded-apple-lg p-2',
               filterFavorites ? 'bg-red-50 text-red-400' : 'glass text-apple-secondary',
             )}
             aria-label={filterFavorites ? 'הצג הכל' : 'סנן מועדפים'}
@@ -250,11 +250,11 @@ export default function PhotosPage() {
       )}
 
       <div className="flex gap-3">
-        <div className="rounded-xl glass px-3 py-2 text-center shadow-sm">
+        <div className="rounded-apple-lg glass px-3 py-2 text-center shadow-glass">
           <p className="text-lg font-bold text-apple-primary">{photos.length}</p>
           <p className="text-xs text-apple-secondary">תמונות</p>
         </div>
-        <div className="rounded-xl glass px-3 py-2 text-center shadow-sm">
+        <div className="rounded-apple-lg glass px-3 py-2 text-center shadow-glass">
           <p className="text-lg font-bold text-ios-red">
             {photos.filter((p) => p.is_favorite).length}
           </p>
@@ -300,7 +300,7 @@ export default function PhotosPage() {
               <button
                 onClick={() => (selectMode ? toggleSelect(photo.id) : setSelectedPhoto(photo))}
                 className={cn(
-                  'group relative aspect-square w-full overflow-hidden rounded-xl bg-black/[0.04]',
+                  'group relative aspect-square w-full overflow-hidden rounded-apple-lg bg-black/[0.04]',
                   isSampleData(photo.id) && 'ring-1 ring-dashed ring-ios-teal/30',
                   selectMode && selectedIds.has(photo.id) && 'ring-2 ring-ios-blue',
                 )}
@@ -354,14 +354,14 @@ export default function PhotosPage() {
                 <button
                   onClick={() => (selectMode ? toggleSelect(photo.id) : setSelectedPhoto(photo))}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-apple-lg glass p-2 text-right shadow-sm',
+                    'flex w-full items-center gap-3 rounded-apple-lg glass p-2 text-right shadow-glass',
                     selectMode && selectedIds.has(photo.id) && 'ring-2 ring-ios-blue',
                   )}
                 >
                   <img
                     src={photo.thumbnail_url || photo.url}
                     alt={photo.caption || ''}
-                    className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                    className="h-16 w-16 shrink-0 rounded-apple-lg object-cover"
                     loading="lazy"
                   />
                   <div className="flex-1 min-w-0">

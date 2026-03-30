@@ -52,7 +52,7 @@ function isExpiringWithin6Months(dateStr?: string): boolean {
 function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   return (
     <div className="fixed bottom-6 start-1/2 -translate-x-1/2 rtl:translate-x-1/2 z-[60] animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <div className="flex items-center gap-2 rounded-apple-lg bg-gray-800 px-4 py-3 text-subhead text-white shadow-glass-float">
+      <div className="flex items-center gap-2 rounded-apple-lg bg-apple-primary px-4 py-3 text-subhead text-white shadow-glass-float">
         <span>📄</span>
         <span>{message}</span>
         <button type="button" onClick={onClose} className="mr-2 text-white/60 hover:text-white">
@@ -119,7 +119,7 @@ function HtmlPreview({
     if (notes) {
       return (
         <div
-          className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]"
+          className="w-full rounded-apple-lg bg-ios-orange/10 p-5 overflow-y-auto max-h-[50vh]"
           dir="rtl"
         >
           <div className="flex items-center gap-2 mb-3">
@@ -132,7 +132,7 @@ function HtmlPreview({
       )
     }
     return (
-      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-red-50">
+      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-apple-lg bg-ios-red/10">
         <p className="text-sm text-red-400">שגיאה בטעינת המסמך</p>
       </div>
     )
@@ -140,7 +140,7 @@ function HtmlPreview({
 
   if (!blobUrl) {
     return (
-      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-surface-primary">
+      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-apple-lg bg-surface-primary">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-ios-blue border-t-transparent" />
       </div>
     )
@@ -151,7 +151,7 @@ function HtmlPreview({
     return (
       <div className="w-full space-y-3">
         <div
-          className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]"
+          className="w-full rounded-apple-lg bg-ios-orange/10 p-5 overflow-y-auto max-h-[50vh]"
           dir="rtl"
         >
           <div className="flex items-center gap-2 mb-3">
@@ -179,7 +179,10 @@ function HtmlPreview({
 
   return (
     <div className="w-full space-y-3">
-      <div className="w-full rounded-xl bg-white overflow-hidden" style={{ minHeight: '40vh' }}>
+      <div
+        className="w-full rounded-apple-lg bg-white overflow-hidden"
+        style={{ minHeight: '40vh' }}
+      >
         <iframe
           src={blobUrl}
           title={title}
@@ -201,7 +204,7 @@ function HtmlPreview({
       {/* Show notes below the HTML preview when they exist */}
       {notes && (
         <div
-          className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[30vh]"
+          className="w-full rounded-apple-lg bg-ios-orange/10 p-5 overflow-y-auto max-h-[30vh]"
           dir="rtl"
         >
           <div className="flex items-center gap-2 mb-3">
@@ -218,7 +221,10 @@ function HtmlPreview({
 /** Notes block used as primary content when the attached file isn't useful */
 function NotesBlock({ doc, subtitle }: { doc: Document; subtitle?: string }) {
   return (
-    <div className="w-full rounded-xl bg-amber-50/80 p-5 overflow-y-auto max-h-[50vh]" dir="rtl">
+    <div
+      className="w-full rounded-apple-lg bg-ios-orange/10 p-5 overflow-y-auto max-h-[50vh]"
+      dir="rtl"
+    >
       <div className="flex items-center gap-2 mb-3">
         <StickyNote className="h-5 w-5 text-amber-600 shrink-0" />
         <h4 className="text-sm font-bold text-apple-primary">פרטי המסמך</h4>
@@ -260,7 +266,7 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
           subtitle="📎 הקובץ המצורף הוא לוגו/כותרת בלבד — הפרטים החשובים מוצגים למעלה"
         />
         {/* Show the image as a small reference thumbnail */}
-        <div className="w-full rounded-xl bg-sky-50/50 p-3 flex items-center gap-3">
+        <div className="w-full rounded-apple-lg bg-ios-teal/10/50 p-3 flex items-center gap-3">
           <img
             src={doc.file_url!}
             alt={doc.title}
@@ -278,7 +284,7 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
   if (doc.file_type?.includes('image') && realFile) {
     return (
       <div className="w-full space-y-3">
-        <div className="w-full rounded-xl bg-sky-50 overflow-hidden">
+        <div className="w-full rounded-apple-lg bg-ios-teal/10 overflow-hidden">
           <img
             src={doc.file_url!}
             alt={doc.title}
@@ -294,7 +300,7 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
 
   if (doc.file_type?.includes('image')) {
     return (
-      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-sky-50">
+      <div className="flex aspect-[4/3] w-full items-center justify-center rounded-apple-lg bg-ios-teal/10">
         <div className="flex flex-col items-center gap-3">
           <Image className="h-16 w-16 text-ios-blue/50" />
           <p className="text-sm text-apple-secondary">תצוגה מקדימה לא זמינה</p>
@@ -310,7 +316,7 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
   if (doc.file_type?.includes('pdf')) {
     return (
       <div className="w-full space-y-3">
-        <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-red-50">
+        <div className="flex aspect-[4/3] w-full items-center justify-center rounded-apple-lg bg-ios-red/10">
           <div className="flex flex-col items-center gap-3">
             <FileText className="h-16 w-16 text-red-300" />
             <button
@@ -329,7 +335,7 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
   }
 
   return (
-    <div className="flex aspect-[4/3] w-full items-center justify-center rounded-xl bg-surface-primary">
+    <div className="flex aspect-[4/3] w-full items-center justify-center rounded-apple-lg bg-surface-primary">
       <File className="h-16 w-16 text-apple-tertiary" />
     </div>
   )

@@ -126,7 +126,7 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 placeholder="שם המשימה..."
                 dir="auto"
-                className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+                className="w-full rounded-apple-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                 required
                 autoFocus
               />
@@ -141,7 +141,7 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                 placeholder="פרטים נוספים..."
                 rows={3}
                 dir="auto"
-                className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 resize-none"
+                className="w-full rounded-apple-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 resize-none"
               />
             </div>
 
@@ -152,7 +152,7 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                 <select
                   value={form.group}
                   onChange={(e) => setForm((f) => ({ ...f, group: e.target.value as TaskGroup }))}
-                  className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+                  className="w-full rounded-apple-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                 >
                   {GROUP_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -166,7 +166,7 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                 <select
                   value={form.status}
                   onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as TaskStatus }))}
-                  className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+                  className="w-full rounded-apple-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                 >
                   {STATUS_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -186,7 +186,7 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                   onChange={(e) =>
                     setForm((f) => ({ ...f, priority: e.target.value as TaskPriority }))
                   }
-                  className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+                  className="w-full rounded-apple-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                 >
                   {PRIORITY_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -203,7 +203,7 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                   type="date"
                   value={form.due_date}
                   onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
-                  className="w-full rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+                  className="w-full rounded-apple-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
                   dir="ltr"
                 />
               </div>
@@ -244,14 +244,14 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
               <button
                 type="submit"
                 disabled={!form.title.trim()}
-                className="flex-1 rounded-xl bg-ios-blue px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-ios-blue/90 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex-1 rounded-apple bg-ios-blue px-4 py-2.5 text-sm font-bold text-white transition-all hover:bg-ios-blue/90 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isEditing ? 'שמור שינויים' : 'הוסף משימה'}
               </button>
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="rounded-xl border border-black/[0.06] px-4 py-2.5 text-sm font-medium text-apple-secondary transition-all hover:bg-black/[0.03]"
+                className="rounded-apple border border-black/[0.06] px-4 py-2.5 text-sm font-medium text-apple-secondary transition-all hover:bg-black/[0.03]"
               >
                 ביטול
               </button>
@@ -259,7 +259,7 @@ export function TaskDialog({ open, onOpenChange, task, onSave, onDelete }: TaskD
                 <button
                   type="button"
                   onClick={handleDelete}
-                  className="rounded-xl p-2.5 text-red-400 transition-all hover:bg-red-50 hover:text-red-500"
+                  className="rounded-apple p-2.5 text-red-400 transition-all hover:bg-ios-red/10 hover:text-red-500"
                   title="מחק משימה"
                 >
                   <Trash2 className="h-4 w-4" />

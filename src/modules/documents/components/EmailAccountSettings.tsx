@@ -67,7 +67,7 @@ export function EmailAccountSettings() {
   }
 
   return (
-    <div className="mb-4 overflow-hidden rounded-xl border border-black/[0.06] glass">
+    <div className="mb-4 overflow-hidden rounded-apple-lg border border-black/[0.06] glass">
       {/* Header row — always visible */}
       <button
         type="button"
@@ -155,7 +155,7 @@ export function EmailAccountSettings() {
               <button
                 type="button"
                 onClick={handleConnect}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-ios-indigo/40 py-2.5 text-sm font-medium text-ios-indigo transition-colors hover:border-ios-indigo/70 hover:bg-ios-indigo/5"
+                className="flex w-full items-center justify-center gap-2 rounded-apple-lg border border-dashed border-ios-indigo/40 py-2.5 text-sm font-medium text-ios-indigo transition-colors hover:border-ios-indigo/70 hover:bg-ios-indigo/5"
               >
                 <Plus className="h-4 w-4" />
                 חבר חשבון Gmail

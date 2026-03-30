@@ -133,7 +133,7 @@ export default function DocumentsPage() {
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ios-blue/10">
+          <div className="flex h-10 w-10 items-center justify-center rounded-apple bg-ios-blue/10">
             <FileText className="h-5 w-5 text-ios-blue" />
           </div>
           <div>
@@ -159,7 +159,7 @@ export default function DocumentsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="חיפוש מסמכים..."
-            className="w-full rounded-xl border border-black/[0.06] glass py-2.5 pe-3 ps-9 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
+            className="w-full rounded-apple-lg border border-black/[0.06] glass py-2.5 pe-3 ps-9 text-sm text-apple-primary placeholder:text-apple-secondary/50 focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
           />
         </div>
         {/* Sort toggle */}
@@ -357,7 +357,7 @@ function ListRow({
       type="button"
       onClick={() => onClick(doc)}
       className={cn(
-        'flex items-center gap-3 rounded-xl border glass px-4 py-3 text-right transition-all hover:bg-white/80 hover:shadow-sm',
+        'flex items-center gap-3 rounded-apple-lg border glass px-4 py-3 text-right transition-all hover:bg-white/80 hover:shadow-glass-hover',
         isExpired ? 'border-red-300' : 'border-black/[0.06]',
       )}
     >

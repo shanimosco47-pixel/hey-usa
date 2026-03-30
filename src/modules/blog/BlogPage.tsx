@@ -273,7 +273,7 @@ export default function BlogPage() {
             placeholder="תגיות (מופרדות בפסיק)"
             value={editTags}
             onChange={(e) => setEditTags(e.target.value)}
-            className="flex-1 rounded-xl border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
+            className="flex-1 rounded-apple-lg border border-black/[0.06] glass px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary"
           />
         </div>
       </div>
@@ -292,8 +292,8 @@ export default function BlogPage() {
           <ArrowRight className="h-4 w-4" />
           חזרה לכל הפוסטים
         </button>
-        <div className="rounded-apple-lg glass p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-apple-primary">{selectedPost.title}</h1>
+        <div className="rounded-apple-lg glass p-6 shadow-glass">
+          <h1 className="text-title font-bold text-apple-primary">{selectedPost.title}</h1>
           <div className="mt-3 flex items-center gap-3 text-sm text-apple-secondary">
             <span className="inline-flex items-center gap-1">
               <FamilyAvatar memberId={selectedPost.author_id} size="xs" /> {author.name}
@@ -340,7 +340,7 @@ export default function BlogPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
-        <h1 className="text-2xl font-bold text-apple-primary">
+        <h1 className="text-title font-bold text-apple-primary">
           <BookOpen className="ms-2 inline h-6 w-6" />
           יומן מסע
         </h1>

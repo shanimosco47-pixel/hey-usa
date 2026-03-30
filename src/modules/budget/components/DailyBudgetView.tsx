@@ -22,22 +22,25 @@ export function DailyBudgetView() {
     <div className="space-y-4">
       {/* Summary header */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="glass rounded-apple-lg p-3 text-center shadow-sm">
+        <div className="glass rounded-apple-lg p-3 text-center shadow-glass">
           <p className="text-caption text-apple-secondary">מתוכנן (מלו״ז)</p>
           <p className="mt-0.5 text-base font-bold text-apple-primary">
-            {currency}{totalPlanned.toLocaleString()}
+            {currency}
+            {totalPlanned.toLocaleString()}
           </p>
         </div>
-        <div className="glass rounded-apple-lg p-3 text-center shadow-sm">
+        <div className="glass rounded-apple-lg p-3 text-center shadow-glass">
           <p className="text-caption text-apple-secondary">בפועל</p>
           <p className="mt-0.5 text-base font-bold text-ios-red">
-            {currency}{totalActual.toLocaleString()}
+            {currency}
+            {totalActual.toLocaleString()}
           </p>
         </div>
-        <div className="glass rounded-apple-lg p-3 text-center shadow-sm">
+        <div className="glass rounded-apple-lg p-3 text-center shadow-glass">
           <p className="text-caption text-apple-secondary">ממוצע יומי</p>
           <p className="mt-0.5 text-base font-bold text-ios-blue">
-            {currency}{Math.round(avgDaily).toLocaleString()}
+            {currency}
+            {Math.round(avgDaily).toLocaleString()}
           </p>
         </div>
       </div>
@@ -49,7 +52,7 @@ export function DailyBudgetView() {
           return (
             <motion.div
               key={day.dayId}
-              className="glass rounded-apple-lg p-4 shadow-sm"
+              className="glass rounded-apple-lg p-4 shadow-glass"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.03, type: 'spring', stiffness: 300, damping: 25 }}
@@ -63,7 +66,11 @@ export function DailyBudgetView() {
                       יום {day.dayNumber} — {day.title}
                     </h4>
                     <p className="text-caption text-apple-secondary">
-                      {new Date(day.date).toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      {new Date(day.date).toLocaleDateString('he-IL', {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'short',
+                      })}
                       {day.city && ` · ${day.city}`}
                     </p>
                   </div>
@@ -73,13 +80,16 @@ export function DailyBudgetView() {
                   <div
                     className={cn(
                       'flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-semibold',
-                      isUnder
-                        ? 'bg-ios-green/15 text-ios-green'
-                        : 'bg-ios-red/15 text-ios-red',
+                      isUnder ? 'bg-ios-green/15 text-ios-green' : 'bg-ios-red/15 text-ios-red',
                     )}
                   >
-                    {isUnder ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
-                    {currency}{Math.abs(day.delta).toLocaleString()}
+                    {isUnder ? (
+                      <TrendingDown className="h-3 w-3" />
+                    ) : (
+                      <TrendingUp className="h-3 w-3" />
+                    )}
+                    {currency}
+                    {Math.abs(day.delta).toLocaleString()}
                   </div>
                 )}
               </div>
@@ -92,7 +102,8 @@ export function DailyBudgetView() {
                     <span className="truncate">{day.accommodation.name}</span>
                     {day.accommodation.cost > 0 && (
                       <span className="font-medium text-apple-primary me-auto">
-                        {currency}{day.accommodation.cost}
+                        {currency}
+                        {day.accommodation.cost}
                       </span>
                     )}
                   </div>
@@ -102,7 +113,8 @@ export function DailyBudgetView() {
                     <Activity className="h-3.5 w-3.5" />
                     <span>פעילויות</span>
                     <span className="font-medium text-apple-primary me-auto">
-                      {currency}{day.plannedActivities.toLocaleString()}
+                      {currency}
+                      {day.plannedActivities.toLocaleString()}
                     </span>
                   </div>
                 )}
@@ -111,7 +123,8 @@ export function DailyBudgetView() {
                     <Car className="h-3.5 w-3.5" />
                     <span>נסיעות</span>
                     <span className="font-medium text-apple-primary me-auto">
-                      {currency}{day.plannedDriving.toLocaleString()}
+                      {currency}
+                      {day.plannedDriving.toLocaleString()}
                     </span>
                   </div>
                 )}
@@ -121,13 +134,22 @@ export function DailyBudgetView() {
               {(day.plannedTotal > 0 || day.actualTotal > 0) && (
                 <div className="mt-2 flex items-center justify-between border-t border-black/[0.04] pt-2 text-xs">
                   <span className="text-apple-secondary">
-                    מתוכנן: <span className="font-medium text-apple-primary">{currency}{day.plannedTotal.toLocaleString()}</span>
+                    מתוכנן:{' '}
+                    <span className="font-medium text-apple-primary">
+                      {currency}
+                      {day.plannedTotal.toLocaleString()}
+                    </span>
                   </span>
                   <span className="text-apple-secondary">
-                    בפועל: <span className="font-medium text-ios-red">{currency}{day.actualTotal.toLocaleString()}</span>
+                    בפועל:{' '}
+                    <span className="font-medium text-ios-red">
+                      {currency}
+                      {day.actualTotal.toLocaleString()}
+                    </span>
                   </span>
                   <span className="text-apple-tertiary">
-                    מצטבר: {currency}{day.runningPlanned.toLocaleString()}
+                    מצטבר: {currency}
+                    {day.runningPlanned.toLocaleString()}
                   </span>
                 </div>
               )}
