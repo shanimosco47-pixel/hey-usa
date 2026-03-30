@@ -47,70 +47,70 @@ const DESTINATIONS = [
     emoji: '✈️',
     days: 'Sep 10-11',
     state: 'MT',
-    gradient: 'linear-gradient(135deg, #38bdf8, #6366f1)',
+    gradient: 'linear-gradient(135deg, #334155, #1e293b)',
   },
   {
     name: 'Yellowstone',
     emoji: '🌋',
     days: 'Sep 11-14',
     state: 'WY',
-    gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+    gradient: 'linear-gradient(135deg, #92400e, #78350f)',
   },
   {
     name: 'Grand Teton',
     emoji: '🏔️',
     days: 'Sep 14-16',
     state: 'WY',
-    gradient: 'linear-gradient(135deg, #3b82f6, #1e3a5f)',
+    gradient: 'linear-gradient(135deg, #1e3a5f, #0f172a)',
   },
   {
     name: 'Salt Lake City',
     emoji: '🏛️',
     days: 'Sep 16',
     state: 'UT',
-    gradient: 'linear-gradient(135deg, #64748b, #3b82f6)',
+    gradient: 'linear-gradient(135deg, #57534e, #44403c)',
   },
   {
     name: 'Bryce Canyon',
     emoji: '🪨',
     days: 'Sep 17-18',
     state: 'UT',
-    gradient: 'linear-gradient(135deg, #ea580c, #dc2626)',
+    gradient: 'linear-gradient(135deg, #c2410c, #9a3412)',
   },
   {
     name: 'Zion',
     emoji: '⛰️',
     days: 'Sep 18-20',
     state: 'UT',
-    gradient: 'linear-gradient(135deg, #dc2626, #f97316)',
+    gradient: 'linear-gradient(135deg, #b45309, #92400e)',
   },
   {
     name: 'Las Vegas',
     emoji: '🎰',
     days: 'Sep 20-21',
     state: 'NV',
-    gradient: 'linear-gradient(135deg, #a855f7, #ec4899)',
+    gradient: 'linear-gradient(135deg, #7c3aed, #5b21b6)',
   },
   {
     name: 'Mammoth Lakes',
     emoji: '🎿',
     days: 'Sep 21-22',
     state: 'CA',
-    gradient: 'linear-gradient(135deg, #3b82f6, #4f46e5)',
+    gradient: 'linear-gradient(135deg, #1e40af, #1e3a8a)',
   },
   {
     name: 'Yosemite',
     emoji: '🌲',
     days: 'Sep 22-25',
     state: 'CA',
-    gradient: 'linear-gradient(135deg, #16a34a, #0d9488)',
+    gradient: 'linear-gradient(135deg, #3f6212, #365314)',
   },
   {
     name: 'San Francisco',
     emoji: '🌉',
     days: 'Sep 25-30',
     state: 'CA',
-    gradient: 'linear-gradient(135deg, #f97316, #dc2626)',
+    gradient: 'linear-gradient(135deg, #9a3412, #7c2d12)',
   },
 ]
 
@@ -138,31 +138,36 @@ function PassportStamp({
   text,
   date,
   rotation = -12,
+  size = 72,
 }: {
   text: string
   date: string
   rotation?: number
+  size?: number
 }) {
   return (
     <div
-      className="inline-flex flex-col items-center justify-center shrink-0"
+      className="passport-stamp inline-flex flex-col items-center justify-center shrink-0"
       style={{
-        width: 72,
-        height: 72,
-        border: '2.5px solid #b45309',
-        borderRadius: '50%',
+        width: size,
+        height: size,
         transform: `rotate(${rotation}deg)`,
-        position: 'relative',
-        color: '#b45309',
-        opacity: 0.85,
       }}
     >
-      <div
-        className="absolute rounded-full"
-        style={{ inset: 4, border: '1px dashed rgba(180, 83, 9, 0.4)' }}
-      />
       <span className="font-serif text-caption font-semibold uppercase tracking-wider">{text}</span>
-      <span className="font-serif text-caption font-bold">{date}</span>
+      <span className="font-serif text-[10px] font-bold">{date}</span>
+    </div>
+  )
+}
+
+/* ── Rectangular passport stamp ── */
+function PassportStampRect({ text, rotation = 3 }: { text: string; rotation?: number }) {
+  return (
+    <div
+      className="passport-stamp-rect shrink-0 px-3 py-1.5"
+      style={{ transform: `rotate(${rotation}deg)` }}
+    >
+      <span className="font-serif text-[10px] font-bold uppercase tracking-widest">{text}</span>
     </div>
   )
 }
@@ -269,73 +274,109 @@ export default function DashboardPage() {
       <ScrollProgress className="h-[3px]" />
 
       <div className="relative z-10 mx-auto max-w-4xl px-5 pt-8 pb-28">
-        {/* ── Hero Section — Passport Stamp Aesthetic ── */}
+        {/* ── Hero Section — Editorial Travel Journal ── */}
         <BlurFade delay={0} duration={0.5}>
-          <div className="mb-6">
-            {/* Top bar: passport stamp + title + family avatars */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <PassportStamp text="USA" date="SEP 26" rotation={-8} />
+          <div className="mb-8">
+            {/* Decorative stamps row */}
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex items-center gap-4">
+                <PassportStamp text="USA" date="SEP 26" rotation={-8} size={76} />
                 <div>
-                  <h1 className="font-serif text-hero font-semibold text-passport-slate leading-none tracking-tight">
+                  <h1 className="font-serif text-[40px] font-bold text-passport-slate leading-none tracking-tight">
                     <span dir="ltr">Hey USA</span>
                   </h1>
-                  <p className="text-subhead text-apple-secondary mt-1" dir="ltr">
-                    Bozeman → San Francisco
-                  </p>
+                  <div className="flex items-center gap-2 mt-1.5" dir="ltr">
+                    <div className="h-px flex-1 bg-passport-rust/20 max-w-[60px]" />
+                    <p className="text-subhead text-passport-rust font-medium tracking-wide uppercase">
+                      Bozeman → San Francisco
+                    </p>
+                    <div className="h-px flex-1 bg-passport-rust/20 max-w-[60px]" />
+                  </div>
                 </div>
               </div>
-              {/* Family avatars */}
-              <div className="flex -space-x-1.5 rtl:space-x-reverse">
+              {/* Family avatars with warm ring */}
+              <div className="flex -space-x-2 rtl:space-x-reverse mt-2">
                 {(['aba', 'ima', 'kid1', 'kid2'] as FamilyMemberId[]).map((id, i) => (
-                  <div key={id} className="relative" style={{ zIndex: 4 - i }}>
+                  <div
+                    key={id}
+                    className="relative ring-2 ring-passport-cream rounded-full"
+                    style={{ zIndex: 4 - i }}
+                  >
                     <FamilyAvatar memberId={id} size="sm" />
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Date & greeting */}
-            <div className="mb-4">
-              <p className="text-subhead text-apple-secondary tracking-wide">{todayDate}</p>
-              <p className="mt-0.5 text-headline font-semibold text-passport-slate">
-                {memberData ? `שלום, ${memberData.name}` : 'שלום!'}
-              </p>
+            {/* Date & greeting — warm editorial style */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-subhead text-apple-secondary tracking-wide">{todayDate}</p>
+                <p className="mt-0.5 text-headline font-semibold text-passport-slate">
+                  {memberData ? `שלום, ${memberData.name}` : 'שלום!'}
+                </p>
+              </div>
+              <PassportStampRect text="APPROVED" rotation={4} />
             </div>
+
+            {/* Warm divider */}
+            <div className="mt-5 border-b divider-warm" />
           </div>
         </BlurFade>
 
-        {/* ── Hero Stats — Dark Card with NumberTicker ── */}
+        {/* ── Hero Stats — Warm Passport Card ── */}
         <BlurFade delay={0.1} duration={0.5}>
-          <div className="mb-4">
+          <div className="mb-5">
             <MagicCard className="rounded-apple-xl">
               <div
-                className="rounded-apple-xl py-6 px-5 text-white"
-                style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' }}
+                className="relative rounded-apple-xl py-7 px-5 text-white overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #78350f 150%)',
+                }}
                 dir="ltr"
               >
-                <div className="grid grid-cols-3 gap-4 text-center">
+                {/* Decorative stamp watermark */}
+                <div
+                  className="absolute -top-4 -right-4 opacity-[0.04]"
+                  style={{
+                    width: 140,
+                    height: 140,
+                    border: '4px solid white',
+                    borderRadius: '50%',
+                    transform: 'rotate(15deg)',
+                  }}
+                />
+                <div className="grid grid-cols-3 gap-4 text-center relative">
                   <div>
-                    <div className="font-serif text-hero font-bold leading-none">
+                    <div className="font-serif text-[38px] font-bold leading-none">
                       <NumberTicker value={daysLeft} delay={0.2} />
                     </div>
-                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">
+                    <div
+                      className="text-[11px] text-amber-300/70 mt-1.5 font-medium uppercase tracking-wider"
+                      dir="rtl"
+                    >
                       ימים לטיסה
                     </div>
                   </div>
-                  <div className="border-x border-white/10">
-                    <div className="font-serif text-hero font-bold leading-none">
+                  <div className="border-x border-amber-500/15">
+                    <div className="font-serif text-[38px] font-bold leading-none">
                       <NumberTicker value={2400} delay={0.4} />
                     </div>
-                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">
+                    <div
+                      className="text-[11px] text-amber-300/70 mt-1.5 font-medium uppercase tracking-wider"
+                      dir="rtl"
+                    >
                       מיילים
                     </div>
                   </div>
                   <div>
-                    <div className="font-serif text-hero font-bold leading-none">
+                    <div className="font-serif text-[38px] font-bold leading-none">
                       <NumberTicker value={21} delay={0.6} />
                     </div>
-                    <div className="text-caption text-apple-secondary mt-1 font-medium" dir="rtl">
+                    <div
+                      className="text-[11px] text-amber-300/70 mt-1.5 font-medium uppercase tracking-wider"
+                      dir="rtl"
+                    >
                       ימי טיול
                     </div>
                   </div>
@@ -371,35 +412,32 @@ export default function DashboardPage() {
         <div className="lg:grid lg:grid-cols-[1fr_340px] lg:gap-8 lg:items-start">
           {/* Left column — main content */}
           <div>
-            {/* ── Quick Stats Row ── */}
+            {/* ── Quick Stats Row — Parchment Cards ── */}
             <BlurFade delay={0.25} duration={0.5}>
-              <div className="mb-6 flex gap-2">
-                <div
-                  className="flex-1 rounded-apple bg-white px-3 py-2.5 text-center"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
-                >
-                  <p className="text-caption text-apple-secondary font-medium">משימות</p>
-                  <p className="text-body font-bold text-ios-green">
+              <div className="mb-6 flex gap-2.5">
+                <div className="flex-1 glass rounded-apple-lg px-3 py-3 text-center">
+                  <p className="text-caption text-apple-secondary font-medium uppercase tracking-wider">
+                    משימות
+                  </p>
+                  <p className="text-body font-bold text-passport-sage mt-0.5">
                     {tasksDone}/{tasksTotal}
                   </p>
                 </div>
-                <div
-                  className="flex-1 rounded-apple bg-white px-3 py-2.5 text-center"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
-                >
-                  <p className="text-caption text-apple-secondary font-medium">תקציב</p>
+                <div className="flex-1 glass rounded-apple-lg px-3 py-3 text-center">
+                  <p className="text-caption text-apple-secondary font-medium uppercase tracking-wider">
+                    תקציב
+                  </p>
                   <p
-                    className={`text-body font-bold ${budgetPercent > 80 ? 'text-ios-red' : 'text-ios-blue'}`}
+                    className={`text-body font-bold mt-0.5 ${budgetPercent > 80 ? 'text-passport-terracotta' : 'text-passport-slate'}`}
                   >
                     {budgetPercent}%
                   </p>
                 </div>
-                <div
-                  className="flex-1 rounded-apple bg-white px-3 py-2.5 text-center"
-                  style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 0 0 0.5px rgba(0,0,0,0.04)' }}
-                >
-                  <p className="text-caption text-apple-secondary font-medium">אריזה</p>
-                  <p className="text-body font-bold text-ios-teal">{packingPercent}%</p>
+                <div className="flex-1 glass rounded-apple-lg px-3 py-3 text-center">
+                  <p className="text-caption text-apple-secondary font-medium uppercase tracking-wider">
+                    אריזה
+                  </p>
+                  <p className="text-body font-bold text-passport-rust mt-0.5">{packingPercent}%</p>
                 </div>
               </div>
             </BlurFade>
@@ -419,9 +457,13 @@ export default function DashboardPage() {
 
             {/* ── Module Grid with MagicCard ── */}
             <BlurFade delay={0.5} duration={0.5}>
-              <p className="text-caption uppercase tracking-wider text-apple-secondary mb-3">
-                מודולים
-              </p>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-px flex-1 bg-passport-rust/10" />
+                <p className="text-caption uppercase tracking-widest text-passport-rust/60 font-semibold">
+                  מודולים
+                </p>
+                <div className="h-px flex-1 bg-passport-rust/10" />
+              </div>
               <div className="grid grid-cols-3 lg:grid-cols-4 gap-3">
                 {MODULE_CARDS.map(({ path, icon: Icon, label, color, countKey }, i) => (
                   <BlurFade key={path} delay={0.55 + i * 0.04} duration={0.4}>
@@ -568,9 +610,9 @@ function MotiFloatingButton() {
       whileTap={{ scale: 0.95 }}
       className="fixed bottom-24 start-5 z-20 flex h-28 w-28 items-center justify-center rounded-full overflow-hidden cursor-grab active:cursor-grabbing touch-none"
       style={{
-        background: 'linear-gradient(145deg, #E8FAF8, #B8F0EA)',
-        boxShadow: '0 6px 28px rgba(38, 204, 194, 0.25), inset 0 1px 2px rgba(255,255,255,0.8)',
-        border: '2px solid rgba(38,204,194,0.2)',
+        background: 'linear-gradient(145deg, #FAF8F5, #E8E0D8)',
+        boxShadow: '0 6px 28px rgba(180, 83, 9, 0.15), inset 0 1px 2px rgba(255,255,255,0.8)',
+        border: '2px solid rgba(180, 83, 9, 0.12)',
       }}
       aria-label="צ'אט עם מוטי"
     >

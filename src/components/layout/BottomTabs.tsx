@@ -146,7 +146,7 @@ export function BottomTabs() {
         className={cn(
           'fixed bottom-0 left-0 right-0 z-30',
           'flex h-16 items-center justify-around',
-          'glass-nav border-t border-black/[0.06] dark:border-white/[0.06]',
+          'glass-nav border-t border-passport-rust/[0.06] dark:border-white/[0.06]',
           'pb-safe',
         )}
       >
@@ -161,7 +161,7 @@ export function BottomTabs() {
                 cn(
                   'flex flex-col items-center gap-0.5 px-4 py-1.5',
                   'text-subhead font-medium transition-colors duration-150',
-                  isActive ? 'text-ios-blue font-semibold' : 'text-apple-tertiary',
+                  isActive ? 'text-passport-rust font-semibold' : 'text-apple-tertiary',
                 )
               }
             >
@@ -175,7 +175,7 @@ export function BottomTabs() {
                   {isActive && (
                     <motion.div
                       layoutId="tab-dot"
-                      className="h-[3px] w-[3px] rounded-full bg-ios-blue"
+                      className="h-[3px] w-[3px] rounded-full bg-passport-rust"
                       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                     />
                   )}
@@ -194,7 +194,7 @@ export function BottomTabs() {
           className={cn(
             'flex flex-col items-center gap-0.5 px-3 py-1.5',
             'text-subhead transition-colors',
-            moreOpen ? 'text-ios-blue font-semibold' : 'text-apple-secondary',
+            moreOpen ? 'text-passport-rust font-semibold' : 'text-apple-secondary',
           )}
         >
           <MoreHorizontal className="h-6 w-6" />

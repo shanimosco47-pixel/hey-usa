@@ -14,7 +14,7 @@ export function AppShell() {
   const location = useLocation()
 
   return (
-    <div className="min-h-screen bg-surface-primary dark:bg-black" dir="rtl">
+    <div className="min-h-screen bg-passport-cream dark:bg-black" dir="rtl">
       <a href="#main-content" className="skip-link">
         דלג לתוכן הראשי
       </a>

@@ -21,17 +21,17 @@
     --trip-yellow: #fff57e;
     --trip-orange: #ffb76c;
 
-    /* Surfaces */
-    --bg-primary: #e8faf8;
-    --bg-elevated: rgba(255, 255, 255, 0.75);
-    --bg-card: rgba(255, 255, 255, 0.82);
-    --bg-dark: #1d1d1f;
-    --bg-dark-secondary: #2d2d30;
+    /* Surfaces — warm cream/paper */
+    --bg-primary: #f5f0eb;
+    --bg-elevated: rgba(255, 252, 247, 0.85);
+    --bg-card: rgba(255, 252, 247, 0.92);
+    --bg-dark: #1e293b;
+    --bg-dark-secondary: #334155;
 
-    /* Text */
-    --text-primary: #1d1d1f;
-    --text-secondary: #86868b;
-    --text-tertiary: #aeaeb2;
+    /* Text — deep navy / warm stone */
+    --text-primary: #1e293b;
+    --text-secondary: #78716c;
+    --text-tertiary: #a8a29e;
 
     /* Status */
     --status-todo: #ff3b30;
@@ -132,12 +132,12 @@ body {
   padding: 0;
   min-height: 100vh;
   font-family:
-    'Inter',
+    'DM Sans',
     'Heebo',
     -apple-system,
     BlinkMacSystemFont,
     sans-serif;
-  background-color: #faf8f5;
+  background-color: #f5f0eb;
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -194,34 +194,38 @@ ol {
 }
 
 @layer utilities {
-  /* Level 1 — Raised glass */
+  /* Level 1 — Paper card */
   .glass {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 0.5px solid rgba(38, 204, 194, 0.12);
+    background: rgba(255, 252, 247, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(180, 83, 9, 0.08);
     border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-shadow:
+      0 1px 3px rgba(30, 41, 59, 0.06),
+      0 0 0 0.5px rgba(180, 83, 9, 0.04);
   }
 
-  /* Level 2 — Floating glass */
+  /* Level 2 — Elevated paper */
   .glass-float {
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 0.5px solid rgba(38, 204, 194, 0.15);
+    background: rgba(255, 252, 247, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(180, 83, 9, 0.1);
     border-radius: 20px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    box-shadow:
+      0 8px 30px rgba(30, 41, 59, 0.08),
+      0 1px 2px rgba(180, 83, 9, 0.04);
   }
 
-  /* Navigation glass */
+  /* Navigation bar — warm parchment */
   .glass-nav {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(245, 240, 235, 0.92);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
 
-  /* Dark mode glass overrides */
+  /* Dark mode paper overrides */
   .dark .glass {
     background: rgba(44, 44, 46, 0.78);
     border-color: rgba(255, 255, 255, 0.08);
@@ -234,12 +238,70 @@ ol {
     background: rgba(28, 28, 30, 0.88);
   }
 
-  /* Dark hero card */
+  /* Dark hero card — navy/slate */
   .dark-card {
-    background: linear-gradient(135deg, #1d1d1f 0%, #2d2d30 100%);
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border-radius: 20px;
     color: white;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Paper texture overlay — subtle grain for vintage feel */
+  .paper-texture::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+    z-index: 0;
+    border-radius: inherit;
+  }
+
+  /* Passport stamp decoration — circular */
+  .passport-stamp {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2.5px solid #b45309;
+    border-radius: 50%;
+    color: #b45309;
+    opacity: 0.85;
+  }
+  .passport-stamp::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px dashed rgba(180, 83, 9, 0.4);
+    border-radius: 50%;
+  }
+
+  /* Passport stamp — rectangular variant */
+  .passport-stamp-rect {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #b45309;
+    border-radius: 4px;
+    color: #b45309;
+    opacity: 0.8;
+  }
+  .passport-stamp-rect::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1px dashed rgba(180, 83, 9, 0.35);
+    border-radius: 2px;
+  }
+
+  /* Warm divider line */
+  .divider-warm {
+    border-color: rgba(180, 83, 9, 0.12);
   }
 
   /* Card hover effect */

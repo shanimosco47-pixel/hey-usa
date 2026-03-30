@@ -26,8 +26,8 @@ export function TopBar() {
       className={cn(
         'sticky top-0 z-40 flex h-14 items-center justify-between px-5',
         'glass-nav',
-        'border-b border-black/[0.04] dark:border-white/[0.06]',
-        'shadow-[0_1px_2px_rgba(0,0,0,0.03)]',
+        'border-b border-passport-rust/[0.06] dark:border-white/[0.06]',
+        'shadow-[0_1px_2px_rgba(30,41,59,0.03)]',
       )}
     >
       <div className="flex items-center gap-2 shrink-0">
@@ -84,10 +84,10 @@ export function TopBar() {
       </div>
 
       <div className="flex flex-col items-end shrink-0">
-        <h1 className="text-body sm:text-headline font-bold tracking-tight text-apple-primary whitespace-nowrap">
+        <h1 className="font-serif text-body sm:text-headline font-bold tracking-tight text-passport-slate whitespace-nowrap">
           Hey USA
         </h1>
-        <span className="text-caption font-extrabold text-apple-primary dark:text-white/80 tabular-nums whitespace-nowrap">
+        <span className="text-caption font-extrabold text-passport-rust/50 tabular-nums whitespace-nowrap">
           v{APP_VERSION} • {buildTimeFormatted()}
         </span>
       </div>

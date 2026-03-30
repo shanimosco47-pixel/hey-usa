@@ -62,26 +62,27 @@ export default function SplashScreen({ onFinished, dataReady = true }: SplashScr
         <motion.div
           className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #e94560 100%)',
+            background: 'linear-gradient(170deg, #1e293b 0%, #0f172a 60%, #92400e 100%)',
           }}
-          exit={{ opacity: 0, scale: 1.1 }}
+          exit={{ opacity: 0, scale: 1.05 }}
           transition={{ duration: 0.45, ease: 'easeInOut' }}
         >
-          {/* Stars / dots background decoration */}
+          {/* Subtle warm particles */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
-            {[...Array(20)].map((_, i) => (
+            {[...Array(15)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute rounded-full bg-white"
+                className="absolute rounded-full"
                 style={{
                   width: Math.random() * 3 + 1,
                   height: Math.random() * 3 + 1,
                   top: `${Math.random() * 100}%`,
                   left: `${Math.random() * 100}%`,
+                  backgroundColor: i % 3 === 0 ? '#d97706' : '#FAF8F5',
                 }}
-                animate={{ opacity: [0.2, 0.8, 0.2] }}
+                animate={{ opacity: [0.1, 0.5, 0.1] }}
                 transition={{
-                  duration: Math.random() * 2 + 1,
+                  duration: Math.random() * 3 + 2,
                   repeat: Infinity,
                   delay: Math.random() * 2,
                 }}
@@ -89,31 +90,68 @@ export default function SplashScreen({ onFinished, dataReady = true }: SplashScr
             ))}
           </div>
 
-          {/* App name */}
+          {/* Passport stamp decoration */}
+          <motion.div
+            className="mb-6"
+            initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
+            animate={{ opacity: 1, scale: 1, rotate: -8 }}
+            transition={{ duration: 0.6, delay: 0.1, type: 'spring', stiffness: 200, damping: 15 }}
+          >
+            <div
+              className="flex flex-col items-center justify-center"
+              style={{
+                width: 88,
+                height: 88,
+                border: '2.5px solid rgba(217, 119, 6, 0.7)',
+                borderRadius: '50%',
+                position: 'relative',
+              }}
+            >
+              <div
+                className="absolute rounded-full"
+                style={{ inset: 5, border: '1px dashed rgba(217, 119, 6, 0.35)' }}
+              />
+              <span
+                className="text-xs font-bold uppercase tracking-widest"
+                style={{ color: '#d97706', fontFamily: "'Playfair Display', serif" }}
+              >
+                USA
+              </span>
+              <span
+                className="text-[9px] font-medium uppercase tracking-wider mt-0.5"
+                style={{ color: 'rgba(217, 119, 6, 0.6)' }}
+              >
+                SEP 2026
+              </span>
+            </div>
+          </motion.div>
+
+          {/* App name — serif */}
           <motion.h1
-            className="mb-1 text-6xl font-black tracking-tight text-white"
+            className="mb-1 text-6xl font-bold tracking-tight"
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            style={{ fontFamily: 'system-ui, sans-serif' }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            style={{ fontFamily: "'Playfair Display', serif", color: '#FAF8F5' }}
           >
             Hey USA
           </motion.h1>
 
           {/* Hebrew subtitle */}
           <motion.p
-            className="mb-10 text-xl font-medium text-white/70"
+            className="mb-10 text-lg font-medium"
             dir="rtl"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            style={{ color: 'rgba(250, 248, 245, 0.55)', fontFamily: "'DM Sans', sans-serif" }}
           >
             &#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F467;&#x200D;&#x1F466; משפחה בדרכים
           </motion.p>
 
           {/* Road + RV scene */}
           <div className="relative mb-8 w-[320px]">
-            {/* RV driving across — RTL: starts right, ends left */}
+            {/* RV driving across */}
             <motion.div
               className="relative z-10 text-5xl"
               style={{ scaleX: -1 }}
@@ -125,15 +163,18 @@ export default function SplashScreen({ onFinished, dataReady = true }: SplashScr
                 ease: 'linear',
               }}
             >
-              <span role="img" aria-label="RV">&#x1F690;</span>
+              <span role="img" aria-label="RV">
+                &#x1F690;
+              </span>
             </motion.div>
 
-            {/* Road line */}
+            {/* Road line — warm amber dashes */}
             <div className="mt-1 flex items-center justify-center gap-2">
               {[...Array(16)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="h-[3px] w-4 rounded-full bg-yellow-400/60"
+                  className="h-[3px] w-4 rounded-full"
+                  style={{ backgroundColor: 'rgba(217, 119, 6, 0.5)' }}
                   animate={{ opacity: [0.3, 1, 0.3] }}
                   transition={{
                     duration: 0.8,
@@ -153,36 +194,46 @@ export default function SplashScreen({ onFinished, dataReady = true }: SplashScr
             <AnimatePresence mode="wait">
               <motion.div
                 key={destinationIndex}
-                className="flex items-center gap-2 text-lg font-semibold text-amber-300"
+                className="flex items-center gap-2 text-lg font-semibold"
+                style={{ color: '#d97706', fontFamily: "'Playfair Display', serif" }}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.25 }}
               >
-                <span className="text-white/40">&#x2708;&#xFE0F;</span>
+                <span style={{ color: 'rgba(250, 248, 245, 0.3)' }}>&#x2708;&#xFE0F;</span>
                 {DESTINATIONS[destinationIndex]}
                 {destinationIndex < DESTINATIONS.length - 1 && (
-                  <span className="text-white/30">&rarr;</span>
+                  <span style={{ color: 'rgba(250, 248, 245, 0.2)' }}>&rarr;</span>
                 )}
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* Loading indicator when timer done but still loading data */}
+          {/* Loading indicator */}
           {timerElapsed && !dataReady && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="mt-6 flex items-center gap-2"
             >
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white/80" />
-              <span className="text-xs text-white/50">טוען נתונים...</span>
+              <div
+                className="h-4 w-4 animate-spin rounded-full border-2"
+                style={{
+                  borderColor: 'rgba(217, 119, 6, 0.2)',
+                  borderTopColor: 'rgba(217, 119, 6, 0.7)',
+                }}
+              />
+              <span className="text-xs" style={{ color: 'rgba(250, 248, 245, 0.4)' }}>
+                טוען נתונים...
+              </span>
             </motion.div>
           )}
 
-          {/* Route preview (small text) */}
+          {/* Route preview */}
           <motion.p
-            className="mt-6 text-xs tracking-widest text-white/60"
+            className="mt-6 text-xs tracking-widest uppercase"
+            style={{ color: 'rgba(217, 119, 6, 0.4)', fontFamily: "'DM Sans', sans-serif" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}

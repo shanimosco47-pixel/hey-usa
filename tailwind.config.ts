@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       colors: {
-        // iOS System Colors
+        // iOS System Colors (retained for status/functional use)
         ios: {
           blue: '#007AFF',
           green: '#34C759',
@@ -27,56 +27,64 @@ export default {
           pink: '#FF2D55',
           gray: '#8E8E93',
         },
-        // Surfaces
+        // Surfaces — Passport Stamp warm palette
         surface: {
-          primary: '#E8FAF8',
-          elevated: 'rgba(255,255,255,0.75)',
-          card: 'rgba(255,255,255,0.82)',
+          primary: '#F5F0EB',
+          elevated: 'rgba(255,252,247,0.85)',
+          card: 'rgba(255,252,247,0.92)',
         },
-        // Apple text
+        // Text — deep navy + warm grays
         apple: {
-          primary: '#1d1d1f',
-          secondary: '#86868b',
-          tertiary: '#aeaeb2',
+          primary: '#1e293b',
+          secondary: '#78716c',
+          tertiary: '#a8a29e',
         },
         // Dark card
         dark: {
-          DEFAULT: '#1d1d1f',
-          secondary: '#2d2d30',
+          DEFAULT: '#1e293b',
+          secondary: '#334155',
         },
-        // Status colors (iOS variants)
+        // Status colors
         status: {
-          todo: '#FF3B30',
-          progress: '#FF9500',
-          done: '#34C759',
-          waiting: '#8E8E93',
+          todo: '#dc2626',
+          progress: '#d97706',
+          done: '#16a34a',
+          waiting: '#78716c',
         },
-        // Trip phase colors
+        // Trip phase colors — warm tones
         phase: {
-          pre: '#5856D6',
-          during: '#34C759',
-          post: '#007AFF',
+          pre: '#7c3aed',
+          during: '#16a34a',
+          post: '#2563eb',
         },
         // Task priority colors
         priority: {
-          low: '#8E8E93',
-          medium: '#007AFF',
-          high: '#FF9500',
-          urgent: '#FF3B30',
+          low: '#78716c',
+          medium: '#2563eb',
+          high: '#d97706',
+          urgent: '#dc2626',
         },
-        // Trip color palette
+        // Trip color palette — warm desert/earth
         trip: {
           mint: '#6AECE1',
           teal: '#26CCC2',
           yellow: '#FFF57E',
           orange: '#FFB76C',
         },
-        // Passport stamp aesthetic
+        // Passport stamp aesthetic — primary design language
         passport: {
-          cream: '#faf8f5',
+          cream: '#F5F0EB',
+          'cream-light': '#FAF8F5',
+          'cream-dark': '#E8E0D8',
           rust: '#b45309',
           'rust-light': '#d97706',
+          'rust-dark': '#92400e',
+          terracotta: '#c2410c',
           slate: '#1e293b',
+          'slate-light': '#334155',
+          navy: '#0f172a',
+          sage: '#4d7c0f',
+          sand: '#d6cfc7',
         },
         // shadcn/ui semantic colors
         border: 'hsl(var(--border))',

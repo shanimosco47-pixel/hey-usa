@@ -5,7 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="description" content="Hey USA — אפליקציית מסע משפחתית לטיול בארה״ב. ניהול לוח זמנים, תקציב, משימות, מסמכים ועוד." />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#f5f5f7" />
+    <meta name="theme-color" content="#F5F0EB" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Hey USA" />
@@ -42,22 +42,33 @@
     <div id="pre-splash" style="
       position: fixed; inset: 0; z-index: 9999;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #e94560 100%);
+      background: linear-gradient(170deg, #1e293b 0%, #0f172a 60%, #92400e 100%);
       transition: opacity 0.3s ease-out;
     ">
+      <div style="
+        width: 80px; height: 80px; border: 2.5px solid rgba(217, 119, 6, 0.7);
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        margin-bottom: 20px; position: relative;
+      ">
+        <div style="
+          position: absolute; inset: 4px; border: 1px dashed rgba(217, 119, 6, 0.35);
+          border-radius: 50%;
+        "></div>
+        <span style="font-size: 0.65rem; font-weight: 700; color: #d97706; letter-spacing: 0.15em; text-transform: uppercase; font-family: 'Playfair Display', serif;">USA</span>
+      </div>
       <h1 style="
-        font-size: 3.5rem; font-weight: 900; color: white;
+        font-size: 3rem; font-weight: 700; color: #FAF8F5;
         letter-spacing: -0.02em; margin: 0;
-        font-family: system-ui, -apple-system, sans-serif;
+        font-family: 'Playfair Display', serif;
       ">Hey USA</h1>
       <p style="
-        font-size: 1.15rem; color: rgba(255,255,255,0.6);
-        margin-top: 4px; font-family: system-ui, sans-serif;
+        font-size: 1rem; color: rgba(250,248,245,0.5);
+        margin-top: 8px; font-family: 'DM Sans', system-ui, sans-serif;
       ">&#x1F468;&#x200D;&#x1F469;&#x200D;&#x1F467;&#x200D;&#x1F466; משפחה בדרכים</p>
-      <div style="margin-top: 32px; font-size: 2.5rem;">&#x1F690;</div>
       <p style="
-        margin-top: 24px; font-size: 0.7rem;
-        letter-spacing: 0.15em; color: rgba(255,255,255,0.5);
+        margin-top: 28px; font-size: 0.65rem;
+        letter-spacing: 0.2em; color: rgba(217, 119, 6, 0.5);
+        font-family: 'DM Sans', sans-serif; text-transform: uppercase;
       ">CO &bull; MT &bull; WY &bull; UT &bull; NV &bull; CA</p>
     </div>
     <script>
