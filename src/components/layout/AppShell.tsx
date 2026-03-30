@@ -28,7 +28,7 @@ export function AppShell() {
           id="main-content"
           className={cn(
             'flex-1 min-w-0 min-h-[calc(100vh-3.5rem)] overflow-x-hidden',
-            isDesktop ? 'me-64' : 'pb-16',
+            isDesktop ? 'ms-64' : 'pb-16',
           )}
         >
           <div className="w-full max-w-7xl mx-auto">
