@@ -8,7 +8,12 @@ import AppShell from '@/components/layout/AppShell'
 import SplashScreen from '@/components/shared/SplashScreen'
 import NotFoundPage from '@/components/shared/NotFoundPage'
 import { PageErrorBoundary } from '@/components/shared/PageErrorBoundary'
-import { SearchDialog } from '@/components/shared/SearchDialog'
+import { PageSkeleton } from '@/components/shared/PageSkeleton'
+
+// Lazy-load SearchDialog — only needed on Cmd+K interaction
+const SearchDialog = lazy(() =>
+  import('@/components/shared/SearchDialog').then((m) => ({ default: m.SearchDialog })),
+)
 
 // Auth screens (small, loaded eagerly for fast first paint)
 import { PinScreen } from '@/modules/auth/PinScreen'
@@ -73,11 +78,7 @@ const CampsitesPage = lazy(() => import('@/modules/campsites/CampsitesPage'))
 const CampsitesPageV2 = lazy(() => import('@/modules/campsites/CampsitesPageV2'))
 
 function LoadingFallback() {
-  return (
-    <div className="flex min-h-[50vh] items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-black/[0.06] border-t-ios-blue" />
-    </div>
-  )
+  return <PageSkeleton variant="list" className="min-h-[50vh]" />
 }
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -178,8 +179,10 @@ function AppInner() {
         </Suspense>
       </ChunkErrorBoundary>
 
-      {/* Global search (Cmd+K) */}
-      <SearchDialog />
+      {/* Global search (Cmd+K) — lazy-loaded */}
+      <Suspense fallback={null}>
+        <SearchDialog />
+      </Suspense>
 
       {/* Splash overlay — stays until data is ready */}
       {!splashDone && <SplashScreen onFinished={handleSplashFinished} dataReady={!isLoading} />}

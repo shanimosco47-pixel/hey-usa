@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertTriangle } from 'lucide-react'
 import type { Task } from '@/lib/types'
@@ -12,7 +13,7 @@ interface AttentionItemsProps {
   items: AttentionItem[]
 }
 
-export function AttentionItems({ items }: AttentionItemsProps) {
+export const AttentionItems = memo(function AttentionItems({ items }: AttentionItemsProps) {
   if (items.length === 0) return null
 
   return (
@@ -62,4 +63,4 @@ export function AttentionItems({ items }: AttentionItemsProps) {
       </div>
     </div>
   )
-}
+})

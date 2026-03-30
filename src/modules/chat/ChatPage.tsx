@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -156,6 +156,73 @@ function AIBadge() {
     </div>
   )
 }
+
+const ChatBubble = memo(function ChatBubble({
+  msg,
+  onQuickAction,
+}: {
+  msg: Message
+  onQuickAction: (text: string) => void
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className={`flex items-end gap-2.5 ${
+        msg.sender === 'user' ? 'flex-row-reverse max-w-[85%] mr-0 ml-auto' : 'max-w-[85%]'
+      }`}
+    >
+      {msg.sender === 'bot' && <BotAvatar size="sm" />}
+      <div
+        className={`rounded-[16px] px-4 py-3 ${
+          msg.sender === 'user'
+            ? 'bg-apple-primary text-white rounded-bl-[4px]'
+            : msg.hasAction
+              ? 'bg-gradient-to-br from-purple-50 to-white text-apple-primary rounded-br-[4px] ring-1 ring-purple-200'
+              : 'bg-white text-apple-primary rounded-br-[4px]'
+        }`}
+        style={
+          msg.sender === 'bot' && !msg.hasAction
+            ? { boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }
+            : msg.hasAction
+              ? { boxShadow: '0 2px 8px rgba(88,86,214,0.1)' }
+              : undefined
+        }
+      >
+        {msg.hasAction && (
+          <div className="flex items-center gap-1 mb-1.5 text-purple-600">
+            <Zap className="h-3 w-3" />
+            <span className="text-caption font-bold uppercase tracking-wide">פעולה בוצעה</span>
+          </div>
+        )}
+        {msg.sender === 'user' ? (
+          <p className="text-body leading-relaxed whitespace-pre-line" dir="auto">
+            {msg.text}
+          </p>
+        ) : (
+          <ChatMarkdown text={msg.text} />
+        )}
+        {msg.card && <MessageCardRenderer card={msg.card} />}
+        {msg.quickActions && msg.quickActions.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-black/5">
+            {msg.quickActions.map((qa) => (
+              <motion.button
+                key={qa}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onQuickAction(qa)}
+                className="flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-caption font-medium text-purple-700 hover:bg-purple-100 transition-colors"
+              >
+                <Zap className="h-2.5 w-2.5" />
+                {qa}
+              </motion.button>
+            ))}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  )
+})
 
 function MessageCardRenderer({ card }: { card: MessageCard }) {
   switch (card.type) {
@@ -739,6 +806,11 @@ export default function ChatPage() {
     }
   }
 
+  // Stable ref for sendMessage so memoized ChatBubble doesn't re-render
+  const sendMessageRef = useRef(sendMessage)
+  sendMessageRef.current = sendMessage
+  const stableSendMessage = useCallback((text: string) => sendMessageRef.current(text), [])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     sendMessage(input)
@@ -896,65 +968,7 @@ export default function ChatPage() {
         )}
         <AnimatePresence initial={false}>
           {visibleMessages.map((msg) => (
-            <motion.div
-              key={msg.id}
-              initial={{ opacity: 0, y: 10, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className={`flex items-end gap-2.5 ${
-                msg.sender === 'user' ? 'flex-row-reverse max-w-[85%] mr-0 ml-auto' : 'max-w-[85%]'
-              }`}
-            >
-              {msg.sender === 'bot' && <BotAvatar size="sm" />}
-              <div
-                className={`rounded-[16px] px-4 py-3 ${
-                  msg.sender === 'user'
-                    ? 'bg-apple-primary text-white rounded-bl-[4px]'
-                    : msg.hasAction
-                      ? 'bg-gradient-to-br from-purple-50 to-white text-apple-primary rounded-br-[4px] ring-1 ring-purple-200'
-                      : 'bg-white text-apple-primary rounded-br-[4px]'
-                }`}
-                style={
-                  msg.sender === 'bot' && !msg.hasAction
-                    ? { boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }
-                    : msg.hasAction
-                      ? { boxShadow: '0 2px 8px rgba(88,86,214,0.1)' }
-                      : undefined
-                }
-              >
-                {msg.hasAction && (
-                  <div className="flex items-center gap-1 mb-1.5 text-purple-600">
-                    <Zap className="h-3 w-3" />
-                    <span className="text-caption font-bold uppercase tracking-wide">
-                      פעולה בוצעה
-                    </span>
-                  </div>
-                )}
-                {msg.sender === 'user' ? (
-                  <p className="text-body leading-relaxed whitespace-pre-line" dir="auto">
-                    {msg.text}
-                  </p>
-                ) : (
-                  <ChatMarkdown text={msg.text} />
-                )}
-                {msg.card && <MessageCardRenderer card={msg.card} />}
-                {msg.quickActions && msg.quickActions.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-black/5">
-                    {msg.quickActions.map((qa) => (
-                      <motion.button
-                        key={qa}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => sendMessage(qa)}
-                        className="flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-caption font-medium text-purple-700 hover:bg-purple-100 transition-colors"
-                      >
-                        <Zap className="h-2.5 w-2.5" />
-                        {qa}
-                      </motion.button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </motion.div>
+            <ChatBubble key={msg.id} msg={msg} onQuickAction={stableSendMessage} />
           ))}
         </AnimatePresence>
 

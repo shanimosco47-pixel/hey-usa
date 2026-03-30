@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback, memo } from 'react'
 import { format, parseISO } from 'date-fns'
 import type { ItineraryDay } from '@/types'
 import { cn } from '@/lib/cn'
@@ -9,7 +9,11 @@ interface DaySelectorProps {
   onDayChange: (dayIndex: number) => void
 }
 
-export function DaySelector({ days, activeDay, onDayChange }: DaySelectorProps) {
+export const DaySelector = memo(function DaySelector({
+  days,
+  activeDay,
+  onDayChange,
+}: DaySelectorProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const activeRef = useRef<HTMLButtonElement>(null)
 
@@ -17,8 +21,7 @@ export function DaySelector({ days, activeDay, onDayChange }: DaySelectorProps) 
     if (activeRef.current && scrollRef.current) {
       const container = scrollRef.current
       const button = activeRef.current
-      const scrollLeft =
-        button.offsetLeft - container.offsetWidth / 2 + button.offsetWidth / 2
+      const scrollLeft = button.offsetLeft - container.offsetWidth / 2 + button.offsetWidth / 2
       container.scrollTo({ left: scrollLeft, behavior: 'smooth' })
     }
   }, [])
@@ -45,9 +48,7 @@ export function DaySelector({ days, activeDay, onDayChange }: DaySelectorProps) 
           const dayNum = index + 1
           const shortDate = format(date, 'd.M')
           const isActive = index === activeDay
-          const cityShort = day.city
-            ? day.city.split(/[→,]/)[0].trim().slice(0, 12)
-            : ''
+          const cityShort = day.city ? day.city.split(/[→,]/)[0].trim().slice(0, 12) : ''
 
           return (
             <button
@@ -58,19 +59,15 @@ export function DaySelector({ days, activeDay, onDayChange }: DaySelectorProps) 
                 'flex min-w-[72px] flex-shrink-0 flex-col items-center gap-0.5 rounded-apple-lg px-3 py-2 transition-all',
                 isActive
                   ? 'bg-ios-blue text-white shadow-glass-hover scale-105'
-                  : 'glass text-apple-primary border border-black/[0.06] hover:bg-white/80'
+                  : 'glass text-apple-primary border border-black/[0.06] hover:bg-white/80',
               )}
             >
-              <span className="text-caption font-medium opacity-75">
-                {shortDate}
-              </span>
-              <span className="text-subhead font-bold">
-                {dayNum}
-              </span>
+              <span className="text-caption font-medium opacity-75">{shortDate}</span>
+              <span className="text-subhead font-bold">{dayNum}</span>
               <span
                 className={cn(
                   'max-w-[60px] truncate text-caption',
-                  isActive ? 'text-white/80' : 'text-apple-secondary'
+                  isActive ? 'text-white/80' : 'text-apple-secondary',
                 )}
               >
                 {cityShort}
@@ -81,4 +78,4 @@ export function DaySelector({ days, activeDay, onDayChange }: DaySelectorProps) 
       </div>
     </div>
   )
-}
+})

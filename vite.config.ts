@@ -95,6 +95,15 @@ export default defineConfig({
             if (id.includes('dexie')) return 'vendor-dexie'
             if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts'
             if (id.includes('@tiptap') || id.includes('prosemirror')) return 'vendor-tiptap'
+            if (
+              id.includes('react-markdown') ||
+              id.includes('remark') ||
+              id.includes('unified') ||
+              id.includes('mdast') ||
+              id.includes('micromark') ||
+              id.includes('dompurify')
+            )
+              return 'vendor-markdown'
           }
         },
       },
