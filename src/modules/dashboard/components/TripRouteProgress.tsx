@@ -39,8 +39,7 @@ export const TripRouteProgress = memo(function TripRouteProgress({
           {itineraryDays.map((day, i) => {
             const isCurrent = tripDayIndex === i
             const isPast = tripDayIndex !== null && i < tripDayIndex
-            const cityShort =
-              day.city?.split('→')[0]?.trim()?.split(',')[0]?.trim()?.slice(0, 10) || ''
+            const cityShort = day.city?.split('→')[0]?.trim()?.split(',')[0]?.trim() || ''
             const dotColor = isPast
               ? '#34C759'
               : isCurrent
@@ -69,7 +68,7 @@ export const TripRouteProgress = memo(function TripRouteProgress({
                 : '#E5E5EA'
             return (
               <div key={day.id} className="flex items-center" role="listitem">
-                <div className="flex flex-col items-center" style={{ width: 38 }}>
+                <div className="flex flex-col items-center" style={{ width: 56 }}>
                   <div
                     className="relative flex items-center justify-center rounded-full transition-all"
                     style={{
@@ -116,8 +115,12 @@ export const TripRouteProgress = memo(function TripRouteProgress({
                   </span>
                   {cityShort && (
                     <span
-                      className="text-[7px] text-center leading-tight truncate max-w-[38px]"
-                      style={{ color: cityColor, fontWeight: allFuture ? 500 : 400 }}
+                      className="text-[7px] text-center leading-tight max-w-[56px]"
+                      style={{
+                        color: cityColor,
+                        fontWeight: allFuture ? 500 : 400,
+                        wordBreak: 'break-word',
+                      }}
                     >
                       {cityShort}
                     </span>
