@@ -184,7 +184,7 @@ export default function ItineraryPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-apple-lg bg-ios-orange/10">
             <Calendar className="h-5 w-5 text-ios-orange" />
           </div>
-          <h1 className="text-title font-bold text-apple-primary">לוח זמנים</h1>
+          <h2 className="text-title font-bold text-apple-primary">לוח זמנים</h2>
         </motion.div>
         <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
           <Map className="h-12 w-12 text-apple-secondary/30" />
@@ -225,7 +225,7 @@ export default function ItineraryPage() {
   }).format(date)
 
   return (
-    <div className="mx-auto max-w-4xl pb-24 overflow-x-hidden">
+    <section aria-label="לוח זמנים" className="mx-auto max-w-4xl pb-24 overflow-x-hidden">
       {/* Page header */}
       <motion.div
         className="px-4 pt-4 pb-2"
@@ -239,7 +239,7 @@ export default function ItineraryPage() {
               <Calendar className="h-5 w-5 text-ios-orange" />
             </div>
             <div>
-              <h1 className="text-title font-bold text-apple-primary">לוח זמנים</h1>
+              <h2 className="text-title font-bold text-apple-primary">לוח זמנים</h2>
               <p className="text-xs text-apple-secondary">21 ימים במערב ארה"ב | ספטמבר 2026</p>
             </div>
           </div>
@@ -326,6 +326,7 @@ export default function ItineraryPage() {
                       onClick={handleNextDay}
                       disabled={activeDayIndex >= ITINERARY_DAYS.length - 1}
                       className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 disabled:opacity-30"
+                      aria-label="היום הבא"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>
@@ -341,6 +342,7 @@ export default function ItineraryPage() {
                       onClick={handlePrevDay}
                       disabled={activeDayIndex <= 0}
                       className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 disabled:opacity-30"
+                      aria-label="היום הקודם"
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </button>
@@ -542,6 +544,6 @@ export default function ItineraryPage() {
         {/* end main content column */}
       </div>
       {/* end lg:flex */}
-    </div>
+    </section>
   )
 }

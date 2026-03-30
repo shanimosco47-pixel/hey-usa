@@ -28,7 +28,11 @@ export function ActivityPoll({ poll, onVote, onDelete }: ActivityPollProps) {
           <h4 className="text-headline text-apple-primary">{poll.question}</h4>
         </div>
         {onDelete && (
-          <button onClick={() => onDelete(poll.id)} className="p-1 rounded-full hover:bg-black/[0.04]">
+          <button
+            onClick={() => onDelete(poll.id)}
+            className="p-1 rounded-full hover:bg-black/[0.04]"
+            aria-label="מחק הצבעה"
+          >
             <X className="h-4 w-4 text-apple-secondary" />
           </button>
         )}
@@ -60,7 +64,9 @@ export function ActivityPoll({ poll, onVote, onDelete }: ActivityPollProps) {
               <div className="relative flex items-center justify-between">
                 <span className="text-body text-apple-primary">{option}</span>
                 <div className="flex items-center gap-1">
-                  {hasVoted && <span className="text-caption text-apple-secondary">{percent}%</span>}
+                  {hasVoted && (
+                    <span className="text-caption text-apple-secondary">{percent}%</span>
+                  )}
                   <div className="flex -space-x-1 rtl:space-x-reverse">
                     {optionVotes.slice(0, 3).map((v) => (
                       <FamilyAvatar key={v.member_id} memberId={v.member_id} size="xs" />
@@ -139,10 +145,14 @@ export function CreatePollButton({ dayId, onCreatePoll }: CreatePollProps) {
       ))}
       <div className="flex gap-2 mt-2">
         {options.length < 4 && (
-          <Button variant="ghost" onClick={() => setOptions([...options, ''])}>+ אפשרות</Button>
+          <Button variant="ghost" onClick={() => setOptions([...options, ''])}>
+            + אפשרות
+          </Button>
         )}
         <div className="flex-1" />
-        <Button variant="ghost" onClick={() => setIsOpen(false)}>ביטול</Button>
+        <Button variant="ghost" onClick={() => setIsOpen(false)}>
+          ביטול
+        </Button>
         <Button onClick={handleSubmit}>צור הצבעה</Button>
       </div>
     </div>

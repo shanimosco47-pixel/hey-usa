@@ -44,7 +44,9 @@ export default function LocationsPage() {
                 {LOCATIONS.length} יעדים
               </span>
             </div>
-            <h1 className="text-title sm:text-hero text-white drop-shadow-lg mb-1">🗺️ היעדים שלנו</h1>
+            <h2 className="text-title sm:text-hero text-white drop-shadow-lg mb-1">
+              🗺️ היעדים שלנו
+            </h2>
             <p className="text-body text-white/80 font-medium">
               לחצו על יעד כדי לראות הערות, מסמכים ותכנון
             </p>
@@ -64,19 +66,19 @@ export default function LocationsPage() {
             description="מיקומים יופיעו כאן מתוך המסלול"
           />
         ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-7 max-w-6xl mx-auto">
-          {locationStats.map((stat, index) => (
-            <LocationCard
-              key={stat.location.id}
-              location={stat.location}
-              dateRange={formatDateRange(stat.dateRange)}
-              noteCount={stat.noteCount}
-              docCount={stat.docCount}
-              stopCount={stat.stopCount}
-              index={index}
-            />
-          ))}
-        </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 md:gap-7 max-w-6xl mx-auto">
+            {locationStats.map((stat, index) => (
+              <LocationCard
+                key={stat.location.id}
+                location={stat.location}
+                dateRange={formatDateRange(stat.dateRange)}
+                noteCount={stat.noteCount}
+                docCount={stat.docCount}
+                stopCount={stat.stopCount}
+                index={index}
+              />
+            ))}
+          </div>
         )}
       </div>
 

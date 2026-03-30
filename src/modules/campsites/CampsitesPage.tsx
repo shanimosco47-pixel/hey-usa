@@ -481,7 +481,7 @@ export default function CampsitesPage() {
             <Tent size={20} className="text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-apple-primary">לינות</h1>
+            <h2 className="text-xl font-bold text-apple-primary">לינות</h2>
             <p className="text-xs text-apple-secondary">
               {confirmedCount}/{totalNights} לילות מאושרים
             </p>

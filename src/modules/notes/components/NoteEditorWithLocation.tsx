@@ -19,8 +19,11 @@ interface NoteEditorProps {
   isOpen: boolean
   onClose: () => void
   onSave: (note: {
-    text: string; color: NoteColor; pinned: boolean;
-    author: FamilyMemberId; locationId: string | null
+    text: string
+    color: NoteColor
+    pinned: boolean
+    author: FamilyMemberId
+    locationId: string | null
   }) => void
   editingNote?: LocationNote | null
 }
@@ -69,122 +72,124 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
             className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center"
             onClick={onClose}
           >
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className={cn(
-              'w-[90vw] max-w-md max-h-[85vh] overflow-y-auto',
-              'rounded-apple-xl shadow-glass-float',
-            )}
-            style={{ backgroundColor: NOTE_COLORS.find((c) => c.value === color)?.bg || '#fff9c4' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 pt-5 pb-2">
-              <h3 className="text-headline text-gray-800">
-                {editingNote ? 'ערוך פתק' : 'פתק חדש'}
-              </h3>
-              <button
-                onClick={onClose}
-                className="p-1.5 rounded-full hover:bg-black/[0.06] transition-colors"
-              >
-                <X className="h-5 w-5 text-gray-600" />
-              </button>
-            </div>
-
-            {/* Text area */}
-            <div className="px-5 py-3">
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="מה רוצים לזכור? ..."
-                className={cn(
-                  'w-full h-32 resize-none rounded-apple p-3',
-                  'bg-white/40 border border-black/[0.08]',
-                  'text-body text-gray-800 placeholder:text-gray-400',
-                  'focus:outline-none focus:ring-2 focus:ring-ios-blue/30',
-                )}
-                autoFocus
-                dir="auto"
-              />
-            </div>
-
-            {/* Location picker */}
-            <div className="px-5 pb-3">
-              <p className="text-caption text-gray-500 mb-2 flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                קישור ליעד (אופציונלי)
-              </p>
-              <select
-                value={locationId || ''}
-                onChange={(e) => setLocationId(e.target.value || null)}
-                className={cn(
-                  'w-full rounded-apple px-3 py-2',
-                  'bg-white/50 border border-black/[0.08]',
-                  'text-subhead text-gray-700',
-                  'focus:outline-none focus:ring-2 focus:ring-ios-blue/30',
-                )}
-                dir="rtl"
-              >
-                <option value="">ללא — פתק כללי 📋</option>
-                {LOCATIONS.map((loc) => (
-                  <option key={loc.id} value={loc.id}>
-                    {loc.emoji} {loc.nameHe}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Color picker */}
-            <div className="px-5 pb-3">
-              <p className="text-caption text-gray-500 mb-2">צבע הפתק</p>
-              <div className="flex gap-2.5">
-                {NOTE_COLORS.map((c) => (
-                  <button
-                    key={c.value}
-                    onClick={() => setColor(c.value)}
-                    className={cn(
-                      'w-8 h-8 rounded-full border-2 transition-all',
-                      color === c.value
-                        ? 'border-gray-700 scale-110 shadow-glass-hover'
-                        : 'border-transparent hover:scale-105',
-                    )}
-                    style={{ backgroundColor: c.bg }}
-                  />
-                ))}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className={cn(
+                'w-[90vw] max-w-md max-h-[85vh] overflow-y-auto',
+                'rounded-apple-xl shadow-glass-float',
+              )}
+              style={{
+                backgroundColor: NOTE_COLORS.find((c) => c.value === color)?.bg || '#fff9c4',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 pt-5 pb-2">
+                <h3 className="text-headline text-gray-800">
+                  {editingNote ? 'ערוך פתק' : 'פתק חדש'}
+                </h3>
+                <button
+                  onClick={onClose}
+                  className="p-1.5 rounded-full hover:bg-black/[0.06] transition-colors"
+                  aria-label="סגור"
+                >
+                  <X className="h-5 w-5 text-gray-600" />
+                </button>
               </div>
-            </div>
 
-            {/* Pin toggle + Save */}
-            <div className="flex items-center justify-between px-5 pb-5 pt-2">
-              <button
-                onClick={() => setPinned(!pinned)}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-subhead transition-all',
-                  pinned
-                    ? 'bg-red-100 text-red-600'
-                    : 'bg-black/[0.05] text-gray-500 hover:bg-black/[0.08]',
-                )}
-              >
-                📌 {pinned ? 'מוצמד' : 'הצמד'}
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!text.trim()}
-                className={cn(
-                  'px-6 py-2 rounded-full text-subhead font-semibold transition-all',
-                  text.trim()
-                    ? 'bg-ios-blue text-white hover:bg-ios-blue/90 shadow-glass-hover'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed',
-                )}
-              >
-                {editingNote ? 'שמור' : 'הוסף'}
-              </button>
-            </div>
-          </motion.div>
+              {/* Text area */}
+              <div className="px-5 py-3">
+                <textarea
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="מה רוצים לזכור? ..."
+                  className={cn(
+                    'w-full h-32 resize-none rounded-apple p-3',
+                    'bg-white/40 border border-black/[0.08]',
+                    'text-body text-gray-800 placeholder:text-gray-400',
+                    'focus:outline-none focus:ring-2 focus:ring-ios-blue/30',
+                  )}
+                  autoFocus
+                  dir="auto"
+                />
+              </div>
+
+              {/* Location picker */}
+              <div className="px-5 pb-3">
+                <p className="text-caption text-gray-500 mb-2 flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  קישור ליעד (אופציונלי)
+                </p>
+                <select
+                  value={locationId || ''}
+                  onChange={(e) => setLocationId(e.target.value || null)}
+                  className={cn(
+                    'w-full rounded-apple px-3 py-2',
+                    'bg-white/50 border border-black/[0.08]',
+                    'text-subhead text-gray-700',
+                    'focus:outline-none focus:ring-2 focus:ring-ios-blue/30',
+                  )}
+                  dir="rtl"
+                >
+                  <option value="">ללא — פתק כללי 📋</option>
+                  {LOCATIONS.map((loc) => (
+                    <option key={loc.id} value={loc.id}>
+                      {loc.emoji} {loc.nameHe}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Color picker */}
+              <div className="px-5 pb-3">
+                <p className="text-caption text-gray-500 mb-2">צבע הפתק</p>
+                <div className="flex gap-2.5">
+                  {NOTE_COLORS.map((c) => (
+                    <button
+                      key={c.value}
+                      onClick={() => setColor(c.value)}
+                      className={cn(
+                        'w-8 h-8 rounded-full border-2 transition-all',
+                        color === c.value
+                          ? 'border-gray-700 scale-110 shadow-glass-hover'
+                          : 'border-transparent hover:scale-105',
+                      )}
+                      style={{ backgroundColor: c.bg }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Pin toggle + Save */}
+              <div className="flex items-center justify-between px-5 pb-5 pt-2">
+                <button
+                  onClick={() => setPinned(!pinned)}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-subhead transition-all',
+                    pinned
+                      ? 'bg-red-100 text-red-600'
+                      : 'bg-black/[0.05] text-gray-500 hover:bg-black/[0.08]',
+                  )}
+                >
+                  📌 {pinned ? 'מוצמד' : 'הצמד'}
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={!text.trim()}
+                  className={cn(
+                    'px-6 py-2 rounded-full text-subhead font-semibold transition-all',
+                    text.trim()
+                      ? 'bg-ios-blue text-white hover:bg-ios-blue/90 shadow-glass-hover'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed',
+                  )}
+                >
+                  {editingNote ? 'שמור' : 'הוסף'}
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         </>
       )}

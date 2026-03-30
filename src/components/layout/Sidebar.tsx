@@ -49,7 +49,7 @@ export function Sidebar() {
         'flex flex-col',
       )}
     >
-      <nav className="flex-1 py-3 px-2.5">
+      <nav aria-label="ניווט ראשי" className="flex-1 py-3 px-2.5">
         <p className="px-3 mb-2 text-subhead font-semibold uppercase tracking-widest text-apple-tertiary">
           ניווט
         </p>

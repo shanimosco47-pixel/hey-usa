@@ -282,9 +282,9 @@ export default function DashboardPage() {
               <div className="flex items-center gap-4">
                 <PassportStamp text="USA" date="SEP 26" rotation={-8} size={76} />
                 <div>
-                  <h1 className="font-serif text-[40px] font-bold text-passport-slate leading-none tracking-tight">
+                  <h2 className="font-serif text-[40px] font-bold text-passport-slate leading-none tracking-tight">
                     <span dir="ltr">Hey USA</span>
-                  </h1>
+                  </h2>
                   <div className="flex items-center gap-2 mt-1.5" dir="ltr">
                     <div className="h-px flex-1 bg-passport-rust/20 max-w-[60px]" />
                     <p className="text-subhead text-passport-rust font-medium tracking-wide uppercase">
@@ -388,7 +388,7 @@ export default function DashboardPage() {
 
         {/* ── Destination Marquee ── */}
         <BlurFade delay={0.2} duration={0.5}>
-          <div className="mb-6 -mx-5">
+          <div className="mb-6 -mx-5 overflow-hidden">
             <Marquee className="[--duration:50s]" pauseOnHover>
               {DESTINATIONS.map((d) => (
                 <div
@@ -464,7 +464,7 @@ export default function DashboardPage() {
                 </p>
                 <div className="h-px flex-1 bg-passport-rust/10" />
               </div>
-              <div className="grid grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {MODULE_CARDS.map(({ path, icon: Icon, label, color, countKey }, i) => (
                   <BlurFade key={path} delay={0.55 + i * 0.04} duration={0.4}>
                     <Link to={path}>

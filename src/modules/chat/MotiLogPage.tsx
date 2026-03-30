@@ -44,7 +44,7 @@ export default function MotiLogPage() {
             <History className="h-5 w-5 text-purple-600" />
           </div>
           <div className="flex-1">
-            <h1 className="text-title font-bold text-apple-primary">יומן שינויים — מוטי</h1>
+            <h2 className="text-title font-bold text-apple-primary">יומן שינויים — מוטי</h2>
             <p className="text-caption text-apple-secondary">כל השינויים שמוטי ביצע באתר</p>
           </div>
         </div>

@@ -924,9 +924,9 @@ export default function ChatPage() {
         <BotAvatar />
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-headline font-semibold text-apple-primary leading-tight">
+            <h2 className="text-headline font-semibold text-apple-primary leading-tight">
               {BOT_NAME}
-            </h1>
+            </h2>
             <AIBadge />
           </div>
           <p className="text-subhead text-apple-secondary">{BOT_SUBTITLE}</p>

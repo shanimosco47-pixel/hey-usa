@@ -65,7 +65,7 @@ export default function NotesPage() {
           <div className="flex items-center gap-3">
             <span className="text-3xl">📋</span>
             <div>
-              <h1 className="text-title text-apple-primary">לוח פתקים</h1>
+              <h2 className="text-title text-apple-primary">לוח פתקים</h2>
               <p className="text-caption text-apple-secondary">{locationNotes.length} פתקים</p>
             </div>
           </div>

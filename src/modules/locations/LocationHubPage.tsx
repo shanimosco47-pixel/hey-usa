@@ -189,9 +189,9 @@ export default function LocationHubPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <h1 className="text-title sm:text-hero text-white drop-shadow-lg mb-1">
+            <h2 className="text-title sm:text-hero text-white drop-shadow-lg mb-1">
               {location.emoji} {location.nameHe}
-            </h1>
+            </h2>
             <p className="text-body text-white/80 font-medium mb-3">{location.name}</p>
             <div className="flex flex-wrap gap-2">
               {dateRange && (

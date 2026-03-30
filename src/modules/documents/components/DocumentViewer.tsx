@@ -55,7 +55,12 @@ function Toast({ message, onClose }: { message: string; onClose: () => void }) {
       <div className="flex items-center gap-2 rounded-apple-lg bg-apple-primary px-4 py-3 text-subhead text-white shadow-glass-float">
         <span>📄</span>
         <span>{message}</span>
-        <button type="button" onClick={onClose} className="mr-2 text-white/60 hover:text-white">
+        <button
+          type="button"
+          onClick={onClose}
+          className="mr-2 text-white/60 hover:text-white"
+          aria-label="סגור"
+        >
           <X className="h-3.5 w-3.5" />
         </button>
       </div>

@@ -137,7 +137,7 @@ export default function DocumentsPage() {
             <FileText className="h-5 w-5 text-ios-blue" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-apple-primary">מסמכים</h1>
+            <h2 className="text-xl font-bold text-apple-primary">מסמכים</h2>
             <p className="text-xs text-apple-secondary">{allDocuments.length} מסמכים</p>
           </div>
         </div>

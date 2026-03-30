@@ -107,7 +107,7 @@ export default function PackingPage() {
   }
 
   return (
-    <div className="space-y-4 p-4 max-w-4xl mx-auto">
+    <section aria-label="אריזה" className="space-y-4 p-4 max-w-4xl mx-auto">
       {/* Header */}
       <motion.div
         className="flex items-center justify-between"
@@ -115,7 +115,7 @@ export default function PackingPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
-        <h1 className="text-2xl font-bold text-apple-primary">אריזה</h1>
+        <h2 className="text-2xl font-bold text-apple-primary">אריזה</h2>
         <Button onClick={() => setShowAddForm(!showAddForm)} variant="success">
           <Plus className="h-4 w-4" />
           פריט חדש
@@ -176,7 +176,7 @@ export default function PackingPage() {
         <button
           onClick={() => setFilterMember('all')}
           className={cn(
-            'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
+            'shrink-0 rounded-full px-3 py-2 min-h-[44px] text-xs font-medium transition-colors flex items-center',
             filterMember === 'all' ? 'bg-apple-primary text-white' : 'glass text-apple-secondary',
           )}
         >
@@ -187,7 +187,7 @@ export default function PackingPage() {
             key={m.id}
             onClick={() => setFilterMember(m.id)}
             className={cn(
-              'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
+              'shrink-0 rounded-full px-3 py-2 min-h-[44px] text-xs font-medium transition-colors flex items-center',
               filterMember === m.id ? 'bg-apple-primary text-white' : 'glass text-apple-secondary',
             )}
           >
@@ -297,14 +297,23 @@ export default function PackingPage() {
                           >
                             <button
                               onClick={() => togglePacked(item.id)}
-                              className={cn(
-                                'flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 transition-colors',
+                              className="flex h-11 w-11 shrink-0 items-center justify-center"
+                              aria-label={
                                 item.is_packed
-                                  ? 'border-ios-green bg-ios-green text-white'
-                                  : 'border-apple-tertiary/30 bg-transparent',
-                              )}
+                                  ? `בטל סימון: ${item.name}`
+                                  : `סמן כארוז: ${item.name}`
+                              }
                             >
-                              {item.is_packed && <Check className="h-3.5 w-3.5" />}
+                              <span
+                                className={cn(
+                                  'flex h-6 w-6 items-center justify-center rounded-lg border-2 transition-colors',
+                                  item.is_packed
+                                    ? 'border-ios-green bg-ios-green text-white'
+                                    : 'border-apple-tertiary/30 bg-transparent',
+                                )}
+                              >
+                                {item.is_packed && <Check className="h-3.5 w-3.5" />}
+                              </span>
                             </button>
                             <div className="flex-1 min-w-0">
                               <p
@@ -338,6 +347,7 @@ export default function PackingPage() {
                             <button
                               onClick={() => handleDelete(item.id)}
                               className="shrink-0 rounded-lg p-1 text-apple-tertiary/30 hover:bg-ios-red/10 hover:text-ios-red"
+                              aria-label={`מחק: ${item.name}`}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -352,6 +362,6 @@ export default function PackingPage() {
           })}
         </StaggerContainer>
       )}
-    </div>
+    </section>
   )
 }

@@ -180,10 +180,10 @@ export default function PhotosPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
-        <h1 className="text-2xl font-bold text-apple-primary">
+        <h2 className="text-2xl font-bold text-apple-primary">
           <Camera className="ml-2 inline h-6 w-6" />
           תמונות
-        </h1>
+        </h2>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
@@ -267,7 +267,7 @@ export default function PhotosPage() {
         <button
           onClick={() => setFilterMember('all')}
           className={cn(
-            'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium',
+            'shrink-0 rounded-full px-3 py-2 min-h-[44px] text-xs font-medium flex items-center',
             filterMember === 'all' ? 'bg-apple-primary text-white' : 'glass text-apple-secondary',
           )}
         >
@@ -278,7 +278,7 @@ export default function PhotosPage() {
             key={m.id}
             onClick={() => setFilterMember(m.id)}
             className={cn(
-              'shrink-0 rounded-full px-3 py-1.5 text-xs font-medium',
+              'shrink-0 rounded-full px-3 py-2 min-h-[44px] text-xs font-medium flex items-center',
               filterMember === m.id ? 'bg-apple-primary text-white' : 'glass text-apple-secondary',
             )}
           >

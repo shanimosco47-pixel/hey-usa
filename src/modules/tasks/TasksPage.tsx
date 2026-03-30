@@ -221,7 +221,7 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 pb-24 overflow-x-hidden">
+    <section aria-label="משימות" className="mx-auto max-w-4xl px-4 py-6 pb-24 overflow-x-hidden">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -230,7 +230,7 @@ export default function TasksPage() {
         className="mb-6 flex items-start justify-between gap-3"
       >
         <div>
-          <h1 className="text-2xl font-bold text-apple-primary">משימות</h1>
+          <h2 className="text-2xl font-bold text-apple-primary">משימות</h2>
           <p className="mt-0.5 text-sm text-apple-secondary">
             {doneCount} מתוך {taskCount} הושלמו
           </p>
@@ -309,6 +309,7 @@ export default function TasksPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="חיפוש משימות..."
+              aria-label="חיפוש משימות"
               className="w-full rounded-apple-lg border border-black/[0.06] glass py-2 pe-3 ps-10 text-subhead text-apple-primary placeholder:text-apple-tertiary focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30"
             />
           </div>
@@ -426,6 +427,6 @@ export default function TasksPage() {
         onSave={handleSave}
         onDelete={handleDelete}
       />
-    </div>
+    </section>
   )
 }

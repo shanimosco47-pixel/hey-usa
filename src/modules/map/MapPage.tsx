@@ -54,10 +54,7 @@ export default function MapPage() {
   }, [])
 
   const filteredPoints = useMemo(
-    () =>
-      selectedDay !== null
-        ? allPoints.filter((p) => p.dayIndex === selectedDay)
-        : allPoints,
+    () => (selectedDay !== null ? allPoints.filter((p) => p.dayIndex === selectedDay) : allPoints),
     [allPoints, selectedDay],
   )
 
@@ -109,45 +106,54 @@ export default function MapPage() {
     return { type: 'FeatureCollection', features }
   }, [selectedDay])
 
-  const solidRoutes = useMemo<GeoJSON>(() => ({
-    type: 'FeatureCollection',
-    features: (routeGeoJSON as GeoJSON.FeatureCollection).features.filter(
-      (f) => !f.properties?.dashed,
-    ),
-  }), [routeGeoJSON])
+  const solidRoutes = useMemo<GeoJSON>(
+    () => ({
+      type: 'FeatureCollection',
+      features: (routeGeoJSON as GeoJSON.FeatureCollection).features.filter(
+        (f) => !f.properties?.dashed,
+      ),
+    }),
+    [routeGeoJSON],
+  )
 
-  const dashedRoutes = useMemo<GeoJSON>(() => ({
-    type: 'FeatureCollection',
-    features: (routeGeoJSON as GeoJSON.FeatureCollection).features.filter(
-      (f) => f.properties?.dashed,
-    ),
-  }), [routeGeoJSON])
+  const dashedRoutes = useMemo<GeoJSON>(
+    () => ({
+      type: 'FeatureCollection',
+      features: (routeGeoJSON as GeoJSON.FeatureCollection).features.filter(
+        (f) => f.properties?.dashed,
+      ),
+    }),
+    [routeGeoJSON],
+  )
 
   // Fly to selected day's center
-  const handleDaySelect = useCallback((idx: number | null) => {
-    setSelectedDay(idx)
-    setPopupInfo(null)
-    if (idx !== null && mapRef.current) {
-      const dayPoints = allPoints.filter((p) => p.dayIndex === idx)
-      if (dayPoints.length > 0) {
-        const avgLat = dayPoints.reduce((s, p) => s + p.lat, 0) / dayPoints.length
-        const avgLng = dayPoints.reduce((s, p) => s + p.lng, 0) / dayPoints.length
-        mapRef.current.flyTo({ center: [avgLng, avgLat], zoom: 8, duration: 1000 })
+  const handleDaySelect = useCallback(
+    (idx: number | null) => {
+      setSelectedDay(idx)
+      setPopupInfo(null)
+      if (idx !== null && mapRef.current) {
+        const dayPoints = allPoints.filter((p) => p.dayIndex === idx)
+        if (dayPoints.length > 0) {
+          const avgLat = dayPoints.reduce((s, p) => s + p.lat, 0) / dayPoints.length
+          const avgLng = dayPoints.reduce((s, p) => s + p.lng, 0) / dayPoints.length
+          mapRef.current.flyTo({ center: [avgLng, avgLat], zoom: 8, duration: 1000 })
+        }
+      } else if (mapRef.current) {
+        mapRef.current.flyTo({ center: [-110, 37.5], zoom: 5, duration: 1000 })
       }
-    } else if (mapRef.current) {
-      mapRef.current.flyTo({ center: [-110, 37.5], zoom: 5, duration: 1000 })
-    }
-  }, [allPoints])
+    },
+    [allPoints],
+  )
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col">
       {/* Compact header */}
       <div className="flex items-center justify-between px-3 py-1.5">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-bold text-apple-primary">
+          <h2 className="text-lg font-bold text-apple-primary">
             <Map className="ms-1.5 inline h-5 w-5" />
             מפת המסלול
-          </h1>
+          </h2>
           <span className="text-caption text-apple-tertiary font-medium">
             {ITINERARY_DAYS.length} ימים · {allPoints.length} עצירות
           </span>
@@ -155,7 +161,7 @@ export default function MapPage() {
         <button
           onClick={() => setShowLabels(!showLabels)}
           className={cn(
-            'rounded-lg px-2 py-1 text-caption font-medium transition-colors',
+            'rounded-lg px-3 py-2 min-h-[44px] text-caption font-medium transition-colors',
             showLabels ? 'bg-ios-blue text-white' : 'glass text-apple-secondary',
           )}
         >
@@ -169,10 +175,8 @@ export default function MapPage() {
         <button
           onClick={() => handleDaySelect(null)}
           className={cn(
-            'shrink-0 rounded-full px-2.5 py-1 text-caption font-medium transition-colors',
-            selectedDay === null
-              ? 'bg-apple-primary text-white'
-              : 'glass text-apple-secondary',
+            'shrink-0 rounded-full px-3 py-1.5 min-h-[44px] text-caption font-medium transition-colors flex items-center',
+            selectedDay === null ? 'bg-apple-primary text-white' : 'glass text-apple-secondary',
           )}
         >
           <Navigation className="ms-1 inline h-2.5 w-2.5" />
@@ -183,12 +187,14 @@ export default function MapPage() {
             key={day.id}
             onClick={() => handleDaySelect(selectedDay === idx ? null : idx)}
             className={cn(
-              'shrink-0 rounded-full px-2.5 py-1 text-caption font-medium transition-colors whitespace-nowrap',
-              selectedDay === idx
-                ? 'text-white'
-                : 'glass text-apple-secondary',
+              'shrink-0 rounded-full px-3 py-1.5 min-h-[44px] text-caption font-medium transition-colors whitespace-nowrap flex items-center',
+              selectedDay === idx ? 'text-white' : 'glass text-apple-secondary',
             )}
-            style={selectedDay === idx ? { backgroundColor: DAY_COLORS[idx % DAY_COLORS.length] } : undefined}
+            style={
+              selectedDay === idx
+                ? { backgroundColor: DAY_COLORS[idx % DAY_COLORS.length] }
+                : undefined
+            }
           >
             {idx + 1}
           </button>
@@ -278,9 +284,7 @@ export default function MapPage() {
                 {popupInfo.location && (
                   <p className="text-xs text-gray-400 mt-1">{popupInfo.location}</p>
                 )}
-                {popupInfo.time && (
-                  <p className="text-xs text-gray-400">{popupInfo.time}</p>
-                )}
+                {popupInfo.time && <p className="text-xs text-gray-400">{popupInfo.time}</p>}
                 {(() => {
                   const loc = getPrimaryLocationForCity(popupInfo.city)
                   return loc ? (

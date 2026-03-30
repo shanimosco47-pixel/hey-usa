@@ -197,7 +197,7 @@ export default function BudgetPage() {
     'w-full rounded-apple-lg border border-black/[0.06] bg-surface-primary px-3 py-2 text-sm text-apple-primary placeholder:text-apple-tertiary hover:bg-black/[0.02] focus:border-ios-blue focus:outline-none focus:ring-1 focus:ring-ios-blue/30 transition-colors'
 
   return (
-    <div className="space-y-4 p-4 max-w-4xl mx-auto">
+    <section aria-label="תקציב" className="space-y-4 p-4 max-w-4xl mx-auto">
       {/* Header */}
       <motion.div
         className="flex items-center justify-between"
@@ -205,7 +205,7 @@ export default function BudgetPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       >
-        <h1 className="text-title font-bold text-apple-primary">תקציב</h1>
+        <h2 className="text-title font-bold text-apple-primary">תקציב</h2>
         {expenses.length > 0 && (
           <Button variant="outline" onClick={() => exportExpensesCsv(expenses)}>
             <Download className="h-4 w-4" />
@@ -693,6 +693,6 @@ export default function BudgetPage() {
           </div>
         </motion.div>
       )}
-    </div>
+    </section>
   )
 }

@@ -37,6 +37,7 @@ export function ToastContainer() {
               <button
                 onClick={() => removeToast(toast.id)}
                 className="shrink-0 p-1 rounded-full hover:bg-black/[0.04]"
+                aria-label="סגור הודעה"
               >
                 <X className="h-4 w-4 text-apple-secondary" />
               </button>

@@ -35,7 +35,7 @@ export function RvSpecsModal() {
               מידות הקרוואן
             </Dialog.Title>
             <Dialog.Close asChild>
-              <button className="p-1 rounded-full hover:bg-black/[0.04]">
+              <button className="p-1 rounded-full hover:bg-black/[0.04]" aria-label="סגור">
                 <X className="h-5 w-5 text-apple-secondary" />
               </button>
             </Dialog.Close>
