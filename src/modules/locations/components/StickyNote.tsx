@@ -76,7 +76,7 @@ export const StickyNote = memo(function StickyNote({
       {/* Pin indicator */}
       {note.pinned && (
         <div className="absolute top-1 right-1">
-          <Pin className="h-3.5 w-3.5 text-red-400 fill-red-400" />
+          <Pin className="h-3.5 w-3.5 text-ios-red fill-ios-red" />
         </div>
       )}
 
@@ -108,7 +108,7 @@ export const StickyNote = memo(function StickyNote({
             <Pin
               className={cn(
                 'h-3.5 w-3.5',
-                note.pinned ? 'text-red-500 fill-red-500' : 'text-apple-secondary',
+                note.pinned ? 'text-ios-red fill-ios-red' : 'text-apple-secondary',
               )}
             />
           </button>
@@ -117,10 +117,10 @@ export const StickyNote = memo(function StickyNote({
               e.stopPropagation()
               onDelete(note.id)
             }}
-            className="p-1.5 rounded-full bg-white/80 hover:bg-red-50 shadow-sm transition-colors"
+            className="p-1.5 rounded-full bg-white/80 hover:bg-ios-red/10 shadow-sm transition-colors"
             title="מחק"
           >
-            <Trash2 className="h-3.5 w-3.5 text-red-500" />
+            <Trash2 className="h-3.5 w-3.5 text-ios-red" />
           </button>
         </motion.div>
       )}

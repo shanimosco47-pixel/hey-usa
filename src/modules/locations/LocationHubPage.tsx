@@ -235,8 +235,8 @@ export default function LocationHubPage() {
             </div>
           )}
           {location.funFact && (
-            <div className="rounded-apple-lg bg-amber-50 border border-amber-200/60 px-4 py-3">
-              <p className="text-subhead text-amber-900 leading-relaxed">{location.funFact}</p>
+            <div className="rounded-apple-lg bg-ios-orange/10 border border-ios-orange/20 px-4 py-3">
+              <p className="text-subhead text-ios-orange leading-relaxed">{location.funFact}</p>
             </div>
           )}
         </div>
@@ -295,8 +295,8 @@ export default function LocationHubPage() {
                   )}
                   style={{ rotate: '-1deg' }}
                 >
-                  <Plus className="h-8 w-8 text-amber-400" />
-                  <span className="text-subhead text-amber-600 font-medium">פתק חדש</span>
+                  <Plus className="h-8 w-8 text-ios-orange" />
+                  <span className="text-subhead text-ios-orange font-medium">פתק חדש</span>
                 </motion.button>
 
                 {notes.map((note) => (
@@ -460,7 +460,7 @@ export default function LocationHubPage() {
                     confirmed: 'bg-ios-green/10 text-ios-green border-ios-green',
                     pending: 'bg-ios-orange/10 text-ios-orange border-ios-orange',
                     waitlist: 'bg-ios-blue/10 text-ios-blue border-ios-blue',
-                    not_open: 'bg-gray-100 text-apple-secondary border-gray-300',
+                    not_open: 'bg-black/[0.04] text-apple-secondary border-black/[0.10]',
                     cancelled: 'bg-ios-red/10 text-ios-red border-ios-red',
                   }
                   const statusLabels: Record<string, string> = {
@@ -576,11 +576,11 @@ export default function LocationHubPage() {
                       <div
                         className={cn(
                           'w-10 h-10 rounded-apple flex items-center justify-center shrink-0',
-                          doc.category === 'attractions' && 'bg-purple-100 text-purple-600',
+                          doc.category === 'attractions' && 'bg-ios-purple/15 text-ios-purple',
                           doc.category === 'accommodation' && 'bg-blue-100 text-blue-600',
                           doc.category === 'car_rental' && 'bg-green-100 text-green-600',
                           !['attractions', 'accommodation', 'car_rental'].includes(doc.category) &&
-                            'bg-gray-100 text-gray-600',
+                            'bg-black/[0.04] text-apple-secondary',
                         )}
                       >
                         <FileText className="h-5 w-5" />

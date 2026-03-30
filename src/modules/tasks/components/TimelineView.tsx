@@ -91,7 +91,7 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
               </div>
             ))}
             <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded-apple-sm bg-red-400 opacity-60" />
+              <div className="h-3 w-3 rounded-apple-sm bg-ios-red opacity-60" />
               <span className="text-xs text-apple-secondary">באיחור</span>
             </div>
           </div>

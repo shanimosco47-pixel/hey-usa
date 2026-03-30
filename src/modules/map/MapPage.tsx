@@ -280,11 +280,11 @@ export default function MapPage() {
             >
               <div className="text-right min-w-[160px]" dir="rtl">
                 <p className="font-bold text-sm">{popupInfo.title}</p>
-                <p className="text-xs text-gray-500">{popupInfo.dayTitle}</p>
+                <p className="text-xs text-apple-secondary">{popupInfo.dayTitle}</p>
                 {popupInfo.location && (
-                  <p className="text-xs text-gray-400 mt-1">{popupInfo.location}</p>
+                  <p className="text-xs text-apple-tertiary mt-1">{popupInfo.location}</p>
                 )}
-                {popupInfo.time && <p className="text-xs text-gray-400">{popupInfo.time}</p>}
+                {popupInfo.time && <p className="text-xs text-apple-tertiary">{popupInfo.time}</p>}
                 {(() => {
                   const loc = getPrimaryLocationForCity(popupInfo.city)
                   return loc ? (

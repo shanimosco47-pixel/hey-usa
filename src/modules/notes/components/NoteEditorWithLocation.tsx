@@ -88,7 +88,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
             >
               {/* Header */}
               <div className="flex items-center justify-between px-5 pt-5 pb-2">
-                <h3 className="text-headline text-gray-800">
+                <h3 className="text-headline text-apple-primary">
                   {editingNote ? 'ערוך פתק' : 'פתק חדש'}
                 </h3>
                 <button
@@ -96,7 +96,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
                   className="p-1.5 rounded-full hover:bg-black/[0.06] transition-colors"
                   aria-label="סגור"
                 >
-                  <X className="h-5 w-5 text-gray-600" />
+                  <X className="h-5 w-5 text-apple-secondary" />
                 </button>
               </div>
 
@@ -109,7 +109,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
                   className={cn(
                     'w-full h-32 resize-none rounded-apple p-3',
                     'bg-white/40 border border-black/[0.08]',
-                    'text-body text-gray-800 placeholder:text-gray-400',
+                    'text-body text-apple-primary placeholder:text-apple-tertiary',
                     'focus:outline-none focus:ring-2 focus:ring-ios-blue/30',
                   )}
                   autoFocus
@@ -119,7 +119,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
 
               {/* Location picker */}
               <div className="px-5 pb-3">
-                <p className="text-caption text-gray-500 mb-2 flex items-center gap-1">
+                <p className="text-caption text-apple-secondary mb-2 flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
                   קישור ליעד (אופציונלי)
                 </p>
@@ -129,7 +129,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
                   className={cn(
                     'w-full rounded-apple px-3 py-2',
                     'bg-white/50 border border-black/[0.08]',
-                    'text-subhead text-gray-700',
+                    'text-subhead text-apple-primary',
                     'focus:outline-none focus:ring-2 focus:ring-ios-blue/30',
                   )}
                   dir="rtl"
@@ -145,7 +145,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
 
               {/* Color picker */}
               <div className="px-5 pb-3">
-                <p className="text-caption text-gray-500 mb-2">צבע הפתק</p>
+                <p className="text-caption text-apple-secondary mb-2">צבע הפתק</p>
                 <div className="flex gap-2.5">
                   {NOTE_COLORS.map((c) => (
                     <button
@@ -154,7 +154,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
                       className={cn(
                         'w-8 h-8 rounded-full border-2 transition-all',
                         color === c.value
-                          ? 'border-gray-700 scale-110 shadow-glass-hover'
+                          ? 'border-apple-primary scale-110 shadow-glass-hover'
                           : 'border-transparent hover:scale-105',
                       )}
                       style={{ backgroundColor: c.bg }}
@@ -170,8 +170,8 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
                   className={cn(
                     'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-subhead transition-all',
                     pinned
-                      ? 'bg-red-100 text-red-600'
-                      : 'bg-black/[0.05] text-gray-500 hover:bg-black/[0.08]',
+                      ? 'bg-ios-red/15 text-ios-red'
+                      : 'bg-black/[0.05] text-apple-secondary hover:bg-black/[0.08]',
                   )}
                 >
                   📌 {pinned ? 'מוצמד' : 'הצמד'}
@@ -183,7 +183,7 @@ export function NoteEditor({ isOpen, onClose, onSave, editingNote }: NoteEditorP
                     'px-6 py-2 rounded-full text-subhead font-semibold transition-all',
                     text.trim()
                       ? 'bg-ios-blue text-white hover:bg-ios-blue/90 shadow-glass-hover'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed',
+                      : 'bg-black/[0.08] text-apple-tertiary cursor-not-allowed',
                   )}
                 >
                   {editingNote ? 'שמור' : 'הוסף'}

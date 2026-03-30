@@ -105,7 +105,7 @@ export default function PhotosPage() {
                 deletePhoto(selectedPhoto.id)
                 setSelectedPhoto(null)
               }}
-              className="rounded-full p-2 text-white/50 hover:text-red-400 transition-colors"
+              className="rounded-full p-2 text-white/50 hover:text-ios-red transition-colors"
               aria-label="מחק תמונה"
             >
               <Trash2 className="h-5 w-5" />
@@ -114,7 +114,7 @@ export default function PhotosPage() {
               onClick={() => toggleFavorite(selectedPhoto.id)}
               className={cn(
                 'rounded-full p-2',
-                selectedPhoto.is_favorite ? 'text-red-400' : 'text-white/50',
+                selectedPhoto.is_favorite ? 'text-ios-red' : 'text-white/50',
               )}
               aria-label={selectedPhoto.is_favorite ? 'הסר ממועדפים' : 'הוסף למועדפים'}
             >
@@ -200,7 +200,7 @@ export default function PhotosPage() {
             onClick={() => setFilterFavorites(!filterFavorites)}
             className={cn(
               'rounded-apple-lg p-2',
-              filterFavorites ? 'bg-red-50 text-red-400' : 'glass text-apple-secondary',
+              filterFavorites ? 'bg-ios-red/10 text-ios-red' : 'glass text-apple-secondary',
             )}
             aria-label={filterFavorites ? 'הצג הכל' : 'סנן מועדפים'}
           >
@@ -312,7 +312,7 @@ export default function PhotosPage() {
                   loading="lazy"
                 />
                 {photo.is_favorite && !selectMode && (
-                  <Heart className="absolute top-1.5 left-1.5 h-4 w-4 fill-red-400 text-red-400 drop-shadow" />
+                  <Heart className="absolute top-1.5 left-1.5 h-4 w-4 fill-ios-red text-ios-red drop-shadow" />
                 )}
                 {isSampleData(photo.id) && !selectMode && (
                   <span className="absolute bottom-1 right-1 text-xs bg-black/50 rounded-full px-1.5 py-0.5 text-white">
@@ -403,7 +403,7 @@ export default function PhotosPage() {
                     </div>
                   ) : (
                     photo.is_favorite && (
-                      <Heart className="h-4 w-4 shrink-0 fill-red-400 text-red-400" />
+                      <Heart className="h-4 w-4 shrink-0 fill-ios-red text-ios-red" />
                     )
                   )}
                 </button>

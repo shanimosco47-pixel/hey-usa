@@ -121,8 +121,8 @@ export default function NotesPage() {
             )}
             style={{ rotate: '-1deg' }}
           >
-            <Plus className="h-8 w-8 text-amber-400" />
-            <span className="text-subhead text-amber-600 font-medium">פתק חדש</span>
+            <Plus className="h-8 w-8 text-ios-orange" />
+            <span className="text-subhead text-ios-orange font-medium">פתק חדש</span>
           </motion.button>
 
           {notes.map((note) => (
