@@ -10,7 +10,7 @@ import { PageErrorBoundary } from '@/components/shared/PageErrorBoundary'
 import { cn } from '@/lib/cn'
 
 export function AppShell() {
-  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
   const location = useLocation()
 
   return (
