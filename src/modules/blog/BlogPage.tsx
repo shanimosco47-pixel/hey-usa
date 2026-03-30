@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   BookOpen,
@@ -22,7 +22,9 @@ import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import DOMPurify from 'dompurify'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { DailyTemplates } from './components/DailyTemplates'
-import { RichTextEditor } from './components/RichTextEditor'
+const RichTextEditor = lazy(() =>
+  import('./components/RichTextEditor').then((mod) => ({ default: mod.RichTextEditor })),
+)
 
 // Moti's writing prompt suggestions
 const MOTI_PROMPTS = [
@@ -259,7 +261,11 @@ export default function BlogPage() {
           dir="auto"
           className="w-full rounded-apple-lg border border-black/[0.06] glass px-4 py-3 text-lg font-bold text-apple-primary placeholder:text-apple-tertiary"
         />
-        <RichTextEditor content={editContent} onChange={setEditContent} />
+        <Suspense
+          fallback={<div className="h-48 animate-pulse rounded-apple-lg bg-black/[0.04]" />}
+        >
+          <RichTextEditor content={editContent} onChange={setEditContent} />
+        </Suspense>
         <div className="flex items-center gap-2">
           <Tag className="h-4 w-4 text-apple-secondary" />
           <input

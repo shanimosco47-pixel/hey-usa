@@ -83,23 +83,19 @@ export default defineConfig({
   ],
   build: {
     sourcemap: false,
+    chunkSizeWarningLimit: 1100,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-motion': ['framer-motion'],
-          'vendor-radix': [
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-progress',
-            '@radix-ui/react-select',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-tabs',
-          ],
-          'vendor-maps': ['maplibre-gl'],
-          'vendor-dexie': ['dexie', 'dexie-react-hooks'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (/react-dom|react-router-dom/.test(id)) return 'vendor-react'
+            if (id.includes('framer-motion')) return 'vendor-motion'
+            if (id.includes('@radix-ui')) return 'vendor-radix'
+            if (id.includes('maplibre-gl') || id.includes('react-map-gl')) return 'vendor-maps'
+            if (id.includes('dexie')) return 'vendor-dexie'
+            if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts'
+            if (id.includes('@tiptap') || id.includes('prosemirror')) return 'vendor-tiptap'
+          }
         },
       },
     },
