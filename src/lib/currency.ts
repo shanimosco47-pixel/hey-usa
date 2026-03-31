@@ -1,6 +1,8 @@
 // Currency conversion utility with localStorage caching
 // Uses a fallback rate when API is unavailable
 
+import { retryWithBackoff } from './retry'
+
 const CACHE_KEY = 'hey-usa-exchange-rate'
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 const FALLBACK_RATE = 3.57 // Approximate ILS per USD (March 2026)
@@ -36,19 +38,20 @@ export async function getExchangeRate(): Promise<number> {
   const cached = getCachedRate()
   if (cached) return cached
 
-  // Fetch from free API
+  // Fetch from free API with retry
   try {
-    const response = await fetch('https://open.er-api.com/v6/latest/USD')
-    if (response.ok) {
+    const rate = await retryWithBackoff(async () => {
+      const response = await fetch('https://open.er-api.com/v6/latest/USD')
+      if (!response.ok) throw new Error(`Exchange rate API ${response.status}`)
       const data = await response.json()
-      const rate = data?.rates?.ILS
-      if (typeof rate === 'number' && rate > 0) {
-        setCachedRate(rate)
-        return rate
-      }
-    }
+      const r = data?.rates?.ILS
+      if (typeof r !== 'number' || r <= 0) throw new Error('Invalid rate')
+      return r
+    }, 2)
+    setCachedRate(rate)
+    return rate
   } catch {
-    // API unavailable, use fallback
+    // API unavailable after retries, use fallback
   }
 
   return FALLBACK_RATE

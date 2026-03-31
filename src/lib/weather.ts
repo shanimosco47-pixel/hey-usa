@@ -1,6 +1,8 @@
 // Weather service using Open-Meteo API (free, no API key needed)
 // Fetches forecasts for trip destinations
 
+import { retryWithBackoff } from './retry'
+
 export interface DayWeather {
   date: string
   tempMax: number // °C
@@ -57,7 +59,7 @@ export const TRIP_DESTINATIONS = [
   { city: 'Jackson, WY', lat: 43.48, lng: -110.76, days: ['2026-09-15', '2026-09-16'] },
   { city: 'Provo / Nephi', lat: 40.23, lng: -111.66, days: ['2026-09-17'] },
   { city: 'Bryce Canyon', lat: 37.59, lng: -112.19, days: ['2026-09-18'] },
-  { city: 'Zion NP', lat: 37.19, lng: -113.00, days: ['2026-09-19', '2026-09-20'] },
+  { city: 'Zion NP', lat: 37.19, lng: -113.0, days: ['2026-09-19', '2026-09-20'] },
   { city: 'Las Vegas', lat: 36.17, lng: -115.14, days: ['2026-09-21', '2026-09-22'] },
   { city: 'Mammoth Lakes', lat: 37.65, lng: -118.97, days: ['2026-09-23'] },
   { city: 'Yosemite Valley', lat: 37.75, lng: -119.59, days: ['2026-09-24', '2026-09-25'] },
@@ -68,7 +70,9 @@ export const TRIP_DESTINATIONS = [
 ] as const
 
 // Map date → destination for quick lookup
-export function getDestinationForDate(date: string): (typeof TRIP_DESTINATIONS)[number] | undefined {
+export function getDestinationForDate(
+  date: string,
+): (typeof TRIP_DESTINATIONS)[number] | undefined {
   return TRIP_DESTINATIONS.find((d) => (d.days as readonly string[]).includes(date))
 }
 
@@ -97,7 +101,9 @@ function saveCache(data: Record<string, DestinationWeather>) {
   try {
     const cache: WeatherCache = { timestamp: Date.now(), data }
     localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify(cache))
-  } catch { /* quota exceeded — ignore */ }
+  } catch {
+    /* quota exceeded — ignore */
+  }
 }
 
 // Check if a date is more than 14 days in the future
@@ -150,7 +156,11 @@ async function fetchDestinationWeather(
         temperature_unit: 'celsius',
       })
 
-      const res = await fetch(`https://archive-api.open-meteo.com/v1/archive?${params}`)
+      const res = await retryWithBackoff(async () => {
+        const r = await fetch(`https://archive-api.open-meteo.com/v1/archive?${params}`)
+        if (!r.ok) throw new Error(`Weather archive API ${r.status}`)
+        return r
+      }, 2)
       if (!res.ok) return null
 
       const json = await res.json()
@@ -184,7 +194,11 @@ async function fetchDestinationWeather(
         temperature_unit: 'celsius',
       })
 
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`)
+      const res = await retryWithBackoff(async () => {
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`)
+        if (!r.ok) throw new Error(`Weather forecast API ${r.status}`)
+        return r
+      }, 2)
       if (!res.ok) return null
 
       const json = await res.json()
@@ -256,9 +270,7 @@ export function getWeatherForDate(
 }
 
 // Get a weather summary string for Moti's context
-export function getWeatherSummaryForMoti(
-  weatherData: Record<string, DestinationWeather>,
-): string {
+export function getWeatherSummaryForMoti(weatherData: Record<string, DestinationWeather>): string {
   const lines: string[] = ['מזג אוויר צפוי לטיול:']
 
   for (const dest of TRIP_DESTINATIONS) {
@@ -269,9 +281,10 @@ export function getWeatherSummaryForMoti(
       const day = cityWeather.daily.find((d) => d.date === date)
       if (!day) continue
 
-      const dayNum = Math.floor(
-        (new Date(date).getTime() - new Date('2026-09-11').getTime()) / (1000 * 60 * 60 * 24),
-      ) + 1
+      const dayNum =
+        Math.floor(
+          (new Date(date).getTime() - new Date('2026-09-11').getTime()) / (1000 * 60 * 60 * 24),
+        ) + 1
 
       lines.push(
         `יום ${dayNum} (${date}) ${dest.city}: ${day.weatherEmoji} ${day.tempMin}-${day.tempMax}°C, ${day.weatherLabel}, סיכוי גשם ${day.precipitationProbability}%`,

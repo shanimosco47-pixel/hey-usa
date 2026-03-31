@@ -4,6 +4,7 @@
 
 import { localDb } from './db'
 import { supabase } from './supabase'
+import { retryWithBackoff } from './retry'
 import type {
   Task,
   Expense,
@@ -65,6 +66,7 @@ export async function queueSync(
  */
 export async function flushSyncQueue(): Promise<number> {
   if (!supabase) return 0
+  const sb = supabase
 
   const pending = await localDb.syncQueue.where('synced').equals(0).toArray()
   let synced = 0
@@ -74,18 +76,20 @@ export async function flushSyncQueue(): Promise<number> {
     if (!supabaseTable) continue
 
     try {
-      if (item.action === 'delete') {
-        await supabase.from(supabaseTable).delete().eq('id', item.recordId)
-      } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const dexieTable = localDb.table(item.table) as any
-        const record = await dexieTable.get(item.recordId)
-        if (record) {
-          // Transform Dexie record back to Supabase shape before upserting
-          const payload = toSupabaseShape(item.table, record)
-          await supabase.from(supabaseTable).upsert(payload)
+      await retryWithBackoff(async () => {
+        if (item.action === 'delete') {
+          await sb.from(supabaseTable).delete().eq('id', item.recordId)
+        } else {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const dexieTable = localDb.table(item.table) as any
+          const record = await dexieTable.get(item.recordId)
+          if (record) {
+            // Transform Dexie record back to Supabase shape before upserting
+            const payload = toSupabaseShape(item.table, record)
+            await sb.from(supabaseTable).upsert(payload)
+          }
         }
-      }
+      }, 2)
       await localDb.syncQueue.update(item.id, { synced: 1 })
       synced++
     } catch {
@@ -173,6 +177,7 @@ function toSupabaseShape(table: string, record: any): Record<string, unknown> {
  */
 export async function pullFromSupabase(): Promise<boolean> {
   if (!supabase) return false
+  const sb = supabase
 
   try {
     const [
@@ -187,19 +192,21 @@ export async function pullFromSupabase(): Promise<boolean> {
       { data: rawPlaylistItems },
       { data: rawLocationNotes },
       { data: rawPolls },
-    ] = await Promise.all([
-      supabase.from('tasks').select('*'),
-      supabase.from('expenses').select('*'),
-      supabase.from('budget_settings').select('*').eq('id', 'main').single(),
-      supabase.from('itinerary_days').select('*'),
-      supabase.from('packing_items').select('*'),
-      supabase.from('blog_posts').select('*'),
-      supabase.from('photos').select('*'),
-      supabase.from('documents').select('*'),
-      supabase.from('playlist_items').select('*'),
-      supabase.from('location_notes').select('*'),
-      supabase.from('activity_polls').select('*'),
-    ])
+    ] = await retryWithBackoff(() =>
+      Promise.all([
+        sb.from('tasks').select('*'),
+        sb.from('expenses').select('*'),
+        sb.from('budget_settings').select('*').eq('id', 'main').single(),
+        sb.from('itinerary_days').select('*'),
+        sb.from('packing_items').select('*'),
+        sb.from('blog_posts').select('*'),
+        sb.from('photos').select('*'),
+        sb.from('documents').select('*'),
+        sb.from('playlist_items').select('*'),
+        sb.from('location_notes').select('*'),
+        sb.from('activity_polls').select('*'),
+      ]),
+    )
 
     // ── Transform Supabase shapes → Dexie/TypeScript types ─────────────────
 
@@ -361,15 +368,17 @@ export async function pullFromSupabase(): Promise<boolean> {
     )
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const polls: ActivityPoll[] = (rawPolls ?? []).map((p: any): ActivityPoll => ({
-      id: p.id,
-      day_id: p.day_id,
-      question: p.question,
-      options: (p.options as string[]) ?? [],
-      votes: (p.votes as PollVote[]) ?? [],
-      created_by: p.created_by,
-      created_at: p.created_at,
-    }))
+    const polls: ActivityPoll[] = (rawPolls ?? []).map(
+      (p: any): ActivityPoll => ({
+        id: p.id,
+        day_id: p.day_id,
+        question: p.question,
+        options: (p.options as string[]) ?? [],
+        votes: (p.votes as PollVote[]) ?? [],
+        created_by: p.created_by,
+        created_at: p.created_at,
+      }),
+    )
 
     // ── Write into Dexie in a single transaction ────────────────────────────
     await localDb.transaction(
