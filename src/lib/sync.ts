@@ -367,8 +367,8 @@ export async function pullFromSupabase(): Promise<boolean> {
       }),
     )
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const polls: ActivityPoll[] = (rawPolls ?? []).map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (p: any): ActivityPoll => ({
         id: p.id,
         day_id: p.day_id,
