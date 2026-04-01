@@ -62,7 +62,14 @@ export const DaySelector = memo(function DaySelector({
                   : 'glass text-apple-primary border border-black/[0.06] hover:bg-white/80',
               )}
             >
-              <span className="text-caption font-medium opacity-75">{shortDate}</span>
+              <span
+                className={cn(
+                  'text-caption font-medium',
+                  isActive ? 'text-white/90' : 'text-apple-secondary',
+                )}
+              >
+                {shortDate}
+              </span>
               <span className="text-subhead font-bold">{dayNum}</span>
               <span
                 className={cn(

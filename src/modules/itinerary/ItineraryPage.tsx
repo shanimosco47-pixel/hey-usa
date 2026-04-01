@@ -311,7 +311,7 @@ export default function ItineraryPage() {
                 )}
                 {/* Gradient overlay */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} ${theme.photo ? 'opacity-60' : ''}`}
+                  className={`absolute inset-0 bg-gradient-to-br ${theme.gradient} ${theme.photo ? 'opacity-80' : ''}`}
                 />
 
                 {/* Background emoji */}
@@ -325,23 +325,23 @@ export default function ItineraryPage() {
                     <button
                       onClick={handleNextDay}
                       disabled={activeDayIndex >= ITINERARY_DAYS.length - 1}
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 disabled:opacity-30"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-black/25 disabled:opacity-30"
                       aria-label="היום הבא"
                     >
                       <ChevronRight className="h-4 w-4" />
                     </button>
                     <div className="flex items-center gap-2">
-                      <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-caption font-bold">
+                      <span className="rounded-full bg-black/25 px-2.5 py-0.5 text-caption font-bold">
                         יום {activeDayIndex + 1}/20
                       </span>
-                      <span className="text-caption text-white/70">
+                      <span className="text-caption text-white/90">
                         {hebrewDay}, {format(date, 'd.M.yyyy')}
                       </span>
                     </div>
                     <button
                       onClick={handlePrevDay}
                       disabled={activeDayIndex <= 0}
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 disabled:opacity-30"
+                      className="flex h-7 w-7 items-center justify-center rounded-full bg-black/25 disabled:opacity-30"
                       aria-label="היום הקודם"
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -360,9 +360,9 @@ export default function ItineraryPage() {
                           to={`/locations/${loc.id}`}
                           className="flex items-center justify-center gap-1 mt-1 hover:bg-white/10 rounded-full px-2 py-0.5 transition-colors"
                         >
-                          <MapPin className="h-3 w-3 text-white/70" />
+                          <MapPin className="h-3 w-3 text-white/90" />
                           <span
-                            className="text-xs text-white/80 underline decoration-white/30"
+                            className="text-xs text-white/95 underline decoration-white/50"
                             dir="ltr"
                           >
                             {currentDay.city}
@@ -370,8 +370,8 @@ export default function ItineraryPage() {
                         </Link>
                       ) : (
                         <div className="flex items-center justify-center gap-1 mt-1">
-                          <MapPin className="h-3 w-3 text-white/70" />
-                          <span className="text-xs text-white/80" dir="ltr">
+                          <MapPin className="h-3 w-3 text-white/90" />
+                          <span className="text-xs text-white/95" dir="ltr">
                             {currentDay.city}
                           </span>
                         </div>
@@ -381,20 +381,23 @@ export default function ItineraryPage() {
                   {/* Weather + cost strip */}
                   <div className="flex items-center justify-center gap-3 mt-2">
                     {w && (
-                      <div className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1">
+                      <div className="flex items-center gap-1 rounded-full bg-black/25 px-2.5 py-1">
                         <span className="text-sm">{w.weatherEmoji}</span>
-                        <span className="text-caption">
+                        <span className="text-caption font-medium">
                           {w.tempMin}°–{w.tempMax}°C
                         </span>
                         {w.precipitationProbability > 20 && (
-                          <span className="text-caption text-white/70">
+                          <span className="text-caption text-white/90">
                             💧{w.precipitationProbability}%
                           </span>
                         )}
                       </div>
                     )}
                     {dayCost > 0 && (
-                      <div className="rounded-full bg-white/15 px-2.5 py-1 text-caption" dir="ltr">
+                      <div
+                        className="rounded-full bg-black/25 px-2.5 py-1 text-caption font-medium"
+                        dir="ltr"
+                      >
                         ~${dayCost}
                       </div>
                     )}
