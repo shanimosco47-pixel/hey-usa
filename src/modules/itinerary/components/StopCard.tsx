@@ -105,14 +105,7 @@ export const StopCard = memo(function StopCard({ stop, index, onUpdateTime }: St
         : null
 
   return (
-    <div
-      className="rounded-apple-lg border border-black/[0.08] p-4 shadow-glass"
-      style={{
-        background: 'rgba(240, 235, 228, 0.85)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-      }}
-    >
+    <div className="glass rounded-apple-lg p-4 shadow-glass">
       {/* Header: Icon + Title + Category badge */}
       <div className="flex items-start gap-3">
         {/* Category icon circle */}

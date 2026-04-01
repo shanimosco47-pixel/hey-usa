@@ -59,7 +59,7 @@ export const DaySelector = memo(function DaySelector({
                 'flex min-w-[72px] min-h-[44px] flex-shrink-0 flex-col items-center gap-0.5 rounded-apple-lg px-3 py-2 transition-all',
                 isActive
                   ? 'bg-ios-blue text-white shadow-glass-hover scale-105'
-                  : 'text-apple-primary border border-black/[0.08] bg-[#ebe6df]/80 hover:bg-[#e5e0d9]/90',
+                  : 'glass text-apple-primary hover:bg-[#e5e0d9]/90',
               )}
             >
               <span

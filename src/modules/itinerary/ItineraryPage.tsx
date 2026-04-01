@@ -186,7 +186,7 @@ export default function ItineraryPage() {
           </div>
           <h2 className="text-title font-bold text-apple-primary">לוח זמנים</h2>
         </motion.div>
-        <div className="flex flex-col items-center justify-center rounded-apple-lg bg-[#ebe6df]/80 p-12 text-center shadow-sm">
+        <div className="flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
           <Map className="h-12 w-12 text-apple-secondary/30" />
           <p className="mt-4 text-apple-secondary">אין ימים להצגה</p>
         </div>
@@ -456,7 +456,7 @@ export default function ItineraryPage() {
 
           {/* Stops: list or timeline view */}
           {currentDay.stops.length === 0 ? (
-            <div className="mx-4 mt-4 flex flex-col items-center justify-center rounded-apple-lg bg-[#ebe6df]/80 p-12 text-center shadow-sm">
+            <div className="mx-4 mt-4 flex flex-col items-center justify-center rounded-apple-lg glass p-12 text-center shadow-sm">
               <Map className="h-12 w-12 text-apple-secondary/30" />
               <p className="mt-4 text-apple-secondary">אין עצירות להצגה</p>
             </div>
