@@ -6,6 +6,7 @@ import type { MotiAction } from '@/contexts/AppDataContext'
 import type { FamilyMemberId } from '@/lib/types'
 import { EXPENSE_CATEGORIES, FAMILY_MEMBERS } from '@/constants'
 import { convertCurrency } from '@/lib/currency'
+import { retryWithBackoff } from '@/lib/retry'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
@@ -348,23 +349,27 @@ async function generateMemorySummary(
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
     const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
-    const response = await fetch(`${supabaseUrl}/functions/v1/moti-chat`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${supabaseKey}`,
-        apikey: supabaseKey,
-      },
-      body: JSON.stringify({
-        messages: [
-          {
-            role: 'user',
-            content: `סכם את השיחה הבאה ב-3-4 משפטים קצרים בעברית. התמקד בנושאים העיקריים, החלטות שהתקבלו, ובקשות חוזרות. אל תכלול פרטי שיחה טכניים.\n\nשיחה:\n${olderMessages.map((m) => `${m.role === 'user' ? 'משתמש' : 'מוטי'}: ${m.content.slice(0, 200)}`).join('\n')}`,
+    const response = await retryWithBackoff(
+      () =>
+        fetch(`${supabaseUrl}/functions/v1/moti-chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${supabaseKey}`,
+            apikey: supabaseKey,
           },
-        ],
-        summarize: true,
-      }),
-    })
+          body: JSON.stringify({
+            messages: [
+              {
+                role: 'user',
+                content: `סכם את השיחה הבאה ב-3-4 משפטים קצרים בעברית. התמקד בנושאים העיקריים, החלטות שהתקבלו, ובקשות חוזרות. אל תכלול פרטי שיחה טכניים.\n\nשיחה:\n${olderMessages.map((m) => `${m.role === 'user' ? 'משתמש' : 'מוטי'}: ${m.content.slice(0, 200)}`).join('\n')}`,
+              },
+            ],
+            summarize: true,
+          }),
+        }),
+      2,
+    )
     const data = response.ok ? await response.json() : null
     if (data?.text) {
       memorySummary = data.text
@@ -606,19 +611,23 @@ ${Object.values(FAMILY_MEMBERS)
         )
       }
 
-      const response = await fetch(`${supabaseUrl}/functions/v1/moti-chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${supabaseKey}`,
-          apikey: supabaseKey,
-        },
-        body: JSON.stringify({
-          messages: messagesWithMemory,
-          appContext: appContext || '',
-          familyContext,
-        }),
-      })
+      const response = await retryWithBackoff(
+        () =>
+          fetch(`${supabaseUrl}/functions/v1/moti-chat`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${supabaseKey}`,
+              apikey: supabaseKey,
+            },
+            body: JSON.stringify({
+              messages: messagesWithMemory,
+              appContext: appContext || '',
+              familyContext,
+            }),
+          }),
+        2,
+      )
 
       if (response.ok) {
         const data = await response.json()
