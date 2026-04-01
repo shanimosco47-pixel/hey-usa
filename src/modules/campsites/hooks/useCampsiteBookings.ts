@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { CampsiteBooking, BookingChangeEntry } from '@/types'
 import { supabase } from '@/lib/supabase'
+import { retryWithBackoff } from '@/lib/retry'
 import { sampleCampsiteBookings } from '../data/campsiteBookings'
 
 const LS_KEY = 'hey-usa-campsite-bookings'
@@ -39,10 +40,16 @@ export function useCampsiteBookings() {
         return
       }
       try {
-        const { data, error } = await supabase
-          .from('campsite_bookings')
-          .select('*')
-          .order('check_in', { ascending: true })
+        const { data, error } = await retryWithBackoff(async () => {
+          const result = await supabase!
+            .from('campsite_bookings')
+            .select('*')
+            .order('check_in', { ascending: true })
+          if (result.error && /fetch|network|timeout/i.test(result.error.message)) {
+            throw new Error(result.error.message)
+          }
+          return result
+        })
         if (error) throw error
         if (data && data.length > 0) {
           const mapped: CampsiteBooking[] = data.map((r) => ({
@@ -128,14 +135,20 @@ export function useCampsiteBookings() {
               }
             }
           }
-          const { error } = await supabase
-            .from('campsite_bookings')
-            .update({
-              ...changes,
-              changelog: supabase ? [...(current?.changelog ?? []), ...newEntries] : undefined,
-              updated_at: now,
-            } as unknown as Record<string, unknown>)
-            .eq('id', id)
+          const { error } = await retryWithBackoff(async () => {
+            const result = await supabase!
+              .from('campsite_bookings')
+              .update({
+                ...changes,
+                changelog: [...(current?.changelog ?? []), ...newEntries],
+                updated_at: now,
+              } as unknown as Record<string, unknown>)
+              .eq('id', id)
+            if (result.error && /fetch|network|timeout/i.test(result.error.message)) {
+              throw new Error(result.error.message)
+            }
+            return result
+          })
           if (error) console.warn('Supabase update failed:', error)
         } catch (err) {
           console.warn('Failed to sync update to Supabase:', err)
@@ -167,9 +180,15 @@ export function useCampsiteBookings() {
 
       if (supabase) {
         try {
-          const { error } = await supabase
-            .from('campsite_bookings')
-            .insert(newBooking as unknown as Record<string, unknown>)
+          const { error } = await retryWithBackoff(async () => {
+            const result = await supabase!
+              .from('campsite_bookings')
+              .insert(newBooking as unknown as Record<string, unknown>)
+            if (result.error && /fetch|network|timeout/i.test(result.error.message)) {
+              throw new Error(result.error.message)
+            }
+            return result
+          })
           if (error) console.warn('Supabase insert failed:', error)
         } catch (err) {
           console.warn('Failed to sync insert to Supabase:', err)

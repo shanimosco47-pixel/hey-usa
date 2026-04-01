@@ -16,6 +16,7 @@ import {
   MapPin,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { retryWithBackoff } from '@/lib/retry'
 import { FAMILY_MEMBERS, DOCUMENT_CATEGORIES } from '@/constants'
 import { getLocationById } from '@/data/locations'
 import { isSampleData } from '@/lib/sampleData'
@@ -92,8 +93,7 @@ function HtmlPreview({
 
   useEffect(() => {
     let revoked = false
-    fetch(url)
-      .then((r) => r.text())
+    retryWithBackoff(() => fetch(url).then((r) => r.text()))
       .then((html) => {
         if (revoked) return
 
@@ -402,8 +402,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
     // a proper HTML blob so the browser renders it instead of showing raw code
     if (doc.file_type?.includes('html') && doc.file_url.startsWith('http')) {
       try {
-        const res = await fetch(doc.file_url)
-        const html = await res.text()
+        const html = await retryWithBackoff(() => fetch(doc.file_url!).then((r) => r.text()))
         const blob = new Blob([html], { type: 'text/html' })
         window.open(URL.createObjectURL(blob), '_blank', 'noopener')
         return
