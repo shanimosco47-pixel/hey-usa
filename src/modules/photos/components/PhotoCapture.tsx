@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useAppData } from '@/contexts/AppDataContext'
 import imageCompression from 'browser-image-compression'
 import { supabase } from '@/lib/supabase'
+import { retryWithBackoff } from '@/lib/retry'
 import { useToast } from '@/components/shared/ToastContext'
 import type { FamilyMemberId } from '@/lib/types'
 
@@ -53,13 +54,14 @@ export function PhotoCapture({ dayId, location }: PhotoCaptureProps) {
       if (supabase) {
         try {
           const fileName = `${Date.now()}-${file.name}`
-          const { data, error } = await supabase.storage
-            .from('photos')
-            .upload(`trip/${fileName}`, compressed)
+          const sb = supabase
+          const { data } = await retryWithBackoff(async () => {
+            const result = await sb.storage.from('photos').upload(`trip/${fileName}`, compressed)
+            if (result.error) throw result.error
+            return result
+          })
 
-          if (error) throw error
-
-          const { data: publicUrl } = supabase.storage.from('photos').getPublicUrl(data.path)
+          const { data: publicUrl } = sb.storage.from('photos').getPublicUrl(data.path)
 
           url = publicUrl.publicUrl
         } catch (storageErr) {

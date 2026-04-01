@@ -16,6 +16,7 @@ import { FAMILY_MEMBERS, DOCUMENT_CATEGORIES } from '@/constants'
 import { LOCATIONS } from '@/data/locations'
 import { suggestDocumentMeta } from '../utils/suggestDocumentMeta'
 import { supabase } from '@/lib/supabase'
+import { retryWithBackoff } from '@/lib/retry'
 import type { Document, FamilyMemberId, Expense } from '@/types'
 
 interface UploadDialogProps {
@@ -139,17 +140,18 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
     try {
       // Upload file to Supabase Storage if selected
       if (selectedFile && supabase) {
+        const sb = supabase
         const ext = selectedFile.name.split('.').pop() || 'pdf'
         const fileName = `${Date.now()}-${title.trim().replace(/\s+/g, '-').slice(0, 40)}.${ext}`
-        const { error } = await supabase.storage
-          .from('documents')
-          .upload(fileName, selectedFile, { contentType: selectedFile.type })
-        if (!error) {
-          const { data: urlData } = supabase.storage.from('documents').getPublicUrl(fileName)
-          fileUrl = urlData.publicUrl
-        } else {
-          console.warn('Upload failed:', error.message)
-        }
+        await retryWithBackoff(async () => {
+          const result = await sb.storage
+            .from('documents')
+            .upload(fileName, selectedFile, { contentType: selectedFile.type })
+          if (result.error) throw result.error
+          return result
+        })
+        const { data: urlData } = sb.storage.from('documents').getPublicUrl(fileName)
+        fileUrl = urlData.publicUrl
       }
     } catch (err) {
       console.warn('Upload error:', err)
