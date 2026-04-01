@@ -196,7 +196,7 @@ ol {
 @layer utilities {
   /* Level 1 — Paper card (warm parchment) */
   .glass {
-    background: rgba(240, 235, 228, 0.88);
+    background: rgba(225, 218, 208, 0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(180, 83, 9, 0.1);
@@ -208,7 +208,7 @@ ol {
 
   /* Level 2 — Elevated paper (warm parchment) */
   .glass-float {
-    background: rgba(242, 237, 230, 0.92);
+    background: rgba(230, 223, 214, 0.94);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(180, 83, 9, 0.12);
