@@ -1,6 +1,8 @@
 // ─── Email Scan Client API ────────────────────────────────────────────
 // Client-side helpers for triggering email scans and managing OAuth
 
+import { retryWithBackoff } from './retry'
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string
@@ -21,15 +23,19 @@ export async function triggerEmailScan(
   mode: 'full' | 'targeted',
   query?: string,
 ): Promise<ScanResult> {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/email-scan`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      apikey: SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify({ mode, query }),
-  })
+  const res = await retryWithBackoff(
+    () =>
+      fetch(`${SUPABASE_URL}/functions/v1/email-scan`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ mode, query }),
+      }),
+    2,
+  )
 
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText)
@@ -59,15 +65,19 @@ export async function exchangeOAuthCode(
   redirectUri: string,
   label?: string,
 ): Promise<{ email: string }> {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/email-oauth`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      apikey: SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify({ code, redirect_uri: redirectUri, label }),
-  })
+  const res = await retryWithBackoff(
+    () =>
+      fetch(`${SUPABASE_URL}/functions/v1/email-oauth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ code, redirect_uri: redirectUri, label }),
+      }),
+    2,
+  )
 
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText)
