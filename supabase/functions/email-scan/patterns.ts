@@ -184,14 +184,100 @@ export function buildSearchQuery(lastScanAt: string | null): string {
 // extractBookingRefs
 // ---------------------------------------------------------------------------
 
+// Common words that appear in ALL CAPS in travel emails but aren't booking refs
+const BOOKING_REF_STOPWORDS = new Set([
+  'CAMPGROUND',
+  'WATCHMAN',
+  'NATIONAL',
+  'VEHICLE',
+  'EQUIPMENT',
+  'CAMPING',
+  'RESERVATION',
+  'DETAILS',
+  'CANCEL',
+  'REFUND',
+  'OCCUPANT',
+  'OCCUPANTS',
+  'CHECKOUT',
+  'CHECKIN',
+  'CONFIRMATION',
+  'IMPORTANT',
+  'NOTICE',
+  'SUBJECT',
+  'INFORMATION',
+  'AVAILABLE',
+  'PERMITTED',
+  'PROHIBITED',
+  'FIREWOOD',
+  'WILDLIFE',
+  'CAMPFIRE',
+  'SUPPORT',
+  'CONTACT',
+  'RECEIPT',
+  'PAYMENT',
+  'BOOKING',
+  'TRAVEL',
+  'FLIGHT',
+  'HOTEL',
+  'RENTAL',
+  'INSURANCE',
+  'ENTRANCE',
+  'TUNNEL',
+  'PARKING',
+  'SHOWER',
+  'LAUNDRY',
+  'GENERATOR',
+  'HAMMOCK',
+  'HAMMOCKS',
+  'GARBAGE',
+  'RECREATION',
+  'VISITOR',
+  'VISITORS',
+  'RESERVED',
+  'MODIFY',
+  'ORDER',
+  'ITINERARY',
+  'AIRLINES',
+  'UNITED',
+  'PASSES',
+  'SENIOR',
+  'POLICY',
+  'POLICIES',
+  'RIGHTS',
+  'PLEASE',
+  'SERVICE',
+  'IMAGES',
+  'PHOTO',
+  'ALERT',
+  'HELLO',
+  'THANK',
+  'THANKS',
+  'TRAIL',
+  'TRAILS',
+  'CANYON',
+  'CREEK',
+  'GRANT',
+  'LODGE',
+  'INDIAN',
+  'YELLOW',
+  'STONE',
+  'BRYCE',
+  'JACKSON',
+])
+
 export function extractBookingRefs(text: string): string[] {
   const refs = new Set<string>()
 
   // Pattern 1: uppercase alphanumeric 5–10 chars (standalone token)
+  // Must contain at least one digit OR not be a common English word
   const alphanumRegex = /\b([A-Z][A-Z0-9]{4,9})\b/g
   let m: RegExpExecArray | null
   while ((m = alphanumRegex.exec(text)) !== null) {
-    refs.add(m[1])
+    const token = m[1]
+    if (BOOKING_REF_STOPWORDS.has(token)) continue
+    // Pure alphabetic tokens over 7 chars are likely words, not booking refs
+    if (/^[A-Z]+$/.test(token) && token.length > 7) continue
+    refs.add(token)
   }
 
   // Pattern 2: # followed by 6+ digits
