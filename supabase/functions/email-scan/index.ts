@@ -148,7 +148,9 @@ Deno.serve(async (req) => {
 
     if (filelessError) {
       console.error('[email-scan] Failed to query fileless documents:', filelessError.message)
-      return corsResponse(JSON.stringify({ error: 'Failed to query fileless documents' }), { status: 500 })
+      return corsResponse(JSON.stringify({ error: 'Failed to query fileless documents' }), {
+        status: 500,
+      })
     }
 
     if (!filelessDocs || filelessDocs.length === 0) {
@@ -165,7 +167,11 @@ Deno.serve(async (req) => {
     for (const account of accounts) {
       try {
         const refreshToken = await decrypt(account.refresh_token, TOKEN_ENCRYPTION_KEY)
-        const accessToken = await refreshAccessToken(refreshToken, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
+        const accessToken = await refreshAccessToken(
+          refreshToken,
+          GOOGLE_CLIENT_ID,
+          GOOGLE_CLIENT_SECRET,
+        )
         accountTokens.push({ email: account.email, accessToken })
       } catch (err) {
         console.error(`[email-scan] Rescan: token refresh failed for ${account.email}:`, err)
@@ -192,7 +198,9 @@ Deno.serve(async (req) => {
       }
 
       if (!captured) {
-        console.warn(`[email-scan] Rescan: could not capture file for "${doc.title}" (${doc.source_email_id})`)
+        console.warn(
+          `[email-scan] Rescan: could not capture file for "${doc.title}" (${doc.source_email_id})`,
+        )
         continue
       }
 
@@ -221,7 +229,10 @@ Deno.serve(async (req) => {
     }
 
     return corsResponse(
-      JSON.stringify({ message: `Rescan complete. Fixed ${fixedCount} of ${filelessDocs.length} document(s).`, fixed: fixedCount }),
+      JSON.stringify({
+        message: `Rescan complete. Fixed ${fixedCount} of ${filelessDocs.length} document(s).`,
+        fixed: fixedCount,
+      }),
       { status: 200 },
     )
   }
@@ -273,8 +284,8 @@ Deno.serve(async (req) => {
         const from = getHeader(message, 'from')
         const bodyText = getBodyText(message)
 
-        // Pattern classification
-        const patternResult = classifyByPattern(from, subject)
+        // Pattern classification (pass body for forwarded-sender detection)
+        const patternResult = classifyByPattern(from, subject, bodyText)
         if (patternResult === 'irrelevant') {
           continue
         }

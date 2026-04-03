@@ -82,12 +82,39 @@ function hasSubjectKeyword(subject: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// Forwarded email original sender extraction
+// ---------------------------------------------------------------------------
+
+/**
+ * Extracts the original sender email from a forwarded message body.
+ * Looks for "From: Name <email>" or "From: email" patterns after
+ * "Forwarded message" markers.
+ */
+export function extractForwardedSender(bodyText: string): string | null {
+  // Match "---------- Forwarded message ---------" then "From: ... <email>"
+  const fwdBlock = bodyText.match(
+    /[-]+\s*Forwarded message\s*[-]+[\s\S]{0,200}?From:\s*(?:[^<\n]*<)?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})>?/i,
+  )
+  if (fwdBlock) return fwdBlock[1].toLowerCase()
+
+  return null
+}
+
+// ---------------------------------------------------------------------------
 // classifyByPattern
 // ---------------------------------------------------------------------------
 
 export type PatternClassification = 'definite' | 'uncertain' | 'irrelevant'
 
-export function classifyByPattern(fromEmail: string, subject: string): PatternClassification {
+/**
+ * Classifies an email by sender domain and subject keywords.
+ * For forwarded emails, also checks the original sender extracted from the body.
+ */
+export function classifyByPattern(
+  fromEmail: string,
+  subject: string,
+  bodyText?: string,
+): PatternClassification {
   const combined = `${fromEmail} ${subject}`
 
   // Exclude check first
@@ -95,7 +122,15 @@ export function classifyByPattern(fromEmail: string, subject: string): PatternCl
     return 'irrelevant'
   }
 
-  const knownSender = isKnownSender(fromEmail)
+  // Check direct sender and original forwarded sender
+  let knownSender = isKnownSender(fromEmail)
+  if (!knownSender && bodyText) {
+    const originalSender = extractForwardedSender(bodyText)
+    if (originalSender) {
+      knownSender = isKnownSender(originalSender)
+    }
+  }
+
   const hasKeyword = hasSubjectKeyword(subject)
 
   if (knownSender && hasKeyword) return 'definite'
