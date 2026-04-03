@@ -173,11 +173,11 @@ export function buildSearchQuery(lastScanAt: string | null): string {
   ]
   const subjectGroup = `{${subjectParts.join(' ')}}`
 
-  // Exclude keywords
-  const excludeParts = EXCLUDE_KEYWORDS.map((kw) => `-"${kw}"`)
-  const excludeStr = excludeParts.join(' ')
+  // Note: exclude keywords are NOT applied in Gmail search because legitimate
+  // booking emails often contain "unsubscribe" in their footer. Exclusion
+  // is handled locally by classifyByPattern instead.
 
-  return `(${fromGroup} OR ${subjectGroup}) ${excludeStr} ${dateFilter}`
+  return `(${fromGroup} OR ${subjectGroup}) ${dateFilter}`
 }
 
 // ---------------------------------------------------------------------------
