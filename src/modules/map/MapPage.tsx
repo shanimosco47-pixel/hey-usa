@@ -1,19 +1,13 @@
-import { useMemo, useState, useCallback, useRef } from 'react'
-import MapGL, { Marker, Source, Layer, Popup, NavigationControl } from 'react-map-gl/maplibre'
-import { Map, Layers, Navigation, MapPin } from 'lucide-react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
+import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps'
+import { Map as MapIcon, Layers, Navigation, MapPin } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { DAY_COLORS } from '@/constants'
 import { ITINERARY_DAYS } from '@/data/itinerary'
 import { getPrimaryLocationForCity } from '@/data/locations'
-import 'maplibre-gl/dist/maplibre-gl.css'
-import type { MapRef } from 'react-map-gl/maplibre'
-import type { GeoJSON } from 'geojson'
 
-// Free vector tile style — high resolution, no API key needed
-const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
-// Alternative styles:
-// Voyager (colorful): 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
-// Dark matter: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
+const MAP_ID = 'hey-usa-map'
 
 interface MapPoint {
   lat: number
@@ -26,11 +20,95 @@ interface MapPoint {
   city?: string
 }
 
-export default function MapPage() {
+function RouteLines({
+  selectedDay,
+  allPoints,
+}: {
+  selectedDay: number | null
+  allPoints: MapPoint[]
+}) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (!map) return
+
+    const polylines: google.maps.Polyline[] = []
+
+    if (selectedDay !== null) {
+      const day = ITINERARY_DAYS[selectedDay]
+      const color = DAY_COLORS[selectedDay % DAY_COLORS.length]
+      const coords: google.maps.LatLngLiteral[] = []
+      for (const stop of day.stops) {
+        if (stop.lat && stop.lng) coords.push({ lat: stop.lat, lng: stop.lng })
+      }
+      if (coords.length >= 2) {
+        polylines.push(
+          new google.maps.Polyline({
+            path: coords,
+            strokeColor: color,
+            strokeWeight: 4,
+            strokeOpacity: 0.8,
+            map,
+          }),
+        )
+      }
+    } else {
+      let prevDayLastCoord: google.maps.LatLngLiteral | null = null
+      for (let idx = 0; idx < ITINERARY_DAYS.length; idx++) {
+        const day = ITINERARY_DAYS[idx]
+        const color = DAY_COLORS[idx % DAY_COLORS.length]
+        const coords: google.maps.LatLngLiteral[] = []
+        for (const stop of day.stops) {
+          if (stop.lat && stop.lng) coords.push({ lat: stop.lat, lng: stop.lng })
+        }
+        // Dashed connector from previous day
+        if (prevDayLastCoord && coords.length > 0) {
+          polylines.push(
+            new google.maps.Polyline({
+              path: [prevDayLastCoord, coords[0]],
+              strokeColor: color,
+              strokeWeight: 2,
+              strokeOpacity: 0.5,
+              icons: [
+                {
+                  icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 2 },
+                  offset: '0',
+                  repeat: '12px',
+                },
+              ],
+              map,
+            }),
+          )
+        }
+        // Solid route within day
+        if (coords.length >= 2) {
+          polylines.push(
+            new google.maps.Polyline({
+              path: coords,
+              strokeColor: color,
+              strokeWeight: 4,
+              strokeOpacity: 0.8,
+              map,
+            }),
+          )
+        }
+        if (coords.length > 0) prevDayLastCoord = coords[coords.length - 1]
+      }
+    }
+
+    return () => {
+      polylines.forEach((p) => p.setMap(null))
+    }
+  }, [map, selectedDay, allPoints])
+
+  return null
+}
+
+function MapContent() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [showLabels, setShowLabels] = useState(true)
   const [popupInfo, setPopupInfo] = useState<MapPoint | null>(null)
-  const mapRef = useRef<MapRef>(null)
+  const map = useMap()
 
   const allPoints = useMemo<MapPoint[]>(() => {
     const points: MapPoint[] = []
@@ -58,91 +136,24 @@ export default function MapPage() {
     [allPoints, selectedDay],
   )
 
-  // Build GeoJSON line features for route segments
-  const routeGeoJSON = useMemo<GeoJSON>(() => {
-    const features: GeoJSON.Feature[] = []
-
-    if (selectedDay !== null) {
-      const day = ITINERARY_DAYS[selectedDay]
-      const color = DAY_COLORS[selectedDay % DAY_COLORS.length]
-      const coords: [number, number][] = []
-      for (const stop of day.stops) {
-        if (stop.lat && stop.lng) coords.push([stop.lng, stop.lat])
-      }
-      if (coords.length >= 2) {
-        features.push({
-          type: 'Feature',
-          properties: { color, dashed: false },
-          geometry: { type: 'LineString', coordinates: coords },
-        })
-      }
-    } else {
-      let prevDayLastCoord: [number, number] | null = null
-      for (let idx = 0; idx < ITINERARY_DAYS.length; idx++) {
-        const day = ITINERARY_DAYS[idx]
-        const color = DAY_COLORS[idx % DAY_COLORS.length]
-        const coords: [number, number][] = []
-        for (const stop of day.stops) {
-          if (stop.lat && stop.lng) coords.push([stop.lng, stop.lat])
-        }
-        if (prevDayLastCoord && coords.length > 0) {
-          features.push({
-            type: 'Feature',
-            properties: { color, dashed: true },
-            geometry: { type: 'LineString', coordinates: [prevDayLastCoord, coords[0]] },
-          })
-        }
-        if (coords.length >= 2) {
-          features.push({
-            type: 'Feature',
-            properties: { color, dashed: false },
-            geometry: { type: 'LineString', coordinates: coords },
-          })
-        }
-        if (coords.length > 0) prevDayLastCoord = coords[coords.length - 1]
-      }
-    }
-
-    return { type: 'FeatureCollection', features }
-  }, [selectedDay])
-
-  const solidRoutes = useMemo<GeoJSON>(
-    () => ({
-      type: 'FeatureCollection',
-      features: (routeGeoJSON as GeoJSON.FeatureCollection).features.filter(
-        (f) => !f.properties?.dashed,
-      ),
-    }),
-    [routeGeoJSON],
-  )
-
-  const dashedRoutes = useMemo<GeoJSON>(
-    () => ({
-      type: 'FeatureCollection',
-      features: (routeGeoJSON as GeoJSON.FeatureCollection).features.filter(
-        (f) => f.properties?.dashed,
-      ),
-    }),
-    [routeGeoJSON],
-  )
-
-  // Fly to selected day's center
   const handleDaySelect = useCallback(
     (idx: number | null) => {
       setSelectedDay(idx)
       setPopupInfo(null)
-      if (idx !== null && mapRef.current) {
+      if (idx !== null && map) {
         const dayPoints = allPoints.filter((p) => p.dayIndex === idx)
         if (dayPoints.length > 0) {
           const avgLat = dayPoints.reduce((s, p) => s + p.lat, 0) / dayPoints.length
           const avgLng = dayPoints.reduce((s, p) => s + p.lng, 0) / dayPoints.length
-          mapRef.current.flyTo({ center: [avgLng, avgLat], zoom: 8, duration: 1000 })
+          map.panTo({ lat: avgLat, lng: avgLng })
+          map.setZoom(8)
         }
-      } else if (mapRef.current) {
-        mapRef.current.flyTo({ center: [-110, 37.5], zoom: 5, duration: 1000 })
+      } else if (map) {
+        map.panTo({ lat: 37.5, lng: -110 })
+        map.setZoom(5)
       }
     },
-    [allPoints],
+    [allPoints, map],
   )
 
   return (
@@ -151,7 +162,7 @@ export default function MapPage() {
       <div className="flex items-center justify-between px-3 py-1.5">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-bold text-apple-primary">
-            <Map className="ms-1.5 inline h-5 w-5" />
+            <MapIcon className="ms-1.5 inline h-5 w-5" />
             מפת המסלול
           </h2>
           <span className="text-caption text-apple-tertiary font-medium">
@@ -203,61 +214,21 @@ export default function MapPage() {
 
       {/* Map */}
       <div className="flex-1 overflow-hidden rounded-t-apple-lg mx-2">
-        <MapGL
-          ref={mapRef}
-          initialViewState={{
-            longitude: -110,
-            latitude: 37.5,
-            zoom: 5,
-          }}
+        <Map
+          defaultCenter={{ lat: 37.5, lng: -110 }}
+          defaultZoom={5}
+          mapId={MAP_ID}
+          gestureHandling="greedy"
+          disableDefaultUI={false}
           style={{ width: '100%', height: '100%' }}
-          mapStyle={MAP_STYLE}
-          attributionControl={{ compact: true }}
         >
-          <NavigationControl position="top-left" />
+          <RouteLines selectedDay={selectedDay} allPoints={allPoints} />
 
-          {/* Route lines — solid */}
-          <Source id="routes-solid" type="geojson" data={solidRoutes}>
-            <Layer
-              id="routes-solid-layer"
-              type="line"
-              paint={{
-                'line-color': ['get', 'color'],
-                'line-width': 4,
-                'line-opacity': 0.8,
-              }}
-              layout={{
-                'line-cap': 'round',
-                'line-join': 'round',
-              }}
-            />
-          </Source>
-
-          {/* Route lines — dashed connectors */}
-          <Source id="routes-dashed" type="geojson" data={dashedRoutes}>
-            <Layer
-              id="routes-dashed-layer"
-              type="line"
-              paint={{
-                'line-color': ['get', 'color'],
-                'line-width': 2,
-                'line-opacity': 0.5,
-                'line-dasharray': [3, 4],
-              }}
-            />
-          </Source>
-
-          {/* Markers */}
           {filteredPoints.map((point, i) => (
-            <Marker
+            <AdvancedMarker
               key={`${point.dayIndex}-${i}`}
-              longitude={point.lng}
-              latitude={point.lat}
-              anchor="bottom"
-              onClick={(e) => {
-                e.originalEvent.stopPropagation()
-                setPopupInfo(point)
-              }}
+              position={{ lat: point.lat, lng: point.lng }}
+              onClick={() => setPopupInfo(point)}
             >
               <div
                 className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white shadow-glass-float cursor-pointer transition-transform hover:scale-125"
@@ -265,18 +236,14 @@ export default function MapPage() {
               >
                 <MapPin className="h-3.5 w-3.5 text-white" />
               </div>
-            </Marker>
+            </AdvancedMarker>
           ))}
 
-          {/* Popup */}
           {showLabels && popupInfo && (
-            <Popup
-              longitude={popupInfo.lng}
-              latitude={popupInfo.lat}
-              anchor="bottom"
-              onClose={() => setPopupInfo(null)}
-              closeOnClick={false}
-              offset={20}
+            <InfoWindow
+              position={{ lat: popupInfo.lat, lng: popupInfo.lng }}
+              onCloseClick={() => setPopupInfo(null)}
+              pixelOffset={[0, -30]}
             >
               <div className="text-right min-w-[160px]" dir="rtl">
                 <p className="font-bold text-sm">{popupInfo.title}</p>
@@ -292,15 +259,33 @@ export default function MapPage() {
                       href={`/hey-usa/locations/${loc.id}`}
                       className="inline-block mt-1.5 text-xs font-medium text-blue-600 hover:underline"
                     >
-                      📍 {loc.nameHe} — הערות ומסמכים
+                      {loc.nameHe}
                     </a>
                   ) : null
                 })()}
               </div>
-            </Popup>
+            </InfoWindow>
           )}
-        </MapGL>
+        </Map>
       </div>
     </div>
+  )
+}
+
+export default function MapPage() {
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+        <p className="text-apple-secondary text-body">
+          Google Maps API key missing. Set <code>VITE_GOOGLE_MAPS_API_KEY</code> in .env
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+      <MapContent />
+    </APIProvider>
   )
 }

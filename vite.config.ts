@@ -91,7 +91,7 @@ export default defineConfig({
             if (/react-dom|react-router-dom/.test(id)) return 'vendor-react'
             if (id.includes('framer-motion')) return 'vendor-motion'
             if (id.includes('@radix-ui')) return 'vendor-radix'
-            if (id.includes('maplibre-gl') || id.includes('react-map-gl')) return 'vendor-maps'
+            if (id.includes('@vis.gl/react-google-maps')) return 'vendor-maps'
             if (id.includes('dexie')) return 'vendor-dexie'
             if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts'
             if (id.includes('@tiptap') || id.includes('prosemirror')) return 'vendor-tiptap'
