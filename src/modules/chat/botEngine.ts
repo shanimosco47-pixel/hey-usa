@@ -520,6 +520,42 @@ function mapToolUseToActions(
           },
         })
         break
+      case 'search_place':
+        if (input.query)
+          mapped.push({
+            type: 'SEARCH_PLACE',
+            query: String(input.query),
+            lat: input.lat ? Number(input.lat) : undefined,
+            lng: input.lng ? Number(input.lng) : undefined,
+          })
+        break
+      case 'show_directions':
+        if (input.from && input.to)
+          mapped.push({
+            type: 'SHOW_DIRECTIONS',
+            from: String(input.from),
+            to: String(input.to),
+            fromLat: input.from_lat ? Number(input.from_lat) : undefined,
+            fromLng: input.from_lng ? Number(input.from_lng) : undefined,
+            toLat: input.to_lat ? Number(input.to_lat) : undefined,
+            toLng: input.to_lng ? Number(input.to_lng) : undefined,
+          })
+        break
+      case 'add_to_itinerary':
+        if (input.day_id && input.title)
+          mapped.push({
+            type: 'ADD_TO_ITINERARY',
+            dayId: String(input.day_id),
+            place: {
+              title: String(input.title),
+              description: input.description ? String(input.description) : undefined,
+              lat: input.lat ? Number(input.lat) : undefined,
+              lng: input.lng ? Number(input.lng) : undefined,
+              location: input.location ? String(input.location) : undefined,
+              category: input.category ? String(input.category) : undefined,
+            },
+          })
+        break
     }
   }
 
@@ -743,6 +779,19 @@ async function generateActionConfirmation(actions: MotiAction[]): Promise<string
         }
         break
       }
+      case 'SEARCH_PLACE':
+        parts.push(`🔍 מחפש **${action.query}** במפה...\n\nעברו למפה כדי לראות את התוצאה.`)
+        break
+      case 'SHOW_DIRECTIONS':
+        parts.push(
+          `🧭 מחשב מסלול מ-**${action.from}** ל-**${action.to}**...\n\nעברו למפה כדי לראות את הניווט.`,
+        )
+        break
+      case 'ADD_TO_ITINERARY':
+        parts.push(
+          `בוצע! הוספתי את **${action.place.title}** ל-**${action.dayId.replace('day-', 'יום ')}**. ✅\n\nתבדקו במפה ובלוח הזמנים.`,
+        )
+        break
     }
   }
 

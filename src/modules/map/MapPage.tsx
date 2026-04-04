@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn'
 import { DAY_COLORS } from '@/constants'
 import { ITINERARY_DAYS } from '@/data/itinerary'
 import { getPrimaryLocationForCity } from '@/data/locations'
+import { useMapMoti } from '@/contexts/MapMotiContext'
 import { PlaceSearch } from './components/PlaceSearch'
 import { DirectionsPanel } from './components/DirectionsPanel'
 
@@ -111,6 +112,18 @@ function MapContent() {
   const [showLabels, setShowLabels] = useState(true)
   const [popupInfo, setPopupInfo] = useState<MapPoint | null>(null)
   const map = useMap()
+  const { consumeAction } = useMapMoti()
+  const [initialSearchQuery, setInitialSearchQuery] = useState<string | null>(null)
+
+  // Consume pending Moti action on mount
+  useEffect(() => {
+    const action = consumeAction()
+    if (!action) return
+    if (action.type === 'search_place' && action.query) {
+      setInitialSearchQuery(action.query)
+    }
+    // show_directions could be handled here in the future
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const allPoints = useMemo<MapPoint[]>(() => {
     const points: MapPoint[] = []
@@ -224,7 +237,7 @@ function MapContent() {
           disableDefaultUI={false}
           style={{ width: '100%', height: '100%' }}
         >
-          <PlaceSearch />
+          <PlaceSearch initialQuery={initialSearchQuery} />
           <DirectionsPanel />
           <RouteLines selectedDay={selectedDay} allPoints={allPoints} />
 

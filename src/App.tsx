@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
 import { AppDataProvider, useAppData } from '@/contexts/AppDataContext'
 import { ToastProvider } from '@/components/shared/ToastContext'
+import { MapMotiProvider } from '@/contexts/MapMotiContext'
 import { ToastContainer } from '@/components/shared/Toast'
 import AppShell from '@/components/layout/AppShell'
 import SplashScreen from '@/components/shared/SplashScreen'
@@ -196,7 +197,9 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <AppDataProvider>
-            <AppInner />
+            <MapMotiProvider>
+              <AppInner />
+            </MapMotiProvider>
           </AppDataProvider>
           <ToastContainer />
         </ToastProvider>

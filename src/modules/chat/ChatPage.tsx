@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo, useCallback, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { useMapMoti } from '@/contexts/MapMotiContext'
 import {
   Send,
   ArrowRight,
@@ -251,6 +252,7 @@ export default function ChatPage() {
   } = useAppData()
   const { currentMember } = useAuth()
   const navigate = useNavigate()
+  const { chatPlaceContext, setChatPlaceContext, setPendingAction } = useMapMoti()
   const { bookings, updateBooking } = useCampsiteBookings()
 
   const tasksTotal = tasks.length
@@ -743,6 +745,27 @@ export default function ChatPage() {
       if (response.actions.length > 0) {
         for (const action of response.actions) {
           if (action.type === 'ASK_CLARIFICATION') continue // question is in the text
+          if (action.type === 'SEARCH_PLACE') {
+            setPendingAction({
+              type: 'search_place',
+              query: action.query,
+              lat: action.lat,
+              lng: action.lng,
+            })
+            continue
+          }
+          if (action.type === 'SHOW_DIRECTIONS') {
+            setPendingAction({
+              type: 'show_directions',
+              from: action.from,
+              to: action.to,
+              fromLat: action.fromLat,
+              fromLng: action.fromLng,
+              toLat: action.toLat,
+              toLng: action.toLng,
+            })
+            continue
+          }
           if (action.type === 'SEARCH_EMAIL') {
             // Fire email scan in background; Edge Function posts Moti notification to chat_messages
             triggerEmailScan('targeted', action.query)
@@ -810,6 +833,16 @@ export default function ChatPage() {
   const sendMessageRef = useRef(sendMessage)
   sendMessageRef.current = sendMessage
   const stableSendMessage = useCallback((text: string) => sendMessageRef.current(text), [])
+
+  // Auto-send place context from map page
+  useEffect(() => {
+    if (chatPlaceContext && !isLoadingHistory && !isTyping) {
+      const ctx = chatPlaceContext
+      setChatPlaceContext(null)
+      sendMessageRef.current(ctx)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatPlaceContext, isLoadingHistory])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

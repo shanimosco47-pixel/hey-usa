@@ -85,6 +85,28 @@ export type MotiAction =
   | { type: 'CONVERT_CURRENCY'; amount: number; from: 'ILS' | 'USD'; to: 'ILS' | 'USD' }
   | { type: 'ESTIMATE_DRIVE_TIME'; from: string; to: string }
   | { type: 'GET_DAILY_PLAN'; dayNumber: number }
+  | { type: 'SEARCH_PLACE'; query: string; lat?: number; lng?: number }
+  | {
+      type: 'SHOW_DIRECTIONS'
+      from: string
+      to: string
+      fromLat?: number
+      fromLng?: number
+      toLat?: number
+      toLng?: number
+    }
+  | {
+      type: 'ADD_TO_ITINERARY'
+      dayId: string
+      place: {
+        title: string
+        description?: string
+        lat?: number
+        lng?: number
+        location?: string
+        category?: string
+      }
+    }
 
 // ─── Change Log ─────────────────────────────────────────────────────
 
@@ -135,6 +157,12 @@ function describeAction(action: MotiAction): string {
       return `הערכת זמן נסיעה: ${action.from} → ${action.to}`
     case 'GET_DAILY_PLAN':
       return `תכנית יום ${action.dayNumber}`
+    case 'SEARCH_PLACE':
+      return `חיפוש מקום: ${action.query}`
+    case 'SHOW_DIRECTIONS':
+      return `הצגת מסלול: ${action.from} → ${action.to}`
+    case 'ADD_TO_ITINERARY':
+      return `הוספת ${action.place.title} ל-${action.dayId.replace('day-', 'יום ')}`
   }
 }
 
@@ -1104,7 +1132,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         case 'CONVERT_CURRENCY':
         case 'ESTIMATE_DRIVE_TIME':
         case 'GET_DAILY_PLAN':
-          // Info-only actions — handled by botEngine card system, no state mutation
+        case 'SEARCH_PLACE':
+        case 'SHOW_DIRECTIONS':
+          // Info-only actions — handled by botEngine card system or MapMoti bridge, no state mutation
+          return null
+        case 'ADD_TO_ITINERARY':
+          addItineraryStop(action.dayId, {
+            title: action.place.title,
+            description: action.place.description,
+            location: action.place.location,
+            category: action.place.category || 'activity',
+          })
+          addToLog(action, null, action.place.title)
           return null
         default:
           return 'לא הצלחתי לבצע את הפעולה'

@@ -1,7 +1,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useMapsLibrary, useMap, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps'
-import { Search, X, Star, MapPin, Navigation, Calendar, Bot } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Search, X, Star, MapPin, Navigation, Calendar, Bot, Check } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { useAppData } from '@/contexts/AppDataContext'
+import { useMapMoti } from '@/contexts/MapMotiContext'
+import { ITINERARY_DAYS } from '@/data/itinerary'
+import { DAY_COLORS } from '@/constants'
 
 interface PlaceResult {
   placeId: string
@@ -15,14 +20,19 @@ interface PlaceResult {
   types?: string[]
 }
 
-export function PlaceSearch() {
+export function PlaceSearch({ initialQuery }: { initialQuery?: string | null }) {
   const map = useMap()
   const placesLib = useMapsLibrary('places')
+  const navigate = useNavigate()
+  const { addItineraryStop } = useAppData()
+  const { setChatPlaceContext } = useMapMoti()
 
   const [query, setQuery] = useState('')
   const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([])
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null)
   const [isOpen, setIsOpen] = useState(false)
+  const [showDayPicker, setShowDayPicker] = useState(false)
+  const [addedToDayId, setAddedToDayId] = useState<string | null>(null)
 
   const autocompleteService = useRef<google.maps.places.AutocompleteService | null>(null)
   const placesService = useRef<google.maps.places.PlacesService | null>(null)
@@ -54,6 +64,15 @@ export function PlaceSearch() {
       },
     )
   }, [])
+
+  // Auto-search from Moti action
+  const initialQueryConsumed = useRef(false)
+  useEffect(() => {
+    if (!initialQuery || initialQueryConsumed.current || !autocompleteService.current) return
+    initialQueryConsumed.current = true
+    setQuery(initialQuery)
+    searchPlaces(initialQuery)
+  }, [initialQuery, searchPlaces])
 
   const handleInputChange = useCallback(
     (value: string) => {
@@ -100,6 +119,8 @@ export function PlaceSearch() {
           setSelectedPlace(result)
           setSuggestions([])
           setQuery(result.name)
+          setShowDayPicker(false)
+          setAddedToDayId(null)
 
           map?.panTo({ lat: result.lat, lng: result.lng })
           map?.setZoom(15)
@@ -113,7 +134,34 @@ export function PlaceSearch() {
     setQuery('')
     setSuggestions([])
     setSelectedPlace(null)
+    setShowDayPicker(false)
+    setAddedToDayId(null)
   }, [])
+
+  const handleAddToItinerary = useCallback(
+    (dayId: string) => {
+      if (!selectedPlace) return
+      addItineraryStop(dayId, {
+        title: selectedPlace.name,
+        description: selectedPlace.address,
+        location: selectedPlace.address,
+        category: 'activity',
+      })
+      setAddedToDayId(dayId)
+      setShowDayPicker(false)
+    },
+    [selectedPlace, addItineraryStop],
+  )
+
+  const handleAskMoti = useCallback(() => {
+    if (!selectedPlace) return
+    setChatPlaceContext(
+      `ספר לי על ${selectedPlace.name} (${selectedPlace.address}). ` +
+        `דירוג: ${selectedPlace.rating || 'לא ידוע'}. ` +
+        `האם כדאי לבקר שם?`,
+    )
+    navigate('/chat')
+  }, [selectedPlace, setChatPlaceContext, navigate])
 
   return (
     <>
@@ -218,19 +266,24 @@ export function PlaceSearch() {
 
               {/* Quick actions */}
               <div className="flex gap-1.5 mt-2 flex-wrap">
-                <button
-                  className={cn(
-                    'flex items-center gap-1 rounded-full px-2.5 py-1',
-                    'bg-ios-blue/10 text-ios-blue text-[11px] font-medium',
-                    'hover:bg-ios-blue/20 transition-colors',
-                  )}
-                  onClick={() => {
-                    // TODO: integrate with itinerary module
-                  }}
-                >
-                  <Calendar className="h-3 w-3" />
-                  הוסף למסלול
-                </button>
+                {addedToDayId ? (
+                  <span className="flex items-center gap-1 rounded-full px-2.5 py-1 bg-ios-green/20 text-ios-green text-[11px] font-medium">
+                    <Check className="h-3 w-3" />
+                    נוסף ל{addedToDayId.replace('day-', 'יום ')}
+                  </span>
+                ) : (
+                  <button
+                    className={cn(
+                      'flex items-center gap-1 rounded-full px-2.5 py-1',
+                      'bg-ios-blue/10 text-ios-blue text-[11px] font-medium',
+                      'hover:bg-ios-blue/20 transition-colors',
+                    )}
+                    onClick={() => setShowDayPicker(!showDayPicker)}
+                  >
+                    <Calendar className="h-3 w-3" />
+                    הוסף למסלול
+                  </button>
+                )}
                 <button
                   className={cn(
                     'flex items-center gap-1 rounded-full px-2.5 py-1',
@@ -253,14 +306,32 @@ export function PlaceSearch() {
                     'bg-ios-purple/10 text-ios-purple text-[11px] font-medium',
                     'hover:bg-ios-purple/20 transition-colors',
                   )}
-                  onClick={() => {
-                    // TODO: integrate with Moti AI
-                  }}
+                  onClick={handleAskMoti}
                 >
                   <Bot className="h-3 w-3" />
                   שאל את מוטי
                 </button>
               </div>
+
+              {/* Day picker */}
+              {showDayPicker && (
+                <div className="mt-2 pt-2 border-t border-black/10">
+                  <p className="text-[11px] text-apple-secondary mb-1.5">בחר יום:</p>
+                  <div className="flex gap-1 flex-wrap max-h-[80px] overflow-y-auto">
+                    {ITINERARY_DAYS.map((day, idx) => (
+                      <button
+                        key={day.id}
+                        onClick={() => handleAddToItinerary(day.id)}
+                        className="rounded-full px-2 py-0.5 text-[10px] font-medium text-white transition-opacity hover:opacity-80"
+                        style={{ backgroundColor: DAY_COLORS[idx % DAY_COLORS.length] }}
+                        title={day.title}
+                      >
+                        {idx + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </InfoWindow>
         </>
