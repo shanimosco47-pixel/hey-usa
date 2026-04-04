@@ -21,7 +21,7 @@ import {
 import { EmptyState } from '@/components/shared/EmptyState'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
-import { DOCUMENT_CATEGORIES } from '@/constants'
+import { DOCUMENT_CATEGORIES, TRIP_START_DATE, TRIP_END_DATE } from '@/constants'
 import { useAppData } from '@/contexts/AppDataContext'
 import { isSampleData } from '@/lib/sampleData'
 import { getLocationById } from '@/data/locations'
@@ -48,7 +48,17 @@ export default function DocumentsPage() {
   const [sortBy, setSortBy] = useState<'upload' | 'visit'>('upload')
 
   const documents = useMemo(() => {
-    let result = allDocuments
+    // Filter out flight documents with dates outside the trip window
+    const FLIGHT_CATS = ['flights', 'flight_booking']
+    const tripWindowEnd = new Date(TRIP_END_DATE)
+    tripWindowEnd.setDate(tripWindowEnd.getDate() + 5)
+    const tripWindowEndStr = tripWindowEnd.toISOString().slice(0, 10)
+    let result = allDocuments.filter((d) => {
+      if (!FLIGHT_CATS.includes(d.category)) return true
+      const dateStr = d.visit_date || d.expiry_date
+      if (!dateStr) return true
+      return dateStr >= TRIP_START_DATE && dateStr <= tripWindowEndStr
+    })
 
     if (activeCategory !== 'all') {
       result = result.filter((d) => d.category === activeCategory)

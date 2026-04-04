@@ -422,106 +422,6 @@ function BookingCard({
   )
 }
 
-// ── Action item types ────────────────────────────────────────────
-interface ActionItem {
-  id: string
-  type: 'registration_soon' | 'registration_passed' | 'not_booked' | 'cancel_deadline' | 'duplicate'
-  priority: number // lower = more urgent
-  title: string
-  subtitle: string
-  color: string
-  bookingId: string
-  url?: string
-}
-
-function buildActionItems(bookings: CampsiteBooking[]): ActionItem[] {
-  const items: ActionItem[] = []
-  const todayStr = new Date().toISOString().slice(0, 10)
-  const primary = bookings.filter((b) => b.priority === 'primary')
-
-  for (const b of primary) {
-    // Registration opening soon (within 30 days) or already passed
-    if (b.registration_opens && b.status === 'not_open') {
-      const daysUntil = daysBetween(todayStr, b.registration_opens)
-      if (daysUntil < 0) {
-        items.push({
-          id: `reg-passed-${b.id}`,
-          type: 'registration_passed',
-          priority: 0,
-          title: `⚠️ ההרשמה ל-${b.location} כבר נפתחה!`,
-          subtitle: `נפתחה ב-${formatDay(b.registration_opens)} — הזמינו עכשיו לפני שנגמר`,
-          color: 'text-ios-red',
-          bookingId: b.id,
-          url: b.booking_url,
-        })
-      } else if (daysUntil <= 30) {
-        items.push({
-          id: `reg-soon-${b.id}`,
-          type: 'registration_soon',
-          priority: 1,
-          title: `🗓️ הרשמה ל-${b.location} נפתחת בעוד ${daysUntil} ימים`,
-          subtitle: `${formatDay(b.registration_opens)} — הכינו תזכורת!`,
-          color: 'text-ios-orange',
-          bookingId: b.id,
-          url: b.booking_url,
-        })
-      }
-    }
-
-    // Cancellation deadline approaching (within 30 days)
-    if (b.cancellation_deadline && b.status === 'confirmed') {
-      const daysUntil = daysBetween(todayStr, b.cancellation_deadline)
-      if (daysUntil >= 0 && daysUntil <= 30) {
-        items.push({
-          id: `cancel-${b.id}`,
-          type: 'cancel_deadline',
-          priority: 2,
-          title: `⏰ מועד ביטול ל-${b.location} בעוד ${daysUntil} ימים`,
-          subtitle: `עד ${formatDay(b.cancellation_deadline)} · החזר $${b.refund_amount ?? 0}`,
-          color: 'text-ios-purple',
-          bookingId: b.id,
-        })
-      }
-    }
-  }
-
-  // Check for date overlaps (potential duplicates)
-  for (let i = 0; i < primary.length; i++) {
-    for (let j = i + 1; j < primary.length; j++) {
-      const a = primary[i]
-      const b = primary[j]
-      if (a.check_in === b.check_in && a.status !== 'cancelled' && b.status !== 'cancelled') {
-        items.push({
-          id: `dup-${a.id}-${b.id}`,
-          type: 'duplicate',
-          priority: 3,
-          title: `🔄 הזמנה כפולה ב-${formatDay(a.check_in)}`,
-          subtitle: `${a.location} + ${b.location} — באותו תאריך`,
-          color: 'text-ios-red',
-          bookingId: a.id,
-        })
-      }
-    }
-  }
-
-  // Not booked items (sorted by date)
-  const notBooked = primary.filter((b) => b.status === 'not_open' && !b.registration_opens)
-  for (const b of notBooked) {
-    items.push({
-      id: `unbooked-${b.id}`,
-      type: 'not_booked',
-      priority: 4,
-      title: `📋 ${b.location} — טרם הוזמן`,
-      subtitle: `${formatDay(b.check_in)} · ${b.area}`,
-      color: 'text-apple-secondary',
-      bookingId: b.id,
-      url: b.booking_url,
-    })
-  }
-
-  return items.sort((a, b) => a.priority - b.priority)
-}
-
 // ── Status filter ───────────────────────────────────────────────
 type StatusFilter = 'all' | BookingStatus
 
@@ -537,7 +437,6 @@ export default function CampsitesPageV2() {
     [bookings, statusFilter],
   )
   const groups = useMemo(() => groupBookings(filteredBookings), [filteredBookings])
-  const actionItems = useMemo(() => buildActionItems(bookings), [bookings])
 
   const totalConfirmedCost = useMemo(
     () =>
@@ -569,32 +468,6 @@ export default function CampsitesPageV2() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 pb-24 space-y-6">
-      {/* ── Action Items — Planning Dashboard ────────── */}
-      {actionItems.length > 0 && (
-        <GlassCard elevation={2} padding="md">
-          <h2 className="text-headline text-apple-primary dark:text-white mb-3">
-            🎯 דורש טיפול ({actionItems.length})
-          </h2>
-          <div className="space-y-2">
-            {actionItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() =>
-                  item.url ? window.open(item.url, '_blank') : scrollToBooking(item.bookingId)
-                }
-                className="w-full flex items-start gap-3 p-2.5 rounded-apple-lg hover:bg-black/[0.03] dark:hover:bg-white/[0.05] transition-colors text-right"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className={cn('text-subhead font-semibold', item.color)}>{item.title}</p>
-                  <p className="text-caption text-apple-secondary mt-0.5">{item.subtitle}</p>
-                </div>
-                {item.url && <ExternalLink className="w-3.5 h-3.5 text-ios-blue shrink-0 mt-1" />}
-              </button>
-            ))}
-          </div>
-        </GlassCard>
-      )}
-
       {/* ── Summary Header ───────────────────────────── */}
       <GlassCard elevation={2} padding="md">
         <h2 className="text-title text-apple-primary dark:text-white mb-3">סיכום הזמנות לינה</h2>
