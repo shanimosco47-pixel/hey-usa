@@ -5,6 +5,7 @@ import { cn } from '@/lib/cn'
 import { DAY_COLORS } from '@/constants'
 import { ITINERARY_DAYS } from '@/data/itinerary'
 import { getPrimaryLocationForCity } from '@/data/locations'
+import { PlaceSearch } from './components/PlaceSearch'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 const MAP_ID = 'hey-usa-map'
@@ -213,7 +214,7 @@ function MapContent() {
       </div>
 
       {/* Map */}
-      <div className="flex-1 overflow-hidden rounded-t-apple-lg mx-2">
+      <div className="relative flex-1 overflow-hidden rounded-t-apple-lg mx-2">
         <Map
           defaultCenter={{ lat: 37.5, lng: -110 }}
           defaultZoom={5}
@@ -222,6 +223,7 @@ function MapContent() {
           disableDefaultUI={false}
           style={{ width: '100%', height: '100%' }}
         >
+          <PlaceSearch />
           <RouteLines selectedDay={selectedDay} allPoints={allPoints} />
 
           {filteredPoints.map((point, i) => (
