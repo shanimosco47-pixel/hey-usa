@@ -83,6 +83,55 @@ export function PlaceSearch({ initialQuery }: { initialQuery?: string | null }) 
     [searchPlaces],
   )
 
+  const handleTextSearch = useCallback(
+    (text: string) => {
+      if (!placesService.current || !text.trim()) return
+      placesService.current.findPlaceFromQuery(
+        {
+          query: text,
+          fields: [
+            'name',
+            'formatted_address',
+            'geometry',
+            'rating',
+            'user_ratings_total',
+            'photos',
+            'types',
+            'place_id',
+          ],
+        },
+        (results, status) => {
+          if (
+            status !== google.maps.places.PlacesServiceStatus.OK ||
+            !results?.[0]?.geometry?.location
+          )
+            return
+          const place = results[0]
+          const result: PlaceResult = {
+            placeId: place.place_id || '',
+            name: place.name || text,
+            address: place.formatted_address || '',
+            lat: place.geometry!.location!.lat(),
+            lng: place.geometry!.location!.lng(),
+            rating: place.rating,
+            userRatingsTotal: place.user_ratings_total,
+            photos: place.photos,
+            types: place.types,
+          }
+          setSelectedPlace(result)
+          setSuggestions([])
+          setIsOpen(false)
+          setQuery(result.name)
+          setShowDayPicker(false)
+          setAddedToDayId(null)
+          map?.panTo({ lat: result.lat, lng: result.lng })
+          map?.setZoom(15)
+        },
+      )
+    },
+    [map],
+  )
+
   const handleSelectSuggestion = useCallback(
     (prediction: google.maps.places.AutocompletePrediction) => {
       if (!placesService.current) return
@@ -130,6 +179,20 @@ export function PlaceSearch({ initialQuery }: { initialQuery?: string | null }) 
     [map],
   )
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key !== 'Enter') return
+      e.preventDefault()
+      if (suggestions.length > 0) {
+        handleSelectSuggestion(suggestions[0])
+        setIsOpen(false)
+      } else {
+        handleTextSearch(query)
+      }
+    },
+    [suggestions, handleSelectSuggestion, handleTextSearch, query],
+  )
+
   const clearSearch = useCallback(() => {
     setQuery('')
     setSuggestions([])
@@ -174,6 +237,7 @@ export function PlaceSearch({ initialQuery }: { initialQuery?: string | null }) 
               type="text"
               value={query}
               onChange={(e) => handleInputChange(e.target.value)}
+              onKeyDown={handleKeyDown}
               onFocus={() => setIsOpen(true)}
               placeholder="חפש מקום בארה״ב..."
               className="flex-1 bg-transparent py-3 text-body text-apple-primary placeholder:text-apple-tertiary outline-none"
