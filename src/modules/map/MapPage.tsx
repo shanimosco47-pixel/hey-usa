@@ -6,6 +6,7 @@ import { DAY_COLORS } from '@/constants'
 import { ITINERARY_DAYS } from '@/data/itinerary'
 import { getPrimaryLocationForCity } from '@/data/locations'
 import { PlaceSearch } from './components/PlaceSearch'
+import { DirectionsPanel } from './components/DirectionsPanel'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 const MAP_ID = 'hey-usa-map'
@@ -224,6 +225,7 @@ function MapContent() {
           style={{ width: '100%', height: '100%' }}
         >
           <PlaceSearch />
+          <DirectionsPanel />
           <RouteLines selectedDay={selectedDay} allPoints={allPoints} />
 
           {filteredPoints.map((point, i) => (
