@@ -289,7 +289,9 @@ export function extractBookingRefs(text: string): string[] {
   // Pattern 3: order/confirmation/booking/ref followed by optional separator and digits/alphanum
   const labelRegex = /(?:order|confirmation|booking|ref(?:erence)?)\s*[:#\-\s]+([A-Z0-9]{4,})/gi
   while ((m = labelRegex.exec(text)) !== null) {
-    refs.add(m[1].toUpperCase())
+    const token = m[1].toUpperCase()
+    if (BOOKING_REF_STOPWORDS.has(token)) continue
+    refs.add(token)
   }
 
   return Array.from(refs)

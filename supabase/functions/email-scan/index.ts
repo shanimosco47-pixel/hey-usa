@@ -241,9 +241,32 @@ Deno.serve(async (req) => {
   // Step 2: Process each email account
   // ------------------------------------------------------------------
   const allResults: ImportResult[] = []
+  // Diagnostic stats per account
+  const diagnostics: {
+    account: string
+    query: string
+    found: number
+    irrelevant: number
+    deduped: number
+    aiRejected: number
+    noFile: number
+    imported: number
+    errors: string[]
+  }[] = []
 
   for (const account of accounts) {
     console.log(`[email-scan] Processing account: ${account.email}`)
+    const diag = {
+      account: account.email,
+      query: '',
+      found: 0,
+      irrelevant: 0,
+      deduped: 0,
+      aiRejected: 0,
+      noFile: 0,
+      imported: 0,
+      errors: [] as string[],
+    }
 
     let accessToken: string
     try {
@@ -251,6 +274,8 @@ Deno.serve(async (req) => {
       accessToken = await refreshAccessToken(refreshToken, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
     } catch (err) {
       console.error(`[email-scan] Token refresh failed for ${account.email}:`, err)
+      diag.errors.push(`token_refresh_failed: ${err}`)
+      diagnostics.push(diag)
       continue
     }
 
@@ -261,6 +286,7 @@ Deno.serve(async (req) => {
     } else {
       searchQuery = buildSearchQuery(account.last_scan_at ?? null)
     }
+    diag.query = searchQuery
 
     // Search emails
     let searchResult
@@ -268,10 +294,13 @@ Deno.serve(async (req) => {
       searchResult = await searchEmails(accessToken, searchQuery, 50)
     } catch (err) {
       console.error(`[email-scan] Search failed for ${account.email}:`, err)
+      diag.errors.push(`search_failed: ${err}`)
+      diagnostics.push(diag)
       continue
     }
 
     const messageRefs = searchResult.messages ?? []
+    diag.found = messageRefs.length
     console.log(`[email-scan] Found ${messageRefs.length} messages for ${account.email}`)
 
     // Process each message
@@ -287,12 +316,15 @@ Deno.serve(async (req) => {
         // Pattern classification (pass body for forwarded-sender detection)
         const patternResult = classifyByPattern(from, subject, bodyText)
         if (patternResult === 'irrelevant') {
+          diag.irrelevant++
+          console.log(`[email-scan] Irrelevant: "${subject}" from="${from}"`)
           continue
         }
 
         // Dedup check
         const alreadyImported = await isAlreadyImported(supabase, message.id, bodyText, subject)
         if (alreadyImported) {
+          diag.deduped++
           console.log(`[email-scan] Skipping duplicate: ${subject}`)
           continue
         }
@@ -301,6 +333,7 @@ Deno.serve(async (req) => {
         if (patternResult === 'uncertain') {
           const { category } = await classifyEmail(OPENAI_API_KEY, subject, bodyText)
           if (!category) {
+            diag.aiRejected++
             console.log(`[email-scan] AI classified as irrelevant: ${subject}`)
             continue
           }
@@ -394,6 +427,7 @@ Deno.serve(async (req) => {
 
           // Guard: never create a document without a file
           if (!fileUrl) {
+            diag.noFile++
             console.warn(`[email-scan] Skipping message ${ref.id} — no file could be captured`)
             continue
           }
@@ -424,6 +458,7 @@ Deno.serve(async (req) => {
           })
 
           allResults.push(result)
+          diag.imported++
           console.log(`[email-scan] Imported: ${result.title} (${result.documentId})`)
 
           await importCampsiteBooking(supabase, {
@@ -445,10 +480,13 @@ Deno.serve(async (req) => {
           })
         }
       } catch (err) {
+        diag.errors.push(`msg_${ref.id}: ${err}`)
         console.error(`[email-scan] Failed to process message ${ref.id}:`, err)
         // Continue with next message
       }
     }
+
+    diagnostics.push(diag)
 
     // ------------------------------------------------------------------
     // Step 3: Update last_scan_at for the account
@@ -481,6 +519,7 @@ Deno.serve(async (req) => {
     JSON.stringify({
       message: `Scan complete. Imported ${allResults.length} document(s).`,
       results: allResults,
+      diagnostics,
     }),
     { status: 200 },
   )
