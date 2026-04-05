@@ -44,13 +44,19 @@ interface BudgetBarChartProps {
 export function BudgetBarChart({ data, currency }: BudgetBarChartProps) {
   return (
     <>
-      <ResponsiveContainer width="100%" height={200}>
+      <ResponsiveContainer width="100%" height={Math.max(200, data.length * 40)}>
         <BarChart data={data} layout="vertical">
-          <XAxis type="number" hide />
-          <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 11 }} />
+          <XAxis type="number" hide reversed />
+          <YAxis
+            type="category"
+            dataKey="name"
+            orientation="right"
+            width={80}
+            tick={{ fontSize: 11 }}
+          />
           <Tooltip content={<GlassTooltip currency={currency} />} />
-          <Bar dataKey="budget" name="תקציב" fill="#A0522D" radius={[0, 4, 4, 0]} barSize={12} />
-          <Bar dataKey="spent" name="הוצאות" fill="#007AFF" radius={[0, 4, 4, 0]} barSize={12} />
+          <Bar dataKey="budget" name="תקציב" fill="#A0522D" radius={[4, 0, 0, 4]} barSize={12} />
+          <Bar dataKey="spent" name="הוצאות" fill="#007AFF" radius={[4, 0, 0, 4]} barSize={12} />
         </BarChart>
       </ResponsiveContainer>
       <div className="mt-2 flex justify-center gap-4 text-xs text-apple-secondary">
