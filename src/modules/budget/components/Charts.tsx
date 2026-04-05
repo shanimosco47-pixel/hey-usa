@@ -11,14 +11,25 @@ import {
 } from 'recharts'
 import { PIE_COLORS } from '@/constants'
 
-function GlassTooltip({ active, payload, label, currency }: { active?: boolean; payload?: Array<{ name: string; value: number }>; label?: string; currency: string }) {
+function GlassTooltip({
+  active,
+  payload,
+  label,
+  currency,
+}: {
+  active?: boolean
+  payload?: Array<{ name: string; value: number }>
+  label?: string
+  currency: string
+}) {
   if (!active || !payload?.length) return null
   return (
     <div className="glass rounded-apple px-3 py-2 shadow-glass-hover border border-black/[0.06]">
       {label && <p className="text-xs text-apple-secondary mb-1">{label}</p>}
       {payload.map((entry, i) => (
         <p key={i} className="text-sm font-medium text-apple-primary">
-          {entry.name}: {currency}{Number(entry.value).toLocaleString()}
+          {entry.name}: {currency}
+          {Number(entry.value).toLocaleString()}
         </p>
       ))}
     </div>
@@ -36,15 +47,15 @@ export function BudgetBarChart({ data, currency }: BudgetBarChartProps) {
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data} layout="vertical">
           <XAxis type="number" hide />
-          <YAxis type="category" dataKey="name" width={60} tick={{ fontSize: 11 }} />
+          <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 11 }} />
           <Tooltip content={<GlassTooltip currency={currency} />} />
-          <Bar dataKey="budget" name="תקציב" fill="#8E8E93" radius={[0, 4, 4, 0]} barSize={12} />
+          <Bar dataKey="budget" name="תקציב" fill="#A0522D" radius={[0, 4, 4, 0]} barSize={12} />
           <Bar dataKey="spent" name="הוצאות" fill="#007AFF" radius={[0, 4, 4, 0]} barSize={12} />
         </BarChart>
       </ResponsiveContainer>
       <div className="mt-2 flex justify-center gap-4 text-xs text-apple-secondary">
         <div className="flex items-center gap-1">
-          <div className="h-2.5 w-2.5 rounded-full bg-ios-gray" />
+          <div className="h-2.5 w-2.5 rounded-full" style={{ background: '#A0522D' }} />
           תקציב מתוכנן
         </div>
         <div className="flex items-center gap-1">
@@ -85,7 +96,10 @@ export function BudgetPieChart({ data, currency }: BudgetPieChartProps) {
       <div className="mt-2 flex flex-wrap gap-2 justify-center">
         {data.map((entry, i) => (
           <div key={entry.name} className="flex items-center gap-1 text-xs text-apple-secondary">
-            <div className="h-2.5 w-2.5 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+            <div
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ background: PIE_COLORS[i % PIE_COLORS.length] }}
+            />
             {entry.name}
           </div>
         ))}
