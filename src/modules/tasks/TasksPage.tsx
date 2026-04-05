@@ -246,7 +246,7 @@ export default function TasksPage() {
       </motion.div>
 
       {/* View switcher tabs */}
-      <Tabs.Root value={activeView} onValueChange={setActiveView}>
+      <Tabs.Root value={activeView} onValueChange={setActiveView} dir="rtl">
         <div className="mb-4 flex items-center justify-between">
           <Tabs.List className="flex gap-1 rounded-apple-lg glass p-1 shadow-sm">
             <Tabs.Trigger
