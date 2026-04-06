@@ -44,21 +44,23 @@ interface BudgetBarChartProps {
 export function BudgetBarChart({ data, currency }: BudgetBarChartProps) {
   return (
     <>
-      <ResponsiveContainer width="100%" height={Math.max(200, data.length * 40)}>
-        <BarChart data={data} layout="vertical">
-          <XAxis type="number" hide />
-          <YAxis
-            type="category"
-            dataKey="name"
-            orientation="right"
-            width={100}
-            tick={{ fontSize: 12 }}
-          />
-          <Tooltip content={<GlassTooltip currency={currency} />} />
-          <Bar dataKey="budget" name="תקציב" fill="#A0522D" radius={[0, 4, 4, 0]} barSize={12} />
-          <Bar dataKey="spent" name="הוצאות" fill="#007AFF" radius={[0, 4, 4, 0]} barSize={12} />
-        </BarChart>
-      </ResponsiveContainer>
+      <div dir="ltr">
+        <ResponsiveContainer width="100%" height={Math.max(200, data.length * 40)}>
+          <BarChart data={data} layout="vertical" margin={{ right: 80 }}>
+            <XAxis type="number" hide />
+            <YAxis
+              type="category"
+              dataKey="name"
+              orientation="right"
+              width={10}
+              tick={{ fontSize: 12, textAnchor: 'start', dx: 8 }}
+            />
+            <Tooltip content={<GlassTooltip currency={currency} />} />
+            <Bar dataKey="budget" name="תקציב" fill="#A0522D" radius={[0, 4, 4, 0]} barSize={12} />
+            <Bar dataKey="spent" name="הוצאות" fill="#007AFF" radius={[0, 4, 4, 0]} barSize={12} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
       <div className="mt-2 flex justify-center gap-4 text-xs text-apple-secondary">
         <div className="flex items-center gap-1">
           <div className="h-2.5 w-2.5 rounded-full" style={{ background: '#A0522D' }} />
