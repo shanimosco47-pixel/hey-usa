@@ -45,19 +45,20 @@ export function BudgetBarChart({ data, currency }: BudgetBarChartProps) {
   return (
     <>
       <div dir="ltr">
-        <ResponsiveContainer width="100%" height={Math.max(200, data.length * 40)}>
-          <BarChart data={data} layout="vertical" margin={{ right: 80 }}>
-            <XAxis type="number" hide />
-            <YAxis
-              type="category"
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={data} margin={{ bottom: 40 }}>
+            <XAxis
               dataKey="name"
-              orientation="right"
-              width={10}
-              tick={{ fontSize: 12, textAnchor: 'start', dx: 8 }}
+              tick={{ fontSize: 11 }}
+              angle={-35}
+              textAnchor="end"
+              interval={0}
+              height={60}
             />
+            <YAxis tick={{ fontSize: 11 }} width={50} />
             <Tooltip content={<GlassTooltip currency={currency} />} />
-            <Bar dataKey="budget" name="תקציב" fill="#A0522D" radius={[0, 4, 4, 0]} barSize={12} />
-            <Bar dataKey="spent" name="הוצאות" fill="#007AFF" radius={[0, 4, 4, 0]} barSize={12} />
+            <Bar dataKey="budget" name="תקציב" fill="#A0522D" radius={[4, 4, 0, 0]} barSize={16} />
+            <Bar dataKey="spent" name="הוצאות" fill="#007AFF" radius={[4, 4, 0, 0]} barSize={16} />
           </BarChart>
         </ResponsiveContainer>
       </div>
