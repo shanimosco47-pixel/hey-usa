@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps'
-import { Map as MapIcon, Layers, Navigation, MapPin, ExternalLink } from 'lucide-react'
+import { Layers, Navigation, MapPin, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { DAY_COLORS } from '@/constants'
 import { ITINERARY_DAYS } from '@/data/itinerary'
@@ -174,111 +174,9 @@ function MapContent() {
   )
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col">
-      {/* Compact header */}
-      <div className="flex items-center justify-between px-3 py-1.5">
-        <div className="flex items-center gap-2">
-          <h2 className="text-lg font-bold text-apple-primary">
-            <MapIcon className="ms-1.5 inline h-5 w-5" />
-            מפת המסלול
-          </h2>
-          <span className="text-caption text-apple-tertiary font-medium">
-            {ITINERARY_DAYS.length} ימים · {allPoints.length} עצירות
-          </span>
-        </div>
-        <button
-          onClick={() => setShowLabels(!showLabels)}
-          className={cn(
-            'rounded-lg px-3 py-2 min-h-[44px] text-caption font-medium transition-colors',
-            showLabels ? 'bg-ios-blue text-white' : 'glass text-apple-secondary',
-          )}
-        >
-          <Layers className="ms-1 inline h-3 w-3" />
-          תוויות
-        </button>
-      </div>
-
-      {/* Compact day filter */}
-      <div className="flex gap-1.5 overflow-x-auto px-3 pb-1.5">
-        <button
-          onClick={() => handleDaySelect(null)}
-          className={cn(
-            'shrink-0 rounded-full px-3 py-1.5 min-h-[44px] text-caption font-medium transition-colors flex items-center',
-            selectedDay === null ? 'bg-apple-primary text-white' : 'glass text-apple-secondary',
-          )}
-        >
-          <Navigation className="ms-1 inline h-2.5 w-2.5" />
-          הכל
-        </button>
-        {ITINERARY_DAYS.map((day, idx) => (
-          <button
-            key={day.id}
-            onClick={() => handleDaySelect(selectedDay === idx ? null : idx)}
-            className={cn(
-              'shrink-0 rounded-full px-3 py-1.5 min-h-[44px] text-caption font-medium transition-colors whitespace-nowrap flex items-center',
-              selectedDay === idx ? 'text-white' : 'glass text-apple-secondary',
-            )}
-            style={
-              selectedDay === idx
-                ? { backgroundColor: DAY_COLORS[idx % DAY_COLORS.length] }
-                : undefined
-            }
-          >
-            {idx + 1}
-          </button>
-        ))}
-      </div>
-
-      {/* Saved Routes */}
-      <div className="px-3 pb-1.5">
-        <button
-          onClick={() => setShowSavedRoutes(!showSavedRoutes)}
-          className={cn(
-            'rounded-apple-sm px-3 py-1.5 min-h-[44px] text-caption font-medium transition-colors',
-            showSavedRoutes ? 'bg-ios-green text-white' : 'glass text-apple-secondary',
-          )}
-        >
-          <ExternalLink className="ms-1 inline h-3 w-3" />
-          מסלולי נסיעה שמורים
-        </button>
-        {showSavedRoutes && (
-          <div className="mt-1.5 flex flex-col gap-1.5">
-            <a
-              href="https://www.google.com/maps/dir/Mammoth+Lakes,+California+93546,+USA/Mono+Lake,+California+93541,+USA/Tioga+Rd,+California,+USA/North+Pines+Campground,+Yosemite+National+Park,+9024+Southside+Dr,+TUOLUMNE+MEADOWS,+CA+95389,+United+States/Marin+RV+Park,+2140+Redwood+Hwy,+Greenbrae,+CA+94904,+United+States/@38.2480539,-123.3573915,574674m"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass rounded-apple-sm px-3 py-2 text-subhead text-ios-blue hover:bg-ios-blue/10 transition-colors flex items-center gap-2"
-              dir="ltr"
-            >
-              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-              <span>Mammoth Lakes → Mono Lake → Tioga Rd → Yosemite → Marin RV Park</span>
-            </a>
-            <a
-              href="https://www.google.com/maps/dir/Bryce+Canyon+City,+Utah,+USA/Kanab,+Utah+84741,+USA/Hurricane,+Utah+84737,+USA/Zion+Canyon+Campground+and+RV+Resort,+479+Zion+Park+Blvd,+Springdale,+UT+84767,+United+States/@37.3017932,-113.3804657,145519m"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass rounded-apple-sm px-3 py-2 text-subhead text-ios-blue hover:bg-ios-blue/10 transition-colors flex items-center gap-2"
-              dir="ltr"
-            >
-              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-              <span>Bryce Canyon → Kanab → Hurricane → Zion Campground</span>
-            </a>
-            <a
-              href="https://www.google.com/maps/dir/69+New+Ventures+Dr,+Bozeman,+MT+59718,+USA/Gardiner,+Montana+59030,+USA/Mammoth+Hot+Springs,+Mammoth,+WY+82190,+United+States/Madison+Campground,+30+Madison+Campground+E+Loop,+Yellowstone+National+Park,+WY+82190,+United+States/Old+Faithful,+Yellowstone+National+Park,+WY+82190,+United+States/Colter+Bay+Village,+Wyoming+83013,+USA/Jackson,+Wyoming,+USA/@44.1717642,-112.8630199,262427m"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass rounded-apple-sm px-3 py-2 text-subhead text-ios-blue hover:bg-ios-blue/10 transition-colors flex items-center gap-2"
-              dir="ltr"
-            >
-              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-              <span>Bozeman → Gardiner → Mammoth Hot Springs → Old Faithful → Jackson</span>
-            </a>
-          </div>
-        )}
-      </div>
-
-      {/* Map */}
-      <div className="relative flex-1 overflow-hidden rounded-t-apple-lg mx-2">
+    <div className="relative h-[calc(100vh-4rem)]">
+      {/* Full-bleed map */}
+      <div className="absolute inset-0">
         <Map
           defaultCenter={{ lat: 37.5, lng: -110 }}
           defaultZoom={5}
@@ -339,6 +237,117 @@ function MapContent() {
           )}
         </Map>
       </div>
+
+      {/* Overlay: day filter chips (below search bar) */}
+      <div className="pointer-events-none absolute top-14 start-2 end-2 z-[8]" dir="rtl">
+        <div className="pointer-events-auto flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+          <button
+            onClick={() => handleDaySelect(null)}
+            className={cn(
+              'shrink-0 rounded-full px-2.5 py-1 text-caption font-medium transition-colors flex items-center shadow-glass',
+              selectedDay === null
+                ? 'bg-apple-primary text-white'
+                : 'bg-white/90 text-apple-secondary backdrop-blur-sm',
+            )}
+          >
+            <Navigation className="ms-1 inline h-2.5 w-2.5" />
+            הכל
+          </button>
+          {ITINERARY_DAYS.map((day, idx) => (
+            <button
+              key={day.id}
+              onClick={() => handleDaySelect(selectedDay === idx ? null : idx)}
+              className={cn(
+                'shrink-0 rounded-full px-2.5 py-1 text-caption font-medium transition-colors whitespace-nowrap flex items-center shadow-glass',
+                selectedDay === idx
+                  ? 'text-white'
+                  : 'bg-white/90 text-apple-secondary backdrop-blur-sm',
+              )}
+              style={
+                selectedDay === idx
+                  ? { backgroundColor: DAY_COLORS[idx % DAY_COLORS.length] }
+                  : undefined
+              }
+            >
+              {idx + 1}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Overlay: bottom-start controls (labels toggle + saved routes) */}
+      <div
+        className="pointer-events-none absolute bottom-16 start-3 z-[8] flex flex-col items-start gap-1.5"
+        dir="rtl"
+      >
+        <button
+          onClick={() => setShowLabels(!showLabels)}
+          className={cn(
+            'pointer-events-auto rounded-apple-sm px-3 py-2 text-caption font-medium transition-colors shadow-glass',
+            showLabels
+              ? 'bg-ios-blue text-white'
+              : 'bg-white/90 text-apple-secondary backdrop-blur-sm',
+          )}
+        >
+          <Layers className="ms-1 inline h-3 w-3" />
+          תוויות
+        </button>
+        <button
+          onClick={() => setShowSavedRoutes(!showSavedRoutes)}
+          className={cn(
+            'pointer-events-auto rounded-apple-sm px-3 py-2 text-caption font-medium transition-colors shadow-glass',
+            showSavedRoutes
+              ? 'bg-ios-green text-white'
+              : 'bg-white/90 text-apple-secondary backdrop-blur-sm',
+          )}
+        >
+          <ExternalLink className="ms-1 inline h-3 w-3" />
+          מסלולים שמורים
+        </button>
+      </div>
+
+      {/* Saved routes panel (slides up from bottom-start) */}
+      {showSavedRoutes && (
+        <div
+          className="absolute bottom-32 start-3 z-[9] w-[min(calc(100%-1.5rem),360px)]"
+          dir="rtl"
+        >
+          <div className="glass-float rounded-apple p-2 flex flex-col gap-1.5">
+            <a
+              href="https://www.google.com/maps/dir/Mammoth+Lakes,+California+93546,+USA/Mono+Lake,+California+93541,+USA/Tioga+Rd,+California,+USA/North+Pines+Campground,+Yosemite+National+Park,+9024+Southside+Dr,+TUOLUMNE+MEADOWS,+CA+95389,+United+States/Marin+RV+Park,+2140+Redwood+Hwy,+Greenbrae,+CA+94904,+United+States/@38.2480539,-123.3573915,574674m"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-apple-sm px-3 py-2 text-subhead text-ios-blue hover:bg-ios-blue/10 transition-colors flex items-center gap-2"
+              dir="ltr"
+            >
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">Mammoth Lakes → Mono Lake → Yosemite → Marin</span>
+            </a>
+            <a
+              href="https://www.google.com/maps/dir/Bryce+Canyon+City,+Utah,+USA/Kanab,+Utah+84741,+USA/Hurricane,+Utah+84737,+USA/Zion+Canyon+Campground+and+RV+Resort,+479+Zion+Park+Blvd,+Springdale,+UT+84767,+United+States/@37.3017932,-113.3804657,145519m"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-apple-sm px-3 py-2 text-subhead text-ios-blue hover:bg-ios-blue/10 transition-colors flex items-center gap-2"
+              dir="ltr"
+            >
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">Bryce Canyon → Kanab → Hurricane → Zion</span>
+            </a>
+            <a
+              href="https://www.google.com/maps/dir/69+New+Ventures+Dr,+Bozeman,+MT+59718,+USA/Gardiner,+Montana+59030,+USA/Mammoth+Hot+Springs,+Mammoth,+WY+82190,+United+States/Madison+Campground,+30+Madison+Campground+E+Loop,+Yellowstone+National+Park,+WY+82190,+United+States/Old+Faithful,+Yellowstone+National+Park,+WY+82190,+United+States/Colter+Bay+Village,+Wyoming+83013,+USA/Jackson,+Wyoming,+USA/@44.1717642,-112.8630199,262427m"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-apple-sm px-3 py-2 text-subhead text-ios-blue hover:bg-ios-blue/10 transition-colors flex items-center gap-2"
+              dir="ltr"
+            >
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">
+                Bozeman → Mammoth Hot Springs → Old Faithful → Jackson
+              </span>
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
