@@ -7,7 +7,7 @@ import { ITINERARY_DAYS } from '@/data/itinerary'
 import { getPrimaryLocationForCity } from '@/data/locations'
 import { useMapMoti } from '@/contexts/MapMotiContext'
 import { PlaceSearch } from './components/PlaceSearch'
-import { DirectionsPanel } from './components/DirectionsPanel'
+import { DrivingRoutePlanner } from './components/DrivingRoutePlanner'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 const MAP_ID = 'hey-usa-map'
@@ -111,6 +111,7 @@ function MapContent() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [showLabels, setShowLabels] = useState(true)
   const [popupInfo, setPopupInfo] = useState<MapPoint | null>(null)
+  const [isDrivingMode, setIsDrivingMode] = useState(false)
   const map = useMap()
   const { consumeAction } = useMapMoti()
   const [initialSearchQuery, setInitialSearchQuery] = useState<string | null>(null)
@@ -238,8 +239,12 @@ function MapContent() {
           style={{ width: '100%', height: '100%' }}
         >
           <PlaceSearch initialQuery={initialSearchQuery} />
-          <DirectionsPanel />
-          <RouteLines selectedDay={selectedDay} allPoints={allPoints} />
+          {!isDrivingMode && <RouteLines selectedDay={selectedDay} allPoints={allPoints} />}
+          <DrivingRoutePlanner
+            selectedDay={selectedDay}
+            isDrivingMode={isDrivingMode}
+            onToggleDrivingMode={() => setIsDrivingMode((v) => !v)}
+          />
 
           {filteredPoints.map((point, i) => (
             <AdvancedMarker
