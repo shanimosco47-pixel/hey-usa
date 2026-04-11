@@ -1,11 +1,12 @@
-import { useMemo, useState, useCallback, useEffect } from 'react'
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps'
-import { Layers, Navigation, MapPin, ExternalLink } from 'lucide-react'
+import { Layers, Navigation, MapPin, ExternalLink, GripVertical } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { DAY_COLORS } from '@/constants'
 import { ITINERARY_DAYS } from '@/data/itinerary'
 import { getPrimaryLocationForCity } from '@/data/locations'
 import { useMapMoti } from '@/contexts/MapMotiContext'
+import { useSidebar } from '@/contexts/SidebarContext'
 import { PlaceSearch } from './components/PlaceSearch'
 import { DrivingRoutePlanner } from './components/DrivingRoutePlanner'
 
@@ -107,6 +108,107 @@ function RouteLines({
   return null
 }
 
+function DraggableControls({
+  showLabels,
+  onToggleLabels,
+  showSavedRoutes,
+  onToggleSavedRoutes,
+}: {
+  showLabels: boolean
+  onToggleLabels: () => void
+  showSavedRoutes: boolean
+  onToggleSavedRoutes: () => void
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const dragging = useRef(false)
+  const dragOffset = useRef({ x: 0, y: 0 })
+  const hasMoved = useRef(false)
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    if (!(e.target as HTMLElement).closest('[data-drag-handle]')) return
+    dragging.current = true
+    hasMoved.current = false
+    const rect = containerRef.current!.getBoundingClientRect()
+    dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    e.preventDefault()
+  }, [])
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragging.current || !containerRef.current) return
+    hasMoved.current = true
+    const parent = containerRef.current.parentElement!
+    const parentRect = parent.getBoundingClientRect()
+    const newX = Math.max(
+      0,
+      Math.min(
+        e.clientX - parentRect.left - dragOffset.current.x,
+        parentRect.width - containerRef.current.offsetWidth,
+      ),
+    )
+    const newY = Math.max(
+      0,
+      Math.min(
+        e.clientY - parentRect.top - dragOffset.current.y,
+        parentRect.height - containerRef.current.offsetHeight,
+      ),
+    )
+    containerRef.current.style.left = `${newX}px`
+    containerRef.current.style.top = `${newY}px`
+    containerRef.current.style.bottom = 'auto'
+    containerRef.current.style.right = 'auto'
+  }, [])
+
+  const onPointerUp = useCallback(() => {
+    dragging.current = false
+  }, [])
+
+  return (
+    <div
+      ref={containerRef}
+      className="absolute bottom-16 start-3 z-[8] flex flex-col items-start gap-1.5"
+      dir="rtl"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+    >
+      <div className="flex items-center gap-1">
+        <div
+          data-drag-handle
+          className="cursor-grab active:cursor-grabbing rounded-apple-sm p-1.5 bg-white/70 backdrop-blur-sm shadow-glass hover:bg-white/90 transition-colors touch-none"
+          title="גרור לשינוי מיקום"
+        >
+          <GripVertical className="h-3.5 w-3.5 text-apple-tertiary" />
+        </div>
+        <button
+          onClick={onToggleLabels}
+          className={cn(
+            'rounded-apple-sm px-3 py-2 text-caption font-medium transition-colors shadow-glass',
+            showLabels
+              ? 'bg-ios-blue text-white'
+              : 'bg-white/90 text-apple-secondary backdrop-blur-sm',
+          )}
+        >
+          <Layers className="ms-1 inline h-3 w-3" />
+          תוויות
+        </button>
+      </div>
+      <button
+        onClick={onToggleSavedRoutes}
+        className={cn(
+          'rounded-apple-sm px-3 py-2 text-caption font-medium transition-colors shadow-glass',
+          showSavedRoutes
+            ? 'bg-ios-green text-white'
+            : 'bg-white/90 text-apple-secondary backdrop-blur-sm',
+        )}
+      >
+        <ExternalLink className="ms-1 inline h-3 w-3" />
+        מסלולים שמורים
+      </button>
+    </div>
+  )
+}
+
 function MapContent() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [showLabels, setShowLabels] = useState(true)
@@ -116,6 +218,13 @@ function MapContent() {
   const map = useMap()
   const { consumeAction } = useMapMoti()
   const [initialSearchQuery, setInitialSearchQuery] = useState<string | null>(null)
+  const { setCollapsed } = useSidebar()
+
+  // Auto-collapse sidebar on map page for maximum map area
+  useEffect(() => {
+    setCollapsed(true)
+    return () => setCollapsed(false)
+  }, [setCollapsed])
 
   // Consume pending Moti action on mount
   useEffect(() => {
@@ -275,36 +384,13 @@ function MapContent() {
         </div>
       </div>
 
-      {/* Overlay: bottom-start controls (labels toggle + saved routes) */}
-      <div
-        className="pointer-events-none absolute bottom-16 start-3 z-[8] flex flex-col items-start gap-1.5"
-        dir="rtl"
-      >
-        <button
-          onClick={() => setShowLabels(!showLabels)}
-          className={cn(
-            'pointer-events-auto rounded-apple-sm px-3 py-2 text-caption font-medium transition-colors shadow-glass',
-            showLabels
-              ? 'bg-ios-blue text-white'
-              : 'bg-white/90 text-apple-secondary backdrop-blur-sm',
-          )}
-        >
-          <Layers className="ms-1 inline h-3 w-3" />
-          תוויות
-        </button>
-        <button
-          onClick={() => setShowSavedRoutes(!showSavedRoutes)}
-          className={cn(
-            'pointer-events-auto rounded-apple-sm px-3 py-2 text-caption font-medium transition-colors shadow-glass',
-            showSavedRoutes
-              ? 'bg-ios-green text-white'
-              : 'bg-white/90 text-apple-secondary backdrop-blur-sm',
-          )}
-        >
-          <ExternalLink className="ms-1 inline h-3 w-3" />
-          מסלולים שמורים
-        </button>
-      </div>
+      {/* Overlay: draggable controls (labels toggle + saved routes) */}
+      <DraggableControls
+        showLabels={showLabels}
+        onToggleLabels={() => setShowLabels(!showLabels)}
+        showSavedRoutes={showSavedRoutes}
+        onToggleSavedRoutes={() => setShowSavedRoutes(!showSavedRoutes)}
+      />
 
       {/* Saved routes panel (slides up from bottom-start) */}
       {showSavedRoutes && (

@@ -7,11 +7,13 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomTabs } from '@/components/layout/BottomTabs'
 import { OfflineBanner } from '@/components/shared/OfflineBanner'
 import { PageErrorBoundary } from '@/components/shared/PageErrorBoundary'
+import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext'
 import { cn } from '@/lib/cn'
 
-export function AppShell() {
+function AppShellInner() {
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const location = useLocation()
+  const { collapsed } = useSidebar()
 
   return (
     <div className="min-h-screen bg-passport-cream dark:bg-black" dir="rtl">
@@ -27,8 +29,8 @@ export function AppShell() {
         <main
           id="main-content"
           className={cn(
-            'flex-1 min-w-0 min-h-[calc(100vh-3.5rem)] overflow-x-hidden',
-            isDesktop ? 'ms-64' : 'pb-16',
+            'flex-1 min-w-0 min-h-[calc(100vh-3.5rem)] overflow-x-hidden transition-[margin] duration-300',
+            isDesktop && !collapsed ? 'ms-64' : isDesktop ? 'ms-0' : 'pb-16',
           )}
         >
           <div className="w-full max-w-7xl mx-auto">
@@ -64,6 +66,14 @@ export function AppShell() {
 
       {!isDesktop && <BottomTabs />}
     </div>
+  )
+}
+
+export function AppShell() {
+  return (
+    <SidebarProvider>
+      <AppShellInner />
+    </SidebarProvider>
   )
 }
 
