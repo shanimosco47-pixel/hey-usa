@@ -112,7 +112,7 @@ const TYPE_ICON: Record<AccommodationType, { icon: string; label: string }> = {
 // ── Date helpers ─────────────────────────────────────────────────
 function formatDay(dateStr: string): string {
   const d = new Date(dateStr + 'T00:00:00')
-  return `${d.getDate()} ספט`
+  return d.toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'short' })
 }
 
 function formatRange(checkIn: string, checkOut: string): string {
