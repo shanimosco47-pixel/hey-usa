@@ -197,9 +197,9 @@ export default function LocationHubPage() {
               {dateRange && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-subhead text-white font-medium">
                   <Clock className="h-3 w-3" />
-                  {format(parseISO(dateRange.start), 'dd/MM')}
+                  {format(parseISO(dateRange.start), 'EEE dd/MM')}
                   {dateRange.start !== dateRange.end &&
-                    ` – ${format(parseISO(dateRange.end), 'dd/MM')}`}
+                    ` – ${format(parseISO(dateRange.end), 'EEE dd/MM')}`}
                 </span>
               )}
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-subhead text-white font-medium">
@@ -351,7 +351,7 @@ export default function LocationHubPage() {
                         {day.title}
                       </div>
                       <span className="text-caption text-apple-tertiary">
-                        {format(parseISO(day.date), 'dd/MM/yyyy')}
+                        {format(parseISO(day.date), 'EEE dd/MM/yyyy')}
                       </span>
                       <ExternalLink className="h-3.5 w-3.5 text-apple-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
                     </Link>

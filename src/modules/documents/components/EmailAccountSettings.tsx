@@ -60,6 +60,7 @@ export function EmailAccountSettings() {
   function formatDate(dateStr: string | null) {
     if (!dateStr) return 'לא נסרק עדיין'
     return new Date(dateStr).toLocaleDateString('he-IL', {
+      weekday: 'short',
       day: 'numeric',
       month: 'short',
       year: 'numeric',

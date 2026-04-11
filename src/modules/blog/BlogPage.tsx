@@ -162,6 +162,7 @@ export default function BlogPage() {
 
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString('he-IL', {
+      weekday: 'short',
       day: 'numeric',
       month: 'long',
       year: 'numeric',

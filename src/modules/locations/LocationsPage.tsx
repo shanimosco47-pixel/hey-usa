@@ -9,8 +9,8 @@ import { EmptyState } from '@/components/shared/EmptyState'
 
 function formatDateRange(range: { start: string; end: string } | null): string | null {
   if (!range) return null
-  const start = format(parseISO(range.start), 'dd/MM')
-  const end = format(parseISO(range.end), 'dd/MM')
+  const start = format(parseISO(range.start), 'EEE dd/MM')
+  const end = format(parseISO(range.end), 'EEE dd/MM')
   return start === end ? start : `${start} – ${end}`
 }
 

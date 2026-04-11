@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 function formatTimestamp(iso: string): string {
   const d = new Date(iso)
   return new Intl.DateTimeFormat('he-IL', {
+    weekday: 'short',
     day: 'numeric',
     month: 'short',
     hour: '2-digit',

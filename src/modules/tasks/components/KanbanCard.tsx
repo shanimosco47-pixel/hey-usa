@@ -33,7 +33,11 @@ function isOverdue(dueDate?: string, status?: string): boolean {
 function formatDate(dateStr?: string): string {
   if (!dateStr) return ''
   const date = new Date(dateStr)
-  return new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'short' }).format(date)
+  return new Intl.DateTimeFormat('he-IL', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  }).format(date)
 }
 
 export const KanbanCard = memo(function KanbanCard({ task, onClick }: KanbanCardProps) {

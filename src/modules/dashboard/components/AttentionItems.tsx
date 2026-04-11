@@ -52,6 +52,7 @@ export const AttentionItems = memo(function AttentionItems({ items }: AttentionI
               {item.task.due_date && (
                 <span className="text-caption text-apple-secondary shrink-0 font-medium tabular-nums">
                   {new Date(item.task.due_date + 'T00:00:00').toLocaleDateString('he-IL', {
+                    weekday: 'short',
                     day: 'numeric',
                     month: 'short',
                   })}

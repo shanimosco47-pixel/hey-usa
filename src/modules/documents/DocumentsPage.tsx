@@ -436,7 +436,14 @@ function ListRow({
         {!isSampleData(doc.id) && (
           <div className="flex items-center gap-1 text-caption text-apple-secondary">
             <Calendar className="h-3 w-3" />
-            <span>{new Date(doc.created_at).toLocaleDateString('he-IL')}</span>
+            <span>
+              {new Date(doc.created_at).toLocaleDateString('he-IL', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </span>
           </div>
         )}
       </div>

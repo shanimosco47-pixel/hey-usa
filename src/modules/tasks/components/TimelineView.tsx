@@ -192,7 +192,7 @@ export function TimelineView({ tasks, onTaskClick }: TimelineViewProps) {
                         backgroundColor: overdue ? '#FF3B30' : groupColor,
                         opacity: task.status === 'done' ? 0.4 : 0.8,
                       }}
-                      title={`${task.title} - ${new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'short' }).format(new Date(task.due_date!))}`}
+                      title={`${task.title} - ${new Intl.DateTimeFormat('he-IL', { weekday: 'short', day: 'numeric', month: 'short' }).format(new Date(task.due_date!))}`}
                     />
                   </div>
                 </div>

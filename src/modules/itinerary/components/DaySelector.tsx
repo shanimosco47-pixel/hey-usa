@@ -46,7 +46,7 @@ export const DaySelector = memo(function DaySelector({
         {days.map((day, index) => {
           const date = parseISO(day.date)
           const dayNum = index + 1
-          const shortDate = format(date, 'd.M')
+          const shortDate = format(date, 'EEE d.M')
           const isActive = index === activeDay
           const cityShort = day.city ? day.city.split(/[→,]/)[0].trim().slice(0, 12) : ''
 

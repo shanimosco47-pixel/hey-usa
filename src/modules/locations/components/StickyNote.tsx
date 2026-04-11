@@ -22,7 +22,11 @@ function timeAgo(dateStr: string): string {
   if (hours < 24) return `לפני ${hours} שעות`
   const days = Math.floor(hours / 24)
   if (days < 7) return `לפני ${days} ימים`
-  return new Date(dateStr).toLocaleDateString('he-IL')
+  return new Date(dateStr).toLocaleDateString('he-IL', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
 }
 
 interface StickyNoteProps {

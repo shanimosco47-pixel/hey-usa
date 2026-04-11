@@ -495,6 +495,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
                     icon={Calendar}
                     label="תאריך העלאה"
                     value={new Date(doc.created_at).toLocaleDateString('he-IL', {
+                      weekday: 'short',
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
@@ -527,6 +528,7 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
                         )}
                       >
                         {new Date(doc.expiry_date).toLocaleDateString('he-IL', {
+                          weekday: 'short',
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',

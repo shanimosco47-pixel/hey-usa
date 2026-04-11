@@ -163,7 +163,12 @@ export function DocumentCard({ document: doc, onClick }: DocumentCardProps) {
                     : 'text-apple-secondary',
               )}
             >
-              {new Date(doc.expiry_date).toLocaleDateString('he-IL')}
+              {new Date(doc.expiry_date).toLocaleDateString('he-IL', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
             </span>
           )}
         </div>
