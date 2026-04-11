@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps'
-import { Layers, Navigation, MapPin, ExternalLink, GripVertical } from 'lucide-react'
+import { Layers, Navigation, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { DAY_COLORS } from '@/constants'
 import { ITINERARY_DAYS } from '@/data/itinerary'
@@ -125,13 +125,11 @@ function DraggableControls({
   const hasMoved = useRef(false)
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
-    if (!(e.target as HTMLElement).closest('[data-drag-handle]')) return
     dragging.current = true
     hasMoved.current = false
     const rect = containerRef.current!.getBoundingClientRect()
     dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-    e.preventDefault()
+    containerRef.current!.setPointerCapture(e.pointerId)
   }, [])
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
@@ -163,38 +161,40 @@ function DraggableControls({
     dragging.current = false
   }, [])
 
+  const handleClick = useCallback(
+    (handler: () => void) => (e: React.MouseEvent) => {
+      if (hasMoved.current) {
+        e.preventDefault()
+        return
+      }
+      handler()
+    },
+    [],
+  )
+
   return (
     <div
       ref={containerRef}
-      className="absolute bottom-16 start-3 z-[8] flex flex-col items-start gap-1.5"
+      className="absolute bottom-16 start-3 z-[8] flex flex-col items-start gap-1.5 cursor-grab active:cursor-grabbing touch-none select-none"
       dir="rtl"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
-      <div className="flex items-center gap-1">
-        <div
-          data-drag-handle
-          className="cursor-grab active:cursor-grabbing rounded-apple-sm p-1.5 bg-white/70 backdrop-blur-sm shadow-glass hover:bg-white/90 transition-colors touch-none"
-          title="גרור לשינוי מיקום"
-        >
-          <GripVertical className="h-3.5 w-3.5 text-apple-tertiary" />
-        </div>
-        <button
-          onClick={onToggleLabels}
-          className={cn(
-            'rounded-apple-sm px-3 py-2 text-caption font-medium transition-colors shadow-glass',
-            showLabels
-              ? 'bg-ios-blue text-white'
-              : 'bg-white/90 text-apple-secondary backdrop-blur-sm',
-          )}
-        >
-          <Layers className="ms-1 inline h-3 w-3" />
-          תוויות
-        </button>
-      </div>
       <button
-        onClick={onToggleSavedRoutes}
+        onClick={handleClick(onToggleLabels)}
+        className={cn(
+          'rounded-apple-sm px-3 py-2 text-caption font-medium transition-colors shadow-glass',
+          showLabels
+            ? 'bg-ios-blue text-white'
+            : 'bg-white/90 text-apple-secondary backdrop-blur-sm',
+        )}
+      >
+        <Layers className="ms-1 inline h-3 w-3" />
+        תוויות
+      </button>
+      <button
+        onClick={handleClick(onToggleSavedRoutes)}
         className={cn(
           'rounded-apple-sm px-3 py-2 text-caption font-medium transition-colors shadow-glass',
           showSavedRoutes
@@ -312,7 +312,9 @@ function MapContent() {
                 className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white shadow-glass-float cursor-pointer transition-transform hover:scale-125"
                 style={{ backgroundColor: DAY_COLORS[point.dayIndex % DAY_COLORS.length] }}
               >
-                <MapPin className="h-3.5 w-3.5 text-white" />
+                <span className="text-[10px] font-bold text-white leading-none">
+                  {point.dayIndex + 1}
+                </span>
               </div>
             </AdvancedMarker>
           ))}
