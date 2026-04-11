@@ -2,8 +2,8 @@
 
 interface Booking {
   id: string
-  check_in: string   // YYYY-MM-DD
-  check_out: string  // YYYY-MM-DD
+  check_in: string // YYYY-MM-DD
+  check_out: string // YYYY-MM-DD
   location: string
   status?: string
 }
@@ -42,7 +42,8 @@ export function findMissingNights(bookings: Booking[]): NightGap[] {
 
     if (!hasCoverage) {
       const dayNum = Math.floor((d.getTime() - start.getTime()) / 86400000) + 1
-      gaps.push({ date: dateStr, dayLabel: `יום ${dayNum}` })
+      const weekday = d.toLocaleDateString('he-IL', { weekday: 'short' })
+      gaps.push({ date: dateStr, dayLabel: `${weekday} יום ${dayNum}` })
     }
   }
 

@@ -12,9 +12,7 @@ interface AlertCardProps {
 
 function AlertCard({ icon, title, variant, children }: AlertCardProps) {
   const colors =
-    variant === 'error'
-      ? 'border-ios-red/20 bg-ios-red/5'
-      : 'border-ios-orange/20 bg-ios-orange/5'
+    variant === 'error' ? 'border-ios-red/20 bg-ios-red/5' : 'border-ios-orange/20 bg-ios-orange/5'
 
   return (
     <div className={cn('glass rounded-apple-lg p-4 border', colors)}>
@@ -32,10 +30,7 @@ interface AccommodationAlertsProps {
   doubleBookings: Array<{ date: string; bookings: string[] }>
 }
 
-export function AccommodationAlerts({
-  missingNights,
-  doubleBookings,
-}: AccommodationAlertsProps) {
+export function AccommodationAlerts({ missingNights, doubleBookings }: AccommodationAlertsProps) {
   if (missingNights.length === 0 && doubleBookings.length === 0) return null
 
   return (
@@ -68,7 +63,12 @@ export function AccommodationAlerts({
           <div className="flex flex-col gap-1">
             {doubleBookings.map((db) => (
               <p key={db.date} className="text-caption text-apple-primary">
-                {db.date.slice(5)}: {db.bookings.join(' + ')}
+                {new Date(db.date + 'T12:00:00').toLocaleDateString('he-IL', {
+                  weekday: 'short',
+                  day: 'numeric',
+                  month: 'numeric',
+                })}
+                : {db.bookings.join(' + ')}
               </p>
             ))}
           </div>

@@ -639,7 +639,12 @@ export default function BudgetPage() {
                           size="xs"
                           className="inline-flex align-middle"
                         />{' '}
-                        {member.name} · {expense.date}
+                        {member.name} ·{' '}
+                        {new Date(expense.date + 'T12:00:00').toLocaleDateString('he-IL', {
+                          weekday: 'short',
+                          day: 'numeric',
+                          month: 'numeric',
+                        })}
                       </p>
                     </div>
                     <div className="text-left shrink-0">

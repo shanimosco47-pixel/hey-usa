@@ -107,7 +107,14 @@ export function SearchDialog() {
       results.push({
         id: `day-${day.id}`,
         title: day.title,
-        subtitle: day.city ? `${day.city} · ${day.date}` : day.date,
+        subtitle: (() => {
+          const d = new Date(day.date + 'T12:00:00').toLocaleDateString('he-IL', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'numeric',
+          })
+          return day.city ? `${day.city} · ${d}` : d
+        })(),
         path: `/itinerary/${day.id.replace('day-', '')}`,
         icon: CalendarRange,
         color: '#FF9500',

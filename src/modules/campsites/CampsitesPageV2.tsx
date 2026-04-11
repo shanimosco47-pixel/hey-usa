@@ -532,6 +532,11 @@ export default function CampsitesPageV2() {
                     !n.bookingId && 'cursor-default opacity-60',
                   )}
                 >
+                  <span className="text-[9px] font-medium leading-none text-apple-secondary">
+                    {new Date(n.date + 'T12:00:00')
+                      .toLocaleDateString('en-US', { weekday: 'short' })
+                      .slice(0, 2)}
+                  </span>
                   <span className="text-caption font-bold leading-none">{n.dayNum}</span>
                   {n.type && (
                     <span className="text-caption leading-none mt-0.5">
