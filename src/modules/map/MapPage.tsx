@@ -1,6 +1,6 @@
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps'
-import { Map as MapIcon, Layers, Navigation, MapPin } from 'lucide-react'
+import { Map as MapIcon, Layers, Navigation, MapPin, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { DAY_COLORS } from '@/constants'
 import { ITINERARY_DAYS } from '@/data/itinerary'
@@ -112,6 +112,7 @@ function MapContent() {
   const [showLabels, setShowLabels] = useState(true)
   const [popupInfo, setPopupInfo] = useState<MapPoint | null>(null)
   const [isDrivingMode, setIsDrivingMode] = useState(false)
+  const [showSavedRoutes, setShowSavedRoutes] = useState(false)
   const map = useMap()
   const { consumeAction } = useMapMoti()
   const [initialSearchQuery, setInitialSearchQuery] = useState<string | null>(null)
@@ -226,6 +227,54 @@ function MapContent() {
             {idx + 1}
           </button>
         ))}
+      </div>
+
+      {/* Saved Routes */}
+      <div className="px-3 pb-1.5">
+        <button
+          onClick={() => setShowSavedRoutes(!showSavedRoutes)}
+          className={cn(
+            'rounded-apple-sm px-3 py-1.5 min-h-[44px] text-caption font-medium transition-colors',
+            showSavedRoutes ? 'bg-ios-green text-white' : 'glass text-apple-secondary',
+          )}
+        >
+          <ExternalLink className="ms-1 inline h-3 w-3" />
+          מסלולי נסיעה שמורים
+        </button>
+        {showSavedRoutes && (
+          <div className="mt-1.5 flex flex-col gap-1.5">
+            <a
+              href="https://www.google.com/maps/dir/Mammoth+Lakes,+California+93546,+USA/Mono+Lake,+California+93541,+USA/Tioga+Rd,+California,+USA/North+Pines+Campground,+Yosemite+National+Park,+9024+Southside+Dr,+TUOLUMNE+MEADOWS,+CA+95389,+United+States/Marin+RV+Park,+2140+Redwood+Hwy,+Greenbrae,+CA+94904,+United+States/@38.2480539,-123.3573915,574674m"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass rounded-apple-sm px-3 py-2 text-subhead text-ios-blue hover:bg-ios-blue/10 transition-colors flex items-center gap-2"
+              dir="ltr"
+            >
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+              <span>Mammoth Lakes → Mono Lake → Tioga Rd → Yosemite → Marin RV Park</span>
+            </a>
+            <a
+              href="https://www.google.com/maps/dir/Bryce+Canyon+City,+Utah,+USA/Kanab,+Utah+84741,+USA/Hurricane,+Utah+84737,+USA/Zion+Canyon+Campground+and+RV+Resort,+479+Zion+Park+Blvd,+Springdale,+UT+84767,+United+States/@37.3017932,-113.3804657,145519m"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass rounded-apple-sm px-3 py-2 text-subhead text-ios-blue hover:bg-ios-blue/10 transition-colors flex items-center gap-2"
+              dir="ltr"
+            >
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+              <span>Bryce Canyon → Kanab → Hurricane → Zion Campground</span>
+            </a>
+            <a
+              href="https://www.google.com/maps/dir/69+New+Ventures+Dr,+Bozeman,+MT+59718,+USA/Gardiner,+Montana+59030,+USA/Mammoth+Hot+Springs,+Mammoth,+WY+82190,+United+States/Madison+Campground,+30+Madison+Campground+E+Loop,+Yellowstone+National+Park,+WY+82190,+United+States/Old+Faithful,+Yellowstone+National+Park,+WY+82190,+United+States/Colter+Bay+Village,+Wyoming+83013,+USA/Jackson,+Wyoming,+USA/@44.1717642,-112.8630199,262427m"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass rounded-apple-sm px-3 py-2 text-subhead text-ios-blue hover:bg-ios-blue/10 transition-colors flex items-center gap-2"
+              dir="ltr"
+            >
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+              <span>Bozeman → Gardiner → Mammoth Hot Springs → Old Faithful → Jackson</span>
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Map */}
