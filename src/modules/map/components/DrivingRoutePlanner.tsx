@@ -15,19 +15,22 @@ import {
 import { cn } from '@/lib/cn'
 import { ITINERARY_DAYS } from '@/data/itinerary'
 
-interface DrivingRoutePlannerProps {
-  selectedDay: number | null
-  isDrivingMode: boolean
-  onToggleDrivingMode: () => void
-}
-
 // Build flat stop list with day labels for the selector
-interface StopOption {
+export interface StopOption {
   label: string
   lat: number
   lng: number
   dayIndex: number
   title: string
+  isCustomWaypoint?: boolean
+}
+
+interface DrivingRoutePlannerProps {
+  selectedDay: number | null
+  isDrivingMode: boolean
+  onToggleDrivingMode: () => void
+  selectedStops: StopOption[]
+  onSelectedStopsChange: (stops: StopOption[]) => void
 }
 
 function buildStopOptions(): StopOption[] {
@@ -56,11 +59,11 @@ export function DrivingRoutePlanner({
   selectedDay,
   isDrivingMode,
   onToggleDrivingMode,
+  selectedStops,
+  onSelectedStopsChange,
 }: DrivingRoutePlannerProps) {
   const map = useMap()
   const routesLib = useMapsLibrary('routes')
-
-  const [selectedStops, setSelectedStops] = useState<StopOption[]>([])
   const [routeResult, setRouteResult] = useState<google.maps.DirectionsResult | null>(null)
   const [selectedRouteIndex, setSelectedRouteIndex] = useState(0)
   const [isCalculating, setIsCalculating] = useState(false)
@@ -117,9 +120,9 @@ export function DrivingRoutePlanner({
   useEffect(() => {
     if (!isDrivingMode) {
       clearRoute()
-      setSelectedStops([])
+      onSelectedStopsChange([])
     }
-  }, [isDrivingMode, clearRoute])
+  }, [isDrivingMode, clearRoute, onSelectedStopsChange])
 
   // Calculate route
   const calculateRoute = useCallback(async () => {
@@ -217,28 +220,31 @@ export function DrivingRoutePlanner({
   )
 
   // Add a stop from the selector
-  const addStop = useCallback((opt: StopOption) => {
-    setSelectedStops((prev) => [...prev, opt])
-    setAddStopOpen(false)
-    setAddStopFilter('')
-  }, [])
+  const addStop = useCallback(
+    (opt: StopOption) => {
+      onSelectedStopsChange([...selectedStops, opt])
+      setAddStopOpen(false)
+      setAddStopFilter('')
+    },
+    [selectedStops, onSelectedStopsChange],
+  )
 
   // Remove a stop by index
   const removeStop = useCallback(
     (index: number) => {
-      setSelectedStops((prev) => prev.filter((_, i) => i !== index))
+      onSelectedStopsChange(selectedStops.filter((_, i) => i !== index))
       clearRoute()
     },
-    [clearRoute],
+    [selectedStops, onSelectedStopsChange, clearRoute],
   )
 
   // Quick-fill: all stops for the selected day
   const fillDayStops = useCallback(() => {
     if (selectedDay === null) return
     const dayOpts = ALL_STOP_OPTIONS.filter((o) => o.dayIndex === selectedDay)
-    setSelectedStops(dayOpts)
+    onSelectedStopsChange(dayOpts)
     clearRoute()
-  }, [selectedDay, clearRoute])
+  }, [selectedDay, onSelectedStopsChange, clearRoute])
 
   // Google Maps multi-stop URL
   const openGoogleMapsNav = useCallback(() => {

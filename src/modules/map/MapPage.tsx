@@ -1,6 +1,8 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps'
+import type { MapMouseEvent } from '@vis.gl/react-google-maps'
 import { Layers, Navigation, ExternalLink } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { DAY_COLORS } from '@/constants'
 import { ITINERARY_DAYS } from '@/data/itinerary'
@@ -8,7 +10,7 @@ import { getPrimaryLocationForCity } from '@/data/locations'
 import { useMapMoti } from '@/contexts/MapMotiContext'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { PlaceSearch } from './components/PlaceSearch'
-import { DrivingRoutePlanner } from './components/DrivingRoutePlanner'
+import { DrivingRoutePlanner, type StopOption } from './components/DrivingRoutePlanner'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 const MAP_ID = 'hey-usa-map'
@@ -212,6 +214,8 @@ function MapContent() {
   const [popupInfo, setPopupInfo] = useState<MapPoint | null>(null)
   const [isDrivingMode, setIsDrivingMode] = useState(false)
   const [showSavedRoutes, setShowSavedRoutes] = useState(false)
+  const [selectedStops, setSelectedStops] = useState<StopOption[]>([])
+  const [drivingHintVisible, setDrivingHintVisible] = useState(false)
   const map = useMap()
   const { consumeAction } = useMapMoti()
   const [initialSearchQuery, setInitialSearchQuery] = useState<string | null>(null)
@@ -279,8 +283,100 @@ function MapContent() {
     [allPoints, map],
   )
 
+  // Show hint toast when driving mode activates
+  useEffect(() => {
+    if (isDrivingMode) {
+      setDrivingHintVisible(true)
+      const t = setTimeout(() => setDrivingHintVisible(false), 3500)
+      return () => clearTimeout(t)
+    } else {
+      setDrivingHintVisible(false)
+    }
+  }, [isDrivingMode])
+
+  // Handle marker click in driving mode — add stop to route
+  const handleMarkerClick = useCallback(
+    (point: MapPoint) => {
+      if (isDrivingMode) {
+        const alreadyAdded = selectedStops.some((s) => s.lat === point.lat && s.lng === point.lng)
+        if (!alreadyAdded) {
+          setSelectedStops((prev) => [
+            ...prev,
+            {
+              label: `יום ${point.dayIndex + 1}: ${point.title}`,
+              lat: point.lat,
+              lng: point.lng,
+              dayIndex: point.dayIndex,
+              title: point.title,
+            },
+          ])
+        }
+      } else {
+        setPopupInfo(point)
+      }
+    },
+    [isDrivingMode, selectedStops],
+  )
+
+  // Handle map click for arbitrary waypoints in driving mode
+  const handleMapClick = useCallback(
+    (e: MapMouseEvent) => {
+      if (!isDrivingMode) return
+      const lat = e.detail.latLng?.lat
+      const lng = e.detail.latLng?.lng
+      if (lat == null || lng == null) return
+
+      // Add immediately with coords, then try reverse geocoding to update name
+      const coordLabel = `${lat.toFixed(4)}, ${lng.toFixed(4)}`
+      const newStop: StopOption = {
+        label: coordLabel,
+        lat,
+        lng,
+        dayIndex: -1,
+        title: coordLabel,
+        isCustomWaypoint: true,
+      }
+      setSelectedStops((prev) => [...prev, newStop])
+
+      // Try reverse geocoding to get a friendly name
+      try {
+        const geocoder = new google.maps.Geocoder()
+        geocoder.geocode({ location: { lat, lng } }).then((response) => {
+          if (response.results[0]) {
+            const name = response.results[0].formatted_address.split(',').slice(0, 2).join(',')
+            setSelectedStops((prev) =>
+              prev.map((s) =>
+                s.lat === lat && s.lng === lng && s.isCustomWaypoint
+                  ? { ...s, label: name, title: name }
+                  : s,
+              ),
+            )
+          }
+        })
+      } catch {
+        // Keep coord label
+      }
+    },
+    [isDrivingMode],
+  )
+
+  // Build set of stop keys for badge rendering
+  const stopOrderMap = useMemo(() => {
+    const m: Record<string, number> = {}
+    selectedStops.forEach((s, i) => {
+      m[`${s.lat},${s.lng}`] = i + 1
+    })
+    return m
+  }, [selectedStops])
+
+  // Custom waypoints (not from itinerary)
+  const customWaypoints = useMemo(
+    () => selectedStops.filter((s) => s.isCustomWaypoint),
+    [selectedStops],
+  )
+
   return (
-    <div className="relative h-[calc(100vh-4rem)]">
+    <div className={cn('relative h-[calc(100vh-4rem)]', isDrivingMode && 'cursor-crosshair')}>
       {/* Full-bleed map */}
       <div className="absolute inset-0">
         <Map
@@ -290,6 +386,7 @@ function MapContent() {
           gestureHandling="greedy"
           disableDefaultUI={false}
           style={{ width: '100%', height: '100%' }}
+          onClick={handleMapClick}
         >
           <PlaceSearch initialQuery={initialSearchQuery} />
           {!isDrivingMode && <RouteLines selectedDay={selectedDay} allPoints={allPoints} />}
@@ -297,24 +394,58 @@ function MapContent() {
             selectedDay={selectedDay}
             isDrivingMode={isDrivingMode}
             onToggleDrivingMode={() => setIsDrivingMode((v) => !v)}
+            selectedStops={selectedStops}
+            onSelectedStopsChange={setSelectedStops}
           />
 
-          {filteredPoints.map((point, i) => (
-            <AdvancedMarker
-              key={`${point.dayIndex}-${i}`}
-              position={{ lat: point.lat, lng: point.lng }}
-              onClick={() => setPopupInfo(point)}
-            >
-              <div
-                className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white shadow-glass-float cursor-pointer transition-transform hover:scale-125"
-                style={{ backgroundColor: DAY_COLORS[point.dayIndex % DAY_COLORS.length] }}
+          {filteredPoints.map((point, i) => {
+            const routeOrder = stopOrderMap[`${point.lat},${point.lng}`]
+            return (
+              <AdvancedMarker
+                key={`${point.dayIndex}-${i}`}
+                position={{ lat: point.lat, lng: point.lng }}
+                onClick={() => handleMarkerClick(point)}
               >
-                <span className="text-[10px] font-bold text-white leading-none">
-                  {point.dayIndex + 1}
-                </span>
-              </div>
-            </AdvancedMarker>
-          ))}
+                <div className="relative">
+                  <div
+                    className={cn(
+                      'flex h-7 w-7 items-center justify-center rounded-full border-2 border-white shadow-glass-float cursor-pointer transition-transform hover:scale-125',
+                      routeOrder && 'ring-2 ring-ios-blue ring-offset-1',
+                    )}
+                    style={{ backgroundColor: DAY_COLORS[point.dayIndex % DAY_COLORS.length] }}
+                  >
+                    <span className="text-[10px] font-bold text-white leading-none">
+                      {point.dayIndex + 1}
+                    </span>
+                  </div>
+                  {routeOrder && (
+                    <div className="absolute -top-2 -end-2 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-ios-blue text-[9px] font-bold text-white border border-white shadow-sm">
+                      {routeOrder}
+                    </div>
+                  )}
+                </div>
+              </AdvancedMarker>
+            )
+          })}
+
+          {/* Custom waypoint markers */}
+          {customWaypoints.map((wp, i) => {
+            const routeOrder = stopOrderMap[`${wp.lat},${wp.lng}`]
+            return (
+              <AdvancedMarker key={`custom-${i}`} position={{ lat: wp.lat, lng: wp.lng }}>
+                <div className="relative">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white shadow-glass-float bg-ios-orange">
+                    <span className="text-[10px] font-bold text-white leading-none">📍</span>
+                  </div>
+                  {routeOrder && (
+                    <div className="absolute -top-2 -end-2 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-ios-blue text-[9px] font-bold text-white border border-white shadow-sm">
+                      {routeOrder}
+                    </div>
+                  )}
+                </div>
+              </AdvancedMarker>
+            )
+          })}
 
           {showLabels && popupInfo && (
             <InfoWindow
@@ -392,6 +523,22 @@ function MapContent() {
       />
 
       {/* Saved routes panel (slides up from bottom-start) */}
+      {/* Driving mode hint toast */}
+      <AnimatePresence>
+        {drivingHintVisible && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 24 }}
+            className="absolute top-28 start-1/2 -translate-x-1/2 z-30 glass-float rounded-apple px-4 py-2.5 text-subhead font-medium text-apple-primary whitespace-nowrap"
+            dir="rtl"
+          >
+            לחצו על נקודות במפה לבניית מסלול
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {showSavedRoutes && (
         <div
           className="absolute bottom-32 start-3 z-[9] w-[min(calc(100%-1.5rem),360px)]"
