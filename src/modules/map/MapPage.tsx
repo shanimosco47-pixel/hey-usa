@@ -123,18 +123,22 @@ function DraggableControls({
   const dragging = useRef(false)
   const dragOffset = useRef({ x: 0, y: 0 })
   const hasMoved = useRef(false)
+  const pointerId = useRef<number | null>(null)
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     dragging.current = true
     hasMoved.current = false
+    pointerId.current = e.pointerId
     const rect = containerRef.current!.getBoundingClientRect()
     dragOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
-    containerRef.current!.setPointerCapture(e.pointerId)
   }, [])
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragging.current || !containerRef.current) return
-    hasMoved.current = true
+    if (!hasMoved.current) {
+      hasMoved.current = true
+      containerRef.current.setPointerCapture(e.pointerId)
+    }
     const parent = containerRef.current.parentElement!
     const parentRect = parent.getBoundingClientRect()
     const newX = Math.max(
@@ -158,19 +162,12 @@ function DraggableControls({
   }, [])
 
   const onPointerUp = useCallback(() => {
+    if (containerRef.current && pointerId.current !== null && hasMoved.current) {
+      containerRef.current.releasePointerCapture(pointerId.current)
+    }
     dragging.current = false
+    pointerId.current = null
   }, [])
-
-  const handleClick = useCallback(
-    (handler: () => void) => (e: React.MouseEvent) => {
-      if (hasMoved.current) {
-        e.preventDefault()
-        return
-      }
-      handler()
-    },
-    [],
-  )
 
   return (
     <div
@@ -182,7 +179,7 @@ function DraggableControls({
       onPointerUp={onPointerUp}
     >
       <button
-        onClick={handleClick(onToggleLabels)}
+        onClick={onToggleLabels}
         className={cn(
           'rounded-apple-sm px-3 py-2 text-caption font-medium transition-colors shadow-glass',
           showLabels
@@ -194,7 +191,7 @@ function DraggableControls({
         תוויות
       </button>
       <button
-        onClick={handleClick(onToggleSavedRoutes)}
+        onClick={onToggleSavedRoutes}
         className={cn(
           'rounded-apple-sm px-3 py-2 text-caption font-medium transition-colors shadow-glass',
           showSavedRoutes
