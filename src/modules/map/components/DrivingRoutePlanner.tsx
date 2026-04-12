@@ -70,7 +70,7 @@ export function DrivingRoutePlanner({
   const [error, setError] = useState<string | null>(null)
   const [avoidHighways, setAvoidHighways] = useState(false)
   const [avoidTolls, setAvoidTolls] = useState(false)
-  const [legDetailsOpen, setLegDetailsOpen] = useState(false)
+  const [legDetailsOpen, setLegDetailsOpen] = useState(true)
   const [addStopOpen, setAddStopOpen] = useState(false)
   const [addStopFilter, setAddStopFilter] = useState('')
 
@@ -354,27 +354,46 @@ export function DrivingRoutePlanner({
 
               {/* Selected stops list */}
               {selectedStops.length > 0 && (
-                <div className="space-y-1.5">
-                  <p className="text-caption font-semibold text-apple-secondary">עצירות נבחרות</p>
-                  {selectedStops.map((stop, i) => (
-                    <div
-                      key={`${stop.lat}-${stop.lng}-${i}`}
-                      className="flex items-center gap-2.5 rounded-apple-sm bg-black/[0.03] px-3 py-2.5 min-h-[44px]"
-                    >
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ios-blue/10 text-[11px] font-bold text-ios-blue">
-                        {i + 1}
+                <div className="space-y-0">
+                  <p className="text-caption font-semibold text-apple-secondary mb-1.5">
+                    עצירות נבחרות
+                  </p>
+                  {selectedStops.map((stop, i) => {
+                    const leg = selectedRoute?.legs[i]
+                    const showLegInfo = leg && i < selectedStops.length - 1
+                    return (
+                      <div key={`${stop.lat}-${stop.lng}-${i}`}>
+                        <div className="flex items-center gap-2.5 rounded-apple-sm bg-black/[0.03] px-3 py-2.5 min-h-[44px]">
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ios-blue/10 text-[11px] font-bold text-ios-blue">
+                            {i + 1}
+                          </div>
+                          <span className="flex-1 text-subhead text-apple-primary truncate">
+                            {stop.label}
+                          </span>
+                          <button
+                            onClick={() => removeStop(i)}
+                            className="p-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-apple-sm hover:bg-ios-red/10 transition-colors group"
+                          >
+                            <X className="h-3.5 w-3.5 text-apple-tertiary group-hover:text-ios-red" />
+                          </button>
+                        </div>
+                        {showLegInfo && (
+                          <div
+                            className="flex items-center gap-1.5 py-1.5 pe-3 ps-[42px]"
+                            dir="ltr"
+                          >
+                            <div className="h-4 w-px bg-ios-blue/20 ms-[11px] me-2" />
+                            <span className="text-[11px] font-semibold text-ios-blue">
+                              {leg.duration?.text}
+                            </span>
+                            <span className="text-[11px] text-apple-secondary">
+                              {leg.distance?.text}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <span className="flex-1 text-subhead text-apple-primary truncate">
-                        {stop.label}
-                      </span>
-                      <button
-                        onClick={() => removeStop(i)}
-                        className="p-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-apple-sm hover:bg-ios-red/10 transition-colors group"
-                      >
-                        <X className="h-3.5 w-3.5 text-apple-tertiary group-hover:text-ios-red" />
-                      </button>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
 
