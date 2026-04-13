@@ -153,6 +153,7 @@ export function DrivingRoutePlanner({
       } as google.maps.DirectionsRequest)
 
       setRouteResult(result)
+      setLegDetailsOpen(true)
 
       // Render primary route
       if (primaryRendererRef.current && result.routes.length > 0) {
@@ -340,7 +341,7 @@ export function DrivingRoutePlanner({
             </div>
 
             {/* Scrollable body */}
-            <div className="overflow-y-auto flex-1 px-4 pb-4 space-y-3">
+            <div className="overflow-y-auto flex-1 px-4 pb-20 sm:pb-4 space-y-3">
               {/* Quick-fill day button */}
               {selectedDay !== null && (
                 <button
