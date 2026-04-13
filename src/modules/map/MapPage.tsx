@@ -135,10 +135,17 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
 
       if (result.routes.length > 0) {
         const route = result.routes[0]
-        // Decode the overview polyline for a smooth path
-        const polylinePath = route.overview_polyline
-          ? decodePolyline(route.overview_polyline)
-          : route.overview_path?.map((p) => ({ lat: p.lat(), lng: p.lng() })) || coords
+        // Use overview_path (pre-decoded LatLng[]) first, fall back to decoding the encoded polyline
+        let polylinePath: google.maps.LatLngLiteral[] = coords
+        if (route.overview_path?.length) {
+          polylinePath = route.overview_path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+        } else {
+          const encoded =
+            typeof route.overview_polyline === 'string'
+              ? route.overview_polyline
+              : (route.overview_polyline as { points?: string })?.points
+          if (encoded) polylinePath = decodePolyline(encoded)
+        }
 
         // Sum up duration and distance from all legs
         let totalDurationSec = 0
