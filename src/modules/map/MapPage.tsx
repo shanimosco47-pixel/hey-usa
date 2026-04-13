@@ -1,5 +1,12 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
-import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps'
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+  InfoWindow,
+  useMap,
+  useMapsLibrary,
+} from '@vis.gl/react-google-maps'
 import type { MapMouseEvent } from '@vis.gl/react-google-maps'
 import { Layers, Navigation, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -15,6 +22,9 @@ import { DrivingRoutePlanner, type StopOption } from './components/DrivingRouteP
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 const MAP_ID = 'hey-usa-map'
 
+// RV/caravan speed multiplier — caravans are ~25% slower than cars
+const RV_TIME_MULTIPLIER = 1.25
+
 interface MapPoint {
   lat: number
   lng: number
@@ -26,52 +36,182 @@ interface MapPoint {
   city?: string
 }
 
-function RouteLines({
-  selectedDay,
-  allPoints,
-}: {
-  selectedDay: number | null
-  allPoints: MapPoint[]
-}) {
-  const map = useMap()
+interface DayRouteData {
+  polylinePath: google.maps.LatLngLiteral[]
+  totalDurationSec: number
+  totalDistanceM: number
+  midpoint: google.maps.LatLngLiteral
+}
 
+// Format seconds to Hebrew duration string
+function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600)
+  const mins = Math.round((seconds % 3600) / 60)
+  if (hours === 0) return `${mins} דק׳`
+  if (mins === 0) return `${hours} שע׳`
+  return `${hours} שע׳ ${mins} דק׳`
+}
+
+function formatDistance(meters: number): string {
+  const km = Math.round(meters / 1000)
+  return `${km} ק״מ`
+}
+
+// Decode Google's encoded polyline string into lat/lng array
+function decodePolyline(encoded: string): google.maps.LatLngLiteral[] {
+  const points: google.maps.LatLngLiteral[] = []
+  let index = 0
+  let lat = 0
+  let lng = 0
+
+  while (index < encoded.length) {
+    let result = 0
+    let shift = 0
+    let b: number
+    do {
+      b = encoded.charCodeAt(index++) - 63
+      result |= (b & 0x1f) << shift
+      shift += 5
+    } while (b >= 0x20)
+    lat += result & 1 ? ~(result >> 1) : result >> 1
+
+    result = 0
+    shift = 0
+    do {
+      b = encoded.charCodeAt(index++) - 63
+      result |= (b & 0x1f) << shift
+      shift += 5
+    } while (b >= 0x20)
+    lng += result & 1 ? ~(result >> 1) : result >> 1
+
+    points.push({ lat: lat / 1e5, lng: lng / 1e5 })
+  }
+  return points
+}
+
+function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: MapPoint[] }) {
+  const map = useMap()
+  const routesLib = useMapsLibrary('routes')
+  const serviceRef = useRef<google.maps.DirectionsService | null>(null)
+  const routeCacheRef = useRef<Record<number, DayRouteData>>({})
+  const [dayRoutes, setDayRoutes] = useState<Record<number, DayRouteData>>({})
+  const fetchingRef = useRef<Set<number>>(new Set())
+
+  // Initialize DirectionsService
+  useEffect(() => {
+    if (!routesLib) return
+    serviceRef.current = new routesLib.DirectionsService()
+  }, [routesLib])
+
+  // Fetch driving route for a single day
+  const fetchDayRoute = useCallback(async (dayIdx: number) => {
+    if (!serviceRef.current) return
+    if (routeCacheRef.current[dayIdx]) return
+    if (fetchingRef.current.has(dayIdx)) return
+
+    const day = ITINERARY_DAYS[dayIdx]
+    const coords = day.stops
+      .filter((s) => s.lat && s.lng)
+      .map((s) => ({ lat: s.lat!, lng: s.lng! }))
+    if (coords.length < 2) return
+
+    fetchingRef.current.add(dayIdx)
+
+    try {
+      const origin = coords[0]
+      const destination = coords[coords.length - 1]
+      const waypoints = coords.slice(1, -1).map((c) => ({
+        location: c as google.maps.LatLngLiteral,
+        stopover: true,
+      }))
+
+      const result = await serviceRef.current.route({
+        origin,
+        destination,
+        waypoints,
+        travelMode: google.maps.TravelMode.DRIVING,
+        language: 'he',
+      } as google.maps.DirectionsRequest)
+
+      if (result.routes.length > 0) {
+        const route = result.routes[0]
+        // Decode the overview polyline for a smooth path
+        const polylinePath = route.overview_polyline
+          ? decodePolyline(route.overview_polyline)
+          : route.overview_path?.map((p) => ({ lat: p.lat(), lng: p.lng() })) || coords
+
+        // Sum up duration and distance from all legs
+        let totalDurationSec = 0
+        let totalDistanceM = 0
+        for (const leg of route.legs) {
+          totalDurationSec += leg.duration?.value || 0
+          totalDistanceM += leg.distance?.value || 0
+        }
+
+        // Find midpoint of the polyline for label placement
+        const midIdx = Math.floor(polylinePath.length / 2)
+        const midpoint = polylinePath[midIdx] || coords[0]
+
+        const data: DayRouteData = { polylinePath, totalDurationSec, totalDistanceM, midpoint }
+        routeCacheRef.current[dayIdx] = data
+        setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
+      }
+    } catch {
+      // Directions API failed for this day — fall back to straight line
+      const day2 = ITINERARY_DAYS[dayIdx]
+      const fallbackCoords = day2.stops
+        .filter((s) => s.lat && s.lng)
+        .map((s) => ({ lat: s.lat!, lng: s.lng! }))
+      if (fallbackCoords.length >= 2) {
+        const data: DayRouteData = {
+          polylinePath: fallbackCoords,
+          totalDurationSec: 0,
+          totalDistanceM: 0,
+          midpoint: fallbackCoords[Math.floor(fallbackCoords.length / 2)],
+        }
+        routeCacheRef.current[dayIdx] = data
+        setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
+      }
+    } finally {
+      fetchingRef.current.delete(dayIdx)
+    }
+  }, [])
+
+  // Fetch routes for visible days
+  useEffect(() => {
+    if (!serviceRef.current) return
+
+    if (selectedDay !== null) {
+      fetchDayRoute(selectedDay)
+    } else {
+      // Stagger requests to avoid rate limits (50ms apart)
+      ITINERARY_DAYS.forEach((_, idx) => {
+        setTimeout(() => fetchDayRoute(idx), idx * 50)
+      })
+    }
+  }, [selectedDay, fetchDayRoute, routesLib])
+
+  // Render polylines on the map
   useEffect(() => {
     if (!map) return
 
     const polylines: google.maps.Polyline[] = []
+    const overlays: google.maps.OverlayView[] = []
 
-    if (selectedDay !== null) {
-      const day = ITINERARY_DAYS[selectedDay]
-      const color = DAY_COLORS[selectedDay % DAY_COLORS.length]
-      const coords: google.maps.LatLngLiteral[] = []
-      for (const stop of day.stops) {
-        if (stop.lat && stop.lng) coords.push({ lat: stop.lat, lng: stop.lng })
-      }
-      if (coords.length >= 2) {
-        polylines.push(
-          new google.maps.Polyline({
-            path: coords,
-            strokeColor: color,
-            strokeWeight: 4,
-            strokeOpacity: 0.8,
-            map,
-          }),
-        )
-      }
-    } else {
-      let prevDayLastCoord: google.maps.LatLngLiteral | null = null
-      for (let idx = 0; idx < ITINERARY_DAYS.length; idx++) {
-        const day = ITINERARY_DAYS[idx]
-        const color = DAY_COLORS[idx % DAY_COLORS.length]
-        const coords: google.maps.LatLngLiteral[] = []
-        for (const stop of day.stops) {
-          if (stop.lat && stop.lng) coords.push({ lat: stop.lat, lng: stop.lng })
-        }
-        // Dashed connector from previous day
-        if (prevDayLastCoord && coords.length > 0) {
+    const daysToRender = selectedDay !== null ? [selectedDay] : Object.keys(dayRoutes).map(Number)
+
+    let prevDayLastCoord: google.maps.LatLngLiteral | null = null
+
+    for (const idx of daysToRender.sort((a, b) => a - b)) {
+      const routeData = dayRoutes[idx]
+      const color = DAY_COLORS[idx % DAY_COLORS.length]
+
+      if (routeData) {
+        // Dashed connector from previous day's last point
+        if (selectedDay === null && prevDayLastCoord && routeData.polylinePath.length > 0) {
           polylines.push(
             new google.maps.Polyline({
-              path: [prevDayLastCoord, coords[0]],
+              path: [prevDayLastCoord, routeData.polylinePath[0]],
               strokeColor: color,
               strokeWeight: 2,
               strokeOpacity: 0.5,
@@ -86,28 +226,130 @@ function RouteLines({
             }),
           )
         }
-        // Solid route within day
+
+        // Actual driving route polyline
+        polylines.push(
+          new google.maps.Polyline({
+            path: routeData.polylinePath,
+            strokeColor: color,
+            strokeWeight: selectedDay !== null ? 5 : 4,
+            strokeOpacity: 0.85,
+            map,
+          }),
+        )
+
+        if (routeData.polylinePath.length > 0) {
+          prevDayLastCoord = routeData.polylinePath[routeData.polylinePath.length - 1]
+        }
+
+        // Add driving time label at route midpoint
+        if (routeData.totalDurationSec > 0) {
+          const rvDuration = Math.round(routeData.totalDurationSec * RV_TIME_MULTIPLIER)
+          const label = `🚐 ${formatDuration(rvDuration)} · ${formatDistance(routeData.totalDistanceM)}`
+
+          const labelOverlay = createDrivingTimeLabel(routeData.midpoint, label, color, map)
+          overlays.push(labelOverlay)
+        }
+      } else {
+        // No route data yet — draw straight line as placeholder
+        const day = ITINERARY_DAYS[idx]
+        const coords = day.stops
+          .filter((s) => s.lat && s.lng)
+          .map((s) => ({ lat: s.lat!, lng: s.lng! }))
         if (coords.length >= 2) {
+          if (selectedDay === null && prevDayLastCoord) {
+            polylines.push(
+              new google.maps.Polyline({
+                path: [prevDayLastCoord, coords[0]],
+                strokeColor: color,
+                strokeWeight: 2,
+                strokeOpacity: 0.3,
+                icons: [
+                  {
+                    icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 2 },
+                    offset: '0',
+                    repeat: '12px',
+                  },
+                ],
+                map,
+              }),
+            )
+          }
           polylines.push(
             new google.maps.Polyline({
               path: coords,
               strokeColor: color,
-              strokeWeight: 4,
-              strokeOpacity: 0.8,
+              strokeWeight: 3,
+              strokeOpacity: 0.4,
               map,
             }),
           )
+          prevDayLastCoord = coords[coords.length - 1]
         }
-        if (coords.length > 0) prevDayLastCoord = coords[coords.length - 1]
       }
     }
 
     return () => {
       polylines.forEach((p) => p.setMap(null))
+      overlays.forEach((o) => o.setMap(null))
     }
-  }, [map, selectedDay, allPoints])
+  }, [map, selectedDay, dayRoutes])
 
   return null
+}
+
+// Factory for driving time label overlays (deferred to avoid accessing google.maps at module scope)
+function createDrivingTimeLabel(
+  position: google.maps.LatLngLiteral,
+  text: string,
+  color: string,
+  map: google.maps.Map,
+): google.maps.OverlayView {
+  const overlay = new google.maps.OverlayView()
+  let div: HTMLDivElement | null = null
+
+  overlay.onAdd = () => {
+    div = document.createElement('div')
+    div.style.cssText = `
+      position: absolute;
+      background: white;
+      border: 2px solid ${color};
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #1d1d1f;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      transform: translate(-50%, -50%);
+      direction: rtl;
+    `
+    div.textContent = text
+    const panes = overlay.getPanes()
+    panes?.overlayLayer.appendChild(div)
+  }
+
+  overlay.draw = () => {
+    if (!div) return
+    const projection = overlay.getProjection()
+    if (!projection) return
+    const pos = projection.fromLatLngToDivPixel(new google.maps.LatLng(position))
+    if (pos) {
+      div.style.left = `${pos.x}px`
+      div.style.top = `${pos.y}px`
+    }
+  }
+
+  overlay.onRemove = () => {
+    if (div?.parentNode) {
+      div.parentNode.removeChild(div)
+      div = null
+    }
+  }
+
+  overlay.setMap(map)
+  return overlay
 }
 
 function DraggableControls({
