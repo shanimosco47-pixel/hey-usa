@@ -36,11 +36,20 @@ interface MapPoint {
   city?: string
 }
 
+interface LegInfo {
+  durationSec: number
+  distanceM: number
+  midpoint: google.maps.LatLngLiteral
+  fromName: string
+  toName: string
+}
+
 interface DayRouteData {
   polylinePath: google.maps.LatLngLiteral[]
   totalDurationSec: number
   totalDistanceM: number
   midpoint: google.maps.LatLngLiteral
+  legs: LegInfo[]
 }
 
 // Format seconds to Hebrew duration string
@@ -110,9 +119,8 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
     if (fetchingRef.current.has(dayIdx)) return
 
     const day = ITINERARY_DAYS[dayIdx]
-    const coords = day.stops
-      .filter((s) => s.lat && s.lng)
-      .map((s) => ({ lat: s.lat!, lng: s.lng! }))
+    const stopsWithCoords = day.stops.filter((s) => s.lat && s.lng)
+    const coords = stopsWithCoords.map((s) => ({ lat: s.lat!, lng: s.lng! }))
     if (coords.length < 2) return
 
     fetchingRef.current.add(dayIdx)
@@ -147,34 +155,62 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
           if (encoded) polylinePath = decodePolyline(encoded)
         }
 
-        // Sum up duration and distance from all legs
+        // Collect per-leg info with stop names and midpoints
         let totalDurationSec = 0
         let totalDistanceM = 0
-        for (const leg of route.legs) {
-          totalDurationSec += leg.duration?.value || 0
-          totalDistanceM += leg.distance?.value || 0
+        const legs: LegInfo[] = []
+        for (let li = 0; li < route.legs.length; li++) {
+          const leg = route.legs[li]
+          const dur = leg.duration?.value || 0
+          const dist = leg.distance?.value || 0
+          totalDurationSec += dur
+          totalDistanceM += dist
+
+          // Midpoint of this leg for label placement
+          const legPath =
+            leg.steps?.flatMap((s) => s.path?.map((p) => ({ lat: p.lat(), lng: p.lng() })) || []) ||
+            []
+          const legMid =
+            legPath.length > 0
+              ? legPath[Math.floor(legPath.length / 2)]
+              : {
+                  lat: (coords[li].lat + coords[li + 1].lat) / 2,
+                  lng: (coords[li].lng + coords[li + 1].lng) / 2,
+                }
+
+          legs.push({
+            durationSec: dur,
+            distanceM: dist,
+            midpoint: legMid,
+            fromName: stopsWithCoords[li]?.title || '',
+            toName: stopsWithCoords[li + 1]?.title || '',
+          })
         }
 
-        // Find midpoint of the polyline for label placement
+        // Find midpoint of the polyline for day-level label
         const midIdx = Math.floor(polylinePath.length / 2)
         const midpoint = polylinePath[midIdx] || coords[0]
 
-        const data: DayRouteData = { polylinePath, totalDurationSec, totalDistanceM, midpoint }
+        const data: DayRouteData = {
+          polylinePath,
+          totalDurationSec,
+          totalDistanceM,
+          midpoint,
+          legs,
+        }
         routeCacheRef.current[dayIdx] = data
         setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
       }
     } catch {
       // Directions API failed for this day — fall back to straight line
-      const day2 = ITINERARY_DAYS[dayIdx]
-      const fallbackCoords = day2.stops
-        .filter((s) => s.lat && s.lng)
-        .map((s) => ({ lat: s.lat!, lng: s.lng! }))
+      const fallbackCoords = stopsWithCoords.map((s) => ({ lat: s.lat!, lng: s.lng! }))
       if (fallbackCoords.length >= 2) {
         const data: DayRouteData = {
           polylinePath: fallbackCoords,
           totalDurationSec: 0,
           totalDistanceM: 0,
           midpoint: fallbackCoords[Math.floor(fallbackCoords.length / 2)],
+          legs: [],
         }
         routeCacheRef.current[dayIdx] = data
         setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
@@ -249,13 +285,33 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
           prevDayLastCoord = routeData.polylinePath[routeData.polylinePath.length - 1]
         }
 
-        // Add driving time label at route midpoint
+        // Add driving time labels
         if (routeData.totalDurationSec > 0) {
-          const rvDuration = Math.round(routeData.totalDurationSec * RV_TIME_MULTIPLIER)
-          const label = `🚐 ${formatDuration(rvDuration)} · ${formatDistance(routeData.totalDistanceM)}`
-
-          const labelOverlay = createDrivingTimeLabel(routeData.midpoint, label, color, map)
-          overlays.push(labelOverlay)
+          if (selectedDay !== null && routeData.legs.length > 0) {
+            // Per-leg labels when viewing a single day
+            for (const leg of routeData.legs) {
+              if (leg.durationSec > 0) {
+                const rvDur = Math.round(leg.durationSec * RV_TIME_MULTIPLIER)
+                const label = `🚐 ${formatDuration(rvDur)} · ${formatDistance(leg.distanceM)}`
+                const subtitle = `${leg.fromName} → ${leg.toName}`
+                const overlay = createDrivingTimeLabel(
+                  leg.midpoint,
+                  label,
+                  subtitle,
+                  color,
+                  map,
+                  true,
+                )
+                overlays.push(overlay)
+              }
+            }
+          } else {
+            // Compact day total when viewing all days
+            const rvDuration = Math.round(routeData.totalDurationSec * RV_TIME_MULTIPLIER)
+            const label = `יום ${idx + 1}: ${formatDuration(rvDuration)} · ${formatDistance(routeData.totalDistanceM)}`
+            const overlay = createDrivingTimeLabel(routeData.midpoint, label, '', color, map, false)
+            overlays.push(overlay)
+          }
         }
       } else {
         // No route data yet — draw straight line as placeholder
@@ -309,8 +365,10 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
 function createDrivingTimeLabel(
   position: google.maps.LatLngLiteral,
   text: string,
+  subtitle: string,
   color: string,
   map: google.maps.Map,
+  detailed: boolean,
 ): google.maps.OverlayView {
   const overlay = new google.maps.OverlayView()
   let div: HTMLDivElement | null = null
@@ -321,18 +379,45 @@ function createDrivingTimeLabel(
       position: absolute;
       background: white;
       border: 2px solid ${color};
-      border-radius: 12px;
-      padding: 2px 8px;
-      font-size: 11px;
-      font-weight: 600;
-      color: #1d1d1f;
-      white-space: nowrap;
+      border-radius: ${detailed ? '14px' : '20px'};
+      padding: ${detailed ? '6px 12px' : '4px 10px'};
       pointer-events: none;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       transform: translate(-50%, -50%);
       direction: rtl;
+      text-align: center;
+      z-index: 1;
     `
-    div.textContent = text
+    // Main time/distance line
+    const mainLine = document.createElement('div')
+    mainLine.style.cssText = `
+      font-size: ${detailed ? '14px' : '12px'};
+      font-weight: 700;
+      color: #1d1d1f;
+      white-space: nowrap;
+      line-height: 1.3;
+    `
+    mainLine.textContent = text
+    div.appendChild(mainLine)
+
+    // Subtitle with stop names (for detailed/per-leg view)
+    if (subtitle) {
+      const subLine = document.createElement('div')
+      subLine.style.cssText = `
+        font-size: 11px;
+        font-weight: 500;
+        color: #86868b;
+        white-space: nowrap;
+        line-height: 1.2;
+        margin-top: 1px;
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      `
+      subLine.textContent = subtitle
+      div.appendChild(subLine)
+    }
+
     const panes = overlay.getPanes()
     panes?.overlayLayer.appendChild(div)
   }
