@@ -441,47 +441,6 @@ export function DrivingRoutePlanner({
                 )}
               </div>
 
-              {/* Options */}
-              <div className="flex gap-3">
-                <ToggleOption
-                  label="הימנע מכבישים מהירים"
-                  checked={avoidHighways}
-                  onChange={setAvoidHighways}
-                />
-                <ToggleOption
-                  label="הימנע מכבישי אגרה"
-                  checked={avoidTolls}
-                  onChange={setAvoidTolls}
-                />
-              </div>
-
-              {/* Calculate button */}
-              <button
-                onClick={calculateRoute}
-                disabled={selectedStops.length < 2 || isCalculating}
-                className={cn(
-                  'w-full flex items-center justify-center gap-2 rounded-apple py-3 min-h-[44px]',
-                  'text-subhead font-semibold transition-colors',
-                  selectedStops.length >= 2 && !isCalculating
-                    ? 'bg-ios-blue text-white active:bg-ios-blue/80'
-                    : 'bg-black/5 text-apple-tertiary cursor-not-allowed',
-                )}
-              >
-                {isCalculating ? (
-                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <Car className="h-4 w-4" />
-                )}
-                {isCalculating ? 'מחשב מסלול...' : 'חשב מסלול'}
-              </button>
-
-              {/* Error */}
-              {error && (
-                <div className="rounded-apple bg-ios-red/10 px-3 py-2.5 text-caption text-ios-red">
-                  {error}
-                </div>
-              )}
-
               {/* Route results */}
               {routeResult && routeResult.routes.length > 0 && (
                 <div className="space-y-2">
@@ -611,6 +570,50 @@ export function DrivingRoutePlanner({
                       )}
                     </div>
                   )}
+                </div>
+              )}
+            </div>
+
+            {/* Sticky footer — always visible */}
+            <div className="shrink-0 border-t border-black/5 px-4 py-3 space-y-2">
+              {/* Options */}
+              <div className="flex gap-3">
+                <ToggleOption
+                  label="הימנע מכבישים מהירים"
+                  checked={avoidHighways}
+                  onChange={setAvoidHighways}
+                />
+                <ToggleOption
+                  label="הימנע מכבישי אגרה"
+                  checked={avoidTolls}
+                  onChange={setAvoidTolls}
+                />
+              </div>
+
+              {/* Calculate button */}
+              <button
+                onClick={calculateRoute}
+                disabled={selectedStops.length < 2 || isCalculating}
+                className={cn(
+                  'w-full flex items-center justify-center gap-2 rounded-apple py-3 min-h-[44px]',
+                  'text-subhead font-semibold transition-colors',
+                  selectedStops.length >= 2 && !isCalculating
+                    ? 'bg-ios-blue text-white active:bg-ios-blue/80'
+                    : 'bg-black/5 text-apple-tertiary cursor-not-allowed',
+                )}
+              >
+                {isCalculating ? (
+                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <Car className="h-4 w-4" />
+                )}
+                {isCalculating ? 'מחשב מסלול...' : 'חשב מסלול'}
+              </button>
+
+              {/* Error */}
+              {error && (
+                <div className="rounded-apple bg-ios-red/10 px-3 py-2.5 text-caption text-ios-red">
+                  {error}
                 </div>
               )}
             </div>
