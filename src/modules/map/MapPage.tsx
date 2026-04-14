@@ -98,6 +98,13 @@ function decodePolyline(encoded: string): google.maps.LatLngLiteral[] {
   return points
 }
 
+// Simple path data for inter-day connector routes
+interface ConnectorRoute {
+  polylinePath: google.maps.LatLngLiteral[]
+  durationSec: number
+  distanceM: number
+}
+
 function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: MapPoint[] }) {
   const map = useMap()
   const routesLib = useMapsLibrary('routes')
@@ -105,6 +112,10 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
   const routeCacheRef = useRef<Record<number, DayRouteData>>({})
   const [dayRoutes, setDayRoutes] = useState<Record<number, DayRouteData>>({})
   const fetchingRef = useRef<Set<number>>(new Set())
+  // Inter-day connectors: keyed by "fromDayIdx" (route from last stop of day N to first stop of day N+1)
+  const connCacheRef = useRef<Record<number, ConnectorRoute>>({})
+  const [connectorRoutes, setConnectorRoutes] = useState<Record<number, ConnectorRoute>>({})
+  const connFetchingRef = useRef<Set<number>>(new Set())
 
   // Initialize DirectionsService
   useEffect(() => {
@@ -220,19 +231,84 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
     }
   }, [])
 
-  // Fetch routes for visible days
+  // Fetch inter-day connector route (last stop of dayIdx → first stop of dayIdx+1)
+  const fetchConnectorRoute = useCallback(async (fromDayIdx: number) => {
+    if (!serviceRef.current) return
+    if (connCacheRef.current[fromDayIdx]) return
+    if (connFetchingRef.current.has(fromDayIdx)) return
+    if (fromDayIdx >= ITINERARY_DAYS.length - 1) return
+
+    const fromDay = ITINERARY_DAYS[fromDayIdx]
+    const toDay = ITINERARY_DAYS[fromDayIdx + 1]
+    const fromStops = fromDay.stops.filter((s) => s.lat && s.lng)
+    const toStops = toDay.stops.filter((s) => s.lat && s.lng)
+    if (fromStops.length === 0 || toStops.length === 0) return
+
+    const origin = {
+      lat: fromStops[fromStops.length - 1].lat!,
+      lng: fromStops[fromStops.length - 1].lng!,
+    }
+    const destination = { lat: toStops[0].lat!, lng: toStops[0].lng! }
+
+    // Skip if same location (e.g., overnight at same spot)
+    if (
+      Math.abs(origin.lat - destination.lat) < 0.001 &&
+      Math.abs(origin.lng - destination.lng) < 0.001
+    )
+      return
+
+    connFetchingRef.current.add(fromDayIdx)
+
+    try {
+      const result = await serviceRef.current.route({
+        origin,
+        destination,
+        travelMode: google.maps.TravelMode.DRIVING,
+        language: 'he',
+      } as google.maps.DirectionsRequest)
+
+      if (result.routes.length > 0) {
+        const route = result.routes[0]
+        let polylinePath: google.maps.LatLngLiteral[] = [origin, destination]
+        if (route.overview_path?.length) {
+          polylinePath = route.overview_path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+        } else {
+          const encoded =
+            typeof route.overview_polyline === 'string'
+              ? route.overview_polyline
+              : (route.overview_polyline as { points?: string })?.points
+          if (encoded) polylinePath = decodePolyline(encoded)
+        }
+        const durationSec = route.legs[0]?.duration?.value || 0
+        const distanceM = route.legs[0]?.distance?.value || 0
+        const data: ConnectorRoute = { polylinePath, durationSec, distanceM }
+        connCacheRef.current[fromDayIdx] = data
+        setConnectorRoutes((prev) => ({ ...prev, [fromDayIdx]: data }))
+      }
+    } catch {
+      // Ignore — connector just won't show for this transition
+    } finally {
+      connFetchingRef.current.delete(fromDayIdx)
+    }
+  }, [])
+
+  // Fetch routes for visible days + inter-day connectors
   useEffect(() => {
     if (!serviceRef.current) return
 
     if (selectedDay !== null) {
       fetchDayRoute(selectedDay)
     } else {
-      // Stagger requests to avoid rate limits (50ms apart)
+      // Stagger day route requests (50ms apart)
       ITINERARY_DAYS.forEach((_, idx) => {
         setTimeout(() => fetchDayRoute(idx), idx * 50)
       })
+      // Stagger connector requests after day routes (start at 1.5s offset)
+      for (let i = 0; i < ITINERARY_DAYS.length - 1; i++) {
+        setTimeout(() => fetchConnectorRoute(i), 1500 + i * 50)
+      }
     }
-  }, [selectedDay, fetchDayRoute, routesLib])
+  }, [selectedDay, fetchDayRoute, fetchConnectorRoute, routesLib])
 
   // Render polylines on the map
   useEffect(() => {
@@ -249,7 +325,7 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
 
       if (!routeData) continue
 
-      // Driving route polyline (no inter-day connectors — they look like straight lines)
+      // Driving route polyline for this day
       polylines.push(
         new google.maps.Polyline({
           path: routeData.polylinePath,
@@ -283,11 +359,38 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
       }
     }
 
+    // Inter-day connector routes (dashed, following real roads)
+    if (selectedDay === null) {
+      for (const fromIdx of Object.keys(connectorRoutes)
+        .map(Number)
+        .sort((a, b) => a - b)) {
+        const conn = connectorRoutes[fromIdx]
+        if (!conn) continue
+        const nextDayColor = DAY_COLORS[(fromIdx + 1) % DAY_COLORS.length]
+        polylines.push(
+          new google.maps.Polyline({
+            path: conn.polylinePath,
+            strokeColor: nextDayColor,
+            strokeWeight: 3,
+            strokeOpacity: 0.5,
+            icons: [
+              {
+                icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 2 },
+                offset: '0',
+                repeat: '10px',
+              },
+            ],
+            map,
+          }),
+        )
+      }
+    }
+
     return () => {
       polylines.forEach((p) => p.setMap(null))
       overlays.forEach((o) => o.setMap(null))
     }
-  }, [map, selectedDay, dayRoutes])
+  }, [map, selectedDay, dayRoutes, connectorRoutes])
 
   return null
 }
