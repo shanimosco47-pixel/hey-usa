@@ -105,17 +105,52 @@ interface ConnectorRoute {
   distanceM: number
 }
 
+// localStorage cache keys
+const LS_DAY_ROUTES = 'hey-usa-day-routes'
+const LS_CONN_ROUTES = 'hey-usa-conn-routes'
+
+function loadCachedRoutes<T>(key: string): Record<number, T> {
+  try {
+    const raw = localStorage.getItem(key)
+    if (raw) return JSON.parse(raw) as Record<number, T>
+  } catch {
+    // Corrupt cache — ignore
+  }
+  return {}
+}
+
+function saveCachedRoutes<T>(key: string, data: Record<number, T>) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data))
+  } catch {
+    // Storage full — ignore
+  }
+}
+
 function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: MapPoint[] }) {
   const map = useMap()
   const routesLib = useMapsLibrary('routes')
   const serviceRef = useRef<google.maps.DirectionsService | null>(null)
-  const routeCacheRef = useRef<Record<number, DayRouteData>>({})
-  const [dayRoutes, setDayRoutes] = useState<Record<number, DayRouteData>>({})
+
+  // Load cached routes from localStorage on mount
+  const [dayRoutes, setDayRoutes] = useState<Record<number, DayRouteData>>(() =>
+    loadCachedRoutes<DayRouteData>(LS_DAY_ROUTES),
+  )
+  const [connectorRoutes, setConnectorRoutes] = useState<Record<number, ConnectorRoute>>(() =>
+    loadCachedRoutes<ConnectorRoute>(LS_CONN_ROUTES),
+  )
+  const routeCacheRef = useRef<Record<number, DayRouteData>>(dayRoutes)
   const fetchingRef = useRef<Set<number>>(new Set())
-  // Inter-day connectors: keyed by "fromDayIdx" (route from last stop of day N to first stop of day N+1)
-  const connCacheRef = useRef<Record<number, ConnectorRoute>>({})
-  const [connectorRoutes, setConnectorRoutes] = useState<Record<number, ConnectorRoute>>({})
+  const connCacheRef = useRef<Record<number, ConnectorRoute>>(connectorRoutes)
   const connFetchingRef = useRef<Set<number>>(new Set())
+
+  // Persist to localStorage when routes change
+  useEffect(() => {
+    if (Object.keys(dayRoutes).length > 0) saveCachedRoutes(LS_DAY_ROUTES, dayRoutes)
+  }, [dayRoutes])
+  useEffect(() => {
+    if (Object.keys(connectorRoutes).length > 0) saveCachedRoutes(LS_CONN_ROUTES, connectorRoutes)
+  }, [connectorRoutes])
 
   // Initialize DirectionsService
   useEffect(() => {
