@@ -105,9 +105,9 @@ interface ConnectorRoute {
   distanceM: number
 }
 
-// localStorage cache keys
-const LS_DAY_ROUTES = 'hey-usa-day-routes'
-const LS_CONN_ROUTES = 'hey-usa-conn-routes'
+// localStorage cache keys (bump version to invalidate after routing logic changes)
+const LS_DAY_ROUTES = 'hey-usa-day-routes-v2'
+const LS_CONN_ROUTES = 'hey-usa-conn-routes-v2'
 
 function loadCachedRoutes<T>(key: string): Record<number, T> {
   try {
@@ -248,7 +248,51 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
         setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
       }
     } catch {
-      // Directions API failed for this day — fall back to straight line
+      // Lat/lng failed — retry with address strings (helps in national parks)
+      const originAddr = stopsWithCoords[0]?.location
+      const destAddr = stopsWithCoords[stopsWithCoords.length - 1]?.location
+      if (originAddr && destAddr && serviceRef.current) {
+        try {
+          const addrWaypoints = stopsWithCoords
+            .slice(1, -1)
+            .filter((s) => s.location)
+            .map((s) => ({ location: s.location!, stopover: true }))
+          const retryResult = await serviceRef.current.route({
+            origin: originAddr,
+            destination: destAddr,
+            waypoints: addrWaypoints,
+            travelMode: google.maps.TravelMode.DRIVING,
+            language: 'he',
+          } as google.maps.DirectionsRequest)
+          if (retryResult.routes.length > 0) {
+            const route = retryResult.routes[0]
+            let polylinePath: google.maps.LatLngLiteral[] = coords
+            if (route.overview_path?.length) {
+              polylinePath = route.overview_path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+            }
+            let totalDurationSec = 0
+            let totalDistanceM = 0
+            for (const leg of route.legs) {
+              totalDurationSec += leg.duration?.value || 0
+              totalDistanceM += leg.distance?.value || 0
+            }
+            const midIdx = Math.floor(polylinePath.length / 2)
+            const data: DayRouteData = {
+              polylinePath,
+              totalDurationSec,
+              totalDistanceM,
+              midpoint: polylinePath[midIdx] || coords[0],
+              legs: [],
+            }
+            routeCacheRef.current[dayIdx] = data
+            setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
+            return
+          }
+        } catch {
+          // Address retry also failed
+        }
+      }
+      // Final fallback — straight line with 0 duration
       const fallbackCoords = stopsWithCoords.map((s) => ({ lat: s.lat!, lng: s.lng! }))
       if (fallbackCoords.length >= 2) {
         const data: DayRouteData = {
@@ -294,34 +338,59 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
 
     connFetchingRef.current.add(fromDayIdx)
 
+    // Helper to parse a successful route result into ConnectorRoute
+    const parseResult = (result: google.maps.DirectionsResult): ConnectorRoute | null => {
+      if (result.routes.length === 0) return null
+      const route = result.routes[0]
+      let polylinePath: google.maps.LatLngLiteral[] = [origin, destination]
+      if (route.overview_path?.length) {
+        polylinePath = route.overview_path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+      } else {
+        const encoded =
+          typeof route.overview_polyline === 'string'
+            ? route.overview_polyline
+            : (route.overview_polyline as { points?: string })?.points
+        if (encoded) polylinePath = decodePolyline(encoded)
+      }
+      const durationSec = route.legs[0]?.duration?.value || 0
+      const distanceM = route.legs[0]?.distance?.value || 0
+      return { polylinePath, durationSec, distanceM }
+    }
+
     try {
+      // Try with lat/lng first
       const result = await serviceRef.current.route({
         origin,
         destination,
         travelMode: google.maps.TravelMode.DRIVING,
         language: 'he',
       } as google.maps.DirectionsRequest)
-
-      if (result.routes.length > 0) {
-        const route = result.routes[0]
-        let polylinePath: google.maps.LatLngLiteral[] = [origin, destination]
-        if (route.overview_path?.length) {
-          polylinePath = route.overview_path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
-        } else {
-          const encoded =
-            typeof route.overview_polyline === 'string'
-              ? route.overview_polyline
-              : (route.overview_polyline as { points?: string })?.points
-          if (encoded) polylinePath = decodePolyline(encoded)
-        }
-        const durationSec = route.legs[0]?.duration?.value || 0
-        const distanceM = route.legs[0]?.distance?.value || 0
-        const data: ConnectorRoute = { polylinePath, durationSec, distanceM }
+      const data = parseResult(result)
+      if (data) {
         connCacheRef.current[fromDayIdx] = data
         setConnectorRoutes((prev) => ({ ...prev, [fromDayIdx]: data }))
       }
     } catch {
-      // Ignore — connector just won't show for this transition
+      // Lat/lng failed (common in national parks) — retry with address strings
+      const fromAddr = fromStops[fromStops.length - 1].location
+      const toAddr = toStops[0].location
+      if (fromAddr && toAddr && serviceRef.current) {
+        try {
+          const result = await serviceRef.current.route({
+            origin: fromAddr,
+            destination: toAddr,
+            travelMode: google.maps.TravelMode.DRIVING,
+            language: 'he',
+          } as google.maps.DirectionsRequest)
+          const data = parseResult(result)
+          if (data) {
+            connCacheRef.current[fromDayIdx] = data
+            setConnectorRoutes((prev) => ({ ...prev, [fromDayIdx]: data }))
+          }
+        } catch {
+          // Both attempts failed — no connector for this transition
+        }
+      }
     } finally {
       connFetchingRef.current.delete(fromDayIdx)
     }
