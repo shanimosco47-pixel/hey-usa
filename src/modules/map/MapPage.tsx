@@ -303,9 +303,9 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
       ITINERARY_DAYS.forEach((_, idx) => {
         setTimeout(() => fetchDayRoute(idx), idx * 50)
       })
-      // Stagger connector requests after day routes (start at 1.5s offset)
+      // Stagger connector requests after day routes (start at 2s offset, 100ms apart)
       for (let i = 0; i < ITINERARY_DAYS.length - 1; i++) {
-        setTimeout(() => fetchConnectorRoute(i), 1500 + i * 50)
+        setTimeout(() => fetchConnectorRoute(i), 2000 + i * 100)
       }
     }
   }, [selectedDay, fetchDayRoute, fetchConnectorRoute, routesLib])
@@ -343,8 +343,8 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
       const dayTotalDur = routeData.totalDurationSec + connDurSec
       const dayTotalDist = routeData.totalDistanceM + connDistM
 
-      // Add driving time labels
-      if (dayTotalDur > 0) {
+      // Add driving time labels (show even for 0-driving days)
+      {
         if (selectedDay !== null && routeData.legs.length > 0) {
           // Per-leg labels when viewing a single day
           for (const leg of routeData.legs) {
@@ -359,7 +359,10 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
         } else {
           // Compact day total (includes drive from previous campsite)
           const rvDuration = Math.round(dayTotalDur * RV_TIME_MULTIPLIER)
-          const label = `יום ${idx + 1}: ${formatDuration(rvDuration)} · ${formatDistance(dayTotalDist)}`
+          const label =
+            dayTotalDur > 0
+              ? `יום ${idx + 1}: ${formatDuration(rvDuration)} · ${formatDistance(dayTotalDist)}`
+              : `יום ${idx + 1}: ללא נסיעה`
           const overlay = createDrivingTimeLabel(routeData.midpoint, label, '', color, map)
           overlays.push(overlay)
         }
@@ -464,7 +467,7 @@ function createDrivingTimeLabel(
       div.appendChild(subLine)
     }
 
-    // Draggable behavior
+    // Draggable behavior — disable map dragging while label is being dragged
     div.addEventListener('pointerdown', (e) => {
       if (!div) return
       isDragging = true
@@ -477,16 +480,14 @@ function createDrivingTimeLabel(
         y: e.clientY - rect.top - rect.height / 2,
       }
       if (returnTimer) clearTimeout(returnTimer)
+      // Disable map dragging so the map doesn't move
+      map.setOptions({ draggable: false })
       e.stopPropagation()
+      e.preventDefault()
     })
 
     div.addEventListener('pointermove', (e) => {
       if (!isDragging || !div) return
-      const projection = overlay.getProjection()
-      if (!projection) return
-      const containerPixel = projection.fromLatLngToContainerPixel(new google.maps.LatLng(position))
-      if (!containerPixel) return
-      // Convert client coords to overlay pixel coords
       const pane = overlay.getPanes()?.overlayLayer
       if (!pane) return
       const paneRect = pane.getBoundingClientRect()
@@ -495,18 +496,21 @@ function createDrivingTimeLabel(
       div.style.left = `${newLeft}px`
       div.style.top = `${newTop}px`
       e.stopPropagation()
+      e.preventDefault()
     })
 
     const endDrag = () => {
       if (!isDragging || !div) return
       isDragging = false
       div.style.cursor = 'grab'
-      // Auto-return after 3 seconds
+      // Re-enable map dragging
+      map.setOptions({ draggable: true })
+      // Auto-return after 10 seconds
       returnTimer = setTimeout(() => {
         if (!div) return
         div.style.transition = 'left 0.4s ease, top 0.4s ease'
         overlay.draw()
-      }, 3000)
+      }, 10000)
     }
     div.addEventListener('pointerup', endDrag)
     div.addEventListener('pointercancel', endDrag)
