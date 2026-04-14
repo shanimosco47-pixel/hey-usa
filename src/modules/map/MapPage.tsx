@@ -336,8 +336,15 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
         }),
       )
 
+      // Include incoming connector route (previous day's campsite → first stop of this day)
+      const incomingConn = idx > 0 ? connectorRoutes[idx - 1] : undefined
+      const connDurSec = incomingConn?.durationSec || 0
+      const connDistM = incomingConn?.distanceM || 0
+      const dayTotalDur = routeData.totalDurationSec + connDurSec
+      const dayTotalDist = routeData.totalDistanceM + connDistM
+
       // Add driving time labels
-      if (routeData.totalDurationSec > 0) {
+      if (dayTotalDur > 0) {
         if (selectedDay !== null && routeData.legs.length > 0) {
           // Per-leg labels when viewing a single day
           for (const leg of routeData.legs) {
@@ -350,9 +357,9 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
             }
           }
         } else {
-          // Compact day total when viewing all days
-          const rvDuration = Math.round(routeData.totalDurationSec * RV_TIME_MULTIPLIER)
-          const label = `יום ${idx + 1}: ${formatDuration(rvDuration)} · ${formatDistance(routeData.totalDistanceM)}`
+          // Compact day total (includes drive from previous campsite)
+          const rvDuration = Math.round(dayTotalDur * RV_TIME_MULTIPLIER)
+          const label = `יום ${idx + 1}: ${formatDuration(rvDuration)} · ${formatDistance(dayTotalDist)}`
           const overlay = createDrivingTimeLabel(routeData.midpoint, label, '', color, map)
           overlays.push(overlay)
         }
