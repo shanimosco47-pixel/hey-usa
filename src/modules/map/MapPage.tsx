@@ -110,21 +110,13 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
   useEffect(() => {
     if (!routesLib) return
     serviceRef.current = new routesLib.DirectionsService()
-    console.log('[RouteLines] DirectionsService initialized')
   }, [routesLib])
 
   // Fetch driving route for a single day
   const fetchDayRoute = useCallback(async (dayIdx: number) => {
-    if (!serviceRef.current) {
-      console.log(`[RouteLines] day ${dayIdx}: no service`)
-      return
-    }
-    if (routeCacheRef.current[dayIdx]) {
-      return
-    }
-    if (fetchingRef.current.has(dayIdx)) {
-      return
-    }
+    if (!serviceRef.current) return
+    if (routeCacheRef.current[dayIdx]) return
+    if (fetchingRef.current.has(dayIdx)) return
 
     const day = ITINERARY_DAYS[dayIdx]
     const stopsWithCoords = day.stops.filter((s) => s.lat && s.lng)
@@ -149,14 +141,12 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
         language: 'he',
       } as google.maps.DirectionsRequest)
 
-      console.log(`[RouteLines] day ${dayIdx}: got ${result.routes.length} routes`)
       if (result.routes.length > 0) {
         const route = result.routes[0]
         // Use overview_path (pre-decoded LatLng[]) first, fall back to decoding the encoded polyline
         let polylinePath: google.maps.LatLngLiteral[] = coords
         if (route.overview_path?.length) {
           polylinePath = route.overview_path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
-          console.log(`[RouteLines] day ${dayIdx}: overview_path ${polylinePath.length} pts`)
         } else {
           const encoded =
             typeof route.overview_polyline === 'string'
@@ -211,8 +201,7 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
         routeCacheRef.current[dayIdx] = data
         setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
       }
-    } catch (err) {
-      console.log(`[RouteLines] day ${dayIdx}: CATCH`, err)
+    } catch {
       // Directions API failed for this day — fall back to straight line
       const fallbackCoords = stopsWithCoords.map((s) => ({ lat: s.lat!, lng: s.lng! }))
       if (fallbackCoords.length >= 2) {
@@ -233,14 +222,6 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
 
   // Fetch routes for visible days
   useEffect(() => {
-    console.log(
-      '[RouteLines] fetch effect: serviceRef=',
-      !!serviceRef.current,
-      'selectedDay=',
-      selectedDay,
-      'routesLib=',
-      !!routesLib,
-    )
     if (!serviceRef.current) return
 
     if (selectedDay !== null) {
@@ -261,118 +242,43 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
     const overlays: google.maps.OverlayView[] = []
 
     const daysToRender = selectedDay !== null ? [selectedDay] : Object.keys(dayRoutes).map(Number)
-    console.log(
-      '[RouteLines] render: daysToRender=',
-      daysToRender,
-      'dayRoutes keys=',
-      Object.keys(dayRoutes),
-    )
-
-    let prevDayLastCoord: google.maps.LatLngLiteral | null = null
 
     for (const idx of daysToRender.sort((a, b) => a - b)) {
       const routeData = dayRoutes[idx]
       const color = DAY_COLORS[idx % DAY_COLORS.length]
 
-      if (routeData) {
-        // Dashed connector from previous day's last point
-        if (selectedDay === null && prevDayLastCoord && routeData.polylinePath.length > 0) {
-          polylines.push(
-            new google.maps.Polyline({
-              path: [prevDayLastCoord, routeData.polylinePath[0]],
-              strokeColor: color,
-              strokeWeight: 2,
-              strokeOpacity: 0.5,
-              icons: [
-                {
-                  icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 2 },
-                  offset: '0',
-                  repeat: '12px',
-                },
-              ],
-              map,
-            }),
-          )
-        }
+      if (!routeData) continue
 
-        // Actual driving route polyline
-        polylines.push(
-          new google.maps.Polyline({
-            path: routeData.polylinePath,
-            strokeColor: color,
-            strokeWeight: selectedDay !== null ? 5 : 4,
-            strokeOpacity: 0.85,
-            map,
-          }),
-        )
+      // Driving route polyline (no inter-day connectors — they look like straight lines)
+      polylines.push(
+        new google.maps.Polyline({
+          path: routeData.polylinePath,
+          strokeColor: color,
+          strokeWeight: selectedDay !== null ? 5 : 4,
+          strokeOpacity: 0.85,
+          map,
+        }),
+      )
 
-        if (routeData.polylinePath.length > 0) {
-          prevDayLastCoord = routeData.polylinePath[routeData.polylinePath.length - 1]
-        }
-
-        // Add driving time labels
-        if (routeData.totalDurationSec > 0) {
-          if (selectedDay !== null && routeData.legs.length > 0) {
-            // Per-leg labels when viewing a single day
-            for (const leg of routeData.legs) {
-              if (leg.durationSec > 0) {
-                const rvDur = Math.round(leg.durationSec * RV_TIME_MULTIPLIER)
-                const label = `🚐 ${formatDuration(rvDur)} · ${formatDistance(leg.distanceM)}`
-                const subtitle = `${leg.fromName} → ${leg.toName}`
-                const overlay = createDrivingTimeLabel(
-                  leg.midpoint,
-                  label,
-                  subtitle,
-                  color,
-                  map,
-                  true,
-                )
-                overlays.push(overlay)
-              }
+      // Add driving time labels
+      if (routeData.totalDurationSec > 0) {
+        if (selectedDay !== null && routeData.legs.length > 0) {
+          // Per-leg labels when viewing a single day
+          for (const leg of routeData.legs) {
+            if (leg.durationSec > 0) {
+              const rvDur = Math.round(leg.durationSec * RV_TIME_MULTIPLIER)
+              const label = `🚐 ${formatDuration(rvDur)} · ${formatDistance(leg.distanceM)}`
+              const subtitle = `${leg.fromName} → ${leg.toName}`
+              const overlay = createDrivingTimeLabel(leg.midpoint, label, subtitle, color, map)
+              overlays.push(overlay)
             }
-          } else {
-            // Compact day total when viewing all days
-            const rvDuration = Math.round(routeData.totalDurationSec * RV_TIME_MULTIPLIER)
-            const label = `יום ${idx + 1}: ${formatDuration(rvDuration)} · ${formatDistance(routeData.totalDistanceM)}`
-            const overlay = createDrivingTimeLabel(routeData.midpoint, label, '', color, map, false)
-            overlays.push(overlay)
           }
-        }
-      } else {
-        // No route data yet — draw straight line as placeholder
-        const day = ITINERARY_DAYS[idx]
-        const coords = day.stops
-          .filter((s) => s.lat && s.lng)
-          .map((s) => ({ lat: s.lat!, lng: s.lng! }))
-        if (coords.length >= 2) {
-          if (selectedDay === null && prevDayLastCoord) {
-            polylines.push(
-              new google.maps.Polyline({
-                path: [prevDayLastCoord, coords[0]],
-                strokeColor: color,
-                strokeWeight: 2,
-                strokeOpacity: 0.3,
-                icons: [
-                  {
-                    icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 2 },
-                    offset: '0',
-                    repeat: '12px',
-                  },
-                ],
-                map,
-              }),
-            )
-          }
-          polylines.push(
-            new google.maps.Polyline({
-              path: coords,
-              strokeColor: color,
-              strokeWeight: 3,
-              strokeOpacity: 0.4,
-              map,
-            }),
-          )
-          prevDayLastCoord = coords[coords.length - 1]
+        } else {
+          // Compact day total when viewing all days
+          const rvDuration = Math.round(routeData.totalDurationSec * RV_TIME_MULTIPLIER)
+          const label = `יום ${idx + 1}: ${formatDuration(rvDuration)} · ${formatDistance(routeData.totalDistanceM)}`
+          const overlay = createDrivingTimeLabel(routeData.midpoint, label, '', color, map)
+          overlays.push(overlay)
         }
       }
     }
@@ -386,17 +292,19 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
   return null
 }
 
-// Factory for driving time label overlays (deferred to avoid accessing google.maps at module scope)
+// Factory for driving time label overlays — draggable with auto-return
 function createDrivingTimeLabel(
   position: google.maps.LatLngLiteral,
   text: string,
   subtitle: string,
   color: string,
   map: google.maps.Map,
-  detailed: boolean,
 ): google.maps.OverlayView {
   const overlay = new google.maps.OverlayView()
   let div: HTMLDivElement | null = null
+  let dragOffset = { x: 0, y: 0 }
+  let isDragging = false
+  let returnTimer: ReturnType<typeof setTimeout> | null = null
 
   overlay.onAdd = () => {
     div = document.createElement('div')
@@ -404,19 +312,22 @@ function createDrivingTimeLabel(
       position: absolute;
       background: white;
       border: 2px solid ${color};
-      border-radius: ${detailed ? '14px' : '20px'};
-      padding: ${detailed ? '6px 12px' : '4px 10px'};
-      pointer-events: none;
+      border-radius: 14px;
+      padding: ${subtitle ? '6px 12px' : '4px 10px'};
+      pointer-events: auto;
+      cursor: grab;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       transform: translate(-50%, -50%);
       direction: rtl;
       text-align: center;
       z-index: 1;
+      transition: left 0.4s ease, top 0.4s ease;
+      user-select: none;
     `
     // Main time/distance line
     const mainLine = document.createElement('div')
     mainLine.style.cssText = `
-      font-size: ${detailed ? '14px' : '12px'};
+      font-size: 14px;
       font-weight: 700;
       color: #1d1d1f;
       white-space: nowrap;
@@ -425,7 +336,7 @@ function createDrivingTimeLabel(
     mainLine.textContent = text
     div.appendChild(mainLine)
 
-    // Subtitle with stop names (for detailed/per-leg view)
+    // Subtitle with stop names
     if (subtitle) {
       const subLine = document.createElement('div')
       subLine.style.cssText = `
@@ -443,12 +354,59 @@ function createDrivingTimeLabel(
       div.appendChild(subLine)
     }
 
+    // Draggable behavior
+    div.addEventListener('pointerdown', (e) => {
+      if (!div) return
+      isDragging = true
+      div.style.cursor = 'grabbing'
+      div.style.transition = 'none'
+      div.setPointerCapture(e.pointerId)
+      const rect = div.getBoundingClientRect()
+      dragOffset = {
+        x: e.clientX - rect.left - rect.width / 2,
+        y: e.clientY - rect.top - rect.height / 2,
+      }
+      if (returnTimer) clearTimeout(returnTimer)
+      e.stopPropagation()
+    })
+
+    div.addEventListener('pointermove', (e) => {
+      if (!isDragging || !div) return
+      const projection = overlay.getProjection()
+      if (!projection) return
+      const containerPixel = projection.fromLatLngToContainerPixel(new google.maps.LatLng(position))
+      if (!containerPixel) return
+      // Convert client coords to overlay pixel coords
+      const pane = overlay.getPanes()?.overlayLayer
+      if (!pane) return
+      const paneRect = pane.getBoundingClientRect()
+      const newLeft = e.clientX - paneRect.left - dragOffset.x
+      const newTop = e.clientY - paneRect.top - dragOffset.y
+      div.style.left = `${newLeft}px`
+      div.style.top = `${newTop}px`
+      e.stopPropagation()
+    })
+
+    const endDrag = () => {
+      if (!isDragging || !div) return
+      isDragging = false
+      div.style.cursor = 'grab'
+      // Auto-return after 3 seconds
+      returnTimer = setTimeout(() => {
+        if (!div) return
+        div.style.transition = 'left 0.4s ease, top 0.4s ease'
+        overlay.draw()
+      }, 3000)
+    }
+    div.addEventListener('pointerup', endDrag)
+    div.addEventListener('pointercancel', endDrag)
+
     const panes = overlay.getPanes()
     panes?.overlayLayer.appendChild(div)
   }
 
   overlay.draw = () => {
-    if (!div) return
+    if (!div || isDragging) return
     const projection = overlay.getProjection()
     if (!projection) return
     const pos = projection.fromLatLngToDivPixel(new google.maps.LatLng(position))
@@ -459,6 +417,7 @@ function createDrivingTimeLabel(
   }
 
   overlay.onRemove = () => {
+    if (returnTimer) clearTimeout(returnTimer)
     if (div?.parentNode) {
       div.parentNode.removeChild(div)
       div = null
