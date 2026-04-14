@@ -110,13 +110,21 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
   useEffect(() => {
     if (!routesLib) return
     serviceRef.current = new routesLib.DirectionsService()
+    console.log('[RouteLines] DirectionsService initialized')
   }, [routesLib])
 
   // Fetch driving route for a single day
   const fetchDayRoute = useCallback(async (dayIdx: number) => {
-    if (!serviceRef.current) return
-    if (routeCacheRef.current[dayIdx]) return
-    if (fetchingRef.current.has(dayIdx)) return
+    if (!serviceRef.current) {
+      console.log(`[RouteLines] day ${dayIdx}: no service`)
+      return
+    }
+    if (routeCacheRef.current[dayIdx]) {
+      return
+    }
+    if (fetchingRef.current.has(dayIdx)) {
+      return
+    }
 
     const day = ITINERARY_DAYS[dayIdx]
     const stopsWithCoords = day.stops.filter((s) => s.lat && s.lng)
@@ -141,12 +149,14 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
         language: 'he',
       } as google.maps.DirectionsRequest)
 
+      console.log(`[RouteLines] day ${dayIdx}: got ${result.routes.length} routes`)
       if (result.routes.length > 0) {
         const route = result.routes[0]
         // Use overview_path (pre-decoded LatLng[]) first, fall back to decoding the encoded polyline
         let polylinePath: google.maps.LatLngLiteral[] = coords
         if (route.overview_path?.length) {
           polylinePath = route.overview_path.map((p) => ({ lat: p.lat(), lng: p.lng() }))
+          console.log(`[RouteLines] day ${dayIdx}: overview_path ${polylinePath.length} pts`)
         } else {
           const encoded =
             typeof route.overview_polyline === 'string'
@@ -201,7 +211,8 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
         routeCacheRef.current[dayIdx] = data
         setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
       }
-    } catch {
+    } catch (err) {
+      console.log(`[RouteLines] day ${dayIdx}: CATCH`, err)
       // Directions API failed for this day — fall back to straight line
       const fallbackCoords = stopsWithCoords.map((s) => ({ lat: s.lat!, lng: s.lng! }))
       if (fallbackCoords.length >= 2) {
@@ -222,6 +233,14 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
 
   // Fetch routes for visible days
   useEffect(() => {
+    console.log(
+      '[RouteLines] fetch effect: serviceRef=',
+      !!serviceRef.current,
+      'selectedDay=',
+      selectedDay,
+      'routesLib=',
+      !!routesLib,
+    )
     if (!serviceRef.current) return
 
     if (selectedDay !== null) {
@@ -242,6 +261,12 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
     const overlays: google.maps.OverlayView[] = []
 
     const daysToRender = selectedDay !== null ? [selectedDay] : Object.keys(dayRoutes).map(Number)
+    console.log(
+      '[RouteLines] render: daysToRender=',
+      daysToRender,
+      'dayRoutes keys=',
+      Object.keys(dayRoutes),
+    )
 
     let prevDayLastCoord: google.maps.LatLngLiteral | null = null
 
