@@ -12,7 +12,7 @@ export function sendNotification(title: string, body: string, tag: string): void
   // Already notified for this tag today
   if (notifiedMap[tag] === today) return
 
-  new Notification(title, { body, tag, icon: '/hey-usa/pwa-192x192.png' })
+  new Notification(title, { body, tag, icon: `${import.meta.env.BASE_URL}pwa-192x192.svg` })
 
   notifiedMap[tag] = today
   localStorage.setItem(LS_NOTIFIED_KEY, JSON.stringify(notifiedMap))
