@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import {
   APIProvider,
   Map,
@@ -999,12 +1000,12 @@ function MapContent() {
                 {(() => {
                   const loc = getPrimaryLocationForCity(popupInfo.city)
                   return loc ? (
-                    <a
-                      href={`/hey-usa/locations/${loc.id}`}
+                    <Link
+                      to={`/locations/${loc.id}`}
                       className="inline-block mt-1.5 text-xs font-medium text-blue-600 hover:underline"
                     >
                       {loc.nameHe}
-                    </a>
+                    </Link>
                   ) : null
                 })()}
               </div>
