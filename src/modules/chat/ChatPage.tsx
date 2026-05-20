@@ -20,6 +20,7 @@ import {
   BOT_NAME,
   BOT_SUBTITLE,
   isAIMode,
+  getAIRuntimeStatus,
   initConversationFromDb,
 } from './botEngine'
 import type { MessageCard } from './botEngine'
@@ -136,7 +137,9 @@ function TypingIndicator() {
 }
 
 function AIBadge() {
-  const aiAvailable = isAIMode()
+  const runtimeStatus = getAIRuntimeStatus()
+  const aiAvailable = runtimeStatus !== 'offline'
+  const isConfirmedOnline = runtimeStatus === 'online'
   return (
     <div
       className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-caption font-medium ${
@@ -145,7 +148,7 @@ function AIBadge() {
     >
       {aiAvailable ? (
         <>
-          <Sparkles className="h-2.5 w-2.5" />
+          <Sparkles className={`h-2.5 w-2.5 ${isConfirmedOnline ? '' : 'opacity-60'}`} />
           AI
         </>
       ) : (

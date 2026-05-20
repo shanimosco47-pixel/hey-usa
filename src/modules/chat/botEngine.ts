@@ -296,6 +296,7 @@ import { fetchTripWeather, getWeatherSummaryForMoti } from '@/lib/weather'
 
 let conversationHistory: ChatMessage[] = []
 let memorySummary = ''
+let aiLastCallSucceeded: boolean | null = null
 let weatherContext = ''
 const MAX_CONTEXT_MESSAGES = 20 // Last 20 messages sent verbatim to Claude
 
@@ -679,17 +680,20 @@ ${Object.values(FAMILY_MEMBERS)
           const card = detectCard(assistantMessage, allActions)
           const quickActions = detectQuickActions(assistantMessage, allActions)
 
+          aiLastCallSucceeded = true
           return { text: assistantMessage, actions: allActions, card, quickActions }
         }
       }
+      if (aiLastCallSucceeded === null) aiLastCallSucceeded = false
       console.warn('AI request failed with status:', response.status)
     } catch (err) {
+      if (aiLastCallSucceeded === null) aiLastCallSucceeded = false
       console.warn('AI request failed, falling back to keywords:', err)
     }
   }
 
   // Fallback to keyword engine
-  const fallbackText = getKeywordResponse(userMessage)
+  const fallbackText = getKeywordResponse(userMessage, !!(supabaseUrl && supabaseKey))
   conversationHistory.push({ role: 'assistant', content: fallbackText })
   const card = detectCard(fallbackText, [])
   const quickActions = detectQuickActions(fallbackText, [])
@@ -1188,13 +1192,19 @@ const rules: MatchRule[] = [
   },
 ]
 
+const FALLBACKS_CONFIGURED = [
+  `לא ממש הבנתי... 🤔\n\nנסו לנסח מחדש, או שאלו על משהו ספציפי — טיסות, ביטוח, תקציב, אריזה, או כל מקום במסלול!\n\n💡 **טיפ:** נסו Cmd+K לחיפוש מהיר באפליקציה.`,
+  `אממ, לא תפסתי מה שאלתם. 🤖\n\nאני מומחה לטיול שלכם — Bozeman דרך ילוסטון, גרנד טטון, זאיון, ווגאס, יוסמיטי ועד סן פרנסיסקו!\n\nשאלו על המסלול, התקציב, או כל אטרקציה ספציפית.`,
+  `לא הבנתי, אבל אל תיקחו את זה אישית. 😅\n\nשאלו על הטיול: ילוסטון? זאיון? יוסמיטי? תקציב? אריזה?\n\nאו השתמשו ב-Cmd+K לחיפוש מהיר בכל האפליקציה!`,
+]
+
 const FALLBACKS = [
   `שאלה מעניינת, אבל מוטי במצב אופליין כרגע ולא מחובר ל-AI. 🔌\n\nנסו לשאול על משהו ספציפי — טיסות, ביטוח, תקציב, אריזה, או כל מקום במסלול!\n\n💡 **טיפ:** נסו Cmd+K לחיפוש מהיר באפליקציה, או לחצו על "עזרה" ואני אראה לכם מה אני יודע.`,
   `אממ... מוטי לא מחובר ל-AI כרגע, אז אני עובד במצב בסיסי. 🤖\n\nאני מומחה לטיול שלכם — Bozeman דרך ילוסטון, גרנד טטון, זאיון, ווגאס, יוסמיטי ועד סן פרנסיסקו!\n\nשאלו על המסלול, התקציב, או כל אטרקציה ספציפית.`,
   `לא הבנתי, אבל אל תיקחו את זה אישית — אני במצב אופליין. 😅\n\nשאלו על הטיול: ילוסטון? זאיון? יוסמיטי? תקציב? אריזה?\n\nאו השתמשו ב-Cmd+K לחיפוש מהיר בכל האפליקציה!`,
 ]
 
-function getKeywordResponse(message: string): string {
+function getKeywordResponse(message: string, aiConfigured = false): string {
   const lower = message.toLowerCase().trim()
 
   // Check for greeting
@@ -1211,10 +1221,17 @@ function getKeywordResponse(message: string): string {
   }
 
   // Fallback
-  return randomPick(FALLBACKS)
+  return randomPick(aiConfigured ? FALLBACKS_CONFIGURED : FALLBACKS)
 }
 
 // Check if AI mode is available
 export function isAIMode(): boolean {
   return !!(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)
+}
+
+export function getAIRuntimeStatus(): 'online' | 'offline' | 'unknown' {
+  if (!isAIMode()) return 'offline'
+  if (aiLastCallSucceeded === true) return 'online'
+  if (aiLastCallSucceeded === false) return 'offline'
+  return 'unknown'
 }
