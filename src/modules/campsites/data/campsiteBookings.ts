@@ -313,10 +313,11 @@ export const sampleCampsiteBookings: CampsiteBooking[] = [
     area: 'San Francisco, CA',
     type: 'hotel',
     priority: 'primary',
-    status: 'confirmed',
+    status: 'pending',
     confirmation: '#HI-2026-34567',
     booking_url: 'https://www.ihg.com/holidayinn/hotels/us/en/san-francisco/sfofi/hoteldetail',
-    notes: 'הלילה האחרון — טיסה מחר בערב',
+    notes:
+      'הלילה האחרון — טיסה מחר בערב. ⚠️ אישור לא אומת — לבדוק במייל דנית ב-Yahoo. מספר הזמנה: #HI-2026-34567.',
     changelog: [],
     created_at: '2026-03-21T00:00:00Z',
     updated_at: '2026-03-21T00:00:00Z',
