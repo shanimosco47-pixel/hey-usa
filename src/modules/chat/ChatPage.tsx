@@ -800,12 +800,29 @@ export default function ChatPage() {
         }
       }
 
+      const WRITE_ACTION_TYPES = new Set([
+        'UPDATE_BUDGET_CATEGORY',
+        'UPDATE_TOTAL_BUDGET',
+        'UPDATE_DAILY_BUDGET',
+        'ADD_EXPENSE',
+        'UPDATE_ITINERARY_DAY_NOTES',
+        'ADD_ITINERARY_STOP',
+        'ADD_TO_ITINERARY',
+        'ADD_TASK',
+        'ADD_DOCUMENT',
+        'SET_TASK_STATUS',
+        'COMPLETE_TASK',
+      ])
+      const isWriteAction = response.actions.some(
+        (a) => 'type' in a && WRITE_ACTION_TYPES.has((a as { type: string }).type),
+      )
+
       const botMsg: Message = {
         id: `bot-${Date.now()}`,
         text: response.text,
         sender: 'bot',
         timestamp: new Date(),
-        hasAction: response.actions.length > 0,
+        hasAction: isWriteAction,
         card: response.card,
         quickActions: response.quickActions,
       }
@@ -816,7 +833,7 @@ export default function ChatPage() {
         id: botMsg.id,
         role: 'assistant',
         content: botMsg.text,
-        has_action: response.actions.length > 0,
+        has_action: isWriteAction,
         created_at: new Date().toISOString(),
       }).catch(() => {})
     } catch {
