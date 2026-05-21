@@ -212,8 +212,9 @@ export function parseActions(message: string): MotiAction[] {
   }
 
   // ── Search email ──────────────────────────────────────────────────
+  // Require explicit email mention to avoid false positives like "מצא את הכרטיסים"
   const searchEmailMatch = lower.match(
-    /(?:תחפש|חפש|תמצא|מצא|תביא|הבא|תשלוף|תחפשי|חפשי)\s+(?:באימייל|במייל|מהמייל|מאימייל|את\s+ה)?\s*(.+)/,
+    /(?:תחפש|חפש|תמצא|מצא|תביא|הבא|תשלוף|תחפשי|חפשי)\s+(?:באימייל|במייל|מהמייל|מאימייל)\s+(.+)/,
   )
   if (searchEmailMatch) {
     const query = searchEmailMatch[1].trim()
@@ -889,8 +890,9 @@ const TRIP = {
   route:
     "תל אביב → דנבר → בוזמן → ילוסטון → ג'קסון → ברייס קניון → זאיון → לאס וגאס → יוסמיטי → סן פרנסיסקו → תל אביב",
   flights: {
-    outbound: 'El Al LY001, TLV→DEN, 10 בספטמבר 2026',
-    return: 'SFO→TLV, 30 בספטמבר 2026',
+    outbound: 'United Airlines, TLV → עצירת ביניים → DEN, 10 בספטמבר 2026',
+    domestic: 'United Airlines, DEN → BZN, 11 בספטמבר 2026, 08:00–09:47',
+    return: 'SFO → TLV, 30 בספטמבר 2026',
   },
   rv: 'Cruise America Class C, איסוף Bozeman 11/9, החזרה SF area 28/9',
   family: '5 בני משפחה: אבא, אמא, ילד 1, ילד 2, ילד 3',
@@ -968,12 +970,16 @@ const rules: MatchRule[] = [
       ),
   },
   {
-    keywords: ['טיסה', 'טיסות', 'flight', 'לטוס', 'שדה תעופה'],
+    keywords: ['טיסה', 'טיסות', 'flight', 'לטוס', 'שדה תעופה', 'חברת תעופה', 'united', 'el al'],
     response: () =>
       wrap(
         `פרטי הטיסות שלכם:\n\n` +
-          `**הלוך:** ${TRIP.flights.outbound}\n` +
-          `**חזור:** ${TRIP.flights.return}\n\n` +
+          `✈️ **הלוך (10/9):** ${TRIP.flights.outbound}\n` +
+          `   ↳ יש עצירת ביניים — הטיסה **אינה** ישירה לדנבר\n` +
+          `   ↳ נחיתה בדנבר (DEN) בערב. לינה ליד נמל התעופה\n\n` +
+          `🛫 **פנימית (11/9):** ${TRIP.flights.domestic}\n` +
+          `   ↳ מדנבר לבוזמן, משם איסוף הקרוואן\n\n` +
+          `🏠 **חזור (30/9):** ${TRIP.flights.return}\n\n` +
           `טיפ ממוטי: תגיעו 3 שעות לפני לנתב"ג. כן, אני יודע שכולם אומרים את זה. אבל עם 5 בני משפחה? תגיעו 4.\n\n` +
           `וגם: הזמינו מושבים מראש אם לא עשיתם. 5 אנשים מפוזרים במטוס = ילדים שמפריעים לזרים = הורים מתים מבושה.`,
       ),
