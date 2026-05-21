@@ -282,7 +282,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
               ref={fileInputRef}
               type="file"
               className="hidden"
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.html,.htm"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.html,.htm,.mht,.mhtml"
               onChange={handleInputChange}
             />
           </div>
