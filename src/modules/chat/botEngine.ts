@@ -285,15 +285,15 @@ export function parseActions(message: string): MotiAction[] {
   // ── Drive time estimation ─────────────────────────────────────────
   // Broad patterns: "כמה זמן מX לY", "נסיעה מX לY", "מרחק בין X ל Y", "X to Y drive"
   const drivePatterns = [
-    /(?:כמה\s+(?:זמן|שעות)|כמה\s+רחוק|מרחק|נסיעה|drive|driving)\s*(?:נסיעה\s*)?(?:מ|מ-|from)\s*(.+?)\s+(?:ל|ל-|עד|to)\s+(.+?)[\s?!.,]*$/,
-    /(?:מ|מ-)(.+?)\s+(?:ל|ל-|עד)\s+(.+?)[\s?!.,]*(?:כמה|נסיעה|זמן|מרחק|drive)/,
-    /(?:בין)\s+(.+?)\s+(?:ל|ל-|לבין)\s+(.+?)[\s?!.,]*(?:כמה|נסיעה|זמן|מרחק)?/,
+    /(?:כמה\s+(?:זמן|שעות)|כמה\s+רחוק|מרחק|נסיעה|drive|driving)\s*(?:נסיעה\s*)?(?:מ|מ-|from)\s*(.+?)\s+(?:ל-?|עד\s+|to\s+)\s*(.+?)[\s?!.,]*$/,
+    /(?:מ|מ-)(.+?)\s+(?:ל-?|עד)\s*(.+?)[\s?!.,]*(?:כמה|נסיעה|זמן|מרחק|drive)/,
+    /(?:בין)\s+(.+?)\s+(?:ל-?|לבין)\s*(.+?)[\s?!.,]*(?:כמה|נסיעה|זמן|מרחק)?/,
   ]
   for (const pat of drivePatterns) {
     const m = lower.match(pat)
     if (m) {
-      const from = m[1].trim()
-      const to = m[2].trim()
+      const from = m[1].replace(/^[-\s]+/, '').trim()
+      const to = m[2].replace(/^[-\s]+/, '').trim()
       if (from.length > 1 && to.length > 1) {
         actions.push({ type: 'ESTIMATE_DRIVE_TIME', from, to })
         return actions
