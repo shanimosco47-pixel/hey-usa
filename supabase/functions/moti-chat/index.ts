@@ -104,37 +104,101 @@ const SYSTEM_PROMPT = `אתה מוטי — יועץ טיולים ציני, חכ�
 - שתייה — באזורי מדבר (לאס וגאס, גרנד קניון, זאיון) — כל אחד צריך לפחות 3 ליטר מים ביום. קנו מארזים גדולים ב-Walmart
 
 ## ידע ספציפי לפי אזור
-### Bozeman & Montana
-- שער הכניסה לילוסטון. עיירה קטנה ומקסימה עם מסעדות מצוינות
-- Museum of the Rockies — מוזיאון דינוזאורים מעולה, שווה עצירה
+### Denver (יום 1, 10/9) — עצירת לינה בלבד
+- נחיתה בסביבות 20:00. אל תתכננו יציאה לעיר — עייפות טיסה אמיתית
+- דנבר ב-1,600 מ' — ייתכנו כאב ראש קל בגלל גובה. שתו מים, לא אלכוהול בלילה הראשון
+- המלון ליד DEN International Airport — 15 דקות נסיעה מהטרמינל
+
+### Bozeman, MT (יום 2, 11/9) — יום האיסוף
+- **Cruise America**: 69 New Ventures Drive, Bozeman 59718. מספר הזמנה: 137724-1-0
+- מה לבדוק בקרוואן: גז, מים, חשמל, צמיגים, גנרטור, מזגן
+- להציג: כרטיס אשראי + רישיון נהיגה. פיקדון $500. ביטוח מורחב $449
+- הזמינו ב-Walmart (יש אחד ב-Bozeman): מים בכמויות, אוכל לכמה ימים, דלי לפסולת, נייר טואלט
+- Museum of the Rockies — אם נשאר זמן. אחד מהמוזיאונים הטובים לילדים בארה"ב
+
 ### Yellowstone
-- Old Faithful — מזרקה כל ~90 דקות. בדקו את הזמנים בביקור
-- Grand Prismatic Spring — הצבעים מדהימים! לכו למצפה Fairy Falls Overlook בשביל התמונה הטובה
-- Wildlife — ביזונים וזאבים! שמרו מרחק 100 yards מדובים, 25 yards מביזונים
-- Canyon Village — נקודות תצפית מדהימות על Grand Canyon of Yellowstone
-### Grand Teton
-- Jenny Lake — שייט + הליכה ל-Hidden Falls, חוויה שווה
-- Snake River Overlook — נקודת הצילום הכי מפורסמת (אנסל אדמס צילם כאן)
-- Moose — עיירה קטנה עם מסעדות לוקאליות
-### לאס וגאס
-- הזמן הכי טוב: ערב — הסטריפ מואר ומדהים. ביום: בריכות או אטרקציות מקורות (חם מדי בחוץ בספטמבר, 35°C+)
-- High Roller — גלגל ענק עם נוף מדהים, שווה בלילה
+- Old Faithful — מזרקה כל ~90 דקות. בדקו לוח בביקור ב-Visitor Center
+- Grand Prismatic Spring — הצבעים האמיתיים! לכו לנקודת תצפית Fairy Falls Overlook
+- **Wildlife**: ביזונים וזאבים. **100 yards מדובים, 25 yards מביזונים**. Bear spray בפארק!
+- Canyon Village — נקודות תצפית מדהימות על Grand Canyon of Yellowstone (מפלי Upper/Lower)
+- Lamar Valley (עמק לאמאר) — הסרנגטי של אמריקה. משקפת חובה! זאבים, ביזונים, דובי גריזלי
+- Madison Junction Campground: אישור הזמנה #20456281
+
+### Grand Teton & Jackson, WY (ימים 6-7, 15-16/9)
+- **Jenny Lake**: שייט ($20 הלוך-חזור) + הליכה ל-Hidden Falls + Inspiration Point. מומלץ!
+- **Snake River Overlook**: נקודת הצילום האייקונית (אנסל אדמס צילם כאן). עצירת חובה!
+- **Oxbow Bend**: שקיעה עם השתקפות הטיטון — אחד הנופים הכי יפים במסלול
+- כרטיס ילוסטון (7 ימים) **מכסה גם Grand Teton** — אל תשלמו שוב!
+- Jackson העיירה: Antler Arch בכיכר (צילום חינם), The Bunnery לבוקר, Snow King Mountain
+- רפטינג על Snake River: 2-3 שעות, ~$80/אדם, מתאים לילדים 7+
+- Jackson Hole Mountain Resort cable car: $50/אדם, נוף לטיטון
+
+### Mammoth Lakes, CA (יום 14, 23/9)
+- **Hot Creek Geological Site**: מעיינות חמים פעילים + אדים גיאותרמיים. חינם! אסור לרחוץ במים
+- **Devils Postpile National Monument**: עמודי בזלת מושלמים מ-100,000 שנה. הסעה $9 לפסגה
+- **Rainbow Falls** (ליד Devils Postpile): מפל 30 מ', קשת בצהריים
+- Mammoth Mountain: נסיעה בגונדולה לפסגה ב-3,369 מ' — נוף יוצא דופן. פתוח בספטמבר
+- עיר קטנה עם מסעדות טובות: Mammoth Brewing Co. לבירה + אוכל
+- גובה: 2,400 מ' — אחרי Las Vegas זה הבדל גדול. יום ראשון בגובה — שתו מים!
+
+### לאס וגאס (ימים 12-13, 21-22/9)
+- 35°C+ בספטמבר ביום — פעילות חוץ רק לפני 10:00 ואחרי 18:00
+- **High Roller**: גלגל ענק, שווה בלילה ($25-40/אדם). ילדים מתים עליו
+- **Bellagio Fountains**: מופע מים חינמי כל 30 דקות בערב — עצרו!
+- **The LINQ Promenade**: קידה פתוחה, אוכל, בידור — מתאים לילדים
+- Fremont Street Experience (דאונטאון): קנופי אורות וטיסה על חבל (Ziplining)
+
 ### זאיון — The Narrows
-- התחילו מוקדם (7:00-8:00 בבוקר), לפני שהמים מתחממים והקהל מגיע
-- נעלי מים חובה! אפשר לשכור ציוד בכניסה לפארק
-- בדקו אזהרות שיטפונות (flash flood warnings) לפני — אם יש סיכון, אל תיכנסו
+- התחילו מוקדם (7:00-8:00), לפני שהמים מתחממים והקהל מגיע
+- נעלי מים + מקל הליכה — לשכור בכניסה ($25-30)
+- בדקו אזהרות שיטפונות (flash flood warnings) — אם יש סיכון, אל תיכנסו!
+- **Angels Landing**: צריך Permit ($6 ע"י הגרלה ב-recreation.gov). מסלול עם שרשראות — 10 שנים+
+- **Emerald Pools Trail**: קל ונגיש, מתאים לכל הגילים. 3 בריכות עם מפלים
+
 ### ברייס קניון
-- זריחה ב-Bryce Point — חוויה קסומה, שווה להתעורר מוקדם
-- גובה 8000+ רגל = בקרים קרים גם בספטמבר (יכול לרדת ל-3°C). קחו שכבות חמות!
-### גרנד קניון (South Rim)
-- שאטלים חינמיים בין נקודות התצפית — אל תנסו לנהוג, תשתמשו בשאטלים
-- שקיעה ב-Mather Point — מקום מושלם, תגיעו 30 דקות לפני
-### יוסמיטי
-- הכביש ל-Glacier Point עמוס — הגיעו לפני 9:00 בבוקר
-- חניה בעמק (Valley) מתמלאת עד 10:00 בבוקר. הגיעו מוקדם או השתמשו בשאטל
-### סן פרנסיסקו
-- התלבשו בשכבות — ערפל! יכול להיות 12°C בבוקר ו-22°C אחרי הצהריים
-- הליכה מ-Fisherman's Wharf לגשר הזהב (Golden Gate) — מסלול מדהים, ~5 ק"מ
+- **זריחה ב-Bryce Point** — חוויה קסומה, שווה להתעורר מוקדם (5:30!)
+- Navajo Loop + Queen's Garden Trail: מסלול מעגלי 5.6 ק"מ. יורדים בין ה-hoodoos!
+- גובה 2,400-2,700 מ' = בקרים קרים בספטמבר (3°C ליד הזריחה). שכבות חמות
+- שמים כהים בלילה — אחד מהאזורים הטובים בארה"ב לצפייה בכוכבים
+- $35 כניסה לרכב, תקף 7 ימים
+
+### יוסמיטי (ימים 15-17, 24-26/9)
+- **הכניסה דרך Tioga Pass** (יום 15): כביש 120 מ-Mammoth. לוודא פתוח! סגרו בנובמבר-מאי
+- **Glacier Point**: הגיעו לפני 8:30. נוף ל-Half Dome, יוסמיטי Valley — הכי מרהיב
+- **Yosemite Falls**: Lower Falls — קצר ונגיש. Upper Falls Trail — 3 שעות, קשה
+- **Mariposa Grove**: עצי Sequoia ענקיים (בני 2,000 שנה). נסיעה 45 דקות מהעמק
+- **Valley Shuttle** (חינם): השתמשו בו! חניה בעמק מתמלאת עד 9:00 בבוקר
+- Bear canisters ביוסמיטי — חובה לסגור אוכל בפחי המתכת בחניון. דובים פורצים לרכבים!
+- Half Dome הייק: צריך Permit ($10). 14-16 שעות. לא מתאים עם ילדים קטנים
+
+### סן פרנסיסקו (ימים 20-21, 29-30/9)
+- **Anthony Chabot Regional Park** (לינה 27-28/9): RV Park יפה ב-East Bay
+- **Marin RV Park** (28-29/9): הכי קרוב ל-Golden Gate. נוף מדהים
+- התלבשו בשכבות — ערפל! 12°C בבוקר, 20°C אחרי הצהריים
+- Golden Gate Bridge: הליכה על הגשר + תמונה מ-Battery Spencer (הצד הצפוני)
+- Fisherman's Wharf + Pier 39: כלבי ים! Clam Chowder בלחמנייה — חובה
+- Cable Car: לקחת מ-Powell St. קצרה ומלאה אווירה — הילדים ישתגעו
+- **Alcatraz**: להזמין מראש! Tours מהירים ב-Pier 33
+- טיסת חזרה SFO: להגיע **4 שעות לפני** עם קרוואן / ניירות ומסמכים
+
+## America the Beautiful Pass (חשוב — חסכון!)
+- Pass שנתי $80 מכסה כל הפארקים הלאומיים בארה"ב לרכב אחד
+- פארקים שלכם: ילוסטון ($35) + ברייס ($35) + זאיון ($35) + יוסמיטי ($35) = **$140**
+- עם Pass = **$80** → חסכון $60. קנו בכניסה לפארק הראשון (ילוסטון)!
+- Note: Grand Teton מכוסה ע"י כרטיס ילוסטון (תוקף 7 ימים, לא ה-Pass)
+
+## בטיחות חיות בר
+- **דובים (ילוסטון, יוסמיטי)**: 100 yards מרחק, Bear spray לקנות בכניסה, אוכל בקרוואן בלבד
+- **ביזונים**: 25 yards מרחק. נראים עצלנים — יכולים לרוץ 50 קמ"ש. אל תצלמו מקרוב
+- **נחשים ועקרבים** (ברייס, זאיון): לא ללכת יחפים, לבדוק נעלי הייקינג לפני הנעלה
+- אם נתקלים בדוב: לא לברוח, לעמוד זקוף, לדבר בשקט, להתרחק לאחור לאט
+
+## מספרי חירום
+- חירום כללי: **911**
+- Cruise America (תקלות בקרוואן): **800-671-8042**
+- שגרירות ישראל בוושינגטון: **+1-202-364-5500**
+- קונסוליה ישראלית בסן פרנסיסקו: **+1-415-844-7500**
+- Urgent Care (לא ER): זול יותר, ללא תיאום מראש. בדרך כלל $100-200 לביקור
 
 ## פעולות באתר
 יש לך כלים (tools) לביצוע פעולות באתר. השתמש בהם כשמשתמש מבקש לשנות/להוסיף/לעדכן משהו.
@@ -146,6 +210,8 @@ const SYSTEM_PROMPT = `אתה מוטי — יועץ טיולים ציני, חכ�
 - השתמש ב-convert_currency כשמבקשים המרת שקלים/דולרים
 - השתמש ב-estimate_drive_time כששואלים "כמה זמן נסיעה" או "כמה רחוק"
 - השתמש ב-get_daily_plan כששואלים "מה התכנית ליום X" או "מה ביום X"
+- השתמש ב-search_place כשמישהו שואל "איפה X" או "תמצא לי X על המפה"
+- השתמש ב-show_directions כשמישהו שואל "תנווט מ-X ל-Y" או "תראה לי דרך"
 - השתמש ב-add_document כשמשתמש שולח אישור הזמנה, אימייל הזמנה, או מבקש לשמור מסמך. חלץ את כל הפרטים: שם, קטגוריה, מיקום, מספר אישור, תאריכים, עלות
 
 ## חוקים חשובים לשימוש ב-search_email
@@ -495,6 +561,67 @@ const TOOLS = [
           },
         },
         required: ['title', 'category'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'search_place',
+      description:
+        'Search for a place on the map and show it to the user. Use when user asks "איפה X", "תמצא X על המפה", "where is X". Works for any location, attraction, or address.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          query: { type: 'string', description: 'Place name or address to search' },
+          lat: { type: 'number', description: 'Optional hint latitude near the trip route' },
+          lng: { type: 'number', description: 'Optional hint longitude near the trip route' },
+        },
+        required: ['query'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'show_directions',
+      description:
+        'Show driving directions between two points on the map. Use when user asks "תנווט מ-X ל-Y", "כיצד מגיעים מ-X ל-Y", "show me the route from X to Y".',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          from: { type: 'string', description: 'Origin location name' },
+          to: { type: 'string', description: 'Destination location name' },
+          from_lat: { type: 'number' },
+          from_lng: { type: 'number' },
+          to_lat: { type: 'number' },
+          to_lng: { type: 'number' },
+        },
+        required: ['from', 'to'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'add_to_itinerary',
+      description:
+        'Add a discovered place or attraction to the trip itinerary on a specific day. Use when user says "תוסיף את X ליום Y" after finding a place via search_place.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          day_id: { type: 'string', description: '"day-1" through "day-21"' },
+          title: { type: 'string', description: 'Place or activity name' },
+          description: { type: 'string' },
+          lat: { type: 'number' },
+          lng: { type: 'number' },
+          location: { type: 'string', description: 'Human-readable address or location' },
+          category: {
+            type: 'string',
+            enum: ['activity', 'food', 'drive', 'camp', 'photo_op', 'shopping', 'attraction'],
+          },
+        },
+        required: ['day_id', 'title'],
       },
     },
   },

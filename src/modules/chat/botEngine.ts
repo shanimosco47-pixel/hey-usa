@@ -7,6 +7,7 @@ import type { FamilyMemberId } from '@/lib/types'
 import { EXPENSE_CATEGORIES, FAMILY_MEMBERS } from '@/constants'
 import { convertCurrency } from '@/lib/currency'
 import { retryWithBackoff } from '@/lib/retry'
+import { ITINERARY_DAYS } from '@/data/itinerary'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
@@ -208,6 +209,19 @@ export function parseActions(message: string): MotiAction[] {
         actions.push({ type: 'UPDATE_ITINERARY_DAY_NOTES', dayId, notes })
         return actions
       }
+    }
+  }
+
+  // ── Daily plan request ────────────────────────────────────────────
+  // "מה התכנית ליום 3" / "יום 5 מה עושים" / "תראה לי יום 7" / "מה ביום 10?"
+  const dailyPlanMatch = lower.match(
+    /(?:(?:מה\s+(?:התכנית|קורה|עושים|יש|ביום)\s*ל?|תכנית\s+ל|מה\s+יש\s+ב|תראה\s+לי)\s*(?:יום\s+)?|יום\s+)(\d+)/,
+  )
+  if (dailyPlanMatch) {
+    const dayNumber = Number(dailyPlanMatch[1])
+    if (dayNumber >= 1 && dayNumber <= 21) {
+      actions.push({ type: 'GET_DAILY_PLAN', dayNumber })
+      return actions
     }
   }
 
@@ -797,6 +811,34 @@ async function generateActionConfirmation(actions: MotiAction[]): Promise<string
           `בוצע! הוספתי את **${action.place.title}** ל-**${action.dayId.replace('day-', 'יום ')}**. ✅\n\nתבדקו במפה ובלוח הזמנים.`,
         )
         break
+      case 'GET_DAILY_PLAN': {
+        const day = ITINERARY_DAYS[action.dayNumber - 1]
+        if (day) {
+          const stopsList = day.stops
+            .filter((s) => s.category !== 'drive')
+            .map((s) => {
+              const emoji =
+                s.category === 'attraction'
+                  ? '🏔️'
+                  : s.category === 'camp'
+                    ? '⛺'
+                    : s.category === 'food'
+                      ? '🍽️'
+                      : '🎯'
+              return `${emoji} ${s.start_time ? `${s.start_time} — ` : ''}**${s.title}**${s.description ? `\n   ${s.description}` : ''}`
+            })
+            .join('\n')
+          parts.push(
+            `📅 **יום ${action.dayNumber} — ${day.title}**\n` +
+              `📍 ${day.city} | 🗓️ ${new Date(day.date).toLocaleDateString('he-IL', { weekday: 'long', day: 'numeric', month: 'long' })}\n\n` +
+              `${stopsList}\n\n` +
+              (day.notes ? `💡 *${day.notes}*` : ''),
+          )
+        } else {
+          parts.push(`לא מצאתי תכנית ליום ${action.dayNumber}. הטיול הוא 21 יום (ימים 1-21).`)
+        }
+        break
+      }
     }
   }
 
@@ -808,6 +850,30 @@ async function generateActionConfirmation(actions: MotiAction[]): Promise<string
 import { findDriveTime, formatDuration, formatDistance } from '@/data/driveTimes'
 
 function detectCard(text: string, actions: MotiAction[]): MessageCard | undefined {
+  // Check for daily plan actions → ItineraryCard
+  for (const action of actions) {
+    if ('type' in action && action.type === 'GET_DAILY_PLAN') {
+      const a = action as { type: 'GET_DAILY_PLAN'; dayNumber: number }
+      const day = ITINERARY_DAYS[a.dayNumber - 1]
+      if (day) {
+        return {
+          type: 'itinerary',
+          data: {
+            dayId: day.id,
+            dayNumber: a.dayNumber,
+            title: day.title,
+            date: day.date,
+            stops: day.stops.map((s) => ({
+              title: s.title,
+              time: s.start_time,
+              category: s.category,
+            })),
+          },
+        }
+      }
+    }
+  }
+
   // Check for drive time actions
   for (const action of actions) {
     if ('type' in action && action.type === 'ESTIMATE_DRIVE_TIME') {
@@ -870,6 +936,13 @@ function detectQuickActions(_text: string, actions: MotiAction[]): string[] | un
       case 'TOGGLE_PACKING_ITEM':
         quickActions.push('מה עוד חסר לארוז?')
         break
+      case 'GET_DAILY_PLAN': {
+        const a = action as { type: 'GET_DAILY_PLAN'; dayNumber: number }
+        if (a.dayNumber > 1) quickActions.push(`מה התכנית ליום ${a.dayNumber - 1}?`)
+        if (a.dayNumber < 21) quickActions.push(`מה התכנית ליום ${a.dayNumber + 1}?`)
+        quickActions.push('הצג מסלול מלא')
+        break
+      }
     }
   }
 
@@ -1180,21 +1253,209 @@ const rules: MatchRule[] = [
       `אני **מוטי** 🤖 — יועץ הטיולים הציני שלכם, מופעל על ידי AI.\n\n` +
       `אני מכיר את הטיול שלכם בע"פ: ${TRIP.dates}, ${TRIP.family}, מסלול מלא ברחבי ארה"ב.\n\n` +
       `תשאלו אותי על:\n` +
-      `• ✈️ טיסות ומסלול\n` +
+      `• ✈️ טיסות ומסלול ("מה התכנית ליום 5?")\n` +
       `• 🚐 קרוואן ונהיגה\n` +
       `• 💰 תקציב\n` +
       `• 📋 ביטוח ומסמכים\n` +
-      `• 🏞️ פארקים לאומיים\n` +
-      `• 🎢 דיסנילנד ואטרקציות\n` +
+      `• 🏞️ פארקים לאומיים (ילוסטון, זאיון, יוסמיטי, ברייס, גרנד טיטון)\n` +
+      `• 🐻 בטיחות חיות בר\n` +
+      `• ⛰️ גובה ובריאות\n` +
       `• 🧳 אריזה\n` +
       `• 🍔 אוכל\n` +
+      `• 🌤️ מזג אוויר\n` +
       `• או **כל שאלה אחרת** — אני AI, אני יודע הכל! (כמעט.)\n\n` +
-      `🔧 **חדש! אני יכול גם לשנות דברים באתר:**\n` +
+      `🔧 **אני יכול גם לשנות דברים באתר:**\n` +
+      `• "מה התכנית ליום 7?" → כרטיס מסלול ויזואלי\n` +
       `• "עדכן תקציב ביטוח ל-3000"\n` +
-      `• "שנה תקציב כולל ל-60000"\n` +
       `• "תוסיף עצירה ביום 5: ביקור במוזיאון"\n` +
-      `• "תוסיף הערה ליום 3: לקחת מים"\n\n` +
+      `• "כמה זמן נסיעה מוגאס ליוסמיטי?"\n\n` +
       `ציני אבל מדויק. ולפחות לא משעמם. 😏`,
+  },
+  {
+    keywords: ['גרנד טיטון', 'grand teton', "ג'קסון", 'jackson', 'jenny lake', "ג'ני לייק"],
+    response: () =>
+      wrap(
+        `גרנד טיטון וג'קסון — **15-16 בספטמבר** (2 ימים).\n\n` +
+          `הפארק שאנשים תמיד מדלגים עליו בדרך לילוסטון. אל תעשו את הטעות הזו.\n\n` +
+          `**חובה:**\n` +
+          `• **Jenny Lake** — אגם עם נוף מטורף. שייט לעצירה הראשית + הליכה ל-Hidden Falls (קל, מתאים לילדים)\n` +
+          `• **Snake River Overlook** — נקודת הצילום שאנסל אדמס הנציח. עצירת חובה\n` +
+          `• **Oxbow Bend** — שקיעה עם השתקפות הטיטון. אחד מהדברים הכי יפים שתראו\n\n` +
+          `**ג'קסון העיירה:**\n` +
+          `• כיכר הקרניים (Antler Arch) — צילום בחינם\n` +
+          `• National Museum of Wildlife Art — מדהים, מתאים לכל הגילים\n` +
+          `• אוכל: The Bunnery לארוחת בוקר, Snake River Brewing לבירה של האבא\n\n` +
+          `💡 כרטיס $35 לילוסטון מכסה גם כניסה לגרנד טיטון!`,
+      ),
+  },
+  {
+    keywords: ['ממות', 'mammoth', 'mammoth lakes', 'hot creek', 'tioga'],
+    response: () =>
+      wrap(
+        `Mammoth Lakes — **23 בספטמבר** (יום אחד בדרך ליוסמיטי).\n\n` +
+          `עיירת סקי קטנה ב-2,400 מ' — עם נוף וולקני מטורף. בספטמבר היא שקטה ומושלמת.\n\n` +
+          `**שווה לעצור:**\n` +
+          `• **Hot Creek Geological Site** — מעיינות חמים ופעילים, ירוקים ועשנים. חינם! (אסור להיכנס למים)\n` +
+          `• **Devils Postpile National Monument** — עמודי בזלת מושלמים, מסלול קצר ומרהיב\n` +
+          `• **Rainbow Falls** — מפל 30 מ' עם קשת בצבעי הצהריים\n\n` +
+          `💡 למחרת עולים ל-**Tioga Pass** (3,031 מ'!) לכניסה ליוסמיטי. לוודא שהכביש פתוח!`,
+      ),
+  },
+  {
+    keywords: ['דנבר', 'denver', 'בוזמן', 'bozeman', 'מונטנה', 'montana'],
+    response: () =>
+      wrap(
+        `**דנבר** — יום 1 (10/9): נחיתה בלבד!\n` +
+          `נחיתה בסביבות 20:00, ישר למלון ליד השדה. אל תנסו לצאת לעיר — יהיה עייפות טיסה.\n\n` +
+          `💡 דנבר בגובה 1,600 מ' — יש הרגשה של מחסור חמצן בהתחלה. שתו מים, לא אלכוהול.\n\n` +
+          `---\n\n` +
+          `**בוזמן** — יום 2 (11/9): הכי חשוב!\n` +
+          `• **08:00–09:47** — טיסה פנימית DEN → BZN\n` +
+          `• **13:00** — איסוף קרוואן ב-Cruise America, 69 New Ventures Drive\n` +
+          `  ↳ תציגו כרטיס אשראי + רישיון נהיגה. פיקדון $500. ביטוח מורחב $449\n` +
+          `• **16:00** — קניות ב-Walmart (מים, אוכל, חטיפים לדרך)\n` +
+          `• **17:30** — נסיעה לגרדינר (שער ילוסטון, ~1.5 שעות)\n\n` +
+          `🐊 Museum of the Rockies בבוזמן — מוזיאון דינוזאורים מהטובים בארה"ב, אם יש זמן.`,
+      ),
+  },
+  {
+    keywords: ['דוב', 'דובים', 'bear', 'bears', 'בטיחות', 'חיות בר', 'wildlife', 'ביזון', 'bison'],
+    response: () =>
+      wrap(
+        `בטיחות חיות בר — הקשיבו, זה חשוב!\n\n` +
+          `**🐻 דובים (ילוסטון, יוסמיטי):**\n` +
+          `• מרחק מינימום: **100 יארד** (91 מ') — ואם הדוב רואה אתכם, אתם קרובים מדי\n` +
+          `• **Bear spray** — קנו בחנות הציוד בכניסה לפארק. לא ג'וק\n` +
+          `• אוכל בקרוואן בלבד, לא בחוץ. ריח מזון מושך דובים\n` +
+          `• ביוסמיטי: **bear canisters** — חובה לסגור כל אוכל בפחי המתכת בחניון\n` +
+          `• אם נתקלים בדוב: לא לברוח. לעמוד זקוף, לדבר בשקט, להתרחק לאט לאחור\n\n` +
+          `**🦬 ביזונים (ילוסטון):**\n` +
+          `• מרחק מינימום: **25 יארד** (23 מ')\n` +
+          `• ביזון נראה עצלן — אבל הוא יכול לרוץ 50 קמ"ש. לא להתקרב לצילום!\n` +
+          `• אם עדר חוצה את הכביש — כבו מנוע, חכו. זה לוקח זמן\n\n` +
+          `**🐺 זאבים (ילוסטון, עמק לאמאר):**\n` +
+          `• נדירים ויפים. תביאו משקפת. שמרו מרחק כמו מדובים`,
+      ),
+  },
+  {
+    keywords: ['גובה', 'altitude', 'בגובה', 'חמצן', 'altitude sickness', 'כאב ראש', 'בחילה'],
+    response: () =>
+      wrap(
+        `גובה — הדבר שכולם שוכחים לתכנן בשבילו!\n\n` +
+          `**גבהים במסלול שלכם:**\n` +
+          `• ברייס קניון: **2,400 מ'** — בקרים קרים, כאבי ראש אפשריים\n` +
+          `• יוסמיטי Tioga Pass: **3,031 מ'** — גבוה מאוד! להאט קצב ביום הראשון\n` +
+          `• Mammoth Lakes: **2,400 מ'**\n` +
+          `• דנבר: 1,600 מ' (הגוף מתחיל להסתגל כבר שם)\n\n` +
+          `**תסמיני גובה:**\n` +
+          `• כאב ראש, עייפות, בחילה קלה — נורמלי ביום הראשון\n` +
+          `• **מה לעשות:** שתו **3-4 ליטר מים** ביום, הורידו קפה ואלכוהול, קחו Ibuprofen\n` +
+          `• **מה לא לעשות:** לא לעלות לגובה נוסף אם יש סחרחורת חמורה\n\n` +
+          `💊 **Acetazolamide (Diamox)** — תרופת מרשם שעוזרת. שאלו רופא לפני הטיול אם אחד מהילדים רגיש`,
+      ),
+  },
+  {
+    keywords: ['מזג אוויר', 'weather', 'טמפרטורה', 'קר', 'חם', 'גשם', 'ספטמבר'],
+    response: () =>
+      wrap(
+        `מזג אוויר בספטמבר לאורך המסלול:\n\n` +
+          `🌡️ **ילוסטון (12-14/9):** 15-25°C ביום, 2-8°C בלילה. **קר בלילה!** שכבות חמות\n` +
+          `🌡️ **גרנד טיטון/ג'קסון (15-16/9):** 18-25°C ביום, 5°C בלילה. יפהפה\n` +
+          `🌡️ **ברייס קניון (18/9):** 20-25°C ביום, 3-10°C בלילה. שמש חזקה, הגנה חובה\n` +
+          `🌡️ **זאיון (19-20/9):** 28-33°C ביום. **חם!** אל תצאו להייק בין 11:00-15:00\n` +
+          `🌡️ **לאס וגאס (21-22/9):** **35°C+**. זה חם מאוד. פעילות רק בבוקר מוקדם או אחרי 18:00\n` +
+          `🌡️ **יוסמיטי (24-26/9):** 20-28°C ביום, 8-12°C בלילה. מושלם לטיול!\n` +
+          `🌡️ **סן פרנסיסקו (28-30/9):** 14-20°C + ערפל. קרה יחסית, תביאו ג'קט!\n\n` +
+          `💡 ספטמבר זה חלון הזמן הכי טוב לטיול הזה. לא קיץ רותח, לא חורף.`,
+      ),
+  },
+  {
+    keywords: [
+      'כרטיס לאומי',
+      'america the beautiful',
+      'national park pass',
+      'כרטיס פארק',
+      'annual pass',
+    ],
+    response: () =>
+      wrap(
+        `**America the Beautiful Pass — האם כדאי?**\n\n` +
+          `מחיר: **$80** לשנה. מכסה **כל הפארקים הלאומיים בארה"ב** לרכב אחד.\n\n` +
+          `**הכרטיסים שלכם:**\n` +
+          `• ילוסטון: $35 × 1 = $35\n` +
+          `• גרנד טיטון: מכוסה בכרטיס ילוסטון (תקף 7 ימים)\n` +
+          `• ברייס קניון: $35\n` +
+          `• זאיון: $35\n` +
+          `• יוסמיטי: $35\n\n` +
+          `**סה"כ בלי הכרטיס:** $140 ← **בלי הכרטיס יוצא יותר!**\n\n` +
+          `✅ **מסקנה:** קנו את ה-America the Beautiful Pass! חוסך $60. קונים בכניסה לפארק הראשון.`,
+      ),
+  },
+  {
+    keywords: [
+      'סים',
+      'sim',
+      'כיסוי סלולרי',
+      'אינטרנט',
+      'wifi',
+      'cellular',
+      'אורנג',
+      't-mobile',
+      'verizon',
+    ],
+    response: () =>
+      wrap(
+        `כיסוי סלולרי ו-SIM בארה"ב:\n\n` +
+          `**מה מומלץ:** SIM אמריקאי מקומי — **T-Mobile** הכי טוב לטיולי כבישים (כיסוי נרחב)\n` +
+          `• eSIM (לסמארטפון תואם): קונים אונליין לפני הטיסה, מפעילים בנחיתה\n` +
+          `• פיזי: קנו ב-Walmart עם הגעה ל-Bozeman. ~$30-50 ל-30 ימים עם 15GB\n\n` +
+          `**כיסוי לאורך המסלול:**\n` +
+          `• דנבר / בוזמן / ג'קסון / וגאס / SF: ✅ מלא\n` +
+          `• **ילוסטון:** ⚠️ מאוד מוגבל — הורידו מפות offline! (Google Maps → Download area)\n` +
+          `• **ברייס קניון:** ⚠️ חלקי\n` +
+          `• **זאיון:** ⚠️ בעמק — חלש. ב-Springdale יש WiFi\n` +
+          `• **יוסמיטי:** ⚠️ ב-Yosemite Valley יש קצת, ב-Tioga — אפס\n\n` +
+          `📵 **חוק הברזל:** הורידו maps offline לכל הפארקים לפני שיוצאים מהעיר!`,
+      ),
+  },
+  {
+    keywords: ['חירום', 'emergency', 'קונסוליה', 'שגרירות', 'embassy', 'בית חולים', 'hospital'],
+    response: () =>
+      wrap(
+        `מספרי חירום וקונטקטים חשובים:\n\n` +
+          `🆘 **חירום בארה"ב:** 911\n` +
+          `🏥 **רפואי:** 911 או Urgent Care (זול יותר מ-ER)\n\n` +
+          `🇮🇱 **שגרירות ישראל בוושינגטון:** +1-202-364-5500\n` +
+          `🇮🇱 **קונסוליה ישראלית בלוס אנג'לס:** +1-323-852-5500\n` +
+          `   (הקרובה למסלולכם)\n` +
+          `🇮🇱 **קונסוליה ישראלית בסן פרנסיסקו:** +1-415-844-7500\n\n` +
+          `🔐 **מה לשמור בנייד:**\n` +
+          `• מספר פוליסת ביטוח + טלפון חירום של חברת הביטוח\n` +
+          `• מספרי דרכונים של כולם\n` +
+          `• תמונה של כרטיסי האשראי (פנים וגב)\n` +
+          `• פרטי קרוואן: Cruise America: 800-671-8042\n\n` +
+          `💡 Urgent Care = מרפאה ללא תיאום מראש. עולה $100-200, לא $5,000 כמו ER.`,
+      ),
+  },
+  {
+    keywords: ['טיפ', 'tips', 'עצה', 'לפני הטיסה', 'לפני הנסיעה', 'להכין'],
+    response: () =>
+      wrap(
+        `טיפים לפני הטיול — ממוטי עם אהבה:\n\n` +
+          `**📱 אפליקציות חובה להוריד (לפני הטיסה):**\n` +
+          `• Google Maps offline — הורידו כל מדינה בנפרד (MT, WY, UT, NV, CA)\n` +
+          `• iOverlander / Campendium — מידע על קמפינגים מהשטח\n` +
+          `• GasBuddy — תחנות דלק זולות\n` +
+          `• Yellowstone NPS / Recreation.gov — הזמנות פארקים\n\n` +
+          `**💳 כסף:**\n` +
+          `• כרטיסי אשראי ללא עמלת מט"ח (כרטיס ישראלי רגיל לוקח 3%!)\n` +
+          `• מזומן: $200-300 לחירום. רוב המקומות מקבלים כרטיס\n` +
+          `• Tip בארה"ב: 18-22% במסעדות. לא אופציונלי — זה השכר\n\n` +
+          `**🔋 ציוד אלקטרוני:**\n` +
+          `• פאוור בנק גדול (20,000mAh+) לאזורים ללא חשמל\n` +
+          `• מתאמי Type A/B (אמריקאי)\n` +
+          `• מטען מולטי-פורט לקרוואן`,
+      ),
   },
 ]
 
