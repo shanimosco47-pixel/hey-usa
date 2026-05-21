@@ -1,6 +1,7 @@
 // Supabase Edge Function — Moti AI Chat Proxy
 // Calls OpenAI API with Moti's personality and trip context
 // Uses OpenAI Function Calling for structured actions
+// Supports multi-turn read tools for on-demand data fetching
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
 
@@ -64,6 +65,22 @@ const SYSTEM_PROMPT = `אתה מוטי — יועץ טיולים ציני, חכ�
 
 ### מצב נוכחי של הנתונים
 {{APP_CONTEXT}}
+
+## יכולת סריקה חכמה
+יש לך גישה לנתוני האפליקציה בזמן אמת דרך כלי קריאה:
+- **get_tasks** — סרוק את רשימת המשימות (אפשר לסנן לפי סטטוס, עדיפות, קבוצה)
+- **get_packing_list** — סרוק את רשימת האריזה (אפשר לסנן לפי is_packed, קטגוריה, למי שייך)
+- **get_documents** — סרוק את מסמכי הטיול (אפשר לסנן לפי קטגוריה)
+- **get_expenses** — סרוק את ההוצאות (אפשר לסנן לפי קטגוריה)
+- **get_notes** — סרוק את הפתקים (אפשר לסנן לפי מיקום)
+
+**מתי להשתמש בכלי הקריאה:**
+- כששואלים "מה עוד לא ארזתי?" → get_packing_list עם is_packed=false
+- כששואלים "איזה משימות נשארו?" → get_tasks עם status=todo
+- כששואלים "יש לי כבר הזמנה לX?" → get_documents
+- כששואלים על פרטי הוצאות ספציפיות → get_expenses
+- כששואלים "מה כתבתי על ילוסטון?" → get_notes עם location_id=yellowstone
+- **אל** תשתמש בכלי קריאה לשאלות שכבר נענות מהסיכום שמעליך (תקציב כולל, ספירות)
 
 ## האישיות שלך
 - ציני אבל חם ואוהב — הציניות באה ממקום טוב
@@ -236,7 +253,275 @@ interface ChatMessage {
   content: string
 }
 
+// ─── Read-only tools (executed server-side in the edge function) ──────────────
+
+const READ_TOOL_NAMES = new Set([
+  'get_tasks',
+  'get_packing_list',
+  'get_documents',
+  'get_expenses',
+  'get_notes',
+])
+
+async function executeReadTool(toolName: string, args: Record<string, unknown>): Promise<string> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+
+  if (!supabaseUrl || !supabaseKey) {
+    return JSON.stringify({ error: 'אין גישה לנתונים כרגע — נסה שוב מאוחר יותר' })
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${supabaseKey}`,
+    apikey: supabaseKey,
+  }
+
+  let tablePath = ''
+  const params = new URLSearchParams()
+
+  switch (toolName) {
+    case 'get_tasks': {
+      tablePath = 'tasks'
+      params.set('select', 'id,title,description,status,priority,group,assigned_to,due_date')
+      params.set('order', 'sort_order.asc')
+      if (args.status) params.set('status', `eq.${args.status}`)
+      if (args.priority) params.set('priority', `eq.${args.priority}`)
+      if (args.group) params.set('group', `eq.${args.group}`)
+      break
+    }
+    case 'get_packing_list': {
+      tablePath = 'packing_items'
+      params.set('select', 'id,name,category,assigned_to,is_packed,quantity')
+      if (args.is_packed !== undefined) params.set('is_packed', `eq.${args.is_packed}`)
+      if (args.category) params.set('category', `eq.${args.category}`)
+      if (args.assigned_to) params.set('assigned_to', `eq.${args.assigned_to}`)
+      break
+    }
+    case 'get_documents': {
+      tablePath = 'documents'
+      params.set('select', 'id,title,category,location_id,notes,visit_date,status')
+      params.set('order', 'created_at.desc')
+      if (args.category) params.set('category', `eq.${args.category}`)
+      break
+    }
+    case 'get_expenses': {
+      tablePath = 'expenses'
+      params.set('select', 'id,title,amount,category,paid_by,date')
+      params.set('order', 'created_at.desc')
+      params.set('limit', '50')
+      if (args.category) params.set('category', `eq.${args.category}`)
+      break
+    }
+    case 'get_notes': {
+      tablePath = 'location_notes'
+      params.set('select', 'id,text,author,color,location_id,pinned')
+      params.set('order', 'created_at.desc')
+      if (args.location_id) params.set('location_id', `eq.${args.location_id}`)
+      break
+    }
+    default:
+      return JSON.stringify({ error: `כלי לא מוכר: ${toolName}` })
+  }
+
+  const url = `${supabaseUrl}/rest/v1/${tablePath}?${params.toString()}`
+
+  try {
+    const res = await fetch(url, { headers })
+    if (!res.ok) {
+      const errText = await res.text()
+      console.error(`[moti-chat] read tool ${toolName} failed: ${res.status} ${errText}`)
+      return JSON.stringify({ error: `שגיאה בשליפת נתונים (${res.status})` })
+    }
+    const data = await res.json()
+    if (!Array.isArray(data) || data.length === 0) {
+      return JSON.stringify({ empty: true, message: 'לא נמצאו נתונים' })
+    }
+    return JSON.stringify(data)
+  } catch (err) {
+    console.error(`[moti-chat] read tool ${toolName} exception:`, err)
+    return JSON.stringify({ error: 'שגיאת רשת בשליפת נתונים' })
+  }
+}
+
+// ─── OpenAI helper ────────────────────────────────────────────────────────────
+
+type OpenAIMessage =
+  | { role: 'system' | 'user' | 'assistant'; content: string; tool_calls?: unknown[] }
+  | { role: 'tool'; tool_call_id: string; content: string }
+
+async function callOpenAI(
+  apiKey: string,
+  messages: OpenAIMessage[],
+  options: { maxTokens?: number; withTools?: boolean },
+) {
+  const body: Record<string, unknown> = {
+    model: 'gpt-4o',
+    max_tokens: options.maxTokens ?? 2048,
+    messages,
+  }
+  if (options.withTools) {
+    body.tools = TOOLS
+    body.tool_choice = 'auto'
+  }
+
+  const response = await fetch(OPENAI_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + apiKey,
+    },
+    body: JSON.stringify(body),
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('OpenAI API error:', response.status, errorText)
+    throw new Error(`OpenAI error ${response.status}`)
+  }
+
+  return response.json()
+}
+
+// ─── Tool definitions ─────────────────────────────────────────────────────────
+
 const TOOLS = [
+  // ── Read tools (executed server-side, return data to GPT-4o) ──────────────
+  {
+    type: 'function' as const,
+    function: {
+      name: 'get_tasks',
+      description:
+        'שלוף את רשימת המשימות מהאפליקציה. השתמש כשמישהו שואל "מה המשימות שנשארו?", "מה עוד צריך לעשות?", "איזה משימות דחופות?". אפשר לסנן לפי סטטוס, עדיפות או קבוצה.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['todo', 'in_progress', 'done'],
+            description: 'סינון לפי סטטוס. השמט אם רוצים הכל.',
+          },
+          priority: {
+            type: 'string',
+            enum: ['low', 'medium', 'high', 'urgent'],
+            description: 'סינון לפי עדיפות.',
+          },
+          group: {
+            type: 'string',
+            enum: ['pre_trip', 'during_trip', 'post_trip'],
+            description: 'סינון לפי שלב הטיול.',
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'get_packing_list',
+      description:
+        'שלוף את רשימת האריזה. השתמש כשמישהו שואל "מה עוד לא ארזתי?", "מה ארזתי כבר?", "מה חסר באריזה?". אפשר לסנן לפי האם נארז, קטגוריה, או למי שייך.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          is_packed: {
+            type: 'boolean',
+            description: 'true = רק מה שנארז, false = רק מה שלא נארז. השמט אם רוצים הכל.',
+          },
+          category: {
+            type: 'string',
+            description: 'קטגוריה כמו "ביגוד", "תרופות", "ציוד טכנולוגי".',
+          },
+          assigned_to: {
+            type: 'string',
+            enum: ['aba', 'ima', 'kid1', 'kid2', 'kid3'],
+            description: 'סינון לפי בן משפחה.',
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'get_documents',
+      description:
+        'שלוף את מסמכי הטיול. השתמש כשמישהו שואל "אילו מסמכים יש לנו?", "יש לי הזמנה ל-X?", "מה המסמכים שנשמרו?". אפשר לסנן לפי קטגוריה.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          category: {
+            type: 'string',
+            enum: [
+              'accommodation',
+              'flights',
+              'car_rental',
+              'attractions',
+              'insurance',
+              'passport',
+              'visa',
+              'medical',
+              'other',
+            ],
+            description: 'סינון לפי קטגוריה.',
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'get_expenses',
+      description:
+        'שלוף את רשימת ההוצאות. השתמש כשמישהו שואל על הוצאות ספציפיות, "מה שילמנו על X?", "תראה לי את ההוצאות". אפשר לסנן לפי קטגוריה.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          category: {
+            type: 'string',
+            enum: [
+              'flights',
+              'accommodation',
+              'food',
+              'transport',
+              'attractions',
+              'shopping',
+              'communication',
+              'insurance',
+              'other',
+            ],
+            description: 'סינון לפי קטגוריה.',
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'get_notes',
+      description:
+        'שלוף את הפתקים. השתמש כשמישהו שואל "מה כתבנו על X?", "יש פתקים על ילוסטון?", "תראה לי את הפתקים". אפשר לסנן לפי מיקום.',
+      parameters: {
+        type: 'object' as const,
+        properties: {
+          location_id: {
+            type: 'string',
+            description:
+              'מזהה מיקום: denver, bozeman, yellowstone, grand-teton, jackson, bryce-canyon, zion, las-vegas, mammoth-lakes, yosemite, san-francisco',
+          },
+        },
+        required: [],
+      },
+    },
+  },
+
+  // ── Write tools (returned as actions to the client) ───────────────────────
   {
     type: 'function' as const,
     function: {
@@ -673,46 +958,80 @@ Deno.serve(async (req) => {
       ? 'אתה עוזר שמסכם שיחות. סכם בקצרה ב-3-4 משפטים בעברית.'
       : systemPrompt
 
-    const response = await fetch(OPENAI_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + apiKey,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        max_tokens: summarize ? 256 : 2048,
-        messages: [{ role: 'system', content: systemMessage }, ...messages],
-        ...(summarize ? {} : { tools: TOOLS, tool_choice: 'auto' }),
-      }),
+    // Build initial message array
+    const openAiMessages: OpenAIMessage[] = [
+      { role: 'system', content: systemMessage },
+      ...messages,
+    ]
+
+    // ── First call to GPT-4o ──────────────────────────────────────────────────
+    const data1 = await callOpenAI(apiKey, openAiMessages, {
+      maxTokens: summarize ? 256 : 2048,
+      withTools: !summarize,
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('OpenAI API error:', response.status, errorText)
-      return new Response(JSON.stringify({ error: 'AI service error', status: response.status }), {
-        status: 502,
-        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
-      })
-    }
-
-    const data = await response.json()
-    const choice = data.choices?.[0]?.message
-
-    let text = choice?.content?.trim() || ''
+    const choice1 = data1.choices?.[0]?.message
+    let text = choice1?.content?.trim() || ''
     const actions: Array<{ tool: string; input: Record<string, unknown> }> = []
 
-    if (choice?.tool_calls) {
-      for (const toolCall of choice.tool_calls) {
-        if (toolCall.type === 'function') {
-          actions.push({
-            tool: toolCall.function.name,
-            input: JSON.parse(toolCall.function.arguments),
-          })
+    // ── Handle tool calls ─────────────────────────────────────────────────────
+    if (choice1?.tool_calls && choice1.tool_calls.length > 0) {
+      const readCalls: Array<{ id: string; name: string; args: Record<string, unknown> }> = []
+
+      for (const toolCall of choice1.tool_calls) {
+        if (toolCall.type !== 'function') continue
+        const name = toolCall.function.name
+        const args = JSON.parse(toolCall.function.arguments)
+
+        if (READ_TOOL_NAMES.has(name)) {
+          readCalls.push({ id: toolCall.id, name, args })
+        } else {
+          actions.push({ tool: name, input: args })
         }
+      }
+
+      if (readCalls.length > 0) {
+        // Execute all read tools in parallel
+        const toolResults = await Promise.all(
+          readCalls.map(async ({ id, name, args }) => ({
+            role: 'tool' as const,
+            tool_call_id: id,
+            content: await executeReadTool(name, args),
+          })),
+        )
+
+        // Provide stub results for any write tools called alongside reads
+        // (OpenAI requires all tool_calls to have a matching tool result)
+        const writeStubs = choice1.tool_calls
+          .filter((tc: { function: { name: string } }) => !READ_TOOL_NAMES.has(tc.function.name))
+          .map((tc: { id: string }) => ({
+            role: 'tool' as const,
+            tool_call_id: tc.id,
+            content: JSON.stringify({ status: 'executed' }),
+          }))
+
+        // ── Second call: GPT-4o sees the data and generates a response ────────
+        const messagesWithResults: OpenAIMessage[] = [
+          ...openAiMessages,
+          {
+            role: 'assistant',
+            content: choice1.content || '',
+            tool_calls: choice1.tool_calls,
+          },
+          ...toolResults,
+          ...writeStubs,
+        ]
+
+        const data2 = await callOpenAI(apiKey, messagesWithResults, {
+          maxTokens: 2048,
+          withTools: false, // no more tool calls in the second turn
+        })
+
+        text = data2.choices?.[0]?.message?.content?.trim() || ''
       }
     }
 
+    // ── Fallback text for write-only tool calls ────────────────────────────────
     if (!text.trim() && actions.length > 0) {
       const toolNames = actions.map((a) => a.tool)
       if (toolNames.includes('search_email')) {
