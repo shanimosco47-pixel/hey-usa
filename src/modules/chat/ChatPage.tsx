@@ -304,7 +304,7 @@ export default function ChatPage() {
 
     async function loadHistory() {
       try {
-        const history = await db.fetchChatMessages(200)
+        const history = await db.fetchRecentChatMessages(500)
 
         if (cancelled) return
 
