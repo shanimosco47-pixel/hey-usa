@@ -283,20 +283,28 @@ export function parseActions(message: string): MotiAction[] {
   }
 
   // ── Drive time estimation ─────────────────────────────────────────
-  // Broad patterns: "כמה זמן מX לY", "נסיעה מX לY", "מרחק בין X ל Y", "X to Y drive"
-  const drivePatterns = [
-    /(?:כמה\s+(?:זמן|שעות)|כמה\s+רחוק|מרחק|נסיעה|drive|driving)\s*(?:נסיעה\s*)?(?:מ|מ-|from)\s*(.+?)\s+(?:ל-?|עד\s+|to\s+)\s*(.+?)[\s?!.,]*$/,
-    /(?:מ|מ-)(.+?)\s+(?:ל-?|עד)\s*(.+?)[\s?!.,]*(?:כמה|נסיעה|זמן|מרחק|drive)/,
-    /(?:בין)\s+(.+?)\s+(?:ל-?|לבין)\s*(.+?)[\s?!.,]*(?:כמה|נסיעה|זמן|מרחק)?/,
-  ]
-  for (const pat of drivePatterns) {
-    const m = lower.match(pat)
-    if (m) {
-      const from = m[1].replace(/^[-\s]+/, '').trim()
-      const to = m[2].replace(/^[-\s]+/, '').trim()
-      if (from.length > 1 && to.length > 1) {
-        actions.push({ type: 'ESTIMATE_DRIVE_TIME', from, to })
-        return actions
+  // Guard: only attempt extraction when the message contains an explicit drive-intent keyword.
+  // Without this guard, /(?:מ|מ-)/ false-matches Hebrew word-internal prefixes (e.g. "קמפינג").
+  const hasDriveIntent =
+    /(?:כמה\s+(?:זמן|שעות|רחוק)|מרחק|נסיעה|drive|driving|שעות\s+נסיעה|how\s+far|how\s+long)/.test(
+      lower,
+    )
+  if (hasDriveIntent) {
+    const drivePatterns = [
+      /(?:כמה\s+(?:זמן|שעות)|כמה\s+רחוק|מרחק|נסיעה|drive|driving)\s*(?:נסיעה\s*)?(?:מ|מ-|from)\s*(.+?)\s+(?:ל-?|עד\s+|to\s+)\s*(.+?)[\s?!.,]*$/,
+      // "מ" must be at start-of-string or preceded by whitespace — not inside a word
+      /(?:^|\s)מ-?(.+?)\s+(?:ל-?|עד)\s*(.+?)[\s?!.,]*(?:כמה|נסיעה|זמן|מרחק|drive)/,
+      /(?:בין)\s+(.+?)\s+(?:ל-?|לבין)\s*(.+?)[\s?!.,]*(?:כמה|נסיעה|זמן|מרחק)?/,
+    ]
+    for (const pat of drivePatterns) {
+      const m = lower.match(pat)
+      if (m) {
+        const from = m[1].replace(/^[-\s]+/, '').trim()
+        const to = m[2].replace(/^[-\s]+/, '').trim()
+        if (from.length > 1 && to.length > 1) {
+          actions.push({ type: 'ESTIMATE_DRIVE_TIME', from, to })
+          return actions
+        }
       }
     }
   }
