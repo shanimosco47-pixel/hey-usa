@@ -42,6 +42,8 @@ interface UploadDialogProps {
   onOpenChange: (open: boolean) => void
   onUpload: (doc: Omit<Document, 'id' | 'created_at' | 'updated_at'>) => void
   onAddExpense?: (expense: Omit<Expense, 'id' | 'created_at'>) => void
+  initialLocationId?: string
+  initialCategory?: string
 }
 
 const categoryEntries = Object.entries(DOCUMENT_CATEGORIES)
@@ -55,13 +57,20 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: UploadDialogProps) {
+export function UploadDialog({
+  open,
+  onOpenChange,
+  onUpload,
+  onAddExpense,
+  initialLocationId,
+  initialCategory,
+}: UploadDialogProps) {
   const [title, setTitle] = useState('')
-  const [category, setCategory] = useState('')
+  const [category, setCategory] = useState(initialCategory ?? '')
   const [memberId, setMemberId] = useState('')
   const [notes, setNotes] = useState('')
   const [expiryDate, setExpiryDate] = useState('')
-  const [locationId, setLocationId] = useState('')
+  const [locationId, setLocationId] = useState(initialLocationId ?? '')
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [alsoLogExpense, setAlsoLogExpense] = useState(false)
@@ -70,6 +79,14 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
   const fileInputRef = useRef<HTMLInputElement>(null)
   const parsedBookingRef = useRef<ParsedBooking | null>(null)
   const { bookings, updateBooking } = useCampsiteBookings()
+
+  // Sync initial values when dialog opens
+  useEffect(() => {
+    if (open) {
+      if (initialLocationId) setLocationId(initialLocationId)
+      if (initialCategory) setCategory(initialCategory)
+    }
+  }, [open, initialLocationId, initialCategory])
 
   // Auto-suggest on title change
   useEffect(() => {
