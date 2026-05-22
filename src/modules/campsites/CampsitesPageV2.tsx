@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import {
@@ -14,9 +13,12 @@ import {
   DollarSign,
   Pencil,
   ExternalLink,
-  Link2,
+  Upload,
+  FileText,
+  Trash2,
 } from 'lucide-react'
-import type { CampsiteBooking, BookingStatus, AccommodationType } from '@/types'
+import type { CampsiteBooking, BookingStatus, AccommodationType, Document } from '@/types'
+import { UploadDialog } from '@/modules/documents/components/UploadDialog'
 import { useCampsiteBookings } from './hooks/useCampsiteBookings'
 import { GlassCard } from '@/components/shared/GlassCard'
 import { CrossLinks, type CrossLink } from '@/components/shared/CrossLinks'
@@ -253,11 +255,22 @@ const REGION_EMOJI: Record<string, string> = {
 function BookingCard({
   booking,
   onUpdate,
+  docs,
+  onAddDocument,
+  onDeleteDocument,
 }: {
   booking: CampsiteBooking
   onUpdate: (id: string, changes: Partial<CampsiteBooking>) => void
+  docs: Document[]
+  onAddDocument: (doc: Omit<Document, 'id' | 'created_at' | 'updated_at'>) => void
+  onDeleteDocument: (id: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [showUpload, setShowUpload] = useState(false)
+  const locationId = getLocationForArea(booking.area)?.id
+  const bookingDocs = docs.filter(
+    (d) => d.locationId === locationId && d.category === 'accommodation',
+  )
   const meta = STATUS_META[booking.status]
   const typeInfo = TYPE_ICON[booking.type] ?? TYPE_ICON.unknown
   const deadlineWarning = isWithin14Days(booking.cancellation_deadline)
@@ -384,17 +397,6 @@ function BookingCard({
             </a>
           )}
 
-          {/* Document link */}
-          {booking.document_id && (
-            <Link
-              to={`/documents?doc=${booking.document_id}`}
-              className="inline-flex items-center gap-1 text-caption text-ios-purple hover:underline font-medium"
-            >
-              <Link2 className="w-3 h-3" />
-              מסמך
-            </Link>
-          )}
-
           {/* Notes toggle */}
           {booking.notes && (
             <button
@@ -409,6 +411,61 @@ function BookingCard({
               {expanded ? 'הסתר' : 'הערות'}
             </button>
           )}
+        </div>
+
+        {/* Documents section */}
+        <div className="mt-3 pt-2 border-t border-black/[0.04]">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-caption font-semibold text-apple-secondary">מסמכים</span>
+            <button
+              onClick={() => setShowUpload(true)}
+              className="inline-flex items-center gap-1 text-caption text-ios-blue hover:text-ios-blue/70 font-medium transition-colors"
+            >
+              <Upload className="w-3 h-3" />
+              העלה
+            </button>
+          </div>
+          {bookingDocs.length > 0 ? (
+            <div className="space-y-1">
+              {bookingDocs.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="flex items-center gap-2 rounded-apple-sm bg-black/[0.02] px-2 py-1.5"
+                >
+                  <FileText className="w-3.5 h-3.5 shrink-0 text-ios-blue" />
+                  <span className="flex-1 text-caption text-apple-primary truncate">
+                    {doc.title}
+                  </span>
+                  {doc.file_url && (
+                    <a
+                      href={doc.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-caption text-ios-blue hover:underline"
+                    >
+                      פתח
+                    </a>
+                  )}
+                  <button
+                    onClick={() => onDeleteDocument(doc.id)}
+                    className="text-apple-secondary hover:text-ios-red transition-colors p-0.5"
+                    title="מחק מסמך"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-caption text-apple-tertiary">אין מסמכים</p>
+          )}
+          <UploadDialog
+            open={showUpload}
+            onOpenChange={setShowUpload}
+            onUpload={onAddDocument}
+            initialLocationId={locationId}
+            initialCategory="accommodation"
+          />
         </div>
 
         {/* Expanded notes */}
@@ -428,7 +485,7 @@ type StatusFilter = 'all' | BookingStatus
 // ── Main Page ────────────────────────────────────────────────────
 export default function CampsitesPageV2() {
   const { bookings, updateBooking, confirmedCount, totalNights } = useCampsiteBookings()
-  const { locationNotes, documents } = useAppData()
+  const { locationNotes, documents, addDocument, deleteDocument } = useAppData()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
   const timeline = useMemo(() => buildTimeline(bookings), [bookings])
@@ -593,14 +650,6 @@ export default function CampsitesPageV2() {
               icon: 'notes',
               count: noteCount,
             })
-          const docCount = documents.filter((d) => d.locationId === loc.id).length
-          if (docCount > 0)
-            regionLinks.push({
-              to: `/locations/${loc.id}`,
-              label: 'מסמכים',
-              icon: 'documents',
-              count: docCount,
-            })
           regionLinks.push({ to: '/map', label: 'מפה', icon: 'map' })
         }
         return (
@@ -616,7 +665,14 @@ export default function CampsitesPageV2() {
             {regionLinks.length > 0 && <CrossLinks links={regionLinks} className="mb-2" />}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {group.bookings.map((b) => (
-                <BookingCard key={b.id} booking={b} onUpdate={updateBooking} />
+                <BookingCard
+                  key={b.id}
+                  booking={b}
+                  onUpdate={updateBooking}
+                  docs={documents}
+                  onAddDocument={addDocument}
+                  onDeleteDocument={deleteDocument}
+                />
               ))}
             </div>
           </section>

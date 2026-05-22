@@ -47,6 +47,12 @@ export default function DocumentsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'upload' | 'visit'>('upload')
 
+  // Count accommodation docs with locationId that are shown inline in CampsitesPage
+  const hiddenAccommodationCount = useMemo(
+    () => allDocuments.filter((d) => d.category === 'accommodation' && d.locationId).length,
+    [allDocuments],
+  )
+
   const documents = useMemo(() => {
     // Filter out flight documents with dates outside the trip window
     const FLIGHT_CATS = ['flights', 'flight_booking']
@@ -59,6 +65,9 @@ export default function DocumentsPage() {
       if (!dateStr) return true
       return dateStr >= TRIP_START_DATE && dateStr <= tripWindowEndStr
     })
+
+    // Accommodation docs linked to a location are shown inline in the Campsites page
+    result = result.filter((d) => !(d.category === 'accommodation' && d.locationId))
 
     if (activeCategory !== 'all') {
       result = result.filter((d) => d.category === activeCategory)
@@ -222,6 +231,14 @@ export default function DocumentsPage() {
           <span className="text-body text-apple-primary">
             {expiringDocs.length} מסמכים עם תוקף שפג או יפוג לפני הטיול
           </span>
+        </div>
+      )}
+
+      {/* Info note: accommodation docs shown inline in Campsites page */}
+      {hiddenAccommodationCount > 0 && (
+        <div className="glass rounded-apple-lg p-3 border border-ios-blue/20 bg-ios-blue/5 flex items-center gap-2 mx-4 mb-3">
+          <MapPin className="h-4 w-4 text-ios-blue shrink-0" />
+          <span className="text-body text-apple-secondary">מסמכי לינה מקושרים לדף הלינה</span>
         </div>
       )}
 
