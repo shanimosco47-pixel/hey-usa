@@ -44,6 +44,7 @@ interface UploadDialogProps {
   onAddExpense?: (expense: Omit<Expense, 'id' | 'created_at'>) => void
   initialLocationId?: string
   initialCategory?: string
+  initialVisitDate?: string
 }
 
 const categoryEntries = Object.entries(DOCUMENT_CATEGORIES)
@@ -64,6 +65,7 @@ export function UploadDialog({
   onAddExpense,
   initialLocationId,
   initialCategory,
+  initialVisitDate,
 }: UploadDialogProps) {
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState(initialCategory ?? '')
@@ -224,6 +226,7 @@ export function UploadDialog({
       notes: notes.trim() || undefined,
       expiry_date: expiryDate || undefined,
       locationId: locationId || undefined,
+      visit_date: initialVisitDate || undefined,
       file_url: fileUrl,
       file_type: selectedFile ? getFileContentType(selectedFile) : 'application/pdf',
       file_size: selectedFile?.size || 0,
@@ -275,6 +278,7 @@ export function UploadDialog({
     expenseAmount,
     expensePaidBy,
     updateBooking,
+    initialVisitDate,
   ])
 
   const handleOpenChange = useCallback(

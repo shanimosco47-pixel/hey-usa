@@ -267,9 +267,13 @@ function BookingCard({
 }) {
   const [expanded, setExpanded] = useState(false)
   const [showUpload, setShowUpload] = useState(false)
+  const [previewDoc, setPreviewDoc] = useState<Document | null>(null)
   const locationId = getLocationForArea(booking.area)?.id
   const bookingDocs = docs.filter(
-    (d) => d.locationId === locationId && d.category === 'accommodation',
+    (d) =>
+      d.locationId === locationId &&
+      d.category === 'accommodation' &&
+      d.visit_date === booking.check_in,
   )
   const meta = STATUS_META[booking.status]
   const typeInfo = TYPE_ICON[booking.type] ?? TYPE_ICON.unknown
@@ -437,14 +441,12 @@ function BookingCard({
                     {doc.title}
                   </span>
                   {doc.file_url && (
-                    <a
-                      href={doc.file_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-caption text-ios-blue hover:underline"
+                    <button
+                      onClick={() => setPreviewDoc(doc)}
+                      className="text-caption text-ios-blue hover:underline font-medium"
                     >
-                      פתח
-                    </a>
+                      צפה
+                    </button>
                   )}
                   <button
                     onClick={() => onDeleteDocument(doc.id)}
@@ -465,7 +467,64 @@ function BookingCard({
             onUpload={onAddDocument}
             initialLocationId={locationId}
             initialCategory="accommodation"
+            initialVisitDate={booking.check_in}
           />
+          {/* Document preview modal */}
+          {previewDoc && (
+            <div
+              className="fixed inset-0 z-50 flex flex-col bg-black/80"
+              onClick={() => setPreviewDoc(null)}
+            >
+              <div className="flex items-center justify-between px-4 py-3 bg-surface-primary shadow-glass">
+                <span className="text-subhead font-semibold text-apple-primary truncate max-w-[70vw]">
+                  {previewDoc.title}
+                </span>
+                <div className="flex items-center gap-3">
+                  {previewDoc.file_url && (
+                    <a
+                      href={previewDoc.file_url}
+                      download
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-caption text-ios-blue font-medium"
+                    >
+                      הורד
+                    </a>
+                  )}
+                  <button className="text-apple-secondary text-lg font-bold">✕</button>
+                </div>
+              </div>
+              <div className="flex-1 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                {previewDoc.file_type?.startsWith('image/') ? (
+                  <img
+                    src={previewDoc.file_url}
+                    alt={previewDoc.title}
+                    className="w-full h-full object-contain"
+                  />
+                ) : previewDoc.file_type === 'application/pdf' ? (
+                  <iframe
+                    src={previewDoc.file_url}
+                    className="w-full h-full border-0"
+                    title={previewDoc.title}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full gap-4 text-white">
+                    <FileText className="w-16 h-16 opacity-40" />
+                    <p className="text-subhead opacity-70">לא ניתן להציג פורמט זה בתצוגה מקדימה</p>
+                    {previewDoc.file_url && (
+                      <a
+                        href={previewDoc.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-ios-blue rounded-apple text-white text-subhead font-medium"
+                      >
+                        פתח בחלון חדש
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Expanded notes */}
