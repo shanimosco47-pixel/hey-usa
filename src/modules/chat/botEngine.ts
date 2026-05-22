@@ -671,28 +671,30 @@ ${Object.values(FAMILY_MEMBERS)
         )
       }
 
-      const response = await retryWithBackoff(
-        () =>
-          fetch(`${supabaseUrl}/functions/v1/moti-chat`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${supabaseKey}`,
-              apikey: supabaseKey,
-            },
-            body: JSON.stringify({
-              messages: messagesWithMemory,
-              appContext: appContext || '',
-              familyContext,
-            }),
+      const response = await retryWithBackoff(async () => {
+        const res = await fetch(`${supabaseUrl}/functions/v1/moti-chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${supabaseKey}`,
+            apikey: supabaseKey,
+          },
+          body: JSON.stringify({
+            messages: messagesWithMemory,
+            appContext: appContext || '',
+            familyContext,
           }),
-        2,
-      )
+        })
+        // Throw on 5xx so retryWithBackoff retries transient server errors
+        if (res.status >= 500) throw new Error(`Server error ${res.status}`)
+        return res
+      }, 2)
 
       if (response.ok) {
         const data = await response.json()
-        if (data?.text !== undefined) {
-          const assistantMessage = data.text as string
+        const assistantMessage = ((data?.text as string) || '').trim()
+        // Only treat as success when there's actual content or executable actions
+        if (assistantMessage || data?.actions?.length) {
           conversationHistory.push({ role: 'assistant', content: assistantMessage })
 
           // Map tool_use responses to MotiActions
@@ -707,10 +709,10 @@ ${Object.values(FAMILY_MEMBERS)
           return { text: assistantMessage, actions: allActions, card, quickActions }
         }
       }
-      if (aiLastCallSucceeded === null) aiLastCallSucceeded = false
+      aiLastCallSucceeded = false
       console.warn('AI request failed with status:', response.status)
     } catch (err) {
-      if (aiLastCallSucceeded === null) aiLastCallSucceeded = false
+      aiLastCallSucceeded = false
       console.warn('AI request failed, falling back to keywords:', err)
     }
   }

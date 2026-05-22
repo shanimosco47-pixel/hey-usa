@@ -981,7 +981,14 @@ Deno.serve(async (req) => {
       for (const toolCall of choice1.tool_calls) {
         if (toolCall.type !== 'function') continue
         const name = toolCall.function.name
-        const args = JSON.parse(toolCall.function.arguments)
+        let args: Record<string, unknown>
+        try {
+          args = JSON.parse(toolCall.function.arguments)
+        } catch {
+          // Malformed JSON from the model — proceed with empty args rather than crashing
+          console.error('Failed to parse tool arguments for', name, toolCall.function.arguments)
+          args = {}
+        }
 
         if (READ_TOOL_NAMES.has(name)) {
           readCalls.push({ id: toolCall.id, name, args })
