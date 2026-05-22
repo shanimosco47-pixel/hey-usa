@@ -269,12 +269,14 @@ function BookingCard({
   const [showUpload, setShowUpload] = useState(false)
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null)
   const locationId = getLocationForArea(booking.area)?.id
+  // Include docs without visit_date (legacy uploads) so they're not hidden
   const bookingDocs = docs.filter(
     (d) =>
       d.locationId === locationId &&
       d.category === 'accommodation' &&
-      d.visit_date === booking.check_in,
+      (!d.visit_date || d.visit_date === booking.check_in),
   )
+  const missingDoc = booking.status === 'confirmed' && bookingDocs.length === 0
   const meta = STATUS_META[booking.status]
   const typeInfo = TYPE_ICON[booking.type] ?? TYPE_ICON.unknown
   const deadlineWarning = isWithin14Days(booking.cancellation_deadline)
@@ -298,15 +300,22 @@ function BookingCard({
       <GlassCard padding="sm" className={cn('border-r-4', meta.border, 'relative')}>
         {/* Top row: status + type + nights */}
         <div className="flex items-center justify-between mb-2">
-          <span
-            className={cn(
-              'text-caption px-2 py-0.5 rounded-full font-semibold',
-              meta.bg,
-              meta.text,
+          <div className="flex items-center gap-1.5">
+            <span
+              className={cn(
+                'text-caption px-2 py-0.5 rounded-full font-semibold',
+                meta.bg,
+                meta.text,
+              )}
+            >
+              {meta.label}
+            </span>
+            {missingDoc && (
+              <span title="לינה מאושרת ללא מסמך אסמכתא" className="text-caption text-ios-orange">
+                ⚠️
+              </span>
             )}
-          >
-            {meta.label}
-          </span>
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-caption text-apple-secondary">
               {nights} {nights === 1 ? 'לילה' : 'לילות'}
