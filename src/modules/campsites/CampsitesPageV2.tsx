@@ -269,13 +269,7 @@ function BookingCard({
   const [showUpload, setShowUpload] = useState(false)
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null)
   const locationId = getLocationForArea(booking.area)?.id
-  // Include docs without visit_date (legacy uploads) so they're not hidden
-  const bookingDocs = docs.filter(
-    (d) =>
-      d.locationId === locationId &&
-      d.category === 'accommodation' &&
-      (!d.visit_date || d.visit_date === booking.check_in),
-  )
+  const bookingDocs = docs.filter((d) => d.booking_id === booking.id)
   const missingDoc = booking.status === 'confirmed' && bookingDocs.length === 0
   const meta = STATUS_META[booking.status]
   const typeInfo = TYPE_ICON[booking.type] ?? TYPE_ICON.unknown
@@ -468,7 +462,7 @@ function BookingCard({
               ))}
             </div>
           ) : (
-            <p className="text-caption text-apple-tertiary">אין מסמכים</p>
+            <p className="text-caption text-apple-tertiary">אין מסמך הזמנה מצורף</p>
           )}
           <UploadDialog
             open={showUpload}
@@ -477,6 +471,7 @@ function BookingCard({
             initialLocationId={locationId}
             initialCategory="accommodation"
             initialVisitDate={booking.check_in}
+            initialBookingId={booking.id}
           />
           {/* Document preview modal */}
           {previewDoc && (

@@ -45,6 +45,7 @@ interface UploadDialogProps {
   initialLocationId?: string
   initialCategory?: string
   initialVisitDate?: string
+  initialBookingId?: string
 }
 
 const categoryEntries = Object.entries(DOCUMENT_CATEGORIES)
@@ -66,6 +67,7 @@ export function UploadDialog({
   initialLocationId,
   initialCategory,
   initialVisitDate,
+  initialBookingId,
 }: UploadDialogProps) {
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState(initialCategory ?? '')
@@ -226,6 +228,7 @@ export function UploadDialog({
       notes: notes.trim() || undefined,
       expiry_date: expiryDate || undefined,
       locationId: locationId || undefined,
+      booking_id: initialBookingId || undefined,
       visit_date: initialVisitDate || undefined,
       file_url: fileUrl,
       file_type: selectedFile ? getFileContentType(selectedFile) : 'application/pdf',
@@ -279,6 +282,7 @@ export function UploadDialog({
     expensePaidBy,
     updateBooking,
     initialVisitDate,
+    initialBookingId,
   ])
 
   const handleOpenChange = useCallback(

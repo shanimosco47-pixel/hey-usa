@@ -85,6 +85,7 @@ export interface Document {
   notes?: string
   expiry_date?: string
   locationId?: string
+  booking_id?: string
   source_email_id?: string
   status?: DocumentStatus
   visit_date?: string
