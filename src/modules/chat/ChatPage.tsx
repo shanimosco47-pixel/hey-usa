@@ -292,8 +292,21 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(true)
   const [visibleCount, setVisibleCount] = useState(2)
+  const [persistenceWarning, setPersistenceWarning] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  // Fires once per session when a critical message fails to persist
+  const persistenceWarnedRef = useRef(false)
+
+  function persistMessage(msg: Parameters<typeof db.insertChatMessage>[0], label: string) {
+    db.insertChatMessage(msg).catch((err) => {
+      console.error(`[Moti] Failed to persist ${label}:`, err)
+      if (isAIMode() && !persistenceWarnedRef.current) {
+        persistenceWarnedRef.current = true
+        setPersistenceWarning(true)
+      }
+    })
+  }
 
   const hasOlderMessages = messages.length > visibleCount
   const visibleMessages = hasOlderMessages ? messages.slice(-visibleCount) : messages
@@ -340,7 +353,7 @@ export default function ChatPage() {
             content: welcomeMsg.text,
             has_action: false,
             created_at: new Date().toISOString(),
-          }).catch(() => {})
+          }).catch((err) => console.warn('[Moti] Failed to save welcome message:', err))
 
           await initConversationFromDb()
         }
@@ -623,7 +636,7 @@ export default function ChatPage() {
         content: userMsg.text,
         has_action: false,
         created_at: new Date().toISOString(),
-      }).catch(() => {})
+      }).catch((err) => console.warn('[Moti] Failed to save booking-confirm user message:', err))
 
       await new Promise((r) => setTimeout(r, 1000))
 
@@ -703,7 +716,7 @@ export default function ChatPage() {
         content: botMsg.text,
         has_action: true,
         created_at: new Date().toISOString(),
-      }).catch(() => {})
+      }).catch((err) => console.warn('[Moti] Failed to save booking-confirm bot reply:', err))
       return
     }
 
@@ -719,13 +732,16 @@ export default function ChatPage() {
     setIsTyping(true)
 
     // Persist user message to Supabase
-    db.insertChatMessage({
-      id: userMsg.id,
-      role: 'user',
-      content: userMsg.text,
-      has_action: false,
-      created_at: new Date().toISOString(),
-    }).catch(() => {})
+    persistMessage(
+      {
+        id: userMsg.id,
+        role: 'user',
+        content: userMsg.text,
+        has_action: false,
+        created_at: new Date().toISOString(),
+      },
+      'user message',
+    )
 
     try {
       // Build context with campsite bookings included
@@ -774,7 +790,7 @@ export default function ChatPage() {
             triggerEmailScan('targeted', action.query)
               .then(() => {
                 // Refresh chat messages so Moti's notification appears
-                db.fetchChatMessages(200)
+                db.fetchRecentChatMessages(500)
                   .then((history) => {
                     if (history.length > 0) {
                       setMessages(
@@ -788,9 +804,11 @@ export default function ChatPage() {
                       )
                     }
                   })
-                  .catch(() => {})
+                  .catch((err) =>
+                    console.warn('[Moti] Failed to refresh messages after email scan:', err),
+                  )
               })
-              .catch(() => {})
+              .catch((err) => console.warn('[Moti] Email scan failed:', err))
             continue
           }
           const error = executeMotiAction(action)
@@ -829,13 +847,16 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, botMsg])
 
       // Persist bot message to Supabase
-      db.insertChatMessage({
-        id: botMsg.id,
-        role: 'assistant',
-        content: botMsg.text,
-        has_action: isWriteAction,
-        created_at: new Date().toISOString(),
-      }).catch(() => {})
+      persistMessage(
+        {
+          id: botMsg.id,
+          role: 'assistant',
+          content: botMsg.text,
+          has_action: isWriteAction,
+          created_at: new Date().toISOString(),
+        },
+        'bot response',
+      )
     } catch {
       const errorMsg: Message = {
         id: `bot-${Date.now()}`,
@@ -941,20 +962,26 @@ export default function ChatPage() {
       setIsTyping(false)
 
       // Persist messages
-      db.insertChatMessage({
-        id: userMsg.id,
-        role: 'user',
-        content: userMsg.text,
-        has_action: false,
-        created_at: new Date().toISOString(),
-      }).catch(() => {})
-      db.insertChatMessage({
-        id: botMsg.id,
-        role: 'assistant',
-        content: botMsg.text,
-        has_action: true,
-        created_at: new Date().toISOString(),
-      }).catch(() => {})
+      persistMessage(
+        {
+          id: userMsg.id,
+          role: 'user',
+          content: userMsg.text,
+          has_action: false,
+          created_at: new Date().toISOString(),
+        },
+        'user message (file upload path)',
+      )
+      persistMessage(
+        {
+          id: botMsg.id,
+          role: 'assistant',
+          content: botMsg.text,
+          has_action: true,
+          created_at: new Date().toISOString(),
+        },
+        'bot response (file upload path)',
+      )
     },
     [executeMotiAction],
   )
@@ -997,6 +1024,21 @@ export default function ChatPage() {
           )}
         </button>
       </div>
+
+      {/* Persistence failure warning — shown once per session when messages fail to save */}
+      {persistenceWarning && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-ios-orange/10 border-b border-ios-orange/20 text-xs text-ios-orange">
+          <WifiOff className="h-3 w-3 shrink-0" />
+          <span className="flex-1">ההודעות לא נשמרות — ייתכן שיש בעיית חיבור</span>
+          <button
+            onClick={() => setPersistenceWarning(false)}
+            className="text-ios-orange/60 hover:text-ios-orange transition-colors px-1"
+            aria-label="סגור"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
