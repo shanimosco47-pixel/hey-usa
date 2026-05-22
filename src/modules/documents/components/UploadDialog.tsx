@@ -19,6 +19,21 @@ import { supabase } from '@/lib/supabase'
 import { retryWithBackoff } from '@/lib/retry'
 import type { Document, FamilyMemberId, Expense } from '@/types'
 
+function getFileContentType(file: File): string {
+  if (file.type) return file.type
+  const ext = file.name.split('.').pop()?.toLowerCase()
+  const map: Record<string, string> = {
+    mht: 'application/x-mimearchive',
+    mhtml: 'application/x-mimearchive',
+    pdf: 'application/pdf',
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    html: 'text/html',
+    htm: 'text/html',
+  }
+  return (ext && map[ext]) || 'application/octet-stream'
+}
+
 interface UploadDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -146,7 +161,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
         await retryWithBackoff(async () => {
           const result = await sb.storage
             .from('documents')
-            .upload(fileName, selectedFile, { contentType: selectedFile.type })
+            .upload(fileName, selectedFile, { contentType: getFileContentType(selectedFile) })
           if (result.error) throw result.error
           return result
         })
@@ -165,7 +180,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
       expiry_date: expiryDate || undefined,
       locationId: locationId || undefined,
       file_url: fileUrl,
-      file_type: selectedFile?.type || 'application/pdf',
+      file_type: selectedFile ? getFileContentType(selectedFile) : 'application/pdf',
       file_size: selectedFile?.size || 0,
     }
 
@@ -282,7 +297,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
               ref={fileInputRef}
               type="file"
               className="hidden"
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.html,.htm,.mht,.mhtml"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.html,.htm,.mht,.mhtml,application/x-mimearchive,multipart/related,message/rfc822"
               onChange={handleInputChange}
             />
           </div>
