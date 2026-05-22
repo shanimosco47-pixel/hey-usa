@@ -17,6 +17,9 @@ import { LOCATIONS } from '@/data/locations'
 import { suggestDocumentMeta } from '../utils/suggestDocumentMeta'
 import { supabase } from '@/lib/supabase'
 import { retryWithBackoff } from '@/lib/retry'
+import { useCampsiteBookings } from '@/modules/campsites/hooks/useCampsiteBookings'
+import { parseBookingConfirmation } from '@/modules/chat/utils/parseBookingConfirmation'
+import type { ParsedBooking } from '@/modules/chat/utils/parseBookingConfirmation'
 import type { Document, FamilyMemberId, Expense } from '@/types'
 
 function getFileContentType(file: File): string {
@@ -65,6 +68,8 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
   const [expenseAmount, setExpenseAmount] = useState('')
   const [expensePaidBy, setExpensePaidBy] = useState<FamilyMemberId>('aba')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const parsedBookingRef = useRef<ParsedBooking | null>(null)
+  const { bookings, updateBooking } = useCampsiteBookings()
 
   // Auto-suggest on title change
   useEffect(() => {
@@ -95,14 +100,15 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
     setAlsoLogExpense(false)
     setExpenseAmount('')
     setExpensePaidBy('aba')
+    parsedBookingRef.current = null
   }, [])
 
   const handleFileSelect = useCallback(
-    (file: File) => {
+    async (file: File) => {
       setSelectedFile(file)
       setFileWarning('')
+      parsedBookingRef.current = null
 
-      // Warn if the file is likely just a logo/branding image
       if (file.type.startsWith('image/') && file.size < 100 * 1024) {
         setFileWarning(
           'שים לב: קובץ תמונה קטן (פחות מ-100KB) — ייתכן שזהו לוגו ולא מסמך אמיתי. ודא שהקובץ מכיל את פרטי ההזמנה.',
@@ -113,8 +119,30 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
         const nameWithoutExt = file.name.replace(/\.[^.]+$/, '')
         setTitle(nameWithoutExt)
       }
+
+      // For MHT/HTML files, try to detect booking confirmation and pre-populate fields
+      const ct = getFileContentType(file)
+      const isMhtOrHtml =
+        ct.includes('mimearchive') ||
+        ct.includes('html') ||
+        ct === 'multipart/related' ||
+        ct === 'message/rfc822'
+      if (isMhtOrHtml) {
+        try {
+          const raw = await file.text()
+          const plainText = raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
+          const parsed = parseBookingConfirmation(plainText, bookings)
+          if (parsed) {
+            parsedBookingRef.current = parsed
+            if (parsed.locationId && !locationId) setLocationId(parsed.locationId)
+            if (!category) setCategory('accommodation')
+          }
+        } catch {
+          // non-critical — form still works without auto-detection
+        }
+      }
     },
-    [title],
+    [title, locationId, category, bookings],
   )
 
   const handleInputChange = useCallback(
@@ -186,6 +214,18 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
 
     onUpload(doc)
 
+    // If file contained a parseable booking confirmation, mark the booking as confirmed
+    const parsed = parsedBookingRef.current
+    if (parsed?.matchingBooking) {
+      const updates: Record<string, unknown> = { status: 'confirmed' }
+      if (parsed.confirmationNum) updates.confirmation = `#${parsed.confirmationNum}`
+      if (parsed.cost) updates.cost = parsed.cost
+      if (parsed.cancellationDeadline) updates.cancellation_deadline = parsed.cancellationDeadline
+      if (parsed.refundAmount !== undefined) updates.refund_amount = parsed.refundAmount
+      if (parsed.locationName) updates.location = parsed.locationName
+      updateBooking(parsed.matchingBooking.id, updates)
+    }
+
     // Also log as expense if toggled
     if (alsoLogExpense && onAddExpense && expenseAmount) {
       onAddExpense({
@@ -217,6 +257,7 @@ export function UploadDialog({ open, onOpenChange, onUpload, onAddExpense }: Upl
     onAddExpense,
     expenseAmount,
     expensePaidBy,
+    updateBooking,
   ])
 
   const handleOpenChange = useCallback(
