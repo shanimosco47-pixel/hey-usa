@@ -336,6 +336,7 @@ export async function pullFromSupabase(): Promise<boolean> {
         notes: d.notes ?? undefined,
         expiry_date: d.expiry_date ?? undefined,
         locationId: d.location_id ?? undefined,
+        booking_id: d.booking_id ?? undefined,
         status: d.status ?? undefined,
         visit_date: d.visit_date ?? undefined,
         source_email_id: d.source_email_id ?? undefined,
