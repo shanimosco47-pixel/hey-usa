@@ -24,6 +24,7 @@ import { GlassCard } from '@/components/shared/GlassCard'
 import { CrossLinks, type CrossLink } from '@/components/shared/CrossLinks'
 import { getLocationForArea } from '@/data/locations'
 import { useAppData } from '@/contexts/AppDataContext'
+import { hasRealFile } from '@/lib/documentFile'
 
 // ── Region mapping ───────────────────────────────────────────────
 function getRegion(area: string): string {
@@ -443,13 +444,15 @@ function BookingCard({
                   <span className="flex-1 text-caption text-apple-primary truncate">
                     {doc.title}
                   </span>
-                  {doc.file_url && (
+                  {hasRealFile(doc) ? (
                     <button
                       onClick={() => setPreviewDoc(doc)}
                       className="text-caption text-ios-blue hover:underline font-medium"
                     >
                       צפה
                     </button>
+                  ) : (
+                    <span className="text-caption text-apple-tertiary">טרם הועלה</span>
                   )}
                   <button
                     onClick={() => onDeleteDocument(doc.id)}
@@ -484,7 +487,7 @@ function BookingCard({
                   {previewDoc.title}
                 </span>
                 <div className="flex items-center gap-3">
-                  {previewDoc.file_url && (
+                  {hasRealFile(previewDoc) && (
                     <a
                       href={previewDoc.file_url}
                       download
@@ -514,7 +517,7 @@ function BookingCard({
                   <div className="flex flex-col items-center justify-center h-full gap-4 text-white">
                     <FileText className="w-16 h-16 opacity-40" />
                     <p className="text-subhead opacity-70">לא ניתן להציג פורמט זה בתצוגה מקדימה</p>
-                    {previewDoc.file_url && (
+                    {hasRealFile(previewDoc) && (
                       <a
                         href={previewDoc.file_url}
                         target="_blank"
