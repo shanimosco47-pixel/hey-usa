@@ -170,6 +170,10 @@ function describeAction(action: MotiAction): string {
 
 interface AppDataContextType {
   isLoading: boolean
+  // True when the background pull from Supabase failed (offline, or the project is
+  // paused/unreachable). Signals that the data on screen may be stale local/sample
+  // data — used to warn the user instead of silently masquerading samples as real data.
+  syncError: boolean
 
   // Budget
   budgetSettings: BudgetSettings
@@ -274,6 +278,7 @@ export const useTripData = useAppData
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
+  const [syncError, setSyncError] = useState(false)
 
   // All state
   const [budgetSettings, setBudgetSettings] = useState<BudgetSettings>(SAMPLE_BUDGET_SETTINGS)
@@ -297,14 +302,24 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     async function loadData() {
       try {
         // Step 1: Try Dexie first (instant, offline-ready)
-        // Check multiple tables — user might have only added photos, not tasks
-        const [taskCount, photoCount, expenseCount, packingCount] = await Promise.all([
-          localDb.tasks.count(),
-          localDb.photos.count(),
-          localDb.expenses.count(),
-          localDb.packingItems.count(),
-        ])
-        const hasLocalData = taskCount > 0 || photoCount > 0 || expenseCount > 0 || packingCount > 0
+        // Check multiple tables — user might have only added documents, not tasks.
+        // Documents MUST be included: otherwise locally-cached documents are never
+        // loaded into state when the other tables happen to be empty, and if Supabase
+        // is unreachable the user's real documents silently vanish behind sample data.
+        const [taskCount, photoCount, expenseCount, packingCount, documentCount] =
+          await Promise.all([
+            localDb.tasks.count(),
+            localDb.photos.count(),
+            localDb.expenses.count(),
+            localDb.packingItems.count(),
+            localDb.documents.count(),
+          ])
+        const hasLocalData =
+          taskCount > 0 ||
+          photoCount > 0 ||
+          expenseCount > 0 ||
+          packingCount > 0 ||
+          documentCount > 0
 
         if (hasLocalData) {
           // We have local data — load all tables in parallel
@@ -337,6 +352,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
         // Step 2: Pull fresh data from Supabase in background
         const pulled = await pullFromSupabase()
+        if (!cancelled) setSyncError(!pulled)
         if (pulled && !cancelled) {
           // Refresh state from Dexie (now updated with Supabase data)
           setTasks(await localDb.tasks.toArray())
@@ -1171,6 +1187,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const contextValue = useMemo<AppDataContextType>(
     () => ({
       isLoading,
+      syncError,
       budgetSettings,
       expenses,
       updateBudgetCategory,
@@ -1223,6 +1240,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }),
     [
       isLoading,
+      syncError,
       budgetSettings,
       expenses,
       updateBudgetCategory,

@@ -78,7 +78,10 @@ export async function flushSyncQueue(): Promise<number> {
     try {
       await retryWithBackoff(async () => {
         if (item.action === 'delete') {
-          await sb.from(supabaseTable).delete().eq('id', item.recordId)
+          const { error } = await sb.from(supabaseTable).delete().eq('id', item.recordId)
+          // supabase-js resolves errors instead of throwing — surface it so the item
+          // is retried rather than being falsely marked synced (silent data loss).
+          if (error) throw error
         } else {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const dexieTable = localDb.table(item.table) as any
@@ -86,7 +89,8 @@ export async function flushSyncQueue(): Promise<number> {
           if (record) {
             // Transform Dexie record back to Supabase shape before upserting
             const payload = toSupabaseShape(item.table, record)
-            await sb.from(supabaseTable).upsert(payload)
+            const { error } = await sb.from(supabaseTable).upsert(payload)
+            if (error) throw error
           }
         }
       }, 2)
@@ -150,6 +154,28 @@ function toSupabaseShape(table: string, record: any): Record<string, unknown> {
         updated_at: n.updated_at,
       }
     }
+    case 'documents': {
+      const d = record as Document
+      return {
+        id: d.id,
+        title: d.title,
+        category: d.category,
+        family_member_id: d.family_member_id ?? null,
+        file_url: d.file_url ?? null,
+        thumbnail_url: d.thumbnail_url ?? null,
+        file_type: d.file_type ?? null,
+        file_size: d.file_size ?? null,
+        notes: d.notes ?? null,
+        expiry_date: d.expiry_date ?? null,
+        location_id: d.locationId ?? null, // Dexie: locationId → Supabase: location_id
+        booking_id: d.booking_id ?? null,
+        status: d.status ?? null,
+        visit_date: d.visit_date ?? null,
+        source_email_id: d.source_email_id ?? null,
+        created_at: d.created_at,
+        updated_at: d.updated_at,
+      }
+    }
     case 'budgetSettings': {
       const b = record as BudgetSettings & { id: string }
       return {
@@ -180,6 +206,30 @@ export async function pullFromSupabase(): Promise<boolean> {
   const sb = supabase
 
   try {
+    const results = await retryWithBackoff(() =>
+      Promise.all([
+        sb.from('tasks').select('*'),
+        sb.from('expenses').select('*'),
+        // maybeSingle (not single) so an absent budget row is data:null, not an error
+        sb.from('budget_settings').select('*').eq('id', 'main').maybeSingle(),
+        sb.from('itinerary_days').select('*'),
+        sb.from('packing_items').select('*'),
+        sb.from('blog_posts').select('*'),
+        sb.from('photos').select('*'),
+        sb.from('documents').select('*'),
+        sb.from('playlist_items').select('*'),
+        sb.from('location_notes').select('*'),
+        sb.from('activity_polls').select('*'),
+      ]),
+    )
+
+    // supabase-js resolves HTTP/PostgREST errors (paused project 503, RLS 401,
+    // schema errors, …) to { data: null, error } instead of throwing. Treat any
+    // such error as a failed pull so the caller keeps/shows the sync-error banner
+    // instead of clearing it and refreshing state from stale/empty local data.
+    const failed = results.find((r) => r.error)
+    if (failed?.error) throw failed.error
+
     const [
       { data: rawTasks },
       { data: rawExpenses },
@@ -192,21 +242,7 @@ export async function pullFromSupabase(): Promise<boolean> {
       { data: rawPlaylistItems },
       { data: rawLocationNotes },
       { data: rawPolls },
-    ] = await retryWithBackoff(() =>
-      Promise.all([
-        sb.from('tasks').select('*'),
-        sb.from('expenses').select('*'),
-        sb.from('budget_settings').select('*').eq('id', 'main').single(),
-        sb.from('itinerary_days').select('*'),
-        sb.from('packing_items').select('*'),
-        sb.from('blog_posts').select('*'),
-        sb.from('photos').select('*'),
-        sb.from('documents').select('*'),
-        sb.from('playlist_items').select('*'),
-        sb.from('location_notes').select('*'),
-        sb.from('activity_polls').select('*'),
-      ]),
-    )
+    ] = results
 
     // ── Transform Supabase shapes → Dexie/TypeScript types ─────────────────
 

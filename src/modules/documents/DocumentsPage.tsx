@@ -42,7 +42,7 @@ const CATEGORY_TABS: { value: string; label: string }[] = [
 ]
 
 export default function DocumentsPage() {
-  const { documents: allDocuments, addDocument, addExpense } = useAppData()
+  const { documents: allDocuments, addDocument, addExpense, syncError } = useAppData()
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'upload' | 'visit'>('upload')
@@ -220,6 +220,19 @@ export default function DocumentsPage() {
           </button>
         </div>
       </div>
+
+      {/* Sync failure banner — the user's documents live on the server; if the pull
+          failed (offline / paused Supabase project) the list below is local/sample
+          data, NOT a sign that documents were deleted. */}
+      {syncError && (
+        <div className="glass rounded-apple-lg p-3 border border-ios-red/20 bg-ios-red/5 flex items-center gap-2 mb-3">
+          <AlertTriangle className="h-5 w-5 text-ios-red shrink-0" />
+          <span className="text-body text-apple-primary">
+            לא הצלחנו לטעון את המסמכים מהשרת — ייתכן שהחיבור נכשל או שהשרת מושהה. המסמכים שלך שמורים
+            בשרת; רענן את הדף או נסה שוב מאוחר יותר.
+          </span>
+        </div>
+      )}
 
       {/* Email account settings */}
       <EmailAccountSettings />
