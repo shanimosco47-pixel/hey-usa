@@ -150,6 +150,28 @@ function toSupabaseShape(table: string, record: any): Record<string, unknown> {
         updated_at: n.updated_at,
       }
     }
+    case 'documents': {
+      const d = record as Document
+      return {
+        id: d.id,
+        title: d.title,
+        category: d.category,
+        family_member_id: d.family_member_id ?? null,
+        file_url: d.file_url ?? null,
+        thumbnail_url: d.thumbnail_url ?? null,
+        file_type: d.file_type ?? null,
+        file_size: d.file_size ?? null,
+        notes: d.notes ?? null,
+        expiry_date: d.expiry_date ?? null,
+        location_id: d.locationId ?? null, // Dexie: locationId → Supabase: location_id
+        booking_id: d.booking_id ?? null,
+        status: d.status ?? null,
+        visit_date: d.visit_date ?? null,
+        source_email_id: d.source_email_id ?? null,
+        created_at: d.created_at,
+        updated_at: d.updated_at,
+      }
+    }
     case 'budgetSettings': {
       const b = record as BudgetSettings & { id: string }
       return {

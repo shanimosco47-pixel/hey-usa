@@ -107,6 +107,7 @@ export function UploadDialog({
   const showExpenseSection = EXPENSE_ELIGIBLE_CATEGORIES.includes(category) && !!onAddExpense
 
   const [fileWarning, setFileWarning] = useState('')
+  const [uploadError, setUploadError] = useState('')
 
   const resetForm = useCallback(() => {
     setTitle('')
@@ -117,6 +118,7 @@ export function UploadDialog({
     setLocationId('')
     setSelectedFile(null)
     setFileWarning('')
+    setUploadError('')
     setIsDragging(false)
     setAlsoLogExpense(false)
     setExpenseAmount('')
@@ -199,11 +201,19 @@ export function UploadDialog({
     if (!title.trim() || !category) return
 
     setUploading(true)
+    setUploadError('')
 
     let fileUrl: string | undefined
-    try {
-      // Upload file to Supabase Storage if selected
-      if (selectedFile && supabase) {
+    // Upload file to Supabase Storage if one was selected.
+    // A failed file upload must NOT create a fileless "phantom" document —
+    // that leaves a card in the list whose attachment can never be opened.
+    if (selectedFile) {
+      if (!supabase) {
+        setUploadError('אין חיבור לשרת — לא ניתן להעלות את הקובץ כרגע. נסה שוב כשהחיבור יחזור.')
+        setUploading(false)
+        return
+      }
+      try {
         const sb = supabase
         const ext = selectedFile.name.split('.').pop() || 'pdf'
         const fileName = `${Date.now()}-${title.trim().replace(/\s+/g, '-').slice(0, 40)}.${ext}`
@@ -216,9 +226,12 @@ export function UploadDialog({
         })
         const { data: urlData } = sb.storage.from('documents').getPublicUrl(fileName)
         fileUrl = urlData.publicUrl
+      } catch (err) {
+        console.warn('Upload error:', err)
+        setUploadError('העלאת הקובץ נכשלה. ודא שיש חיבור לאינטרנט ונסה שוב — המסמך לא נשמר.')
+        setUploading(false)
+        return
       }
-    } catch (err) {
-      console.warn('Upload error:', err)
     }
 
     const doc: Omit<Document, 'id' | 'created_at' | 'updated_at'> = {
@@ -376,6 +389,17 @@ export function UploadDialog({
             >
               <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
               <p className="text-xs text-amber-700 leading-relaxed">{fileWarning}</p>
+            </div>
+          )}
+
+          {/* Upload error — surfaced instead of silently saving a fileless document */}
+          {uploadError && (
+            <div
+              className="mb-3 flex items-start gap-2 rounded-apple-lg bg-ios-red/10 border border-ios-red/20 px-3 py-2.5"
+              dir="rtl"
+            >
+              <AlertTriangle className="h-4 w-4 text-ios-red shrink-0 mt-0.5" />
+              <p className="text-xs text-ios-red leading-relaxed">{uploadError}</p>
             </div>
           )}
 
