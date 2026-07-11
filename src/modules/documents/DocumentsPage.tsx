@@ -42,7 +42,13 @@ const CATEGORY_TABS: { value: string; label: string }[] = [
 ]
 
 export default function DocumentsPage() {
-  const { documents: allDocuments, addDocument, addExpense, syncError } = useAppData()
+  const {
+    documents: allDocuments,
+    addDocument,
+    addExpense,
+    deleteDocument,
+    syncError,
+  } = useAppData()
   const [activeCategory, setActiveCategory] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'upload' | 'visit'>('upload')
@@ -331,7 +337,12 @@ export default function DocumentsPage() {
         onUpload={handleUpload}
         onAddExpense={addExpense}
       />
-      <DocumentViewer document={viewerDoc} open={viewerOpen} onOpenChange={setViewerOpen} />
+      <DocumentViewer
+        document={viewerDoc}
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+        onDelete={deleteDocument}
+      />
     </div>
   )
 }
