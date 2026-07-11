@@ -270,7 +270,13 @@ function BookingCard({
   const [showUpload, setShowUpload] = useState(false)
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null)
   const locationId = getLocationForArea(booking.area)?.id
-  const bookingDocs = docs.filter((d) => d.booking_id === booking.id)
+  // A document is attached to a booking either way round: the document points back
+  // via booking_id (manual uploads), or the booking points to it via document_id
+  // (email-scan imports). Match both so the לינות tab stays in sync with מסמכים and
+  // approved bookings don't falsely show the "missing doc" warning.
+  const bookingDocs = docs.filter(
+    (d) => d.booking_id === booking.id || d.id === booking.document_id,
+  )
   const missingDoc = booking.status === 'confirmed' && bookingDocs.length === 0
   const meta = STATUS_META[booking.status]
   const typeInfo = TYPE_ICON[booking.type] ?? TYPE_ICON.unknown

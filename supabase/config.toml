@@ -386,3 +386,16 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+# ── Edge Functions ──────────────────────────────────────────────────
+# These functions authenticate via anon key / apikey / OAuth redirect rather
+# than a Supabase user JWT, so JWT verification must stay disabled — matching
+# how they are already deployed. Keep in sync when adding functions.
+[functions.email-scan]
+verify_jwt = false
+
+[functions.email-oauth]
+verify_jwt = false
+
+[functions.moti-chat]
+verify_jwt = false

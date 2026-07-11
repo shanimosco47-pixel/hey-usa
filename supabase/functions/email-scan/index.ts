@@ -284,7 +284,11 @@ Deno.serve(async (req) => {
     if (mode === 'targeted' && queryOverride) {
       searchQuery = queryOverride
     } else {
-      searchQuery = buildSearchQuery(account.last_scan_at ?? null)
+      // Always scan the full trip window rather than only since the last scan, so
+      // older or forwarded confirmations that earlier scans missed still get
+      // imported. Dedup (isAlreadyImported) prevents re-importing anything already
+      // captured, so re-examining the whole window is safe.
+      searchQuery = buildSearchQuery(null)
     }
     diag.query = searchQuery
 

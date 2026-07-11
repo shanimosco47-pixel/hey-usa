@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import {
   X,
   Download,
-  FileText,
   Image,
   File,
   ExternalLink,
@@ -14,6 +13,7 @@ import {
   HardDrive,
   AlertTriangle,
   MapPin,
+  Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { retryWithBackoff } from '@/lib/retry'
@@ -27,6 +27,7 @@ interface DocumentViewerProps {
   document: Document | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onDelete?: (id: string) => void
 }
 
 function formatFileSize(bytes?: number): string {
@@ -318,19 +319,27 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
     return <HtmlPreview url={doc.file_url!} title={doc.title} notes={doc.notes} onOpen={onOpen} />
   }
 
-  if (doc.file_type?.includes('pdf')) {
+  if (doc.file_type?.includes('pdf') && realFile) {
     return (
       <div className="w-full space-y-3">
-        <div className="flex aspect-[4/3] w-full items-center justify-center rounded-apple-lg bg-ios-red/10">
-          <div className="flex flex-col items-center gap-3">
-            <FileText className="h-16 w-16 text-red-300" />
+        <div
+          className="w-full rounded-apple-lg bg-white overflow-hidden"
+          style={{ minHeight: '40vh' }}
+        >
+          <iframe
+            src={doc.file_url!}
+            title={doc.title}
+            className="w-full border-0"
+            style={{ height: '60vh' }}
+          />
+          <div className="flex justify-center py-2 border-t border-gray-100">
             <button
               type="button"
               onClick={onOpen}
-              className="flex items-center gap-2 rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-600"
+              className="flex items-center gap-2 rounded-lg bg-ios-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
             >
               <ExternalLink className="h-4 w-4" />
-              פתח PDF
+              פתח בחלון חדש
             </button>
           </div>
         </div>
@@ -339,6 +348,40 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
     )
   }
 
+  // Any other real file (mht, doc, text, …): attempt an inline preview via the
+  // browser, with an open-in-new-tab fallback for formats it can't render.
+  if (realFile) {
+    return (
+      <div className="w-full space-y-3">
+        <div
+          className="w-full rounded-apple-lg bg-white overflow-hidden"
+          style={{ minHeight: '40vh' }}
+        >
+          <iframe
+            src={doc.file_url!}
+            title={doc.title}
+            className="w-full border-0"
+            style={{ height: '55vh' }}
+            sandbox="allow-same-origin allow-popups"
+          />
+          <div className="flex justify-center py-2 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={onOpen}
+              className="flex items-center gap-2 rounded-lg bg-ios-blue px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ios-blue/80"
+            >
+              <ExternalLink className="h-4 w-4" />
+              פתח בחלון חדש
+            </button>
+          </div>
+        </div>
+        {doc.notes && <NotesBlock doc={doc} />}
+      </div>
+    )
+  }
+
+  // No real file at all — fall back to notes or an empty placeholder.
+  if (doc.notes) return <NotesBlock doc={doc} subtitle="📎 הקובץ טרם הועלה" />
   return (
     <div className="flex aspect-[4/3] w-full items-center justify-center rounded-apple-lg bg-surface-primary">
       <File className="h-16 w-16 text-apple-tertiary" />
@@ -368,10 +411,45 @@ function DetailRow({
   )
 }
 
-export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentViewerProps) {
+export function DocumentViewer({
+  document: doc,
+  open,
+  onOpenChange,
+  onDelete,
+}: DocumentViewerProps) {
   const [toast, setToast] = useState<string | null>(null)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Reset the primed delete confirmation whenever the viewer opens/closes or shows a
+  // different document, so a confirmation armed on one document can never carry over
+  // and delete another on its first click.
+  useEffect(() => {
+    setConfirmingDelete(false)
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current)
+      deleteTimerRef.current = null
+    }
+  }, [doc?.id, open])
 
   if (!doc) return null
+
+  const handleDelete = () => {
+    if (!onDelete) return
+    if (!confirmingDelete) {
+      setConfirmingDelete(true)
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
+      deleteTimerRef.current = setTimeout(() => setConfirmingDelete(false), 4000)
+      return
+    }
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current)
+      deleteTimerRef.current = null
+    }
+    onDelete(doc.id)
+    setConfirmingDelete(false)
+    onOpenChange(false)
+  }
 
   const categoryLabel = DOCUMENT_CATEGORIES[doc.category]?.label ?? doc.category
   const member = doc.family_member_id ? FAMILY_MEMBERS[doc.family_member_id] : null
@@ -435,6 +513,19 @@ export function DocumentViewer({ document: doc, open, onOpenChange }: DocumentVi
                 >
                   <Download className="h-4 w-4" />
                   הורד
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                    confirmingDelete ? 'bg-ios-red text-white' : 'text-ios-red hover:bg-ios-red/10',
+                  )}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {confirmingDelete ? 'לחץ לאישור' : 'מחק'}
                 </button>
               )}
               <Dialog.Close asChild>
