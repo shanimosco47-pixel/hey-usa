@@ -153,12 +153,13 @@ export function buildSearchQuery(lastScanAt: string | null): string {
     const dd = String(d.getUTCDate()).padStart(2, '0')
     dateFilter = `after:${yyyy}/${mm}/${dd}`
   } else {
-    // Default: last 6 months
-    const sixMonthsAgo = new Date()
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-    const yyyy = sixMonthsAgo.getUTCFullYear()
-    const mm = String(sixMonthsAgo.getUTCMonth() + 1).padStart(2, '0')
-    const dd = String(sixMonthsAgo.getUTCDate()).padStart(2, '0')
+    // Default: last 12 months — wide enough to cover confirmations booked well
+    // ahead of the trip (flights/RV rentals are often reserved ~10 months out).
+    const windowStart = new Date()
+    windowStart.setMonth(windowStart.getMonth() - 12)
+    const yyyy = windowStart.getUTCFullYear()
+    const mm = String(windowStart.getUTCMonth() + 1).padStart(2, '0')
+    const dd = String(windowStart.getUTCDate()).padStart(2, '0')
     dateFilter = `after:${yyyy}/${mm}/${dd}`
   }
 

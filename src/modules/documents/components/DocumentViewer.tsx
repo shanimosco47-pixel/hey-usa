@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import {
   X,
@@ -419,6 +419,18 @@ export function DocumentViewer({
 }: DocumentViewerProps) {
   const [toast, setToast] = useState<string | null>(null)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Reset the primed delete confirmation whenever the viewer opens/closes or shows a
+  // different document, so a confirmation armed on one document can never carry over
+  // and delete another on its first click.
+  useEffect(() => {
+    setConfirmingDelete(false)
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current)
+      deleteTimerRef.current = null
+    }
+  }, [doc?.id, open])
 
   if (!doc) return null
 
@@ -426,8 +438,13 @@ export function DocumentViewer({
     if (!onDelete) return
     if (!confirmingDelete) {
       setConfirmingDelete(true)
-      setTimeout(() => setConfirmingDelete(false), 4000)
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current)
+      deleteTimerRef.current = setTimeout(() => setConfirmingDelete(false), 4000)
       return
+    }
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current)
+      deleteTimerRef.current = null
     }
     onDelete(doc.id)
     setConfirmingDelete(false)
