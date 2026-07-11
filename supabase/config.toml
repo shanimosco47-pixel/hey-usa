@@ -391,6 +391,9 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # These functions authenticate via anon key / apikey / OAuth redirect rather
 # than a Supabase user JWT, so JWT verification must stay disabled — matching
 # how they are already deployed. Keep in sync when adding functions.
+#
+# Redeploy trigger: SUPABASE_ACCESS_TOKEN / SUPABASE_PROJECT_REF secrets added
+# 2026-07-11 — this touch forces the deploy-functions workflow to run with them.
 [functions.email-scan]
 verify_jwt = false
 
