@@ -375,194 +375,224 @@ Deno.serve(async (req) => {
     const accountsRemaining = authenticated.length - accountIndex
     const accountDeadline = Date.now() + Math.max(0, (deadline - Date.now()) / accountsRemaining)
 
-    // Process each message
+    // Process each message.
+    //
+    // Fetching them one at a time made the budget the binding constraint rather
+    // than the mailbox: a 494-match mailbox got through 76 messages before the
+    // clock ran out, and because the message order is deterministic and only
+    // IMPORTED messages are remembered, the next run re-fetched the same 76 and
+    // stopped in the same place. Running the scan again made no progress at
+    // all; the older confirmations simply stayed unreachable.
+    //
+    // The dominant cost is the round trip to Gmail, so messages are fetched a
+    // batch at a time in parallel while everything that writes (dedup, AI
+    // classification, capture, import) stays strictly sequential, exactly as
+    // before. Only one batch is held in memory at once.
+    const FETCH_BATCH = 8
     let processed = 0
-    for (const ref of messageRefs) {
-      if (Date.now() > accountDeadline) {
-        const remaining = messageRefs.length - processed
-        diag.errors.push(`budget_exhausted: ${remaining} message(s) not processed this run`)
-        console.warn(`[email-scan] Time budget reached, ${remaining} left for ${account.email}`)
-        break
-      }
-      processed++
-      try {
-        // Get full message
-        const message = await getMessage(accessToken, ref.id)
+    let budgetSpent = false
 
-        const subject = getHeader(message, 'subject')
-        const from = getHeader(message, 'from')
-        const bodyText = getBodyText(message)
+    for (let start = 0; start < messageRefs.length && !budgetSpent; start += FETCH_BATCH) {
+      const batch = messageRefs.slice(start, start + FETCH_BATCH)
+      const fetched = await Promise.allSettled(batch.map((ref) => getMessage(accessToken, ref.id)))
 
-        // Pattern classification (pass body for forwarded-sender detection)
-        const patternResult = classifyByPattern(from, subject, bodyText)
-        if (patternResult === 'irrelevant') {
-          diag.irrelevant++
-          console.log(`[email-scan] Irrelevant: "${subject}" from="${from}"`)
+      for (let j = 0; j < batch.length; j++) {
+        const ref = batch[j]
+        if (Date.now() > accountDeadline) {
+          const remaining = messageRefs.length - processed
+          diag.errors.push(`budget_exhausted: ${remaining} message(s) not processed this run`)
+          console.warn(`[email-scan] Time budget reached, ${remaining} left for ${account.email}`)
+          budgetSpent = true
+          break
+        }
+        processed++
+
+        const fetchResult = fetched[j]
+        if (fetchResult.status === 'rejected') {
+          diag.errors.push(`msg_${ref.id}: ${fetchResult.reason}`)
+          console.error(`[email-scan] Failed to fetch message ${ref.id}:`, fetchResult.reason)
           continue
         }
+        const message = fetchResult.value
 
-        // Dedup check
-        const alreadyImported = await isAlreadyImported(supabase, message.id, bodyText, subject)
-        if (alreadyImported) {
-          diag.deduped++
-          console.log(`[email-scan] Skipping duplicate: ${subject}`)
-          continue
-        }
+        try {
+          const subject = getHeader(message, 'subject')
+          const from = getHeader(message, 'from')
+          const bodyText = getBodyText(message)
 
-        // AI classify if uncertain
-        if (patternResult === 'uncertain') {
-          const { category } = await classifyEmail(OPENAI_API_KEY, subject, bodyText)
-          if (!category) {
-            diag.aiRejected++
-            console.log(`[email-scan] AI classified as irrelevant: ${subject}`)
+          // Pattern classification (pass body for forwarded-sender detection)
+          const patternResult = classifyByPattern(from, subject, bodyText)
+          if (patternResult === 'irrelevant') {
+            diag.irrelevant++
+            console.log(`[email-scan] Irrelevant: "${subject}" from="${from}"`)
             continue
           }
-        }
 
-        // ---- Check for .eml attachments first ----
-        const emlDocs = await extractEmlDocuments(accessToken, message.id, message)
+          // Dedup check
+          const alreadyImported = await isAlreadyImported(supabase, message.id, bodyText, subject)
+          if (alreadyImported) {
+            diag.deduped++
+            console.log(`[email-scan] Skipping duplicate: ${subject}`)
+            continue
+          }
 
-        if (emlDocs.length > 0) {
-          // Process each .eml as a separate document
-          console.log(`[email-scan] Found ${emlDocs.length} .eml attachment(s) in: ${subject}`)
+          // AI classify if uncertain
+          if (patternResult === 'uncertain') {
+            const { category } = await classifyEmail(OPENAI_API_KEY, subject, bodyText)
+            if (!category) {
+              diag.aiRejected++
+              console.log(`[email-scan] AI classified as irrelevant: ${subject}`)
+              continue
+            }
+          }
 
-          for (let i = 0; i < emlDocs.length; i++) {
-            const emlDoc = emlDocs[i]
-            const emlFileUrl = await uploadToStorage(supabase, emlDoc.file)
-            if (!emlFileUrl) {
-              console.warn(`[email-scan] Failed to upload .eml file ${i} from: ${subject}`)
+          // ---- Check for .eml attachments first ----
+          const emlDocs = await extractEmlDocuments(accessToken, message.id, message)
+
+          if (emlDocs.length > 0) {
+            // Process each .eml as a separate document
+            console.log(`[email-scan] Found ${emlDocs.length} .eml attachment(s) in: ${subject}`)
+
+            for (let i = 0; i < emlDocs.length; i++) {
+              const emlDoc = emlDocs[i]
+              const emlFileUrl = await uploadToStorage(supabase, emlDoc.file)
+              if (!emlFileUrl) {
+                console.warn(`[email-scan] Failed to upload .eml file ${i} from: ${subject}`)
+                continue
+              }
+
+              // Use the inner .eml content for AI classification
+              const emlMeta = await extractDocumentMeta(
+                OPENAI_API_KEY,
+                emlDoc.parsed.subject,
+                emlDoc.parsed.bodyText,
+                emlDoc.parsed.from,
+                [],
+              )
+
+              // Dedup: check if this inner .eml was already imported (by subject)
+              const emlAlreadyImported = await isAlreadyImported(
+                supabase,
+                `${message.id}-eml-${i}`,
+                emlDoc.parsed.bodyText,
+                emlDoc.parsed.subject,
+              )
+              if (emlAlreadyImported) {
+                console.log(`[email-scan] Skipping duplicate .eml: ${emlDoc.parsed.subject}`)
+                continue
+              }
+
+              const emlResult = await importDocument(supabase, {
+                title: emlMeta.title,
+                category: emlMeta.category,
+                locationId: emlMeta.locationId,
+                amount: emlMeta.amount,
+                currency: emlMeta.currency,
+                fileUrl: emlFileUrl,
+                fileType: emlDoc.file.contentType,
+                fileSize: emlDoc.file.data.length,
+                notes: emlMeta.notes,
+                sourceEmailId: `${message.id}-eml-${i}`,
+                expiryDate: emlMeta.expiry_date,
+                familyMemberId: emlMeta.family_member_id,
+              })
+
+              allResults.push(emlResult)
+              console.log(
+                `[email-scan] Imported .eml: ${emlResult.title} (${emlResult.documentId})`,
+              )
+
+              await importCampsiteBooking(supabase, {
+                title: emlMeta.title,
+                category: emlMeta.category,
+                locationId: emlMeta.locationId,
+                amount: emlMeta.amount,
+                currency: emlMeta.currency,
+                fileUrl: emlFileUrl,
+                fileType: emlDoc.file.contentType,
+                fileSize: emlDoc.file.data.length,
+                notes: emlMeta.notes,
+                sourceEmailId: `${message.id}-eml-${i}`,
+                checkInDate: emlMeta.check_in_date,
+                expiryDate: emlMeta.expiry_date,
+                familyMemberId: emlMeta.family_member_id,
+                confirmation: emlMeta.confirmation,
+                documentId: emlResult.documentId,
+              })
+            }
+          } else {
+            // ---- Normal flow: capture from this email directly ----
+            const capturedFile = await captureDocument(accessToken, message.id, message)
+
+            let fileUrl: string | null = null
+            let fileType: string | null = null
+            let fileSize: number | null = null
+
+            if (capturedFile) {
+              fileUrl = await uploadToStorage(supabase, capturedFile)
+              fileType = capturedFile.contentType
+              fileSize = capturedFile.data.length
+            }
+
+            // Guard: never create a document without a file
+            if (!fileUrl) {
+              diag.noFile++
+              console.warn(`[email-scan] Skipping message ${ref.id} — no file could be captured`)
               continue
             }
 
-            // Use the inner .eml content for AI classification
-            const emlMeta = await extractDocumentMeta(
+            // Extract metadata via AI
+            const attachmentNames = getAttachments(message).map((a) => a.filename)
+            const meta = await extractDocumentMeta(
               OPENAI_API_KEY,
-              emlDoc.parsed.subject,
-              emlDoc.parsed.bodyText,
-              emlDoc.parsed.from,
-              [],
+              subject,
+              bodyText,
+              from,
+              attachmentNames,
             )
 
-            // Dedup: check if this inner .eml was already imported (by subject)
-            const emlAlreadyImported = await isAlreadyImported(
-              supabase,
-              `${message.id}-eml-${i}`,
-              emlDoc.parsed.bodyText,
-              emlDoc.parsed.subject,
-            )
-            if (emlAlreadyImported) {
-              console.log(`[email-scan] Skipping duplicate .eml: ${emlDoc.parsed.subject}`)
-              continue
-            }
-
-            const emlResult = await importDocument(supabase, {
-              title: emlMeta.title,
-              category: emlMeta.category,
-              locationId: emlMeta.locationId,
-              amount: emlMeta.amount,
-              currency: emlMeta.currency,
-              fileUrl: emlFileUrl,
-              fileType: emlDoc.file.contentType,
-              fileSize: emlDoc.file.data.length,
-              notes: emlMeta.notes,
-              sourceEmailId: `${message.id}-eml-${i}`,
-              expiryDate: emlMeta.expiry_date,
-              familyMemberId: emlMeta.family_member_id,
+            const result = await importDocument(supabase, {
+              title: meta.title,
+              category: meta.category,
+              locationId: meta.locationId,
+              amount: meta.amount,
+              currency: meta.currency,
+              fileUrl,
+              fileType,
+              fileSize,
+              notes: meta.notes,
+              sourceEmailId: message.id,
+              expiryDate: meta.expiry_date,
+              familyMemberId: meta.family_member_id,
             })
 
-            allResults.push(emlResult)
-            console.log(`[email-scan] Imported .eml: ${emlResult.title} (${emlResult.documentId})`)
+            allResults.push(result)
+            diag.imported++
+            console.log(`[email-scan] Imported: ${result.title} (${result.documentId})`)
 
             await importCampsiteBooking(supabase, {
-              title: emlMeta.title,
-              category: emlMeta.category,
-              locationId: emlMeta.locationId,
-              amount: emlMeta.amount,
-              currency: emlMeta.currency,
-              fileUrl: emlFileUrl,
-              fileType: emlDoc.file.contentType,
-              fileSize: emlDoc.file.data.length,
-              notes: emlMeta.notes,
-              sourceEmailId: `${message.id}-eml-${i}`,
-              checkInDate: emlMeta.check_in_date,
-              expiryDate: emlMeta.expiry_date,
-              familyMemberId: emlMeta.family_member_id,
-              confirmation: emlMeta.confirmation,
-              documentId: emlResult.documentId,
+              title: meta.title,
+              category: meta.category,
+              locationId: meta.locationId,
+              amount: meta.amount,
+              currency: meta.currency,
+              fileUrl,
+              fileType,
+              fileSize,
+              notes: meta.notes,
+              sourceEmailId: message.id,
+              checkInDate: meta.check_in_date,
+              expiryDate: meta.expiry_date,
+              familyMemberId: meta.family_member_id,
+              confirmation: meta.confirmation,
+              documentId: result.documentId,
             })
           }
-        } else {
-          // ---- Normal flow: capture from this email directly ----
-          const capturedFile = await captureDocument(accessToken, message.id, message)
-
-          let fileUrl: string | null = null
-          let fileType: string | null = null
-          let fileSize: number | null = null
-
-          if (capturedFile) {
-            fileUrl = await uploadToStorage(supabase, capturedFile)
-            fileType = capturedFile.contentType
-            fileSize = capturedFile.data.length
-          }
-
-          // Guard: never create a document without a file
-          if (!fileUrl) {
-            diag.noFile++
-            console.warn(`[email-scan] Skipping message ${ref.id} — no file could be captured`)
-            continue
-          }
-
-          // Extract metadata via AI
-          const attachmentNames = getAttachments(message).map((a) => a.filename)
-          const meta = await extractDocumentMeta(
-            OPENAI_API_KEY,
-            subject,
-            bodyText,
-            from,
-            attachmentNames,
-          )
-
-          const result = await importDocument(supabase, {
-            title: meta.title,
-            category: meta.category,
-            locationId: meta.locationId,
-            amount: meta.amount,
-            currency: meta.currency,
-            fileUrl,
-            fileType,
-            fileSize,
-            notes: meta.notes,
-            sourceEmailId: message.id,
-            expiryDate: meta.expiry_date,
-            familyMemberId: meta.family_member_id,
-          })
-
-          allResults.push(result)
-          diag.imported++
-          console.log(`[email-scan] Imported: ${result.title} (${result.documentId})`)
-
-          await importCampsiteBooking(supabase, {
-            title: meta.title,
-            category: meta.category,
-            locationId: meta.locationId,
-            amount: meta.amount,
-            currency: meta.currency,
-            fileUrl,
-            fileType,
-            fileSize,
-            notes: meta.notes,
-            sourceEmailId: message.id,
-            checkInDate: meta.check_in_date,
-            expiryDate: meta.expiry_date,
-            familyMemberId: meta.family_member_id,
-            confirmation: meta.confirmation,
-            documentId: result.documentId,
-          })
+        } catch (err) {
+          diag.errors.push(`msg_${ref.id}: ${err}`)
+          console.error(`[email-scan] Failed to process message ${ref.id}:`, err)
+          // Continue with next message
         }
-      } catch (err) {
-        diag.errors.push(`msg_${ref.id}: ${err}`)
-        console.error(`[email-scan] Failed to process message ${ref.id}:`, err)
-        // Continue with next message
       }
     }
 
