@@ -41,6 +41,13 @@ export interface GmailAttachmentMeta {
   mimeType: string
   attachmentId: string
   size: number
+  /**
+   * True when the part is embedded in the message body rather than attached to
+   * it: a logo, a signature image, a tracking pixel. Senders mark these with a
+   * Content-ID (so the HTML can reference them as cid:...) or an explicit
+   * inline disposition.
+   */
+  inline: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -275,11 +282,16 @@ export function getAttachments(msg: GmailMessage): GmailAttachmentMeta[] {
 
   for (const part of allParts) {
     if (part.filename && part.filename.length > 0 && part.body?.attachmentId) {
+      const headers = part.headers ?? []
+      const header = (name: string) =>
+        headers.find((h) => h.name.toLowerCase() === name)?.value?.toLowerCase() ?? ''
+
       results.push({
         filename: part.filename,
         mimeType: part.mimeType ?? 'application/octet-stream',
         attachmentId: part.body.attachmentId,
         size: part.body.size ?? 0,
+        inline: header('content-id') !== '' || header('content-disposition').startsWith('inline'),
       })
     }
   }
