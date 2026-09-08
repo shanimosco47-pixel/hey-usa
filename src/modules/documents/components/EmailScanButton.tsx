@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
-import { triggerEmailScan, accountsNeedingReconnect } from '@/lib/emailScan'
+import {
+  triggerEmailScan,
+  accountsNeedingReconnect,
+  accountsTemporarilyUnreachable,
+} from '@/lib/emailScan'
 
 type ToastState = { type: 'success'; message: string } | { type: 'error'; message: string } | null
 
@@ -32,13 +36,22 @@ export function EmailScanButton() {
             ? 'נמצא מסמך אחד חדש'
             : `נמצאו ${count} מסמכים חדשים`
 
-      // A dead Gmail authorisation does not fail the request, so without this
-      // the scan reports success while one of the mailboxes was never opened.
+      // A mailbox the server could not open does not fail the request, so
+      // without this the scan reports success while one account went unread.
       const needReconnect = accountsNeedingReconnect(result)
       if (needReconnect.length > 0) {
         setToast({
           type: 'error',
           message: `${countText}. החיבור ל-${needReconnect.join(', ')} פג — יש לחבר את החשבון מחדש`,
+        })
+        return
+      }
+
+      const unreachable = accountsTemporarilyUnreachable(result)
+      if (unreachable.length > 0) {
+        setToast({
+          type: 'error',
+          message: `${countText}. לא הצלחנו לגשת ל-${unreachable.join(', ')} — כדאי לנסות שוב`,
         })
         return
       }
@@ -72,7 +85,7 @@ export function EmailScanButton() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className={`absolute start-0 top-full z-50 mt-2 flex min-w-max items-center gap-2 rounded-apple-lg px-3.5 py-2.5 text-subhead font-medium shadow-glass-hover ${
+            className={`absolute start-0 top-full z-50 mt-2 flex max-w-[min(20rem,calc(100vw-2rem))] items-start gap-2 text-balance rounded-apple-lg px-3.5 py-2.5 text-subhead font-medium shadow-glass-hover ${
               toast.type === 'success'
                 ? 'bg-ios-green/10 text-ios-green ring-1 ring-ios-green/20'
                 : 'bg-ios-red/10 text-ios-red ring-1 ring-ios-red/20'

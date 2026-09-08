@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { accountsNeedingReconnect, type ScanResult } from '../emailScan'
+import {
+  accountsNeedingReconnect,
+  accountsTemporarilyUnreachable,
+  type ScanResult,
+} from '../emailScan'
 
 // The scan returns 200 and a document count even when an account's Gmail
 // authorisation is dead, so "success" is not proof that every mailbox was read.
@@ -19,7 +23,7 @@ describe('accountsNeedingReconnect', () => {
             account: 'mdanit75@gmail.com',
             found: 0,
             imported: 0,
-            errors: ['token_refresh_failed: Error: Token refresh failed (400): invalid_grant'],
+            errors: ['token_revoked: Error: Token refresh failed (400): invalid_grant'],
           },
         ]),
       ),
@@ -51,5 +55,36 @@ describe('accountsNeedingReconnect', () => {
 
   it('tolerates a response with no diagnostics at all', () => {
     expect(accountsNeedingReconnect(result(undefined))).toEqual([])
+  })
+
+  it('does not send the user to a Google sign-in over a transient failure', () => {
+    // A 503 from Google, a rate limit or a failed local decrypt are not a dead
+    // authorisation. Telling someone to reconnect an account that is fine is
+    // worse than saying nothing.
+    const transient = result([
+      {
+        account: 'mdanit75@gmail.com',
+        found: 0,
+        imported: 0,
+        errors: ['token_refresh_failed: Error: Token refresh failed (503): backend error'],
+      },
+    ])
+    expect(accountsNeedingReconnect(transient)).toEqual([])
+    expect(accountsTemporarilyUnreachable(transient)).toEqual(['mdanit75@gmail.com'])
+  })
+
+  it('does not report a revoked account as merely unreachable', () => {
+    expect(
+      accountsTemporarilyUnreachable(
+        result([
+          {
+            account: 'mdanit75@gmail.com',
+            found: 0,
+            imported: 0,
+            errors: ['token_revoked: invalid_grant'],
+          },
+        ]),
+      ),
+    ).toEqual([])
   })
 })

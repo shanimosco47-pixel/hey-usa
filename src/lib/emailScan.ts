@@ -28,13 +28,25 @@ export interface ScanResult {
 }
 
 /**
- * Accounts whose Gmail authorisation is dead. A revoked or expired refresh
- * token fails silently on the server: the scan still returns 200 and reports
- * how many documents it imported from the accounts that DID work, so the run
- * looks successful while an entire mailbox was never opened. That is how
- * Danit's account sat unscanned from July to the eve of the trip.
+ * Accounts whose Gmail authorisation is dead and can only be repaired by
+ * signing in again. A revoked or expired refresh token fails silently on the
+ * server: the scan still returns 200 and reports how many documents it imported
+ * from the accounts that DID work, so the run looks successful while an entire
+ * mailbox was never opened. That is how Danit's account sat unscanned from July
+ * to the eve of the trip.
+ *
+ * Only Google's invalid_grant counts here. A 5xx, a rate limit or a failed
+ * local decrypt are reported separately: sending someone through a full Google
+ * sign-in because a request timed out is worse than useless advice.
  */
 export function accountsNeedingReconnect(result: ScanResult): string[] {
+  return (result.diagnostics ?? [])
+    .filter((d) => d.errors.some((e) => e.startsWith('token_revoked')))
+    .map((d) => d.account)
+}
+
+/** Accounts that could not be opened this run for a reason a retry may cure. */
+export function accountsTemporarilyUnreachable(result: ScanResult): string[] {
   return (result.diagnostics ?? [])
     .filter((d) => d.errors.some((e) => e.startsWith('token_refresh_failed')))
     .map((d) => d.account)

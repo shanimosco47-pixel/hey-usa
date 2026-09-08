@@ -264,8 +264,48 @@ Deno.serve(async (req) => {
     errors: string[]
   }[] = []
 
-  for (let accountIndex = 0; accountIndex < accounts.length; accountIndex++) {
-    const account = accounts[accountIndex]
+  // Authenticate every account BEFORE any of the time budget is spent, so that
+  // the budget is shared only between mailboxes that can actually be read. Doing
+  // this inside the processing loop reserved a share for accounts that turned
+  // out to be dead: with one working and one revoked account, the working
+  // mailbox stopped at its half and the revoked one failed instantly, leaving
+  // the other half unused. Authentication is two HTTP calls and costs no
+  // meaningful time.
+  const authenticated: { account: (typeof accounts)[number]; accessToken: string }[] = []
+
+  for (const account of accounts) {
+    try {
+      const refreshToken = await decrypt(account.refresh_token, TOKEN_ENCRYPTION_KEY)
+      const accessToken = await refreshAccessToken(
+        refreshToken,
+        GOOGLE_CLIENT_ID,
+        GOOGLE_CLIENT_SECRET,
+      )
+      authenticated.push({ account, accessToken })
+    } catch (err) {
+      console.error(`[email-scan] Token refresh failed for ${account.email}:`, err)
+      // Google answers a revoked or expired refresh token with invalid_grant.
+      // Everything else here (a 5xx, a rate limit, a failed decrypt) is
+      // transient or local, and telling the user to reconnect would be wrong
+      // advice, so the two are reported under distinct prefixes.
+      const detail = String(err)
+      const prefix = detail.includes('invalid_grant') ? 'token_revoked' : 'token_refresh_failed'
+      diagnostics.push({
+        account: account.email,
+        query: '',
+        found: 0,
+        irrelevant: 0,
+        deduped: 0,
+        aiRejected: 0,
+        noFile: 0,
+        imported: 0,
+        errors: [`${prefix}: ${detail}`],
+      })
+    }
+  }
+
+  for (let accountIndex = 0; accountIndex < authenticated.length; accountIndex++) {
+    const { account, accessToken } = authenticated[accountIndex]
     console.log(`[email-scan] Processing account: ${account.email}`)
     const diag = {
       account: account.email,
@@ -277,17 +317,6 @@ Deno.serve(async (req) => {
       noFile: 0,
       imported: 0,
       errors: [] as string[],
-    }
-
-    let accessToken: string
-    try {
-      const refreshToken = await decrypt(account.refresh_token, TOKEN_ENCRYPTION_KEY)
-      accessToken = await refreshAccessToken(refreshToken, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
-    } catch (err) {
-      console.error(`[email-scan] Token refresh failed for ${account.email}:`, err)
-      diag.errors.push(`token_refresh_failed: ${err}`)
-      diagnostics.push(diag)
-      continue
     }
 
     // Build search query
@@ -328,13 +357,13 @@ Deno.serve(async (req) => {
     diag.found = messageRefs.length
     console.log(`[email-scan] Found ${messageRefs.length} messages for ${account.email}`)
 
-    // Split the remaining time evenly across the accounts still to be scanned.
+    // Split the remaining time evenly across the mailboxes still to be scanned.
     // A single global deadline let the first mailbox consume all of it: with 494
     // matches on account one, account two was reached with zero budget left and
     // scanned nothing, silently. Whoever is scanned last is exactly the person
-    // whose confirmations are missing, so every account gets a guaranteed share.
-    // An account that finishes early hands its unused time to the next one.
-    const accountsRemaining = accounts.length - accountIndex
+    // whose confirmations are missing, so every readable mailbox gets a
+    // guaranteed share, and one that finishes early hands the rest to the next.
+    const accountsRemaining = authenticated.length - accountIndex
     const accountDeadline = Date.now() + Math.max(0, (deadline - Date.now()) / accountsRemaining)
 
     // Process each message
