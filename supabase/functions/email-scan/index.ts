@@ -7,7 +7,7 @@ import { decrypt } from '../_shared/crypto.ts'
 
 import {
   refreshAccessToken,
-  searchEmails,
+  searchAllEmails,
   getMessage,
   getHeader,
   getBodyText,
@@ -293,9 +293,14 @@ Deno.serve(async (req) => {
     diag.query = searchQuery
 
     // Search emails
-    let searchResult
+    let messageRefs: { id: string; threadId: string }[] = []
     try {
-      searchResult = await searchEmails(accessToken, searchQuery, 50)
+      const searchResult = await searchAllEmails(accessToken, searchQuery)
+      messageRefs = searchResult.messages
+      if (searchResult.truncated) {
+        diag.errors.push('search_truncated: more matches exist than the page cap allows')
+        console.warn(`[email-scan] Result set truncated for ${account.email}`)
+      }
     } catch (err) {
       console.error(`[email-scan] Search failed for ${account.email}:`, err)
       diag.errors.push(`search_failed: ${err}`)
@@ -303,7 +308,6 @@ Deno.serve(async (req) => {
       continue
     }
 
-    const messageRefs = searchResult.messages ?? []
     diag.found = messageRefs.length
     console.log(`[email-scan] Found ${messageRefs.length} messages for ${account.email}`)
 
