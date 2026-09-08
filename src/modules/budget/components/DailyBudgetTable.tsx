@@ -53,7 +53,7 @@ const MOTI_DAILY_DEFAULTS: Record<BudgetRowKey, number> = {
 // Day IDs: day-1 (Sep 10 Newark) through day-21 (Sep 30 SF→home)
 const DAY_OVERRIDES: Record<string, Partial<Record<BudgetRowKey, number>>> = {
   'day-1': {
-    accommodation: 150,
+    accommodation: 265,
     gas: 0,
     food: 50,
     groceries: 0,
@@ -61,7 +61,7 @@ const DAY_OVERRIDES: Record<string, Partial<Record<BudgetRowKey, number>>> = {
     parking: 0,
     tips: 8,
     unexpected: 15,
-  }, // Newark hotel, afternoon arrival only
+  }, // Newark hotel (Staybridge $265.30 confirmed), afternoon arrival only
   'day-2': {
     accommodation: 40,
     gas: 35,

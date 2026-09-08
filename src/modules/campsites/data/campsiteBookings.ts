@@ -11,6 +11,7 @@ export const sampleCampsiteBookings: CampsiteBooking[] = [
     priority: 'primary',
     status: 'confirmed',
     confirmation: '6522237172',
+    cost: 265.3,
     booking_url: 'https://www.booking.com/city/us/newark.html',
     notes:
       'מאושר. אישור 6522237172, $265.30. נחיתה ב-15:50 (UA85). הטיסה לבוזמן ב-07:45 — לבדוק שאטל לטרמינל ולהזמין מראש',

@@ -159,8 +159,10 @@ export function parseBookingConfirmation(
   const isGrandTeton = /grand\s*teton|jenny\s*lake|colter\s*bay|gros\s*ventre/i.test(text)
   const isLasVegas = /las\s*vegas/i.test(text)
   const isMammoth = /mammoth\s*lakes/i.test(text)
-  const isNewark = /newark|\bEWR\b/i.test(text)
-  const isSF = /san\s*francisco|oakland|marin/i.test(text)
+  // Newark, CA (94560) is the RV drop-off in the Bay Area — not the day-1 stop in Newark, NJ
+  const isNewarkCA = /newark[,\s]+(?:ca\b|california)/i.test(text)
+  const isNewark = !isNewarkCA && /newark|\bEWR\b/i.test(text)
+  const isSF = isNewarkCA || /san\s*francisco|oakland|marin/i.test(text)
   const area = isYellowstone
     ? 'Yellowstone NP'
     : isYosemite

@@ -36,7 +36,13 @@ function getRegion(area: string): string {
   if (area.includes('Las Vegas')) return 'Las Vegas'
   if (area.includes('Mammoth')) return 'Mammoth Lakes'
   if (area.includes('Yosemite')) return 'Yosemite'
-  if (area.includes('Oakland') || area.includes('Marin') || area.includes('San Francisco'))
+  // Newark, CA is the Bay Area RV drop-off — only Newark, NJ is the day-1 stop
+  if (
+    area.includes('Oakland') ||
+    area.includes('Marin') ||
+    area.includes('San Francisco') ||
+    area.includes('Newark, CA')
+  )
     return 'San Francisco Bay'
   if (area.includes('Newark')) return 'Newark'
   return area
