@@ -110,6 +110,48 @@ export type PatternClassification = 'definite' | 'uncertain' | 'irrelevant'
  * Classifies an email by sender domain and subject keywords.
  * For forwarded emails, also checks the original sender extracted from the body.
  */
+/**
+ * Local-parts used for bulk/marketing mail by senders that ALSO send real
+ * confirmations from the same domain.
+ *
+ * recreation.gov is the case that bit us: AdventureAwaits@recreation.gov sends
+ * campsite advertising several times a month, while communications@recreation.gov
+ * sends the actual reservations. Matching on the domain alone treats the
+ * advertising as a known-good sender, and because the ads are genuinely about
+ * camping, the AI classifier then agrees they are travel-related. That is how a
+ * "Long Weekend? Nature is Calling!" promo became a campsite booking.
+ */
+const MARKETING_LOCAL_PARTS = [
+  'adventureawaits',
+  'deals',
+  'offers',
+  'news',
+  'newsletter',
+  'marketing',
+  'promotions',
+  'inspire',
+  'explore',
+  'discover',
+]
+
+function isMarketingSender(fromEmail: string): boolean {
+  // Only ever applied to domains we already trust. Those are the only senders
+  // where the ambiguity exists, because they send both adverts and real
+  // confirmations from the same domain.
+  //
+  // Restricting it matters: bookings for this trip arrive forwarded from
+  // personal mailboxes, and a substring match on an arbitrary local part would
+  // veto them before the forwarded-sender lookup below ever runs. A real
+  // confirmation forwarded from, say, Discover.Danit@gmail.com must not be
+  // thrown away because her name contains "discover".
+  if (!isKnownSender(fromEmail)) return false
+
+  const match = fromEmail.match(/([a-zA-Z0-9._%+-]+)@/)
+  if (!match) return false
+  const localPart = match[1].toLowerCase().replace(/[._-]/g, '')
+  return MARKETING_LOCAL_PARTS.some((p) => localPart.includes(p))
+}
+
 export function classifyByPattern(
   fromEmail: string,
   subject: string,
@@ -119,6 +161,11 @@ export function classifyByPattern(
 
   // Exclude check first
   if (containsAny(combined, EXCLUDE_KEYWORDS)) {
+    return 'irrelevant'
+  }
+
+  // Bulk mail from an otherwise-trusted domain is still bulk mail.
+  if (isMarketingSender(fromEmail)) {
     return 'irrelevant'
   }
 

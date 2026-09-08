@@ -7,7 +7,7 @@ import { decrypt } from '../_shared/crypto.ts'
 
 import {
   refreshAccessToken,
-  searchEmails,
+  searchAllEmails,
   getMessage,
   getHeader,
   getBodyText,
@@ -57,7 +57,17 @@ function corsResponse(body: BodyInit | null, init: ResponseInit = {}): Response 
 // Main handler
 // ---------------------------------------------------------------------------
 
+// Hosted edge functions are killed at a wall-clock limit. Each message costs a
+// Gmail fetch, a dedup query and often an LLM call and a storage upload, all
+// sequential, so a large mailbox can outlive the request. Stop cleanly before
+// that happens: a partially-completed scan that reports what it skipped is
+// recoverable, one that is killed mid-import is not. Dedup makes the next scan
+// resume rather than repeat.
+const PROCESSING_BUDGET_MS = 90_000
+
 Deno.serve(async (req) => {
+  const deadline = Date.now() + PROCESSING_BUDGET_MS
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -293,9 +303,14 @@ Deno.serve(async (req) => {
     diag.query = searchQuery
 
     // Search emails
-    let searchResult
+    let messageRefs: { id: string; threadId: string }[] = []
     try {
-      searchResult = await searchEmails(accessToken, searchQuery, 50)
+      const searchResult = await searchAllEmails(accessToken, searchQuery)
+      messageRefs = searchResult.messages
+      if (searchResult.truncated) {
+        diag.errors.push('search_truncated: more matches exist than the page cap allows')
+        console.warn(`[email-scan] Result set truncated for ${account.email}`)
+      }
     } catch (err) {
       console.error(`[email-scan] Search failed for ${account.email}:`, err)
       diag.errors.push(`search_failed: ${err}`)
@@ -303,12 +318,25 @@ Deno.serve(async (req) => {
       continue
     }
 
-    const messageRefs = searchResult.messages ?? []
+    // Gmail returns newest-first, but confirmations are the OLDEST matches:
+    // bookings are made months ahead while the recent end of the window is
+    // mostly advertising. Process oldest-first so that if the budget runs out,
+    // what got imported is the part actually worth having.
+    messageRefs.reverse()
+
     diag.found = messageRefs.length
     console.log(`[email-scan] Found ${messageRefs.length} messages for ${account.email}`)
 
     // Process each message
+    let processed = 0
     for (const ref of messageRefs) {
+      if (Date.now() > deadline) {
+        const remaining = messageRefs.length - processed
+        diag.errors.push(`budget_exhausted: ${remaining} message(s) not processed this run`)
+        console.warn(`[email-scan] Time budget reached, ${remaining} left for ${account.email}`)
+        break
+      }
+      processed++
       try {
         // Get full message
         const message = await getMessage(accessToken, ref.id)

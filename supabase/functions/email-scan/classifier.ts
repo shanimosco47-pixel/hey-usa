@@ -100,17 +100,27 @@ export async function classifyEmail(
   subject: string,
   bodySnippet: string,
 ): Promise<ClassifyResult> {
-  const prompt = `You are a travel document classifier. Determine whether the following email is related to a travel booking or trip document (flight, hotel, car rental, RV rental, campsite, travel insurance, attraction ticket, etc.).
+  // Note: the question is deliberately NOT "is this travel-related?". Campground
+  // and airline advertising is genuinely travel-related, so that question gets a
+  // truthful "yes" and fills the trip with bookings that were never made. The
+  // only thing worth importing is a record of a reservation the user already holds.
+  const prompt = `You decide whether an email is a record of a booking the recipient has ALREADY made.
 
 Subject: ${subject}
 Body snippet: ${bodySnippet.slice(0, 800)}
 
-If the email IS travel-related, respond with a JSON object like:
+Answer YES only if the email documents a specific existing reservation, purchase or travel document belonging to the recipient. Real ones almost always carry at least one of: a confirmation/reservation/booking number, specific travel dates for the recipient, a named traveler or guest, a seat/site/room assignment, or an amount actually charged.
+
+Answer NO for anything advertising, suggesting or inviting a booking, however relevant it sounds. Specifically NO for: promotional and marketing mail, newsletters, "campsites available near you", price alerts, deals, trip inspiration, loyalty programme offers, surveys, review requests, and reminders that merely link to an account.
+
+Being about travel is NOT enough. An email about camping that does not evidence a reservation the recipient holds is NO.
+
+If YES, respond with a JSON object like:
 {"category": "flight_booking"}
 
 Valid categories: flight_booking, hotel_booking, car_rental, rv_rental, campsite_reservation, travel_insurance, attraction_ticket, itinerary, receipt, other_travel
 
-If the email is NOT travel-related (newsletter, marketing, unrelated), respond with:
+If NO, respond with:
 {"category": null}
 
 Respond ONLY with the JSON object, no other text.`

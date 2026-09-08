@@ -9,7 +9,10 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/test/setup.ts',
     css: false,
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    // Edge-function logic is covered too where it is pure TypeScript with no
+    // Deno APIs (e.g. the email-scan pattern classifier). CI never deployed a
+    // regression there because nothing tested it.
+    include: ['src/**/*.{test,spec}.{ts,tsx}', 'supabase/functions/**/*.{test,spec}.ts'],
   },
   resolve: {
     alias: {
