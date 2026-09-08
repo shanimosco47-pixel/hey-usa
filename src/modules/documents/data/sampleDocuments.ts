@@ -4,14 +4,14 @@ export const sampleDocuments: Document[] = [
   // ── Flights ────────────────────────────────────────────────────────
   {
     id: 'booking-flight-outbound',
-    title: 'כרטיסי טיסה TLV → YYZ → DEN → BZN',
+    title: 'כרטיסי טיסה TLV → EWR → BZN',
     category: 'flights',
     file_url:
       'https://lsmqhowvmqwgztpnshbc.supabase.co/storage/v1/object/public/documents/flight-tlv-den.png',
     file_type: 'image/png',
     file_size: 85_742,
     notes:
-      'United Airlines, אישור HQ51BY. 10/09: TLV 12:05→YYZ 16:55 (Air Canada UA8199), YYZ 18:20→DEN 20:00 (Air Canada UA8163). 11/09: DEN 08:01→BZN 09:47 (United UA348). 5 נוסעים. $7,630.50 + $450.30 מושבים = $8,080.80. Visa ending 6129.',
+      'United Airlines, אישור HQ51BY (כרטיס הונפק מחדש 27/06/26). 10/09: TLV 11:00→EWR 15:50 (United UA85). 11/09: EWR 07:45→BZN 10:27 (United UA297), מושבים 36A-36E. 5 נוסעים. $7,630.50 + מושבי לופטהנזה. מטען: ראשון חינם, שני $120, עד 23 ק"ג.',
     visit_date: '2026-09-10',
     status: 'reserved',
     created_at: '2025-11-27T19:37:00Z',
@@ -25,7 +25,7 @@ export const sampleDocuments: Document[] = [
     file_type: 'application/pdf',
     file_size: 870_000,
     notes:
-      'United Airlines, אישור HQ51BY. 30/09: SFO 21:05→MUC 17:10+1 (Lufthansa UA8882). 01/10: MUC 19:45→TLV 00:35+1 (Lufthansa UA9473). 5 נוסעים. מטען ראשון חינם, שני $100.',
+      'United Airlines, אישור HQ51BY. 30/09: SFO 21:05→MUC 17:10+1 (Lufthansa UA8882). 01/10: MUC 19:45→TLV 00:35+1 (Lufthansa UA9473). 5 נוסעים. מטען: ראשון חינם, שני $120, עד 23 ק"ג. צ\'ק-אין בדלפק לופטהנזה.',
     visit_date: '2026-09-30',
     status: 'reserved',
     created_at: '2025-11-27T19:37:00Z',
@@ -33,12 +33,12 @@ export const sampleDocuments: Document[] = [
   },
   {
     id: 'booking-flight-internal',
-    title: 'טיסה פנימית DEN → BZN',
+    title: 'טיסה פנימית EWR → BZN',
     category: 'flights',
     file_url: '/documents/flight-den-bzn.pdf',
     file_type: 'application/pdf',
     file_size: 450_000,
-    notes: 'United UA348, 11/09/2026. DEN 08:01→BZN 09:47. מושבים: 29B-F. חלק מאישור HQ51BY.',
+    notes: 'United UA297, 11/09/2026. EWR 07:45→BZN 10:27. מושבים: 36A-36E. חלק מאישור HQ51BY.',
     visit_date: '2026-09-11',
     status: 'reserved',
     created_at: '2025-11-27T19:37:00Z',

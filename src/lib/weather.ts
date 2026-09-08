@@ -51,7 +51,7 @@ function getWeatherInfo(code: number): { label: string; emoji: string } {
 
 // Key destinations with coordinates — one per city cluster (matches itinerary.ts)
 export const TRIP_DESTINATIONS = [
-  { city: 'Denver', lat: 39.86, lng: -104.67, days: ['2026-09-10'] },
+  { city: 'Newark', lat: 40.69, lng: -74.17, days: ['2026-09-10'] },
   { city: 'Gardiner', lat: 45.03, lng: -110.71, days: ['2026-09-11'] },
   { city: 'Yellowstone (Canyon)', lat: 44.73, lng: -110.49, days: ['2026-09-12'] },
   { city: 'Yellowstone (Madison)', lat: 44.65, lng: -110.86, days: ['2026-09-13'] },

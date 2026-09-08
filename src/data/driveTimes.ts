@@ -6,23 +6,23 @@
 // have durationMinutes: 0 / distanceKm: 0 — local driving only.
 
 export interface DriveTime {
-  from: string            // human-readable origin (city / location)
-  to: string              // human-readable destination
+  from: string // human-readable origin (city / location)
+  to: string // human-readable destination
   durationMinutes: number // total drive time in minutes (0 = local/no long drive)
-  distanceKm: number      // distance in kilometres (0 = local)
-  tips: string[]          // practical driving tips
+  distanceKm: number // distance in kilometres (0 = local)
+  tips: string[] // practical driving tips
 }
 
 // ── Raw data ──────────────────────────────────────────────────────────────────
 
 const RAW: DriveTime[] = [
-  // Day 1 – arrival in Denver, no driving
+  // Day 1 – arrival in Newark, no driving
   {
-    from: 'Denver',
-    to: 'Denver',
+    from: 'Newark',
+    to: 'Newark',
     durationMinutes: 0,
     distanceKm: 0,
-    tips: ['יום הגעה — נחיתה בדנבר, מלון ליד נמל התעופה'],
+    tips: ['יום הגעה — נחיתה בניוארק, מלון ליד נמל התעופה'],
   },
 
   // Day 2 – Bozeman → Gardiner (after RV pickup; DEN→BZN flight excluded)
@@ -131,7 +131,7 @@ const RAW: DriveTime[] = [
     distanceKm: 129,
     tips: [
       'מעקף עם קרוואן: UT-20 מערבה + I-15 דרום + UT-9',
-      "קרוואן מעל 11'4\" אינו יכול לעבור במנהרת זאיון — המעקף חובה",
+      'קרוואן מעל 11\'4" אינו יכול לעבור במנהרת זאיון — המעקף חובה',
       'Watchman Campground — להזמין 6 חודשים מראש',
     ],
   },
@@ -142,10 +142,7 @@ const RAW: DriveTime[] = [
     to: 'Zion',
     durationMinutes: 0,
     distanceKm: 0,
-    tips: [
-      'יום שלם בזאיון — שאטל בתוך הפארק',
-      'אסור לנהוג בקרוואן לתוך עמק זאיון',
-    ],
+    tips: ['יום שלם בזאיון — שאטל בתוך הפארק', 'אסור לנהוג בקרוואן לתוך עמק זאיון'],
   },
 
   // Day 12 – Zion/Springdale → Las Vegas (~2.75h)
@@ -226,10 +223,7 @@ const RAW: DriveTime[] = [
     to: 'Anthony Chabot',
     durationMinutes: 240,
     distanceKm: 322,
-    tips: [
-      'CA-41 צפון + CA-99 + I-580 מערבה',
-      'תנועה כבדה ב-Bay Area בשעות שיא — לצאת לפני 14:00',
-    ],
+    tips: ['CA-41 צפון + CA-99 + I-580 מערבה', 'תנועה כבדה ב-Bay Area בשעות שיא — לצאת לפני 14:00'],
   },
 
   // Day 19 – Anthony Chabot → Marin RV Park (~1h)
@@ -312,9 +306,7 @@ export function findDriveTime(from: string, to: string): DriveTime | undefined {
   const toLower = to.toLowerCase()
 
   return RAW.find(
-    (d) =>
-      d.from.toLowerCase().includes(fromLower) &&
-      d.to.toLowerCase().includes(toLower),
+    (d) => d.from.toLowerCase().includes(fromLower) && d.to.toLowerCase().includes(toLower),
   )
 }
 

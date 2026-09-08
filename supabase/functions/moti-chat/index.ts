@@ -10,19 +10,21 @@ const SYSTEM_PROMPT = `אתה מוטי — יועץ טיולים ציני, חכ�
 ## הטיול
 - תאריכים: 10-30 בספטמבר 2026 (21 יום)
 - משפחה: 5 בני משפחה — אבא, אמא, ילד 1, ילד 2, ילד 3
-- מסלול: תל אביב → דנבר (לינה) → בוזמן → ילוסטון → גרנד טיטון → ג'קסון → ברייס קניון → זאיון → לאס וגאס → Mammoth Lakes → יוסמיטי → סן פרנסיסקו
+- מסלול: תל אביב → ניוארק (לינה) → בוזמן → ילוסטון → גרנד טיטון → ג'קסון → ברייס קניון → זאיון → לאס וגאס → Mammoth Lakes → יוסמיטי → סן פרנסיסקו
 - RV trip across the western United States
 - מסמכים: 5 דרכונים, ESTA לכולם, ביטוח, רישיון נהיגה בינלאומי, אישורי הזמנות
 
 ## פרטי טיסות (חשוב!)
 - **חברת תעופה:** United Airlines (לא אל-על!)
-- **הלוך (10/9):** TLV → עצירת ביניים → Denver (DEN). **אין טיסה ישירה** — יש עצירת ביניים
-- **פנימית (11/9):** Denver (DEN) → Bozeman (BZN), 08:00–09:47. טיסה פנימית נפרדת
-- **חזור (30/9):** San Francisco (SFO) → TLV
+- **אישור הזמנה:** HQ51BY (הכרטיס הונפק מחדש ב-27/6/26 — המסלול הישן דרך טורונטו ודנבר בוטל!)
+- **הלוך (10/9):** UA85, TLV 11:00 → Newark (EWR) 15:50. **טיסה ישירה**
+- **פנימית (11/9):** UA297, Newark (EWR) 07:45 → Bozeman (BZN) 10:27. מושבים 36A-36E
+- **חזור (30/9):** UA8882, San Francisco (SFO) 21:05 → Munich (MUC) 17:10+1, ואז UA9473 MUC 19:45 → TLV 00:35+1. מופעלות ע"י לופטהנזה
+- **מטען:** מזוודה ראשונה חינם, שנייה $120, עד 23 ק"ג לכל אחת
 
 ## לוח זמנים מפורט
-- יום 1 (10/9) — נחיתה בדנבר (DEN) בערב (~20:00) אחרי טיסה ארוכה עם עצירת ביניים. לינה בנמל התעופה
-- יום 2 (11/9) — טיסה פנימית Denver → Bozeman (08:00–09:47), איסוף קרוואן, נסיעה לגרדינר
+- יום 1 (10/9) — נחיתה בניוארק (EWR) ב-15:50 אחרי טיסה ישירה. לינה במלון ליד נמל התעופה
+- יום 2 (11/9) — טיסה פנימית Newark → Bozeman (07:45–10:27), איסוף קרוואן, נסיעה לגרדינר
 - יום 3-5 (12-14/9) — Yellowstone National Park (Mammoth Hot Springs, Lamar Valley, Old Faithful, Grand Prismatic Spring, Grand Canyon of Yellowstone)
 - יום 6-7 (15-16/9) — Grand Teton National Park ו-Jackson, WY (Jenny Lake, rafting / cable car)
 - יום 8 (17/9) — יום נסיעה ארוך (~7 שעות) דרומה ליוטה (Provo/Nephi area)
@@ -121,10 +123,10 @@ const SYSTEM_PROMPT = `אתה מוטי — יועץ טיולים ציני, חכ�
 - שתייה — באזורי מדבר (לאס וגאס, גרנד קניון, זאיון) — כל אחד צריך לפחות 3 ליטר מים ביום. קנו מארזים גדולים ב-Walmart
 
 ## ידע ספציפי לפי אזור
-### Denver (יום 1, 10/9) — עצירת לינה בלבד
-- נחיתה בסביבות 20:00. אל תתכננו יציאה לעיר — עייפות טיסה אמיתית
-- דנבר ב-1,600 מ' — ייתכנו כאב ראש קל בגלל גובה. שתו מים, לא אלכוהול בלילה הראשון
-- המלון ליד DEN International Airport — 15 דקות נסיעה מהטרמינל
+### Newark (יום 1, 10/9) — עצירת לינה בלבד
+- נחיתה ב-15:50. אל תתכננו קפיצה למנהטן — הטיסה לבוזמן יוצאת ב-07:45 למחרת
+- צריך לקום ב-05:00 בערך. מומלץ מלון עם שאטל חינם לטרמינל
+- ⚠️ המלון בניוארק עדיין לא הוזמן נכון להיום — אם שואלים, תגיד את זה במפורש
 
 ### Bozeman, MT (יום 2, 11/9) — יום האיסוף
 - **Cruise America**: 69 New Ventures Drive, Bozeman 59718. מספר הזמנה: 137724-1-0
@@ -513,7 +515,7 @@ const TOOLS = [
           location_id: {
             type: 'string',
             description:
-              'מזהה מיקום: denver, bozeman, yellowstone, grand-teton, jackson, bryce-canyon, zion, las-vegas, mammoth-lakes, yosemite, san-francisco',
+              'מזהה מיקום: newark, bozeman, yellowstone, grand-teton, jackson, bryce-canyon, zion, las-vegas, mammoth-lakes, yosemite, san-francisco',
           },
         },
         required: [],
@@ -832,7 +834,7 @@ const TOOLS = [
           location_id: {
             type: 'string',
             description:
-              'Trip location ID: denver, bozeman, yellowstone, grand-teton, jackson, bryce-canyon, zion, las-vegas, mammoth-lakes, yosemite, san-francisco',
+              'Trip location ID: newark, bozeman, yellowstone, grand-teton, jackson, bryce-canyon, zion, las-vegas, mammoth-lakes, yosemite, san-francisco',
           },
           notes: {
             type: 'string',

@@ -4,21 +4,44 @@
 
 /** Pie chart colors for budget category breakdown */
 export const PIE_COLORS = [
-  '#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6',
-  '#FF2D55', '#5AC8FA', '#AF52DE', '#FFCC00',
+  '#007AFF',
+  '#FF3B30',
+  '#34C759',
+  '#FF9500',
+  '#5856D6',
+  '#FF2D55',
+  '#5AC8FA',
+  '#AF52DE',
+  '#FFCC00',
 ]
 
 /** Day-based colors for map route visualization */
 export const DAY_COLORS = [
-  '#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6',
-  '#FF2D55', '#5AC8FA', '#AF52DE', '#FFCC00', '#8E8E93',
-  '#007AFF', '#FF3B30', '#34C759', '#FF9500', '#5856D6',
-  '#FF2D55', '#5AC8FA', '#AF52DE', '#FFCC00', '#8E8E93',
+  '#007AFF',
+  '#FF3B30',
+  '#34C759',
+  '#FF9500',
+  '#5856D6',
+  '#FF2D55',
+  '#5AC8FA',
+  '#AF52DE',
+  '#FFCC00',
+  '#8E8E93',
+  '#007AFF',
+  '#FF3B30',
+  '#34C759',
+  '#FF9500',
+  '#5856D6',
+  '#FF2D55',
+  '#5AC8FA',
+  '#AF52DE',
+  '#FFCC00',
+  '#8E8E93',
 ]
 
 /** Desert palette gradient for dashboard route visualization */
 export const ROUTE_COLORS = [
-  '#8B6F47', // Denver — earth brown
+  '#8B6F47', // Newark — earth brown
   '#5B8C5A', // Montana — forest green
   '#6B8E6B', // Yellowstone — sage
   '#7BA07B', // Yellowstone — moss
