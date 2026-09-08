@@ -53,6 +53,25 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+          {
+            // Passports, booking PDFs and photos live in Supabase Storage. Without
+            // this they are network-only, so they fail to open exactly when they
+            // matter most — abroad, at a border or a campground with no signal.
+            // CacheFirst: an uploaded file never changes, so once it has been
+            // opened online it stays available offline for the whole trip.
+            urlPattern: /^https:\/\/.*supabase\.co\/storage\/v1\/object\/public\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'supabase-storage',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 60, // 60 days — outlasts the trip
+                purgeOnQuotaError: true,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+              rangeRequests: true, // PDF viewers fetch byte ranges
+            },
+          },
         ],
       },
       manifest: {
