@@ -27,7 +27,8 @@ export const SAMPLE_EXPENSES: Expense[] = [
     category: 'flights',
     paid_by: 'ima',
     date: '2025-11-27',
-    notes: '5 כרטיסים TLV→YYZ→DEN→BZN + SFO→MUC→TLV. $8,080.80 (כולל מושבים Lufthansa). Visa ending 6129.',
+    notes:
+      '5 כרטיסים TLV→EWR→BZN + SFO→MUC→TLV. $8,080.80 (כולל מושבים Lufthansa). Visa ending 6129. כרטיס הונפק מחדש 27/6/26.',
     created_at: '2025-11-27T19:37:00Z',
   },
   {

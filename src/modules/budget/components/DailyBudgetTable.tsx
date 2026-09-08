@@ -50,7 +50,7 @@ const MOTI_DAILY_DEFAULTS: Record<BudgetRowKey, number> = {
 }
 
 // Per-day overrides based on actual route & activities
-// Day IDs: day-1 (Sep 10 Denver) through day-21 (Sep 30 SF→home)
+// Day IDs: day-1 (Sep 10 Newark) through day-21 (Sep 30 SF→home)
 const DAY_OVERRIDES: Record<string, Partial<Record<BudgetRowKey, number>>> = {
   'day-1': {
     accommodation: 150,
@@ -61,7 +61,7 @@ const DAY_OVERRIDES: Record<string, Partial<Record<BudgetRowKey, number>>> = {
     parking: 0,
     tips: 8,
     unexpected: 15,
-  }, // Denver hotel, evening arrival only
+  }, // Newark hotel, afternoon arrival only
   'day-2': {
     accommodation: 40,
     gas: 35,
@@ -171,7 +171,7 @@ function getMotiEstimate(dayId: string, category: BudgetRowKey): number {
 
 // Pre-trip estimates (USD) — updated with real booking data from emails
 const MOTI_PRETRIP_ESTIMATES: Record<PretripRowKey, number> = {
-  flights: 8081, // United Airlines HQ51BY, 5 pax TLV→YYZ→DEN→BZN + SFO→MUC→TLV ($7,630.50 + $450.30 seats)
+  flights: 8081, // United Airlines HQ51BY, 5 pax TLV→EWR→BZN + SFO→MUC→TLV ($7,630.50 + Lufthansa seats)
   rv_rental: 5202, // Bandana/Cruise America C-30, order 137724-1-0, Bozeman→Newark CA
   insurance: 1500, // Travel insurance family — pending purchase (PassportCard ~$8/day or Harel ~$6.5/day)
   esta: 105, // $21 × 5 people

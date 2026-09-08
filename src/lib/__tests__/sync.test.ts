@@ -125,7 +125,7 @@ describe('sync engine', () => {
     it('transforms LocationNote: locationId → location_id', async () => {
       const note: LocationNote = {
         id: 'note-1',
-        locationId: 'denver',
+        locationId: 'newark',
         text: 'Great views',
         author: 'ima',
         color: 'yellow',
@@ -144,7 +144,7 @@ describe('sync engine', () => {
       expect(table).toBe('location_notes')
       expect(payload).toMatchObject({
         id: 'note-1',
-        location_id: 'denver',
+        location_id: 'newark',
       })
       expect(payload).not.toHaveProperty('locationId')
     })

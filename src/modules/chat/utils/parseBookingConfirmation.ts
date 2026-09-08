@@ -49,7 +49,7 @@ const AREA_TO_LOCATION_ID: Record<string, string> = {
   'Grand Teton': 'grand-teton',
   'Mammoth Lakes': 'mammoth-lakes',
   'Las Vegas': 'las-vegas',
-  Denver: 'denver',
+  Newark: 'newark',
   'San Francisco': 'san-francisco',
 }
 
@@ -159,7 +159,7 @@ export function parseBookingConfirmation(
   const isGrandTeton = /grand\s*teton|jenny\s*lake|colter\s*bay|gros\s*ventre/i.test(text)
   const isLasVegas = /las\s*vegas/i.test(text)
   const isMammoth = /mammoth\s*lakes/i.test(text)
-  const isDenver = /denver/i.test(text)
+  const isNewark = /newark|\bEWR\b/i.test(text)
   const isSF = /san\s*francisco|oakland|marin/i.test(text)
   const area = isYellowstone
     ? 'Yellowstone NP'
@@ -175,8 +175,8 @@ export function parseBookingConfirmation(
               ? 'Las Vegas'
               : isMammoth
                 ? 'Mammoth Lakes'
-                : isDenver
-                  ? 'Denver'
+                : isNewark
+                  ? 'Newark'
                   : isSF
                     ? 'San Francisco'
                     : undefined

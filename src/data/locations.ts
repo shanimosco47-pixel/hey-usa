@@ -18,18 +18,18 @@ export interface LocationDef {
 
 export const LOCATIONS: LocationDef[] = [
   {
-    id: 'denver',
-    name: 'Denver',
-    nameHe: 'דנבר',
-    emoji: '🏔️',
-    gradient: 'from-blue-500 to-indigo-600',
-    photo: 'https://images.unsplash.com/photo-1619856699906-09e1f4ef2f85?w=800&q=80',
-    matchPatterns: ['Denver', 'DEN'],
-    coordinates: { lat: 39.7392, lng: -104.9903 },
+    id: 'newark',
+    name: 'Newark',
+    nameHe: 'ניוארק',
+    emoji: '🗽',
+    gradient: 'from-slate-500 to-blue-700',
+    photo: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80',
+    matchPatterns: ['Newark', 'EWR', 'New York', 'New Jersey'],
+    coordinates: { lat: 40.7357, lng: -74.1724 },
     type: 'city',
-    summary:
-      'עיר הבירה של קולורדו! "The Mile High City" — 1,600 מטר מעל פני הים. תחנת מעבר בדרך להרפתקה.',
-    funFact: '🤖 ידעתם? דנבר נמצאת בגובה של בדיוק מייל (1.6 ק"מ) מעל פני הים — בדיוק כמו ירושלים!',
+    summary: 'העיר הגדולה בניו ג׳רזי, ממש מול מנהטן. תחנת מעבר של לילה אחד בדרך למונטנה.',
+    funFact:
+      '🤖 ידעתם? שדה התעופה של ניוארק נפתח ב-1928 והיה שדה התעופה המסחרי הגדול הראשון באזור ניו יורק.',
   },
   {
     id: 'bozeman',

@@ -38,7 +38,7 @@ function getRegion(area: string): string {
   if (area.includes('Yosemite')) return 'Yosemite'
   if (area.includes('Oakland') || area.includes('Marin') || area.includes('San Francisco'))
     return 'San Francisco Bay'
-  if (area.includes('Denver')) return 'Denver'
+  if (area.includes('Newark')) return 'Newark'
   return area
 }
 
@@ -240,7 +240,7 @@ function InlineEdit({
 
 // ── Region emoji ────────────────────────────────────────────────
 const REGION_EMOJI: Record<string, string> = {
-  Denver: '✈️',
+  Newark: '✈️',
   Yellowstone: '🌋',
   'Grand Teton / Jackson': '🏔️',
   'Utah Transit': '🚐',

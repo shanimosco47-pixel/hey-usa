@@ -25,7 +25,7 @@ export interface DocumentMeta {
 }
 
 const VALID_LOCATION_IDS = [
-  'denver',
+  'newark',
   'bozeman',
   'yellowstone',
   'grand-teton',

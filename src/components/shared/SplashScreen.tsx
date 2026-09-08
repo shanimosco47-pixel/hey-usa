@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const DESTINATIONS = [
-  'Denver',
+  'Newark',
   'Bozeman',
   'Yellowstone',
   'Grand Teton',
