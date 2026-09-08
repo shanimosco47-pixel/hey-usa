@@ -38,21 +38,20 @@ export function EmailScanButton() {
 
       // A mailbox the server could not open does not fail the request, so
       // without this the scan reports success while one account went unread.
+      // Both kinds of failure are reported together: naming only one would let
+      // the document count look more complete than it is.
       const needReconnect = accountsNeedingReconnect(result)
-      if (needReconnect.length > 0) {
-        setToast({
-          type: 'error',
-          message: `${countText}. החיבור ל-${needReconnect.join(', ')} פג — יש לחבר את החשבון מחדש`,
-        })
-        return
-      }
-
       const unreachable = accountsTemporarilyUnreachable(result)
-      if (unreachable.length > 0) {
-        setToast({
-          type: 'error',
-          message: `${countText}. לא הצלחנו לגשת ל-${unreachable.join(', ')} — כדאי לנסות שוב`,
-        })
+
+      if (needReconnect.length > 0 || unreachable.length > 0) {
+        const parts: string[] = []
+        if (needReconnect.length > 0) {
+          parts.push(`החיבור ל-${needReconnect.join(', ')} פג — יש לחבר את החשבון מחדש`)
+        }
+        if (unreachable.length > 0) {
+          parts.push(`לא הצלחנו לגשת ל-${unreachable.join(', ')} — כדאי לנסות שוב`)
+        }
+        setToast({ type: 'error', message: `${countText}. ${parts.join('. ')}` })
         return
       }
 
