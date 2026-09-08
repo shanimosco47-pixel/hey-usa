@@ -273,35 +273,44 @@ Deno.serve(async (req) => {
   // meaningful time.
   const authenticated: { account: (typeof accounts)[number]; accessToken: string }[] = []
 
-  for (const account of accounts) {
-    try {
+  // Concurrently, because the shared deadline is already running: one slow or
+  // hanging token endpoint would otherwise eat the processing window of every
+  // mailbox queued behind it, including the healthy ones.
+  const authResults = await Promise.allSettled(
+    accounts.map(async (account) => {
       const refreshToken = await decrypt(account.refresh_token, TOKEN_ENCRYPTION_KEY)
-      const accessToken = await refreshAccessToken(
-        refreshToken,
-        GOOGLE_CLIENT_ID,
-        GOOGLE_CLIENT_SECRET,
-      )
-      authenticated.push({ account, accessToken })
-    } catch (err) {
-      console.error(`[email-scan] Token refresh failed for ${account.email}:`, err)
-      // Google answers a revoked or expired refresh token with invalid_grant.
-      // Everything else here (a 5xx, a rate limit, a failed decrypt) is
-      // transient or local, and telling the user to reconnect would be wrong
-      // advice, so the two are reported under distinct prefixes.
-      const detail = String(err)
-      const prefix = detail.includes('invalid_grant') ? 'token_revoked' : 'token_refresh_failed'
-      diagnostics.push({
-        account: account.email,
-        query: '',
-        found: 0,
-        irrelevant: 0,
-        deduped: 0,
-        aiRejected: 0,
-        noFile: 0,
-        imported: 0,
-        errors: [`${prefix}: ${detail}`],
-      })
+      return await refreshAccessToken(refreshToken, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
+    }),
+  )
+
+  // Partitioned in the original order so the scan order stays deterministic.
+  for (let i = 0; i < accounts.length; i++) {
+    const account = accounts[i]
+    const outcome = authResults[i]
+
+    if (outcome.status === 'fulfilled') {
+      authenticated.push({ account, accessToken: outcome.value })
+      continue
     }
+
+    console.error(`[email-scan] Token refresh failed for ${account.email}:`, outcome.reason)
+    // Google answers a revoked or expired refresh token with invalid_grant.
+    // Everything else here (a 5xx, a rate limit, a failed decrypt) is
+    // transient or local, and telling the user to reconnect would be wrong
+    // advice, so the two are reported under distinct prefixes.
+    const detail = String(outcome.reason)
+    const prefix = detail.includes('invalid_grant') ? 'token_revoked' : 'token_refresh_failed'
+    diagnostics.push({
+      account: account.email,
+      query: '',
+      found: 0,
+      irrelevant: 0,
+      deduped: 0,
+      aiRejected: 0,
+      noFile: 0,
+      imported: 0,
+      errors: [`${prefix}: ${detail}`],
+    })
   }
 
   for (let accountIndex = 0; accountIndex < authenticated.length; accountIndex++) {
