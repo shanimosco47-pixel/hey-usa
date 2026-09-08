@@ -1,25 +1,26 @@
 // capture.ts — Document capture module for the email scan pipeline
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import {
   GmailMessage,
+  GmailAttachmentMeta,
   getAttachments,
   getAttachment,
   getBodyHtml,
   getBodyText,
-} from "./gmail.ts";
+} from './gmail.ts'
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
 export interface CapturedFile {
-  fileName: string;
-  contentType: string;
-  data: Uint8Array;
+  fileName: string
+  contentType: string
+  data: Uint8Array
 }
 
-export type SupabaseClient = ReturnType<typeof createClient>;
+export type SupabaseClient = ReturnType<typeof createClient>
 
 // ---------------------------------------------------------------------------
 // Base64url decode to Uint8Array
@@ -27,20 +28,56 @@ export type SupabaseClient = ReturnType<typeof createClient>;
 
 function decodeBase64UrlToBytes(data: string): Uint8Array {
   // Convert base64url to standard base64
-  const base64 = data.replace(/-/g, "+").replace(/_/g, "/");
+  const base64 = data.replace(/-/g, '+').replace(/_/g, '/')
   // Pad if necessary
-  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
+  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+  const binary = atob(padded)
+  const bytes = new Uint8Array(binary.length)
   for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+    bytes[i] = binary.charCodeAt(i)
   }
-  return bytes;
+  return bytes
 }
 
 // ---------------------------------------------------------------------------
 // captureDocument
 // ---------------------------------------------------------------------------
+
+/**
+ * Images below this are decoration, not documents. A scanned or screenshotted
+ * confirmation runs to hundreds of kilobytes; a logo, a social icon or a
+ * tracking pixel does not.
+ */
+const MIN_DOCUMENT_IMAGE_BYTES = 50_000
+
+/**
+ * Chooses which attachment actually represents the booking.
+ *
+ * Taking the first PDF-or-image attachment filed the sender's logo as the
+ * document: three Odoro receipts were all stored as odoro_logo.jpeg, and one
+ * 7.8 KB PNG called "Untitled" was serving as the file for three Hotelito 73
+ * bookings AND the Staybridge Suites confirmation for the first night of the
+ * trip. Opening any of them showed a logo where the reservation should be.
+ *
+ * A PDF is always the document if one is present. Otherwise an image qualifies
+ * only if it is a real attachment (not embedded in the body) and large enough
+ * to be a document rather than an icon. When nothing qualifies the caller falls
+ * back to the HTML body, which is what these emails should have used all along.
+ */
+export function pickDocumentAttachment(
+  attachments: GmailAttachmentMeta[],
+): GmailAttachmentMeta | null {
+  const pdf = attachments.find((a) => a.mimeType.toLowerCase() === 'application/pdf')
+  if (pdf) return pdf
+
+  const image = attachments.find(
+    (a) =>
+      a.mimeType.toLowerCase().startsWith('image/') &&
+      !a.inline &&
+      a.size >= MIN_DOCUMENT_IMAGE_BYTES,
+  )
+  return image ?? null
+}
 
 /**
  * Captures the best available document representation from a Gmail message.
@@ -58,27 +95,21 @@ export async function captureDocument(
   // ------------------------------------------------------------------
   // Step 1: Look for PDF or image attachments
   // ------------------------------------------------------------------
-  const attachments = getAttachments(message);
-  const docAttachments = attachments.filter((a) => {
-    const mt = a.mimeType.toLowerCase();
-    return (
-      mt === "application/pdf" ||
-      mt.startsWith("image/")
-    );
-  });
+  const attachments = getAttachments(message)
+  const chosen = pickDocumentAttachment(attachments)
 
-  if (docAttachments.length > 0) {
-    const att = docAttachments[0];
+  if (chosen) {
+    const att = chosen
     try {
-      const rawData = await getAttachment(accessToken, messageId, att.attachmentId);
-      const data = decodeBase64UrlToBytes(rawData);
+      const rawData = await getAttachment(accessToken, messageId, att.attachmentId)
+      const data = decodeBase64UrlToBytes(rawData)
       return {
         fileName: att.filename,
         contentType: att.mimeType,
         data,
-      };
+      }
     } catch (err) {
-      console.error("[capture] Failed to download attachment:", err);
+      console.error('[capture] Failed to download attachment:', err)
       // Fall through to HTML body capture
     }
   }
@@ -86,7 +117,7 @@ export async function captureDocument(
   // ------------------------------------------------------------------
   // Step 2: Fall back to HTML body
   // ------------------------------------------------------------------
-  const html = getBodyHtml(message);
+  const html = getBodyHtml(message)
   if (html) {
     const wrapped = `<!DOCTYPE html>
 <html>
@@ -108,26 +139,23 @@ export async function captureDocument(
 <body>
 ${html}
 </body>
-</html>`;
-    const data = new TextEncoder().encode(wrapped);
+</html>`
+    const data = new TextEncoder().encode(wrapped)
     // Use messageId to create a stable filename
-    const fileName = `email-${messageId}.html`;
+    const fileName = `email-${messageId}.html`
     return {
       fileName,
-      contentType: "text/html",
+      contentType: 'text/html',
       data,
-    };
+    }
   }
 
   // ------------------------------------------------------------------
   // Step 3: Fall back to plain-text body wrapped in HTML
   // ------------------------------------------------------------------
-  const plainText = getBodyText(message);
+  const plainText = getBodyText(message)
   if (plainText && plainText.trim().length > 0) {
-    const escaped = plainText
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+    const escaped = plainText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     const wrapped = `<!DOCTYPE html>
 <html>
 <head>
@@ -137,20 +165,20 @@ ${html}
 <body>
 <pre style="white-space:pre-wrap;font-family:sans-serif">${escaped}</pre>
 </body>
-</html>`;
-    const data = new TextEncoder().encode(wrapped);
-    const fileName = `email-${messageId}.html`;
+</html>`
+    const data = new TextEncoder().encode(wrapped)
+    const fileName = `email-${messageId}.html`
     return {
       fileName,
-      contentType: "text/html",
+      contentType: 'text/html',
       data,
-    };
+    }
   }
 
   // ------------------------------------------------------------------
   // Step 4: Nothing to capture
   // ------------------------------------------------------------------
-  return null;
+  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -158,12 +186,12 @@ ${html}
 // ---------------------------------------------------------------------------
 
 export interface ParsedEml {
-  subject: string;
-  from: string;
-  bodyText: string;
-  bodyHtml: string | null;
+  subject: string
+  from: string
+  bodyText: string
+  bodyHtml: string | null
   /** The original .eml filename from the parent message */
-  emlFilename: string;
+  emlFilename: string
 }
 
 /**
@@ -173,131 +201,146 @@ export interface ParsedEml {
  */
 function parseEmlContent(raw: string, emlFilename: string): ParsedEml {
   // Split headers and body at the first blank line
-  const headerEnd = raw.indexOf("\r\n\r\n");
-  const headerBlock = headerEnd > 0 ? raw.slice(0, headerEnd) : raw;
-  const bodyRaw = headerEnd > 0 ? raw.slice(headerEnd + 4) : "";
+  const headerEnd = raw.indexOf('\r\n\r\n')
+  const headerBlock = headerEnd > 0 ? raw.slice(0, headerEnd) : raw
+  const bodyRaw = headerEnd > 0 ? raw.slice(headerEnd + 4) : ''
 
   // Parse headers (unfold continuation lines)
-  const unfolded = headerBlock.replace(/\r\n[ \t]+/g, " ");
-  const headerLines = unfolded.split("\r\n");
-  const headers: Record<string, string> = {};
+  const unfolded = headerBlock.replace(/\r\n[ \t]+/g, ' ')
+  const headerLines = unfolded.split('\r\n')
+  const headers: Record<string, string> = {}
   for (const line of headerLines) {
-    const idx = line.indexOf(":");
+    const idx = line.indexOf(':')
     if (idx > 0) {
-      const key = line.slice(0, idx).trim().toLowerCase();
-      headers[key] = line.slice(idx + 1).trim();
+      const key = line.slice(0, idx).trim().toLowerCase()
+      headers[key] = line.slice(idx + 1).trim()
     }
   }
 
-  const subject = decodeRfc2047(headers["subject"] ?? emlFilename);
-  const from = headers["from"] ?? "";
-  const contentType = (headers["content-type"] ?? "text/plain").toLowerCase();
-  const encoding = (headers["content-transfer-encoding"] ?? "").toLowerCase();
+  const subject = decodeRfc2047(headers['subject'] ?? emlFilename)
+  const from = headers['from'] ?? ''
+  const contentType = (headers['content-type'] ?? 'text/plain').toLowerCase()
+  const encoding = (headers['content-transfer-encoding'] ?? '').toLowerCase()
 
   // If multipart, extract parts
-  const boundaryMatch = contentType.match(/boundary="?([^";\s]+)"?/);
+  const boundaryMatch = contentType.match(/boundary="?([^";\s]+)"?/)
   if (boundaryMatch) {
-    const boundary = boundaryMatch[1];
-    const parts = splitMimeParts(bodyRaw, boundary);
+    const boundary = boundaryMatch[1]
+    const parts = splitMimeParts(bodyRaw, boundary)
 
     // Look for text/html first, then text/plain
-    let htmlBody: string | null = null;
-    let textBody = "";
+    let htmlBody: string | null = null
+    let textBody = ''
 
     for (const part of parts) {
-      const partHeaderEnd = part.indexOf("\r\n\r\n");
-      if (partHeaderEnd < 0) continue;
-      const partHeaders = part.slice(0, partHeaderEnd).toLowerCase();
-      const partBody = part.slice(partHeaderEnd + 4);
-      const partEncoding = extractHeaderValue(partHeaders, "content-transfer-encoding");
+      const partHeaderEnd = part.indexOf('\r\n\r\n')
+      if (partHeaderEnd < 0) continue
+      const partHeaders = part.slice(0, partHeaderEnd).toLowerCase()
+      const partBody = part.slice(partHeaderEnd + 4)
+      const partEncoding = extractHeaderValue(partHeaders, 'content-transfer-encoding')
 
       // Handle nested multipart
-      const nestedBoundary = partHeaders.match(/boundary="?([^";\s]+)"?/);
+      const nestedBoundary = partHeaders.match(/boundary="?([^";\s]+)"?/)
       if (nestedBoundary) {
-        const nestedParts = splitMimeParts(partBody, nestedBoundary[1]);
+        const nestedParts = splitMimeParts(partBody, nestedBoundary[1])
         for (const np of nestedParts) {
-          const npEnd = np.indexOf("\r\n\r\n");
-          if (npEnd < 0) continue;
-          const npHeaders = np.slice(0, npEnd).toLowerCase();
-          const npBody = np.slice(npEnd + 4);
-          const npEncoding = extractHeaderValue(npHeaders, "content-transfer-encoding");
-          if (npHeaders.includes("text/html") && !htmlBody) {
-            htmlBody = decodeBody(npBody, npEncoding);
-          } else if (npHeaders.includes("text/plain") && !textBody) {
-            textBody = decodeBody(npBody, npEncoding);
+          const npEnd = np.indexOf('\r\n\r\n')
+          if (npEnd < 0) continue
+          const npHeaders = np.slice(0, npEnd).toLowerCase()
+          const npBody = np.slice(npEnd + 4)
+          const npEncoding = extractHeaderValue(npHeaders, 'content-transfer-encoding')
+          if (npHeaders.includes('text/html') && !htmlBody) {
+            htmlBody = decodeBody(npBody, npEncoding)
+          } else if (npHeaders.includes('text/plain') && !textBody) {
+            textBody = decodeBody(npBody, npEncoding)
           }
         }
-        continue;
+        continue
       }
 
-      if (partHeaders.includes("text/html") && !htmlBody) {
-        htmlBody = decodeBody(partBody, partEncoding);
-      } else if (partHeaders.includes("text/plain") && !textBody) {
-        textBody = decodeBody(partBody, partEncoding);
+      if (partHeaders.includes('text/html') && !htmlBody) {
+        htmlBody = decodeBody(partBody, partEncoding)
+      } else if (partHeaders.includes('text/plain') && !textBody) {
+        textBody = decodeBody(partBody, partEncoding)
       }
     }
 
-    return { subject, from, bodyText: textBody || stripHtmlSimple(htmlBody ?? ""), bodyHtml: htmlBody, emlFilename };
+    return {
+      subject,
+      from,
+      bodyText: textBody || stripHtmlSimple(htmlBody ?? ''),
+      bodyHtml: htmlBody,
+      emlFilename,
+    }
   }
 
   // Single-part message
-  const decoded = decodeBody(bodyRaw, encoding);
-  if (contentType.includes("text/html")) {
-    return { subject, from, bodyText: stripHtmlSimple(decoded), bodyHtml: decoded, emlFilename };
+  const decoded = decodeBody(bodyRaw, encoding)
+  if (contentType.includes('text/html')) {
+    return { subject, from, bodyText: stripHtmlSimple(decoded), bodyHtml: decoded, emlFilename }
   }
-  return { subject, from, bodyText: decoded, bodyHtml: null, emlFilename };
+  return { subject, from, bodyText: decoded, bodyHtml: null, emlFilename }
 }
 
 function splitMimeParts(body: string, boundary: string): string[] {
-  const delim = "--" + boundary;
-  const parts = body.split(delim);
+  const delim = '--' + boundary
+  const parts = body.split(delim)
   // Skip preamble (first) and epilogue (last, after --boundary--)
-  return parts.slice(1).filter((p) => !p.startsWith("--")).map((p) => p.replace(/^\r\n/, ""));
+  return parts
+    .slice(1)
+    .filter((p) => !p.startsWith('--'))
+    .map((p) => p.replace(/^\r\n/, ''))
 }
 
 function extractHeaderValue(headerBlock: string, name: string): string {
-  const re = new RegExp(`${name}:\\s*(.+)`, "i");
-  const m = headerBlock.match(re);
-  return m ? m[1].trim() : "";
+  const re = new RegExp(`${name}:\\s*(.+)`, 'i')
+  const m = headerBlock.match(re)
+  return m ? m[1].trim() : ''
 }
 
 function decodeBody(body: string, encoding: string): string {
-  if (encoding.includes("base64")) {
+  if (encoding.includes('base64')) {
     try {
-      return atob(body.replace(/\s/g, ""));
+      return atob(body.replace(/\s/g, ''))
     } catch {
-      return body;
+      return body
     }
   }
-  if (encoding.includes("quoted-printable")) {
+  if (encoding.includes('quoted-printable')) {
     return body
-      .replace(/=\r?\n/g, "")
-      .replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+      .replace(/=\r?\n/g, '')
+      .replace(/=([0-9A-Fa-f]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
   }
-  return body;
+  return body
 }
 
 function decodeRfc2047(value: string): string {
   // Decode =?charset?encoding?text?= sequences
   return value.replace(/=\?([^?]+)\?([BbQq])\?([^?]+)\?=/g, (_, _charset, enc, text) => {
-    if (enc.toUpperCase() === "B") {
-      try { return atob(text); } catch { return text; }
+    if (enc.toUpperCase() === 'B') {
+      try {
+        return atob(text)
+      } catch {
+        return text
+      }
     }
     // Q encoding
-    return text.replace(/_/g, " ").replace(/=([0-9A-Fa-f]{2})/g, (_2: string, hex: string) =>
-      String.fromCharCode(parseInt(hex, 16))
-    );
-  });
+    return text
+      .replace(/_/g, ' ')
+      .replace(/=([0-9A-Fa-f]{2})/g, (_2: string, hex: string) =>
+        String.fromCharCode(parseInt(hex, 16)),
+      )
+  })
 }
 
 function stripHtmlSimple(html: string): string {
   return html
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, " ")
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/\s{2,}/g, " ")
-    .trim();
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
 }
 
 // ---------------------------------------------------------------------------
@@ -306,9 +349,9 @@ function stripHtmlSimple(html: string): string {
 
 export interface EmlDocument {
   /** Captured file ready for storage upload */
-  file: CapturedFile;
+  file: CapturedFile
   /** Parsed metadata from inside the .eml */
-  parsed: ParsedEml;
+  parsed: ParsedEml
 }
 
 /**
@@ -320,52 +363,52 @@ export async function extractEmlDocuments(
   messageId: string,
   message: GmailMessage,
 ): Promise<EmlDocument[]> {
-  const attachments = getAttachments(message);
+  const attachments = getAttachments(message)
   const emlAttachments = attachments.filter(
-    (a) => a.mimeType === "message/rfc822" || a.filename.toLowerCase().endsWith(".eml"),
-  );
+    (a) => a.mimeType === 'message/rfc822' || a.filename.toLowerCase().endsWith('.eml'),
+  )
 
-  if (emlAttachments.length === 0) return [];
+  if (emlAttachments.length === 0) return []
 
-  const results: EmlDocument[] = [];
+  const results: EmlDocument[] = []
 
   for (const att of emlAttachments) {
     try {
-      const rawData = await getAttachment(accessToken, messageId, att.attachmentId);
-      const decoded = decodeBase64UrlToString(rawData);
-      const parsed = parseEmlContent(decoded, att.filename);
+      const rawData = await getAttachment(accessToken, messageId, att.attachmentId)
+      const decoded = decodeBase64UrlToString(rawData)
+      const parsed = parseEmlContent(decoded, att.filename)
 
       // Build HTML file from the eml content
       const html = parsed.bodyHtml
         ? `<!DOCTYPE html>\n<html><head><meta charset="utf-8"/></head><body>\n${parsed.bodyHtml}\n</body></html>`
         : parsed.bodyText.trim()
-          ? `<!DOCTYPE html>\n<html><head><meta charset="utf-8"/></head><body>\n<pre style="white-space:pre-wrap;font-family:sans-serif">${parsed.bodyText.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</pre>\n</body></html>`
-          : null;
+          ? `<!DOCTYPE html>\n<html><head><meta charset="utf-8"/></head><body>\n<pre style="white-space:pre-wrap;font-family:sans-serif">${parsed.bodyText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>\n</body></html>`
+          : null
 
       if (!html) {
-        console.warn(`[capture] Empty .eml: ${att.filename}`);
-        continue;
+        console.warn(`[capture] Empty .eml: ${att.filename}`)
+        continue
       }
 
-      const data = new TextEncoder().encode(html);
-      const safeFilename = `eml-${messageId}-${results.length}.html`;
+      const data = new TextEncoder().encode(html)
+      const safeFilename = `eml-${messageId}-${results.length}.html`
 
       results.push({
-        file: { fileName: safeFilename, contentType: "text/html", data },
+        file: { fileName: safeFilename, contentType: 'text/html', data },
         parsed,
-      });
+      })
     } catch (err) {
-      console.error(`[capture] Failed to parse .eml attachment ${att.filename}:`, err);
+      console.error(`[capture] Failed to parse .eml attachment ${att.filename}:`, err)
     }
   }
 
-  return results;
+  return results
 }
 
 function decodeBase64UrlToString(data: string): string {
-  const base64 = data.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
-  return atob(padded);
+  const base64 = data.replace(/-/g, '+').replace(/_/g, '/')
+  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+  return atob(padded)
 }
 
 // ---------------------------------------------------------------------------
@@ -381,31 +424,27 @@ export async function uploadToStorage(
   file: CapturedFile,
   overwrite = false,
 ): Promise<string | null> {
-  const { error } = await supabase.storage
-    .from("documents")
-    .upload(file.fileName, file.data, {
-      contentType: file.contentType,
-      upsert: overwrite,
-    });
+  const { error } = await supabase.storage.from('documents').upload(file.fileName, file.data, {
+    contentType: file.contentType,
+    upsert: overwrite,
+  })
 
   if (error) {
     // Treat "already exists" as non-fatal — just get the public URL
     if (
-      error.message.toLowerCase().includes("already exists") ||
-      error.message.toLowerCase().includes("duplicate") ||
-      (error as { statusCode?: string }).statusCode === "23505"
+      error.message.toLowerCase().includes('already exists') ||
+      error.message.toLowerCase().includes('duplicate') ||
+      (error as { statusCode?: string }).statusCode === '23505'
     ) {
-      console.warn("[capture] File already exists, returning existing URL:", file.fileName);
+      console.warn('[capture] File already exists, returning existing URL:', file.fileName)
     } else {
-      console.error("[capture] Storage upload error:", error.message);
-      return null;
+      console.error('[capture] Storage upload error:', error.message)
+      return null
     }
   }
 
   // Get public URL (works regardless of whether upload was new or existing)
-  const { data: urlData } = supabase.storage
-    .from("documents")
-    .getPublicUrl(file.fileName);
+  const { data: urlData } = supabase.storage.from('documents').getPublicUrl(file.fileName)
 
-  return urlData?.publicUrl ?? null;
+  return urlData?.publicUrl ?? null
 }
