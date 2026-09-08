@@ -85,7 +85,11 @@ export function getGoogleOAuthUrl(redirectUri: string, loginHint?: string): stri
     response_type: 'code',
     scope: 'https://www.googleapis.com/auth/gmail.readonly',
     access_type: 'offline',
-    prompt: 'consent',
+    // select_account forces Google's account picker. Without it, a phone already
+    // signed in to one Google account is sent straight through it, so trying to
+    // reconnect a second mailbox silently re-authorises the signed-in one
+    // instead and reports success under the wrong address.
+    prompt: 'select_account consent',
   })
   if (loginHint) {
     params.set('login_hint', loginHint)
