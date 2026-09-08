@@ -50,6 +50,26 @@ describe('classifyByPattern', () => {
     )
   })
 
+  it('does not veto a personal forwarder whose name contains a marketing word', () => {
+    // The marketing veto must never fire before the forwarded-sender lookup.
+    // Bookings for this trip arrive forwarded from personal mailboxes, and a
+    // bare substring match would bin a real confirmation because the sender is
+    // called Discover, Newsome, or similar.
+    expect(
+      classifyByPattern(
+        'Discover.Danit@gmail.com',
+        'Fwd: Reservation Confirmation',
+        '---------- Forwarded message ---------\nFrom: Recreation.gov <communications@recreation.gov>\nYour Reservation Details!',
+      ),
+    ).toBe('definite')
+  })
+
+  it('does not veto an unknown-domain sender on local part alone', () => {
+    expect(classifyByPattern('news.danit@gmail.com', 'Reservation Confirmation', '')).toBe(
+      'uncertain',
+    )
+  })
+
   it('picks up a confirmation forwarded from another mailbox', () => {
     // Bookings for this trip were made on a second account and forwarded on,
     // so the original sender has to be read out of the body.

@@ -135,6 +135,17 @@ const MARKETING_LOCAL_PARTS = [
 ]
 
 function isMarketingSender(fromEmail: string): boolean {
+  // Only ever applied to domains we already trust. Those are the only senders
+  // where the ambiguity exists, because they send both adverts and real
+  // confirmations from the same domain.
+  //
+  // Restricting it matters: bookings for this trip arrive forwarded from
+  // personal mailboxes, and a substring match on an arbitrary local part would
+  // veto them before the forwarded-sender lookup below ever runs. A real
+  // confirmation forwarded from, say, Discover.Danit@gmail.com must not be
+  // thrown away because her name contains "discover".
+  if (!isKnownSender(fromEmail)) return false
+
   const match = fromEmail.match(/([a-zA-Z0-9._%+-]+)@/)
   if (!match) return false
   const localPart = match[1].toLowerCase().replace(/[._-]/g, '')
