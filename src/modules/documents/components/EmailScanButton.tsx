@@ -1,21 +1,19 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Search, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
-import { triggerEmailScan } from '@/lib/emailScan'
+import { triggerEmailScan, accountsNeedingReconnect } from '@/lib/emailScan'
 
-type ToastState =
-  | { type: 'success'; message: string }
-  | { type: 'error'; message: string }
-  | null
+type ToastState = { type: 'success'; message: string } | { type: 'error'; message: string } | null
 
 export function EmailScanButton() {
   const [scanning, setScanning] = useState(false)
   const [toast, setToast] = useState<ToastState>(null)
 
-  // Auto-dismiss toast after 5 seconds
+  // Auto-dismiss. Errors linger: one of them asks the user to reconnect an
+  // account, and five seconds is not long enough to read and act on that.
   useEffect(() => {
     if (!toast) return
-    const timer = setTimeout(() => setToast(null), 5000)
+    const timer = setTimeout(() => setToast(null), toast.type === 'error' ? 15000 : 5000)
     return () => clearTimeout(timer)
   }, [toast])
 
@@ -33,6 +31,18 @@ export function EmailScanButton() {
           : count === 1
             ? 'נמצא מסמך אחד חדש'
             : `נמצאו ${count} מסמכים חדשים`
+
+      // A dead Gmail authorisation does not fail the request, so without this
+      // the scan reports success while one of the mailboxes was never opened.
+      const needReconnect = accountsNeedingReconnect(result)
+      if (needReconnect.length > 0) {
+        setToast({
+          type: 'error',
+          message: `${countText}. החיבור ל-${needReconnect.join(', ')} פג — יש לחבר את החשבון מחדש`,
+        })
+        return
+      }
+
       setToast({ type: 'success', message: countText })
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'שגיאה בסריקה'
@@ -50,11 +60,7 @@ export function EmailScanButton() {
         disabled={scanning}
         className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-apple-lg bg-ios-indigo px-4 py-2 text-subhead font-semibold text-white shadow-glass transition-all hover:bg-ios-indigo/90 hover:shadow-glass-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ios-indigo/40 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 active:scale-[0.97]"
       >
-        {scanning ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Search className="h-4 w-4" />
-        )}
+        {scanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
         {scanning ? 'סורק...' : 'סרוק אימייל'}
       </button>
 
