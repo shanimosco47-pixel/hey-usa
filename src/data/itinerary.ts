@@ -30,6 +30,7 @@ export const ITINERARY_DAYS: ItineraryDay[] = [
         lat: 40.696,
         lng: -74.19,
         category: 'camp',
+        booking_confirmation: '6522237172',
         notes: 'אישור 6522237172, $265.30. יציאה מוקדמת — הטיסה לבוזמן ב-07:45. לוודא שאטל לטרמינל',
         order: 2,
       },
