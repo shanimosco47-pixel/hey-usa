@@ -264,7 +264,8 @@ Deno.serve(async (req) => {
     errors: string[]
   }[] = []
 
-  for (const account of accounts) {
+  for (let accountIndex = 0; accountIndex < accounts.length; accountIndex++) {
+    const account = accounts[accountIndex]
     console.log(`[email-scan] Processing account: ${account.email}`)
     const diag = {
       account: account.email,
@@ -327,10 +328,19 @@ Deno.serve(async (req) => {
     diag.found = messageRefs.length
     console.log(`[email-scan] Found ${messageRefs.length} messages for ${account.email}`)
 
+    // Split the remaining time evenly across the accounts still to be scanned.
+    // A single global deadline let the first mailbox consume all of it: with 494
+    // matches on account one, account two was reached with zero budget left and
+    // scanned nothing, silently. Whoever is scanned last is exactly the person
+    // whose confirmations are missing, so every account gets a guaranteed share.
+    // An account that finishes early hands its unused time to the next one.
+    const accountsRemaining = accounts.length - accountIndex
+    const accountDeadline = Date.now() + Math.max(0, (deadline - Date.now()) / accountsRemaining)
+
     // Process each message
     let processed = 0
     for (const ref of messageRefs) {
-      if (Date.now() > deadline) {
+      if (Date.now() > accountDeadline) {
         const remaining = messageRefs.length - processed
         diag.errors.push(`budget_exhausted: ${remaining} message(s) not processed this run`)
         console.warn(`[email-scan] Time budget reached, ${remaining} left for ${account.email}`)

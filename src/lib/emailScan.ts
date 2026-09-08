@@ -7,6 +7,13 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string
 
+export interface ScanDiagnostic {
+  account: string
+  found: number
+  imported: number
+  errors: string[]
+}
+
 export interface ScanResult {
   results: Array<{
     documentId: string
@@ -17,6 +24,20 @@ export interface ScanResult {
   }>
   message: string
   motiMessage?: string
+  diagnostics?: ScanDiagnostic[]
+}
+
+/**
+ * Accounts whose Gmail authorisation is dead. A revoked or expired refresh
+ * token fails silently on the server: the scan still returns 200 and reports
+ * how many documents it imported from the accounts that DID work, so the run
+ * looks successful while an entire mailbox was never opened. That is how
+ * Danit's account sat unscanned from July to the eve of the trip.
+ */
+export function accountsNeedingReconnect(result: ScanResult): string[] {
+  return (result.diagnostics ?? [])
+    .filter((d) => d.errors.some((e) => e.startsWith('token_refresh_failed')))
+    .map((d) => d.account)
 }
 
 export async function triggerEmailScan(
