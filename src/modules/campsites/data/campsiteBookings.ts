@@ -5,7 +5,7 @@ export const sampleCampsiteBookings: CampsiteBooking[] = [
     id: 'camp-01',
     check_in: '2026-09-10',
     check_out: '2026-09-11',
-    location: 'Staybridge Suites by IHG',
+    location: 'DoubleTree by Hilton Hotel Newark Airport',
     area: 'Newark, NJ',
     type: 'hotel',
     priority: 'primary',
@@ -14,7 +14,7 @@ export const sampleCampsiteBookings: CampsiteBooking[] = [
     cost: 265.3,
     booking_url: 'https://www.booking.com/city/us/newark.html',
     notes:
-      'מאושר. אישור 6522237172, $265.30. נחיתה ב-15:50 (UA85). הטיסה לבוזמן ב-07:45 — לבדוק שאטל לטרמינל ולהזמין מראש',
+      'מאושר ב-DoubleTree by Hilton Newark Airport לפי אישור Booking.com מ-10/07/2026. מספר האישור והמחיר כאן עדיין מההזמנה הקודמת ב-Staybridge (6522237172, $265.30); יש לעדכן מהמייל החדש. נחיתה ב-15:50 (UA85). הטיסה לבוזמן ב-07:45 — לבדוק שאטל לטרמינל ולהזמין מראש',
     changelog: [],
     created_at: '2026-03-21T00:00:00Z',
     updated_at: '2026-07-10T17:59:29Z',

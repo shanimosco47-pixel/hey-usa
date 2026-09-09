@@ -61,7 +61,7 @@ const DAY_OVERRIDES: Record<string, Partial<Record<BudgetRowKey, number>>> = {
     parking: 0,
     tips: 8,
     unexpected: 15,
-  }, // Newark hotel (Staybridge $265.30 confirmed), afternoon arrival only
+  }, // Newark hotel (DoubleTree Newark Airport; $265.30 figure still from the old Staybridge booking), afternoon arrival only
   'day-2': {
     accommodation: 40,
     gas: 35,
