@@ -30,3 +30,4 @@ dist-ssr
 .superpowers
 .tmp
 .superpowers/
+.claude/settings.local.json
