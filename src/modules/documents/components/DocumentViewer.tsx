@@ -16,7 +16,13 @@ import {
   Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { retryWithBackoff } from '@/lib/retry'
+import {
+  hasRealFile,
+  isHtmlDocument,
+  openDocumentFile,
+  fetchHtmlText,
+  htmlToBlobUrl,
+} from '@/lib/documentFile'
 import { FAMILY_MEMBERS, DOCUMENT_CATEGORIES } from '@/constants'
 import { getLocationById } from '@/data/locations'
 import { isSampleData } from '@/lib/sampleData'
@@ -70,12 +76,6 @@ function Toast({ message, onClose }: { message: string; onClose: () => void }) {
   )
 }
 
-/** Whether the file_url points to an actual downloadable file (external URL or data URI) */
-function hasRealFile(doc: Document): boolean {
-  if (!doc.file_url) return false
-  return doc.file_url.startsWith('http') || doc.file_url.startsWith('data:')
-}
-
 /** Fetches HTML from Supabase (served as text/plain) and renders via blob URL so the browser treats it as HTML */
 function HtmlPreview({
   url,
@@ -93,11 +93,14 @@ function HtmlPreview({
   const [hasUsefulContent, setHasUsefulContent] = useState(true)
 
   useEffect(() => {
-    let revoked = false
-    retryWithBackoff(() => fetch(url).then((r) => r.text()))
+    let cancelled = false
+    let created: string | null = null
+    setBlobUrl(null)
+    setError(false)
+    setHasUsefulContent(true)
+    fetchHtmlText(url)
       .then((html) => {
-        if (revoked) return
-
+        if (cancelled) return
         // Check if the HTML has meaningful text content (not just images/logos)
         const textContent = html
           .replace(/<[^>]*>/g, '')
@@ -105,19 +108,17 @@ function HtmlPreview({
           .trim()
         // If the text content is very short (< 50 chars after stripping tags),
         // it's likely just a logo page with no real reservation data
-        if (textContent.length < 50) {
-          setHasUsefulContent(false)
-        }
-
-        const blob = new Blob([html], { type: 'text/html' })
-        setBlobUrl(URL.createObjectURL(blob))
+        if (textContent.length < 50) setHasUsefulContent(false)
+        created = htmlToBlobUrl(html)
+        setBlobUrl(created)
       })
-      .catch(() => setError(true))
+      .catch(() => {
+        if (!cancelled) setError(true)
+      })
     return () => {
-      revoked = true
-      if (blobUrl) URL.revokeObjectURL(blobUrl)
+      cancelled = true
+      if (created) URL.revokeObjectURL(created)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url])
 
   if (error) {
@@ -315,7 +316,7 @@ function FilePreview({ doc, onOpen }: { doc: Document; onOpen: () => void }) {
     )
   }
 
-  if (doc.file_type?.includes('html') && realFile) {
+  if (isHtmlDocument(doc) && realFile) {
     return <HtmlPreview url={doc.file_url!} title={doc.title} notes={doc.notes} onOpen={onOpen} />
   }
 
@@ -476,19 +477,10 @@ export function DocumentViewer({
       setTimeout(() => setToast(null), 3500)
       return
     }
-    // Supabase serves HTML as text/plain for security — fetch and re-wrap as
-    // a proper HTML blob so the browser renders it instead of showing raw code
-    if (doc.file_type?.includes('html') && doc.file_url.startsWith('http')) {
-      try {
-        const html = await retryWithBackoff(() => fetch(doc.file_url!).then((r) => r.text()))
-        const blob = new Blob([html], { type: 'text/html' })
-        window.open(URL.createObjectURL(blob), '_blank', 'noopener')
-        return
-      } catch {
-        // Fall through to direct open
-      }
-    }
-    window.open(doc.file_url, '_blank', 'noopener')
+    // Supabase serves uploaded HTML as plain text — openDocumentFile re-wraps
+    // it as a text/html blob so the browser renders the reservation instead of
+    // dumping its source
+    await openDocumentFile(doc)
   }
 
   return (

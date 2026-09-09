@@ -24,7 +24,8 @@ import { GlassCard } from '@/components/shared/GlassCard'
 import { CrossLinks, type CrossLink } from '@/components/shared/CrossLinks'
 import { getLocationForArea } from '@/data/locations'
 import { useAppData } from '@/contexts/AppDataContext'
-import { hasRealFile } from '@/lib/documentFile'
+import { hasRealFile, isHtmlDocument, openDocumentFile } from '@/lib/documentFile'
+import { HtmlDocumentFrame } from '@/components/shared/HtmlDocumentFrame'
 
 // ── Region mapping ───────────────────────────────────────────────
 function getRegion(area: string): string {
@@ -500,14 +501,15 @@ function BookingCard({
                 </span>
                 <div className="flex items-center gap-3">
                   {hasRealFile(previewDoc) && (
-                    <a
-                      href={previewDoc.file_url}
-                      download
-                      onClick={(e) => e.stopPropagation()}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        void openDocumentFile(previewDoc)
+                      }}
                       className="text-caption text-ios-blue font-medium"
                     >
-                      הורד
-                    </a>
+                      פתח
+                    </button>
                   )}
                   <button className="text-apple-secondary text-lg font-bold">✕</button>
                 </div>
@@ -525,19 +527,19 @@ function BookingCard({
                     className="w-full h-full border-0"
                     title={previewDoc.title}
                   />
+                ) : isHtmlDocument(previewDoc) ? (
+                  <HtmlDocumentFrame url={previewDoc.file_url!} title={previewDoc.title} />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full gap-4 text-white">
                     <FileText className="w-16 h-16 opacity-40" />
                     <p className="text-subhead opacity-70">לא ניתן להציג פורמט זה בתצוגה מקדימה</p>
                     {hasRealFile(previewDoc) && (
-                      <a
-                        href={previewDoc.file_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => void openDocumentFile(previewDoc)}
                         className="px-4 py-2 bg-ios-blue rounded-apple text-white text-subhead font-medium"
                       >
                         פתח בחלון חדש
-                      </a>
+                      </button>
                     )}
                   </div>
                 )}
