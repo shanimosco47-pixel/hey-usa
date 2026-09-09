@@ -256,6 +256,7 @@ Deno.serve(async (req) => {
     account: string
     query: string
     found: number
+    previouslyScanned: number
     irrelevant: number
     deduped: number
     aiRejected: number
@@ -304,6 +305,7 @@ Deno.serve(async (req) => {
       account: account.email,
       query: '',
       found: 0,
+      previouslyScanned: 0,
       irrelevant: 0,
       deduped: 0,
       aiRejected: 0,
@@ -320,6 +322,7 @@ Deno.serve(async (req) => {
       account: account.email,
       query: '',
       found: 0,
+      previouslyScanned: 0,
       irrelevant: 0,
       deduped: 0,
       aiRejected: 0,
@@ -364,6 +367,32 @@ Deno.serve(async (req) => {
     messageRefs.reverse()
 
     diag.found = messageRefs.length
+
+    // Skip what an earlier run already examined, so each run starts where the
+    // last one stopped. Without this the scan could never finish a large
+    // mailbox: only imported messages were remembered, so every run re-fetched
+    // the same opening messages in the same order and halted at the same time
+    // budget, leaving the older confirmations permanently out of reach.
+    const seen = new Set<string>()
+    const { data: seenRows, error: seenError } = await supabase
+      .from('scanned_emails')
+      .select('message_id')
+      .eq('account_email', account.email)
+
+    if (seenError) {
+      // Not fatal: without the skip list the run simply repeats earlier work.
+      console.error('[email-scan] Could not read scan history:', seenError.message)
+      diag.errors.push(`scan_history_unavailable: ${seenError.message}`)
+    } else {
+      for (const row of seenRows ?? []) seen.add(row.message_id as string)
+    }
+
+    const beforeSkip = messageRefs.length
+    messageRefs = messageRefs.filter((ref) => !seen.has(ref.id))
+    diag.previouslyScanned = beforeSkip - messageRefs.length
+    console.log(
+      `[email-scan] ${diag.previouslyScanned} already examined, ${messageRefs.length} new for ${account.email}`,
+    )
     console.log(`[email-scan] Found ${messageRefs.length} messages for ${account.email}`)
 
     // Split the remaining time evenly across the mailboxes still to be scanned.
@@ -391,6 +420,7 @@ Deno.serve(async (req) => {
     const FETCH_BATCH = 8
     let processed = 0
     let budgetSpent = false
+    const examined: string[] = []
 
     for (let start = 0; start < messageRefs.length && !budgetSpent; start += FETCH_BATCH) {
       const batch = messageRefs.slice(start, start + FETCH_BATCH)
@@ -414,6 +444,11 @@ Deno.serve(async (req) => {
           continue
         }
         const message = fetchResult.value
+
+        // Recorded before processing and withdrawn again if processing throws,
+        // so a message is remembered once it has genuinely been examined and a
+        // transient failure is retried on the next run rather than skipped.
+        examined.push(ref.id)
 
         try {
           const subject = getHeader(message, 'subject')
@@ -589,10 +624,27 @@ Deno.serve(async (req) => {
             })
           }
         } catch (err) {
+          examined.pop()
           diag.errors.push(`msg_${ref.id}: ${err}`)
           console.error(`[email-scan] Failed to process message ${ref.id}:`, err)
           // Continue with next message
         }
+      }
+
+      // Flush per batch, so progress survives the function being killed.
+      if (examined.length > 0) {
+        const { error: markError } = await supabase.from('scanned_emails').upsert(
+          examined.map((messageId) => ({
+            account_email: account.email,
+            message_id: messageId,
+          })),
+          { onConflict: 'account_email,message_id' },
+        )
+        if (markError) {
+          console.error('[email-scan] Could not record scan history:', markError.message)
+          diag.errors.push(`scan_history_write_failed: ${markError.message}`)
+        }
+        examined.length = 0
       }
     }
 
