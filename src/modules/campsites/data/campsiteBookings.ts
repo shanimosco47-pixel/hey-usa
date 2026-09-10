@@ -10,14 +10,15 @@ export const sampleCampsiteBookings: CampsiteBooking[] = [
     type: 'hotel',
     priority: 'primary',
     status: 'confirmed',
-    confirmation: '6522237172',
+    confirmation: '5356965270',
     cost: 265.3,
     booking_url: 'https://www.booking.com/city/us/newark.html',
+    cancellation_deadline: '2026-09-07 23:59 (מקומי). מ-08/09/2026 דמי ביטול $129.65',
     notes:
-      'מאושר ב-DoubleTree by Hilton Newark Airport לפי אישור Booking.com מ-10/07/2026. מספר האישור והמחיר כאן עדיין מההזמנה הקודמת ב-Staybridge (6522237172, $265.30); יש לעדכן מהמייל החדש. נחיתה ב-15:50 (UA85). הטיסה לבוזמן ב-07:45 — לבדוק שאטל לטרמינל ולהזמין מראש',
+      'אישור Booking.com 5356965270. 128 Frontage Road, Newark, NJ 07114, טלפון +1 973-690-5500. צ׳ק-אין 10/09 מ-16:00, צ׳ק-אאוט 11/09 עד 11:00. 2 חדרים, 3 מבוגרים ו-2 ילדים. $225.22 חדרים + $40.08 מס = $265.30, טרם שולם. פיקדון נזקים $75 בהגעה. ארוחת בוקר $25 לאדם ללילה, לא כלול. שאטל לשדה כל 30 דקות, 24 שעות. נחיתה ב-15:50 (UA85); הטיסה לבוזמן ב-07:45 למחרת',
     changelog: [],
     created_at: '2026-03-21T00:00:00Z',
-    updated_at: '2026-07-10T17:59:29Z',
+    updated_at: '2026-09-10T00:00:00Z',
   },
   {
     id: 'camp-02',

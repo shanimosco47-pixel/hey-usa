@@ -30,9 +30,9 @@ export const ITINERARY_DAYS: ItineraryDay[] = [
         lat: 40.696,
         lng: -74.19,
         category: 'camp',
-        booking_confirmation: '6522237172',
+        booking_confirmation: '5356965270',
         notes:
-          'מספר האישור והמחיר עדיין מההזמנה הקודמת ב-Staybridge (6522237172, $265.30); יש לעדכן מאישור Booking.com ל-DoubleTree. יציאה מוקדמת — הטיסה לבוזמן ב-07:45. לוודא שאטל לטרמינל',
+          'אישור Booking.com 5356965270, $265.30. צ׳ק-אין מ-16:00, צ׳ק-אאוט עד 11:00. שאטל לשדה כל 30 דקות, 24 שעות. יציאה מוקדמת: הטיסה לבוזמן ב-07:45',
         order: 2,
       },
     ],
