@@ -1,6 +1,14 @@
 // importer.ts — Document import module for the email scan pipeline
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import {
+  isSameProperty,
+  planManualBookingUpdate,
+  type BookingChange,
+  type BookingConflict,
+} from './bookingMatch.ts'
+
+export type { BookingConflict } from './bookingMatch.ts'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -156,17 +164,21 @@ export async function importDocument(
 /**
  * Creates a campsite_booking entry from hotel/campsite email documents.
  * Conflict resolution:
- * - Manual bookings are NEVER overwritten
+ * - Manual bookings are NEVER overwritten. A confirmation for the same
+ *   property enriches it; one for a DIFFERENT property is flagged for review
+ *   and returned as a conflict so the family is told about it.
  * - Existing email_scan bookings are updated
  * - New bookings are created with source='email_scan'
+ *
+ * Returns a conflict when a manual booking needs human attention, else null.
  */
 export async function importCampsiteBooking(
   supabase: SupabaseClient,
   doc: ImportedDoc,
-): Promise<void> {
+): Promise<BookingConflict | null> {
   // Only process accommodation categories
   if (doc.category !== 'hotel_booking' && doc.category !== 'campsite_reservation') {
-    return
+    return null
   }
 
   const checkIn = doc.checkInDate ?? null
@@ -174,8 +186,8 @@ export async function importCampsiteBooking(
 
   // Must have at least one date
   if (!checkIn && !checkOut) {
-    console.log('[importer] Skipping campsite import — no dates available')
-    return
+    console.log('[importer] Skipping campsite import; no dates available')
+    return null
   }
 
   const now = new Date().toISOString()
@@ -197,63 +209,88 @@ export async function importCampsiteBooking(
     }
   }
 
-  // If a MANUAL booking exists → enrich with confirmation data (don't overwrite location/notes)
+  // If a MANUAL booking exists → enrich or flag, never overwrite
   if (existingBooking && existingBooking.source !== 'email_scan') {
-    const updates: Record<string, unknown> = { updated_at: now }
+    const plan = planManualBookingUpdate(
+      {
+        id: String(existingBooking.id),
+        check_in: String(existingBooking.check_in ?? searchDate ?? ''),
+        location: String(existingBooking.location ?? ''),
+        status: existingBooking.status as string | null,
+        confirmation: existingBooking.confirmation as string | null,
+        cost: existingBooking.cost as number | null,
+        cancellation_deadline: existingBooking.cancellation_deadline as string | null,
+        document_id: existingBooking.document_id as string | null,
+        notes: existingBooking.notes as string | null,
+        changelog: (existingBooking.changelog ?? []) as BookingChange[],
+      },
+      {
+        location: doc.title,
+        confirmation: doc.confirmation,
+        amount: doc.amount,
+        expiryDate: doc.expiryDate,
+        documentId: doc.documentId,
+      },
+      now,
+    )
 
-    // Update status to confirmed if we have a confirmation number
-    if (doc.confirmation && existingBooking.status !== 'confirmed') {
-      updates.status = 'confirmed'
-      updates.confirmation = doc.confirmation
-    }
-
-    // Fill in cost if missing
-    if (doc.amount && !existingBooking.cost) {
-      updates.cost = doc.amount
-    }
-
-    // Fill in cancellation_deadline if we have an expiry date and it's missing
-    if (doc.expiryDate && !existingBooking.cancellation_deadline) {
-      updates.cancellation_deadline = doc.expiryDate
-    }
-
-    // Link to document if not already linked
-    if (doc.documentId && !existingBooking.document_id) {
-      updates.document_id = doc.documentId
-    }
-
-    // Only update if we have something new to add
-    if (Object.keys(updates).length > 1) {
-      const { error } = await supabase
-        .from('campsite_bookings')
-        .update(updates)
-        .eq('id', existingBooking.id)
-
-      if (error) {
-        console.error('[importer] Failed to enrich manual booking:', error.message)
-      } else {
-        console.log(
-          `[importer] Enriched manual booking ${existingBooking.id} at ${existingBooking.location}`,
-        )
-      }
-    } else {
+    if (plan.action === 'none') {
       console.log(
-        `[importer] Manual booking for ${searchDate} at ${existingBooking.location} — nothing new to add`,
+        `[importer] Manual booking for ${searchDate} at ${existingBooking.location}; nothing new to add`,
       )
+      return null
     }
-    return
+
+    const changelog = [...((existingBooking.changelog ?? []) as BookingChange[]), ...plan.changes]
+
+    const { error } = await supabase
+      .from('campsite_bookings')
+      .update({ ...plan.updates, changelog, updated_at: now })
+      .eq('id', existingBooking.id)
+
+    if (error) {
+      console.error('[importer] Failed to update manual booking:', error.message)
+      return null
+    }
+
+    if (plan.action === 'conflict') {
+      console.log(
+        `[importer] Flagged manual booking ${existingBooking.id}: ${existingBooking.location} vs ${doc.title}`,
+      )
+      return plan.conflict
+    }
+
+    console.log(
+      `[importer] Enriched manual booking ${existingBooking.id} at ${existingBooking.location}`,
+    )
+    return null
   }
 
   // If an EMAIL_SCAN booking exists → UPDATE it
   if (existingBooking && existingBooking.source === 'email_scan') {
+    const replacesProperty = !isSameProperty(String(existingBooking.location ?? ''), doc.title)
+    const changelog = [...((existingBooking.changelog ?? []) as BookingChange[])]
+
+    if (replacesProperty) {
+      changelog.push({
+        field: 'location',
+        old_value: String(existingBooking.location ?? ''),
+        new_value: doc.title,
+        changed_at: now,
+      })
+    }
+
     const { error } = await supabase
       .from('campsite_bookings')
       .update({
         location: doc.title,
         check_out: checkOut ?? existingBooking.check_out,
         cost: doc.amount ?? existingBooking.cost,
+        confirmation: doc.confirmation ?? existingBooking.confirmation,
+        status: doc.confirmation ? 'confirmed' : existingBooking.status,
         notes: doc.notes || existingBooking.notes,
         document_id: doc.documentId ?? existingBooking.document_id,
+        changelog,
         updated_at: now,
       })
       .eq('id', existingBooking.id)
@@ -263,7 +300,7 @@ export async function importCampsiteBooking(
     } else {
       console.log(`[importer] Updated campsite booking: ${existingBooking.id}`)
     }
-    return
+    return null
   }
 
   // No match → CREATE new booking
@@ -294,6 +331,8 @@ export async function importCampsiteBooking(
   } else {
     console.log(`[importer] Created campsite booking: ${bookingId} for ${doc.title}`)
   }
+
+  return null
 }
 
 // ---------------------------------------------------------------------------
@@ -303,12 +342,22 @@ export async function importCampsiteBooking(
 /**
  * Builds a Hebrew notification message for Moti summarizing imported documents.
  */
-export function buildMotiNotification(results: ImportResult[]): string {
-  if (results.length === 0) {
-    return 'סריקת אימייל הושלמה — לא נמצאו מסמכי נסיעה חדשים.'
+export function buildMotiNotification(
+  results: ImportResult[],
+  conflicts: BookingConflict[] = [],
+): string {
+  if (results.length === 0 && conflicts.length === 0) {
+    return 'סריקת אימייל הושלמה; לא נמצאו מסמכי נסיעה חדשים.'
   }
 
   const lines: string[] = []
+
+  if (results.length === 0) {
+    lines.push('📬 סרקתי את האימיילים ולא נמצאו מסמכים חדשים, אבל יש משהו שדורש את תשומת הלב שלך:')
+    lines.push(...buildConflictLines(conflicts))
+    return lines.join('\n')
+  }
+
   lines.push(
     `📬 סרקתי את האימיילים ומצאתי ${results.length} מסמך${results.length > 1 ? 'ים' : ''} חדש${results.length > 1 ? 'ים' : ''}:`,
   )
@@ -327,7 +376,39 @@ export function buildMotiNotification(results: ImportResult[]): string {
   lines.push('')
   lines.push('כל המסמכים נשמרו בלשונית המסמכים. בדוק שהכל נראה תקין! 👍')
 
+  if (conflicts.length > 0) {
+    lines.push(...buildConflictLines(conflicts))
+  }
+
   return lines.join('\n')
+}
+
+/**
+ * Lines describing manual bookings that a newer confirmation contradicts.
+ * These are never applied automatically, so the family has to be told; the
+ * Denver/Newark mix-up survived a scan precisely because nobody was.
+ */
+function buildConflictLines(conflicts: BookingConflict[]): string[] {
+  const rlm = '\u200F'
+  const lines: string[] = ['']
+  lines.push(
+    `⚠️ ${conflicts.length === 1 ? 'שימו לב, יש הזמנה שהשתנתה' : `שימו לב, יש ${conflicts.length} הזמנות שהשתנו`}:`,
+  )
+
+  for (const c of conflicts) {
+    const [y, m, d] = c.checkIn.split('T')[0].split('-')
+    const date = y && m && d ? `${d}/${m}/${y}` : c.checkIn
+    let line = `🏨 ${date}: רשום אצלכם ${c.currentLocation}${rlm}, אבל ההזמנה העדכנית היא ${c.incomingLocation}${rlm}`
+    if (c.confirmation) {
+      line += `, אישור ${c.confirmation}${rlm}`
+    }
+    lines.push(line)
+  }
+
+  lines.push(
+    'לא שיניתי כלום; ההזמנה הידנית שלכם נשארה כמו שהיא. עדכנו ידנית אם ההזמנה החדשה נכונה.',
+  )
+  return lines
 }
 
 // ---------------------------------------------------------------------------
