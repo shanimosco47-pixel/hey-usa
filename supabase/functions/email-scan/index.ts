@@ -26,6 +26,7 @@ import {
   importDocument,
   importCampsiteBooking,
   buildMotiNotification,
+  type BookingConflict,
   postMotiMessage,
   ImportResult,
 } from './importer.ts'
@@ -251,6 +252,7 @@ Deno.serve(async (req) => {
   // Step 2: Process each email account
   // ------------------------------------------------------------------
   const allResults: ImportResult[] = []
+  const allConflicts: BookingConflict[] = []
   // Diagnostic stats per account
   const diagnostics: {
     account: string
@@ -537,7 +539,7 @@ Deno.serve(async (req) => {
                 `[email-scan] Imported .eml: ${emlResult.title} (${emlResult.documentId})`,
               )
 
-              await importCampsiteBooking(supabase, {
+              const emlConflict = await importCampsiteBooking(supabase, {
                 title: emlMeta.title,
                 category: emlMeta.category,
                 locationId: emlMeta.locationId,
@@ -554,6 +556,7 @@ Deno.serve(async (req) => {
                 confirmation: emlMeta.confirmation,
                 documentId: emlResult.documentId,
               })
+              if (emlConflict) allConflicts.push(emlConflict)
             }
           } else {
             // ---- Normal flow: capture from this email directly ----
@@ -605,7 +608,7 @@ Deno.serve(async (req) => {
             diag.imported++
             console.log(`[email-scan] Imported: ${result.title} (${result.documentId})`)
 
-            await importCampsiteBooking(supabase, {
+            const conflict = await importCampsiteBooking(supabase, {
               title: meta.title,
               category: meta.category,
               locationId: meta.locationId,
@@ -622,6 +625,7 @@ Deno.serve(async (req) => {
               confirmation: meta.confirmation,
               documentId: result.documentId,
             })
+            if (conflict) allConflicts.push(conflict)
           }
         } catch (err) {
           examined.pop()
@@ -669,7 +673,7 @@ Deno.serve(async (req) => {
   // ------------------------------------------------------------------
   // Step 4: Post Moti notification if anything was imported
   // ------------------------------------------------------------------
-  const notification = buildMotiNotification(allResults)
+  const notification = buildMotiNotification(allResults, allConflicts)
   await postMotiMessage(supabase, notification)
 
   console.log(`[email-scan] Done. Imported ${allResults.length} document(s).`)
@@ -681,6 +685,7 @@ Deno.serve(async (req) => {
     JSON.stringify({
       message: `Scan complete. Imported ${allResults.length} document(s).`,
       results: allResults,
+      conflicts: allConflicts,
       diagnostics,
     }),
     { status: 200 },
