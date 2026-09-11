@@ -31,6 +31,7 @@ import { EXPENSE_CATEGORIES } from '@/constants'
 import * as db from '@/lib/database'
 import { hydrateAvatarsFromSupabase } from '@/lib/avatarStorage'
 import { localDb } from '@/lib/db'
+import { buildDailyPack, loadCachedBookings, loadDailyPack, saveDailyPack } from '@/lib/dailyPack'
 import { pullFromSupabase, flushSyncQueue, queueSync } from '@/lib/sync'
 
 // Fallback sample data (used when Supabase is unavailable)
@@ -293,6 +294,33 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [locationNotes, setLocationNotes] = useState<LocationNote[]>(SAMPLE_LOCATION_NOTES)
   const [polls, setPolls] = useState<ActivityPoll[]>([])
   const [changeLog, setChangeLog] = useState<MotiChangeLogEntry[]>([])
+
+  // ─── Offline Daily Pack ────────────────────────────────────────
+  // Refreshed whenever the trip data changes and the browser believes it is
+  // online, so the critical facts for today and tomorrow survive the parks.
+
+  useEffect(() => {
+    if (isLoading) return
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return
+
+    try {
+      // Alerts and weather were fetched live earlier; rebuilding the plan must
+      // not discard them, or the pack goes offline with nothing to say.
+      const previous = loadDailyPack()
+      saveDailyPack(
+        buildDailyPack({
+          itineraryDays,
+          bookings: loadCachedBookings(),
+          documents,
+          alerts: previous?.alerts,
+          weatherNote: previous?.weather_note,
+          weatherRetrievedAt: previous?.weather_retrieved_at,
+        }),
+      )
+    } catch (err) {
+      console.warn('[dailyPack] refresh failed', err)
+    }
+  }, [isLoading, itineraryDays, documents])
 
   // ─── Load data: Dexie first, Supabase in background ────────────
 

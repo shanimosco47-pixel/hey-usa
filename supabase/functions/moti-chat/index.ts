@@ -1096,6 +1096,9 @@ Deno.serve(async (req) => {
 
     const conversation: OpenAIMessage[] = [...openAiMessages]
     let stop: StopReason | 'answered' = 'answered'
+    // Successful searches are returned alongside the answer so the client can
+    // show citations and keep them in the offline Daily Pack.
+    const searchSummaries: Array<Record<string, unknown>> = []
 
     while (choice?.tool_calls && choice.tool_calls.length > 0) {
       const { serverCalls, writeCalls } = classifyToolCalls(choice.tool_calls, SERVER_TOOL_NAMES)
@@ -1132,6 +1135,15 @@ Deno.serve(async (req) => {
           tool_call_id: result.id,
           content: result.content,
         })
+
+        if (result.name === 'search_web') {
+          try {
+            const parsed = JSON.parse(result.content) as Record<string, unknown>
+            if (parsed.web_search === 'ok') searchSummaries.push(parsed)
+          } catch {
+            // A malformed search result is simply not surfaced to the client.
+          }
+        }
       }
 
       // OpenAI requires a result for every tool_call, including client-side writes.
@@ -1185,7 +1197,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ text: text.trim(), actions }), {
+    return new Response(JSON.stringify({ text: text.trim(), actions, search: searchSummaries }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
     })
