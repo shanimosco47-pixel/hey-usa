@@ -12,6 +12,18 @@ import {
   type SearchCategory,
   type WebSearchInput,
 } from './webSearch.ts'
+import {
+  budgetNotice,
+  canRequestMoreTools,
+  classifyToolCalls,
+  createToolLoopState,
+  DEFAULT_LOOP_LIMITS,
+  recordRound,
+  summarizeLoop,
+  toolCallSignature,
+  type StopReason,
+  type ToolCall,
+} from './toolLoop.ts'
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
 
@@ -1066,71 +1078,99 @@ Deno.serve(async (req) => {
       withTools: !summarize,
     })
 
-    const choice1 = data1.choices?.[0]?.message
-    let text = choice1?.content?.trim() || ''
+    let choice = data1.choices?.[0]?.message
+    let text = choice?.content?.trim() || ''
     const actions: Array<{ tool: string; input: Record<string, unknown> }> = []
 
-    // ── Handle tool calls ─────────────────────────────────────────────────────
-    if (choice1?.tool_calls && choice1.tool_calls.length > 0) {
-      const readCalls: Array<{ id: string; name: string; args: Record<string, unknown> }> = []
+    // ── Multi-round tool loop ─────────────────────────────────────────────────
+    // Each round: the model asks for tools, the server runs the ones it owns,
+    // the results go back, and the model may ask for more. Budgets below stop
+    // it from spinning; write tools are never executed here.
+    const loop = createToolLoopState({
+      ...DEFAULT_LOOP_LIMITS,
+      maxRounds: Number(Deno.env.get('MOTI_MAX_TOOL_ROUNDS')) || DEFAULT_LOOP_LIMITS.maxRounds,
+      maxToolCalls: Number(Deno.env.get('MOTI_MAX_TOOL_CALLS')) || DEFAULT_LOOP_LIMITS.maxToolCalls,
+      maxDurationMs:
+        Number(Deno.env.get('MOTI_TOOL_LOOP_TIMEOUT_MS')) || DEFAULT_LOOP_LIMITS.maxDurationMs,
+    })
 
-      for (const toolCall of choice1.tool_calls) {
-        if (toolCall.type !== 'function') continue
-        const name = toolCall.function.name
-        let args: Record<string, unknown>
-        try {
-          args = JSON.parse(toolCall.function.arguments)
-        } catch {
-          // Malformed JSON from the model — proceed with empty args rather than crashing
-          console.error('Failed to parse tool arguments for', name, toolCall.function.arguments)
-          args = {}
-        }
+    const conversation: OpenAIMessage[] = [...openAiMessages]
+    let stop: StopReason | 'answered' = 'answered'
 
-        if (SERVER_TOOL_NAMES.has(name)) {
-          readCalls.push({ id: toolCall.id, name, args })
-        } else {
-          actions.push({ tool: name, input: args })
-        }
+    while (choice?.tool_calls && choice.tool_calls.length > 0) {
+      const { serverCalls, writeCalls } = classifyToolCalls(choice.tool_calls, SERVER_TOOL_NAMES)
+
+      for (const call of writeCalls) {
+        actions.push({ tool: call.name, input: call.args })
       }
 
-      if (readCalls.length > 0) {
-        // Execute all read tools in parallel
-        const toolResults = await Promise.all(
-          readCalls.map(async ({ id, name, args }) => ({
-            role: 'tool' as const,
-            tool_call_id: id,
-            content: await executeServerTool(name, args, apiKey),
-          })),
-        )
+      // The assistant turn that requested the tools must be echoed back.
+      conversation.push({
+        role: 'assistant',
+        content: choice.content || '',
+        tool_calls: choice.tool_calls,
+      })
 
-        // Provide stub results for any write tools called alongside reads
-        // (OpenAI requires all tool_calls to have a matching tool result)
-        const writeStubs = choice1.tool_calls
-          .filter((tc: { function: { name: string } }) => !SERVER_TOOL_NAMES.has(tc.function.name))
-          .map((tc: { id: string }) => ({
-            role: 'tool' as const,
-            tool_call_id: tc.id,
-            content: JSON.stringify({ status: 'executed' }),
-          }))
+      let cachedCount = 0
+      const results = await Promise.all(
+        serverCalls.map(async (call: ToolCall) => {
+          const signature = toolCallSignature(call.name, call.args)
+          const cached = loop.cache.get(signature)
+          if (cached !== undefined) {
+            cachedCount += 1
+            return { id: call.id, name: call.name, content: cached }
+          }
+          const content = await executeServerTool(call.name, call.args, apiKey)
+          loop.cache.set(signature, content)
+          return { id: call.id, name: call.name, content }
+        }),
+      )
 
-        // ── Second call: GPT-4o sees the data and generates a response ────────
-        const messagesWithResults: OpenAIMessage[] = [
-          ...openAiMessages,
-          {
-            role: 'assistant',
-            content: choice1.content || '',
-            tool_calls: choice1.tool_calls,
-          },
-          ...toolResults,
-          ...writeStubs,
-        ]
-
-        const data2 = await callOpenAI(apiKey, messagesWithResults, {
-          maxTokens: 2048,
-          withTools: false, // no more tool calls in the second turn
+      for (const result of results) {
+        conversation.push({
+          role: 'tool',
+          tool_call_id: result.id,
+          content: result.content,
         })
+      }
 
-        text = data2.choices?.[0]?.message?.content?.trim() || ''
+      // OpenAI requires a result for every tool_call, including client-side writes.
+      for (const call of writeCalls) {
+        conversation.push({
+          role: 'tool',
+          tool_call_id: call.id,
+          content: JSON.stringify({ status: 'queued_for_client' }),
+        })
+      }
+
+      recordRound(loop, {
+        tools: serverCalls.map((c) => c.name),
+        results: results.map((r) => r.content),
+        cachedCount,
+      })
+
+      const budget = canRequestMoreTools(loop)
+      if (!budget.ok) {
+        stop = budget.reason
+        conversation.push({ role: 'user', content: budgetNotice(budget.reason) })
+      }
+
+      const next = await callOpenAI(apiKey, conversation, {
+        maxTokens: 2048,
+        withTools: budget.ok,
+      })
+
+      choice = next.choices?.[0]?.message
+      text = choice?.content?.trim() || ''
+
+      if (!budget.ok) break
+    }
+
+    if (loop.rounds > 0) {
+      console.log(`[moti-chat] tool loop ${summarizeLoop(loop, stop)}`)
+      // A round that failed outright should never be papered over with silence.
+      if (!text && loop.consecutiveFailures > 0) {
+        text = 'לא הצלחתי לאמת את המידע הזה כרגע. נסו שוב בעוד רגע, או בדקו באתר הרשמי.'
       }
     }
 
