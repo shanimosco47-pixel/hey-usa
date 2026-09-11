@@ -1,17 +1,21 @@
 // Supabase Edge Function — Daily Trip Watch
 //
-// Checks tomorrow's itinerary against live external conditions and tells the
-// family only when something could materially change the day: a road closure on
-// the route, a park closure, severe weather, wildfire impact, an access or
-// reservation change.
+// Checks tomorrow's itinerary against live external conditions and records only
+// what could materially change the day: a road closure on the route, a park
+// closure, severe weather, wildfire impact, an access or reservation change.
 //
-// Runs on a schedule, server-side. Unlike set_reminder (client-side, fires only
-// while the app is open) this works with every browser closed.
+// Runs on a schedule, server-side, so detection does not need a browser open.
+//
+// What this DOES NOT do, stated plainly so nobody assumes otherwise: it does not
+// reach the user while the app is closed, and it sends no push or OS
+// notification. The message it writes waits in chat_messages until somebody
+// opens the app and loads the chat page. There is no realtime subscription, no
+// unread badge and no service-worker push handler in this project.
 //
 // Detection lives in detect.ts and knows nothing about delivery. Delivery here
 // is deliberately the smallest thing that already exists in this project: a
-// message from Moti in chat_messages, plus a durable row in trip_alerts. Push
-// delivery is documented in docs/moti.md as the next step, not invented here.
+// message from Moti in chat_messages, plus a durable row in trip_alerts. Real
+// delivery is an open follow-up, documented in docs/moti.md, not built here.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import {

@@ -153,18 +153,42 @@ number is filtered out before caching rather than stored.
 
 ## Trip Watch
 
-A scheduled edge function, `trip-watch`, that runs with every browser closed.
-Twice a day it reads tomorrow's itinerary and the booking for that night, checks
-parks, roads, weather and wildfire for those places, and speaks only when
-something material changed.
+A scheduled edge function, `trip-watch`, that runs server-side without a browser
+open. It reads tomorrow's itinerary and the booking for that night, checks parks,
+roads, weather and wildfire for those places, and acts only when something
+material changed.
+
+**What it does today, stated exactly:**
+
+- **Detects** relevant changes to tomorrow's conditions.
+- **Records** them in `trip_watch_state` and `trip_alerts`.
+- **Posts a Moti message into the chat** (`chat_messages`).
+- **Does NOT proactively reach the user while the app is closed.**
+- **Does NOT provide push or OS notifications.**
+
+This is not a notification system. The message waits in the database until
+somebody opens the app and loads the chat page. There is no realtime
+subscription, no unread badge, and no service-worker push handler, so nothing
+arrives on a phone with the app shut. Do not describe it as proactive.
+
+How the detection works:
 
 - **Detection** (`detect.ts`) is pure and separate from delivery: deterministic
   severity from source wording, route filtering that ignores generic words like
   "national park", and a diff against `trip_watch_state`.
-- **Threshold:** `major` and above. Minor and informational conditions never notify.
-- **No repeats:** the same closure notifies once, and again only if it worsens.
-- **Delivery:** a message from Moti in `chat_messages` plus a row in `trip_alerts`.
-- **Cadence:** two cron entries in `014_trip_watch.sql`, 13:00 and 02:00 UTC.
+- **Threshold:** `major` and above. Minor and informational conditions are recorded
+  but never produce a message.
+- **No repeats:** the same closure is reported once, and again only if it worsens.
+- **Cadence:** two cron entries documented in `014_trip_watch.sql`, 13:00 and
+  02:00 UTC, to be created manually.
+
+**Scheduling is not automatic, and cron failure is silent.** The cron pattern
+inherited from `006_email_scan_cron.sql` does not work in this project: it reads
+configuration parameters that do not exist, so the command raises before the
+function is ever called. The live `email-scan-6h` job has failed on all 311 of
+its runs for exactly this reason, with nothing in the function logs to show for
+it. `015_fix_email_scan_cron.sql` documents the repair. After scheduling
+anything, verify it with `cron.job_run_details` rather than assuming.
 
 ## What he cannot do
 
@@ -178,20 +202,30 @@ something material changed.
 
 ## Known gaps
 
-1. **Push delivery does not exist.** Trip Watch writes to chat and the database;
-   reaching a phone with the app closed needs a subscription store and VAPID keys.
-2. **The search model is unverified against this account.** `MOTI_SEARCH_MODEL`
+1. **Delivery does not exist.** Trip Watch detects, records and posts to chat,
+   and that is all. Nothing reaches a phone with the app closed: no push, no OS
+   notification, not even an unread badge when the app is next opened. The
+   smallest real fix is email from the edge function (one provider key, one
+   recipient, no client changes); Web Push would additionally need a custom
+   service worker, a `push_subscriptions` table, VAPID keys, and on iOS only
+   works for a PWA installed to the Home Screen.
+2. **Scheduling is unproven and fails silently.** `email-scan-6h` has failed
+   311/311 runs on a missing configuration parameter, with nothing in the
+   function logs. `015_fix_email_scan_cron.sql` documents the repair and
+   `014_trip_watch.sql` the corrected pattern; both must be run by hand and then
+   verified in `cron.job_run_details`.
+3. **The search model is unverified against this account.** `MOTI_SEARCH_MODEL`
    defaults to a Responses-API model with a documented fallback to
    `gpt-4o-search-preview`; only a live call proves which path is taken.
-3. **Weather in the Daily Pack is plumbed but unpopulated.** The weather widget's
+4. **Weather in the Daily Pack is plumbed but unpopulated.** The weather widget's
    own cache is not wired in yet; alerts come only from Moti's searches.
-4. **Trip facts still live in the system prompt** as well as the database:
+5. **Trip facts still live in the system prompt** as well as the database:
    flights, confirmation numbers and the day-by-day plan are duplicated in
    `moti-chat/index.ts`. They agree today. Moving them to the database is a
    follow-up issue, not done here.
-5. **Severity classification is English-only.** A Hebrew-only source reads as
+6. **Severity classification is English-only.** A Hebrew-only source reads as
    informational.
-6. Voice input exists (`useVoiceInput`, Web Speech API) but is browser-dependent
+7. Voice input exists (`useVoiceInput`, Web Speech API) but is browser-dependent
    and untested on the road.
 
 ## Environment variables

@@ -1,0 +1,78 @@
+-- Repair for the 'email-scan-6h' cron job, which has never worked.
+--
+-- This migration creates nothing. It documents SQL to be run manually, in the
+-- same style as 006_email_scan_cron.sql, because cron jobs live in the database
+-- rather than in migrations.
+--
+-- ─── What is wrong ──────────────────────────────────────────────────────────
+-- The live job builds its Authorization header from
+-- current_setting('supabase.service_role_key'). That configuration parameter
+-- does not exist in this database, so the command raises before net.http_post
+-- is ever reached. Evidence from cron.job_run_details on 2026-09-11:
+--
+--   status  runs  latest                     return_message
+--   failed  311   2026-09-11 12:00:00+00     ERROR: unrecognized configuration
+--                                            parameter "supabase.service_role_key"
+--
+-- 311 of 311 runs failed. The scheduled email scan has therefore never run; the
+-- scans that did work were the ones triggered by hand from the app. Nothing
+-- appears in the edge-function logs, because the function is never called, which
+-- is why this went unnoticed for months.
+--
+-- The same applies to the variant in 006_email_scan_cron.sql, which reads
+-- current_setting('app.settings.supabase_url') and
+-- current_setting('app.settings.service_role_key'). Both are also unset here.
+-- Checked on 2026-09-11: all three parameters return NOT SET.
+--
+-- ─── The fix ────────────────────────────────────────────────────────────────
+-- Use a literal URL and send no Authorization header. email-scan is deployed
+-- with verify_jwt = false, so an unauthenticated request from pg_net reaches the
+-- function; this was verified against the live project. Keeping the service key
+-- out of the command also keeps it out of cron.job, which is a plain table any
+-- database user can read.
+--
+-- Run these two statements in the SQL Editor:
+--
+--   SELECT cron.unschedule('email-scan-6h');
+--
+--   SELECT cron.schedule(
+--     'email-scan-6h',
+--     '0 */6 * * *',
+--     $$
+--     SELECT net.http_post(
+--       url := 'https://lsmqhowvmqwgztpnshbc.supabase.co/functions/v1/email-scan',
+--       headers := jsonb_build_object('Content-Type', 'application/json'),
+--       body := '{"mode": "full"}'::jsonb
+--     );
+--     $$
+--   );
+--
+-- ─── Confirm the repair ─────────────────────────────────────────────────────
+-- Wait for the next firing, then check that a run actually succeeded. Do not
+-- assume it works because cron.schedule returned an id:
+--
+--   SELECT j.jobname, d.status, d.start_time, left(d.return_message, 200)
+--   FROM cron.job j
+--   JOIN cron.job_run_details d ON d.jobid = j.jobid
+--   WHERE j.jobname = 'email-scan-6h'
+--   ORDER BY d.start_time DESC
+--   LIMIT 5;
+--
+-- 'succeeded' means the command ran, which means net.http_post was queued. To
+-- confirm the function itself answered, check the response pg_net recorded:
+--
+--   SELECT id, status_code, left(content, 200), created
+--   FROM net._http_response
+--   ORDER BY created DESC
+--   LIMIT 5;
+--
+-- ─── If verify_jwt is ever enabled ──────────────────────────────────────────
+-- Store the key in Vault (supabase_vault is installed) rather than inlining it:
+--
+--   SELECT vault.create_secret('<service-role-key>', 'service_role_key');
+--
+-- and read it back inside the cron command:
+--
+--   'Authorization', 'Bearer ' || (
+--     SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key'
+--   )
