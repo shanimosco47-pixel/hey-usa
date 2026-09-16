@@ -194,11 +194,63 @@ function toSupabaseShape(table: string, record: any): Record<string, unknown> {
   }
 }
 
+// ─── Reconciliation helpers ──────────────────────────────────────────────────
+
+/**
+ * Ids that exist locally but no longer exist on the server, excluding anything
+ * still waiting in the sync queue (a record created offline is not "deleted on
+ * the server" — it has simply never reached it yet).
+ */
+export function staleLocalIds(
+  localIds: string[],
+  serverIds: Set<string>,
+  pendingIds: Set<string>,
+): string[] {
+  return localIds.filter((id) => !serverIds.has(id) && !pendingIds.has(id))
+}
+
+/** Record ids per Dexie table that still have unsynced queue entries */
+async function pendingIdsByTable(): Promise<Record<string, Set<string>>> {
+  const pending = await localDb.syncQueue.where('synced').equals(0).toArray()
+  const map: Record<string, Set<string>> = {}
+  for (const item of pending) {
+    if (!map[item.table]) map[item.table] = new Set()
+    map[item.table].add(item.recordId)
+  }
+  return map
+}
+
+/**
+ * Mirror a server table into its Dexie table: upsert what the server has and
+ * drop local leftovers the server no longer has. Without the drop step every
+ * device keeps its own private union of server rows, seeded sample rows and
+ * rows deleted elsewhere — which is how two browsers end up showing different
+ * photos for the same trip.
+ */
+async function mirrorTable<T extends { id: string }>(
+  tableName: string,
+  rows: T[],
+  pending: Record<string, Set<string>>,
+): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const table = localDb.table(tableName) as any
+  if (rows.length) await table.bulkPut(rows)
+  const localIds = (await table.toCollection().primaryKeys()) as string[]
+  const stale = staleLocalIds(
+    localIds,
+    new Set(rows.map((r) => r.id)),
+    pending[tableName] ?? new Set(),
+  )
+  if (stale.length) await table.bulkDelete(stale)
+}
+
 // ─── Pull ────────────────────────────────────────────────────────────────────
 
 /**
  * Pull all data from Supabase into Dexie (initial load / refresh).
- * Uses bulkPut for efficiency — last-write-wins by overwriting local records.
+ * The server wins: local rows the server no longer has are removed, so two
+ * devices that pull successfully hold identical data. Rows still queued for
+ * upload are kept — they belong to the server, they just haven't arrived yet.
  * Returns true on success, false if Supabase is unavailable or an error occurs.
  */
 export async function pullFromSupabase(): Promise<boolean> {
@@ -421,6 +473,10 @@ export async function pullFromSupabase(): Promise<boolean> {
       }),
     )
 
+    // Read the queue before the transaction: rows still waiting to reach the
+    // server must survive the reconciliation below.
+    const pending = await pendingIdsByTable()
+
     // ── Write into Dexie in a single transaction ────────────────────────────
     await localDb.transaction(
       'rw',
@@ -438,17 +494,19 @@ export async function pullFromSupabase(): Promise<boolean> {
         localDb.polls,
       ],
       async () => {
-        if (tasks.length) await localDb.tasks.bulkPut(tasks)
-        if (expenses.length) await localDb.expenses.bulkPut(expenses)
+        // Supabase is the single source of truth: every device ends the pull
+        // holding exactly the server's rows, nothing more.
+        await mirrorTable('tasks', tasks, pending)
+        await mirrorTable('expenses', expenses, pending)
         if (budgetRecord) await localDb.budgetSettings.put(budgetRecord)
-        if (itineraryDays.length) await localDb.itineraryDays.bulkPut(itineraryDays)
-        if (packingItems.length) await localDb.packingItems.bulkPut(packingItems)
-        if (blogPosts.length) await localDb.blogPosts.bulkPut(blogPosts)
-        if (photos.length) await localDb.photos.bulkPut(photos)
-        if (documents.length) await localDb.documents.bulkPut(documents)
-        if (playlistItems.length) await localDb.playlistItems.bulkPut(playlistItems)
-        if (locationNotes.length) await localDb.locationNotes.bulkPut(locationNotes)
-        if (polls.length) await localDb.polls.bulkPut(polls)
+        await mirrorTable('itineraryDays', itineraryDays, pending)
+        await mirrorTable('packingItems', packingItems, pending)
+        await mirrorTable('blogPosts', blogPosts, pending)
+        await mirrorTable('photos', photos, pending)
+        await mirrorTable('documents', documents, pending)
+        await mirrorTable('playlistItems', playlistItems, pending)
+        await mirrorTable('locationNotes', locationNotes, pending)
+        await mirrorTable('polls', polls, pending)
       },
     )
 
