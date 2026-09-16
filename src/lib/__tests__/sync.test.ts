@@ -68,13 +68,35 @@ vi.mock('@/lib/db', () => ({
 }))
 
 // Import after mocks are set up
-const { queueSync, flushSyncQueue } = await import('@/lib/sync')
+const { queueSync, flushSyncQueue, staleLocalIds } = await import('@/lib/sync')
 
 beforeEach(() => {
   mockSyncQueueData.length = 0
   Object.keys(mockRecords).forEach((k) => delete mockRecords[k])
   mockUpsert.mockClear()
   mockDeleteEq.mockClear()
+})
+
+describe('staleLocalIds', () => {
+  it('drops local rows the server no longer has', () => {
+    expect(
+      staleLocalIds(['photo-1', 'photo-2', 'photo-3'], new Set(['photo-2']), new Set()),
+    ).toEqual(['photo-1', 'photo-3'])
+  })
+
+  it('keeps rows that are still queued for upload', () => {
+    expect(
+      staleLocalIds(['photo-1', 'photo-2'], new Set(['photo-2']), new Set(['photo-1'])),
+    ).toEqual([])
+  })
+
+  it('returns nothing when local and server agree', () => {
+    expect(staleLocalIds(['a', 'b'], new Set(['a', 'b']), new Set())).toEqual([])
+  })
+
+  it('drops everything local when the server table is empty', () => {
+    expect(staleLocalIds(['a', 'b'], new Set(), new Set())).toEqual(['a', 'b'])
+  })
 })
 
 describe('sync engine', () => {
