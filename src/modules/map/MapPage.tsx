@@ -51,6 +51,9 @@ interface DayRouteData {
   totalDistanceM: number
   midpoint: google.maps.LatLngLiteral
   legs: LegInfo[]
+  // false when the Directions request failed and we fell back to a straight
+  // line with no timing data — such a day has no drive time, it is unknown
+  resolved: boolean
 }
 
 // Format seconds to Hebrew duration string
@@ -107,8 +110,8 @@ interface ConnectorRoute {
 }
 
 // localStorage cache keys (bump version to invalidate after routing logic changes)
-const LS_DAY_ROUTES = 'hey-usa-day-routes-v2'
-const LS_CONN_ROUTES = 'hey-usa-conn-routes-v2'
+const LS_DAY_ROUTES = 'hey-usa-day-routes-v3'
+const LS_CONN_ROUTES = 'hey-usa-conn-routes-v3'
 
 function loadCachedRoutes<T>(key: string): Record<number, T> {
   try {
@@ -128,7 +131,14 @@ function saveCachedRoutes<T>(key: string, data: Record<number, T>) {
   }
 }
 
-function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: MapPoint[] }) {
+function RouteLines({
+  selectedDay,
+  showLabels,
+}: {
+  selectedDay: number | null
+  allPoints: MapPoint[]
+  showLabels: boolean
+}) {
   const map = useMap()
   const routesLib = useMapsLibrary('routes')
   const serviceRef = useRef<google.maps.DirectionsService | null>(null)
@@ -147,7 +157,12 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
 
   // Persist to localStorage when routes change
   useEffect(() => {
-    if (Object.keys(dayRoutes).length > 0) saveCachedRoutes(LS_DAY_ROUTES, dayRoutes)
+    // Never persist unresolved fallbacks — they would stick forever and hide
+    // real drive times once the Directions request succeeds again
+    const resolved = Object.fromEntries(
+      Object.entries(dayRoutes).filter(([, d]) => d.resolved),
+    ) as Record<number, DayRouteData>
+    if (Object.keys(resolved).length > 0) saveCachedRoutes(LS_DAY_ROUTES, resolved)
   }, [dayRoutes])
   useEffect(() => {
     if (Object.keys(connectorRoutes).length > 0) saveCachedRoutes(LS_CONN_ROUTES, connectorRoutes)
@@ -244,6 +259,7 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
           totalDistanceM,
           midpoint,
           legs,
+          resolved: true,
         }
         routeCacheRef.current[dayIdx] = data
         setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
@@ -284,6 +300,7 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
               totalDistanceM,
               midpoint: polylinePath[midIdx] || coords[0],
               legs: [],
+              resolved: true,
             }
             routeCacheRef.current[dayIdx] = data
             setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
@@ -302,6 +319,7 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
           totalDistanceM: 0,
           midpoint: fallbackCoords[Math.floor(fallbackCoords.length / 2)],
           legs: [],
+          resolved: false,
         }
         routeCacheRef.current[dayIdx] = data
         setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
@@ -448,8 +466,8 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
       const dayTotalDur = routeData.totalDurationSec + connDurSec
       const dayTotalDist = routeData.totalDistanceM + connDistM
 
-      // Add driving time labels (show even for 0-driving days)
-      {
+      // Driving time labels — hidden by the "תוויות" toggle
+      if (showLabels && routeData.resolved) {
         if (selectedDay !== null && routeData.legs.length > 0) {
           // Per-leg labels when viewing a single day
           for (const leg of routeData.legs) {
@@ -505,7 +523,7 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
       polylines.forEach((p) => p.setMap(null))
       overlays.forEach((o) => o.setMap(null))
     }
-  }, [map, selectedDay, dayRoutes, connectorRoutes])
+  }, [map, selectedDay, dayRoutes, connectorRoutes, showLabels])
 
   return null
 }
@@ -926,7 +944,9 @@ function MapContent() {
           onClick={handleMapClick}
         >
           <PlaceSearch initialQuery={initialSearchQuery} />
-          {!isDrivingMode && <RouteLines selectedDay={selectedDay} allPoints={allPoints} />}
+          {!isDrivingMode && (
+            <RouteLines selectedDay={selectedDay} allPoints={allPoints} showLabels={showLabels} />
+          )}
           <DrivingRoutePlanner
             selectedDay={selectedDay}
             isDrivingMode={isDrivingMode}
