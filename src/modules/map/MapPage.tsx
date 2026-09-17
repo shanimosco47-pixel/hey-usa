@@ -51,6 +51,9 @@ interface DayRouteData {
   totalDistanceM: number
   midpoint: google.maps.LatLngLiteral
   legs: LegInfo[]
+  // false when the Directions request failed and we fell back to a straight
+  // line with no timing data — such a day has no drive time, it is unknown
+  resolved: boolean
 }
 
 // Format seconds to Hebrew duration string
@@ -107,8 +110,8 @@ interface ConnectorRoute {
 }
 
 // localStorage cache keys (bump version to invalidate after routing logic changes)
-const LS_DAY_ROUTES = 'hey-usa-day-routes-v2'
-const LS_CONN_ROUTES = 'hey-usa-conn-routes-v2'
+const LS_DAY_ROUTES = 'hey-usa-day-routes-v3'
+const LS_CONN_ROUTES = 'hey-usa-conn-routes-v3'
 
 function loadCachedRoutes<T>(key: string): Record<number, T> {
   try {
@@ -128,7 +131,14 @@ function saveCachedRoutes<T>(key: string, data: Record<number, T>) {
   }
 }
 
-function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: MapPoint[] }) {
+function RouteLines({
+  selectedDay,
+  showLabels,
+}: {
+  selectedDay: number | null
+  allPoints: MapPoint[]
+  showLabels: boolean
+}) {
   const map = useMap()
   const routesLib = useMapsLibrary('routes')
   const serviceRef = useRef<google.maps.DirectionsService | null>(null)
@@ -147,7 +157,12 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
 
   // Persist to localStorage when routes change
   useEffect(() => {
-    if (Object.keys(dayRoutes).length > 0) saveCachedRoutes(LS_DAY_ROUTES, dayRoutes)
+    // Never persist unresolved fallbacks — they would stick forever and hide
+    // real drive times once the Directions request succeeds again
+    const resolved = Object.fromEntries(
+      Object.entries(dayRoutes).filter(([, d]) => d.resolved),
+    ) as Record<number, DayRouteData>
+    if (Object.keys(resolved).length > 0) saveCachedRoutes(LS_DAY_ROUTES, resolved)
   }, [dayRoutes])
   useEffect(() => {
     if (Object.keys(connectorRoutes).length > 0) saveCachedRoutes(LS_CONN_ROUTES, connectorRoutes)
@@ -244,6 +259,7 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
           totalDistanceM,
           midpoint,
           legs,
+          resolved: true,
         }
         routeCacheRef.current[dayIdx] = data
         setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
@@ -284,6 +300,7 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
               totalDistanceM,
               midpoint: polylinePath[midIdx] || coords[0],
               legs: [],
+              resolved: true,
             }
             routeCacheRef.current[dayIdx] = data
             setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
@@ -302,8 +319,10 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
           totalDistanceM: 0,
           midpoint: fallbackCoords[Math.floor(fallbackCoords.length / 2)],
           legs: [],
+          resolved: false,
         }
-        routeCacheRef.current[dayIdx] = data
+        // Deliberately NOT cached in routeCacheRef: that ref is the early-return
+        // guard, so caching a failure would block every retry for the session
         setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
       }
     } finally {
@@ -420,7 +439,6 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
     if (!map) return
 
     const polylines: google.maps.Polyline[] = []
-    const overlays: google.maps.OverlayView[] = []
 
     const daysToRender = selectedDay !== null ? [selectedDay] : Object.keys(dayRoutes).map(Number)
 
@@ -440,38 +458,6 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
           map,
         }),
       )
-
-      // Include incoming connector route (previous day's campsite → first stop of this day)
-      const incomingConn = idx > 0 ? connectorRoutes[idx - 1] : undefined
-      const connDurSec = incomingConn?.durationSec || 0
-      const connDistM = incomingConn?.distanceM || 0
-      const dayTotalDur = routeData.totalDurationSec + connDurSec
-      const dayTotalDist = routeData.totalDistanceM + connDistM
-
-      // Add driving time labels (show even for 0-driving days)
-      {
-        if (selectedDay !== null && routeData.legs.length > 0) {
-          // Per-leg labels when viewing a single day
-          for (const leg of routeData.legs) {
-            if (leg.durationSec > 0) {
-              const rvDur = Math.round(leg.durationSec * RV_TIME_MULTIPLIER)
-              const label = `🚐 ${formatDuration(rvDur)} · ${formatDistance(leg.distanceM)}`
-              const subtitle = `${leg.fromName} → ${leg.toName}`
-              const overlay = createDrivingTimeLabel(leg.midpoint, label, subtitle, color, map)
-              overlays.push(overlay)
-            }
-          }
-        } else {
-          // Compact day total (includes drive from previous campsite)
-          const rvDuration = Math.round(dayTotalDur * RV_TIME_MULTIPLIER)
-          const label =
-            dayTotalDur > 0
-              ? `יום ${idx + 1}: ${formatDuration(rvDuration)} · ${formatDistance(dayTotalDist)}`
-              : `יום ${idx + 1}: ללא נסיעה`
-          const overlay = createDrivingTimeLabel(routeData.midpoint, label, '', color, map)
-          overlays.push(overlay)
-        }
-      }
     }
 
     // Inter-day connector routes (dashed, following real roads)
@@ -503,9 +489,51 @@ function RouteLines({ selectedDay }: { selectedDay: number | null; allPoints: Ma
 
     return () => {
       polylines.forEach((p) => p.setMap(null))
-      overlays.forEach((o) => o.setMap(null))
     }
   }, [map, selectedDay, dayRoutes, connectorRoutes])
+
+  // Render driving time labels — separate from the polylines so that toggling
+  // them does not tear down and rebuild the whole route network
+  useEffect(() => {
+    if (!map || !showLabels) return
+
+    const overlays: google.maps.OverlayView[] = []
+    const daysToRender = selectedDay !== null ? [selectedDay] : Object.keys(dayRoutes).map(Number)
+
+    for (const idx of daysToRender.sort((a, b) => a - b)) {
+      const routeData = dayRoutes[idx]
+      // An unresolved route has no timing data — no label beats a wrong one
+      if (!routeData?.resolved) continue
+      const color = DAY_COLORS[idx % DAY_COLORS.length]
+
+      if (selectedDay !== null && routeData.legs.length > 0) {
+        // Per-leg labels when viewing a single day
+        for (const leg of routeData.legs) {
+          if (leg.durationSec > 0) {
+            const rvDur = Math.round(leg.durationSec * RV_TIME_MULTIPLIER)
+            const label = `🚐 ${formatDuration(rvDur)} · ${formatDistance(leg.distanceM)}`
+            const subtitle = `${leg.fromName} → ${leg.toName}`
+            overlays.push(createDrivingTimeLabel(leg.midpoint, label, subtitle, color, map))
+          }
+        }
+      } else {
+        // Compact day total, including the drive in from the previous campsite
+        const incomingConn = idx > 0 ? connectorRoutes[idx - 1] : undefined
+        const dayTotalDur = routeData.totalDurationSec + (incomingConn?.durationSec || 0)
+        const dayTotalDist = routeData.totalDistanceM + (incomingConn?.distanceM || 0)
+        const rvDuration = Math.round(dayTotalDur * RV_TIME_MULTIPLIER)
+        const label =
+          dayTotalDur > 0
+            ? `יום ${idx + 1}: ${formatDuration(rvDuration)} · ${formatDistance(dayTotalDist)}`
+            : `יום ${idx + 1}: ללא נסיעה`
+        overlays.push(createDrivingTimeLabel(routeData.midpoint, label, '', color, map))
+      }
+    }
+
+    return () => {
+      overlays.forEach((o) => o.setMap(null))
+    }
+  }, [map, selectedDay, dayRoutes, connectorRoutes, showLabels])
 
   return null
 }
@@ -926,7 +954,9 @@ function MapContent() {
           onClick={handleMapClick}
         >
           <PlaceSearch initialQuery={initialSearchQuery} />
-          {!isDrivingMode && <RouteLines selectedDay={selectedDay} allPoints={allPoints} />}
+          {!isDrivingMode && (
+            <RouteLines selectedDay={selectedDay} allPoints={allPoints} showLabels={showLabels} />
+          )}
           <DrivingRoutePlanner
             selectedDay={selectedDay}
             isDrivingMode={isDrivingMode}
