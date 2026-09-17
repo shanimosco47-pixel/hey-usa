@@ -321,7 +321,8 @@ function RouteLines({
           legs: [],
           resolved: false,
         }
-        routeCacheRef.current[dayIdx] = data
+        // Deliberately NOT cached in routeCacheRef: that ref is the early-return
+        // guard, so caching a failure would block every retry for the session
         setDayRoutes((prev) => ({ ...prev, [dayIdx]: data }))
       }
     } finally {
@@ -438,7 +439,6 @@ function RouteLines({
     if (!map) return
 
     const polylines: google.maps.Polyline[] = []
-    const overlays: google.maps.OverlayView[] = []
 
     const daysToRender = selectedDay !== null ? [selectedDay] : Object.keys(dayRoutes).map(Number)
 
@@ -458,38 +458,6 @@ function RouteLines({
           map,
         }),
       )
-
-      // Include incoming connector route (previous day's campsite → first stop of this day)
-      const incomingConn = idx > 0 ? connectorRoutes[idx - 1] : undefined
-      const connDurSec = incomingConn?.durationSec || 0
-      const connDistM = incomingConn?.distanceM || 0
-      const dayTotalDur = routeData.totalDurationSec + connDurSec
-      const dayTotalDist = routeData.totalDistanceM + connDistM
-
-      // Driving time labels — hidden by the "תוויות" toggle
-      if (showLabels && routeData.resolved) {
-        if (selectedDay !== null && routeData.legs.length > 0) {
-          // Per-leg labels when viewing a single day
-          for (const leg of routeData.legs) {
-            if (leg.durationSec > 0) {
-              const rvDur = Math.round(leg.durationSec * RV_TIME_MULTIPLIER)
-              const label = `🚐 ${formatDuration(rvDur)} · ${formatDistance(leg.distanceM)}`
-              const subtitle = `${leg.fromName} → ${leg.toName}`
-              const overlay = createDrivingTimeLabel(leg.midpoint, label, subtitle, color, map)
-              overlays.push(overlay)
-            }
-          }
-        } else {
-          // Compact day total (includes drive from previous campsite)
-          const rvDuration = Math.round(dayTotalDur * RV_TIME_MULTIPLIER)
-          const label =
-            dayTotalDur > 0
-              ? `יום ${idx + 1}: ${formatDuration(rvDuration)} · ${formatDistance(dayTotalDist)}`
-              : `יום ${idx + 1}: ללא נסיעה`
-          const overlay = createDrivingTimeLabel(routeData.midpoint, label, '', color, map)
-          overlays.push(overlay)
-        }
-      }
     }
 
     // Inter-day connector routes (dashed, following real roads)
@@ -521,6 +489,48 @@ function RouteLines({
 
     return () => {
       polylines.forEach((p) => p.setMap(null))
+    }
+  }, [map, selectedDay, dayRoutes, connectorRoutes])
+
+  // Render driving time labels — separate from the polylines so that toggling
+  // them does not tear down and rebuild the whole route network
+  useEffect(() => {
+    if (!map || !showLabels) return
+
+    const overlays: google.maps.OverlayView[] = []
+    const daysToRender = selectedDay !== null ? [selectedDay] : Object.keys(dayRoutes).map(Number)
+
+    for (const idx of daysToRender.sort((a, b) => a - b)) {
+      const routeData = dayRoutes[idx]
+      // An unresolved route has no timing data — no label beats a wrong one
+      if (!routeData?.resolved) continue
+      const color = DAY_COLORS[idx % DAY_COLORS.length]
+
+      if (selectedDay !== null && routeData.legs.length > 0) {
+        // Per-leg labels when viewing a single day
+        for (const leg of routeData.legs) {
+          if (leg.durationSec > 0) {
+            const rvDur = Math.round(leg.durationSec * RV_TIME_MULTIPLIER)
+            const label = `🚐 ${formatDuration(rvDur)} · ${formatDistance(leg.distanceM)}`
+            const subtitle = `${leg.fromName} → ${leg.toName}`
+            overlays.push(createDrivingTimeLabel(leg.midpoint, label, subtitle, color, map))
+          }
+        }
+      } else {
+        // Compact day total, including the drive in from the previous campsite
+        const incomingConn = idx > 0 ? connectorRoutes[idx - 1] : undefined
+        const dayTotalDur = routeData.totalDurationSec + (incomingConn?.durationSec || 0)
+        const dayTotalDist = routeData.totalDistanceM + (incomingConn?.distanceM || 0)
+        const rvDuration = Math.round(dayTotalDur * RV_TIME_MULTIPLIER)
+        const label =
+          dayTotalDur > 0
+            ? `יום ${idx + 1}: ${formatDuration(rvDuration)} · ${formatDistance(dayTotalDist)}`
+            : `יום ${idx + 1}: ללא נסיעה`
+        overlays.push(createDrivingTimeLabel(routeData.midpoint, label, '', color, map))
+      }
+    }
+
+    return () => {
       overlays.forEach((o) => o.setMap(null))
     }
   }, [map, selectedDay, dayRoutes, connectorRoutes, showLabels])
