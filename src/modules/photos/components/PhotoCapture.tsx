@@ -26,71 +26,103 @@ interface PhotoCaptureProps {
 
 export function PhotoCapture({ dayId, location }: PhotoCaptureProps) {
   const [isUploading, setIsUploading] = useState(false)
+  const [progress, setProgress] = useState({ done: 0, total: 0 })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { currentMember } = useAuth()
   const { addPhoto } = useAppData()
   const { addToast } = useToast()
 
+  /** Compress + store a single file, returning its final URL */
+  const uploadFile = async (file: File): Promise<string> => {
+    let compressed: Blob
+    try {
+      compressed = await imageCompression(file, {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 1600,
+        useWebWorker: false, // WebWorker can fail under strict CSP
+      })
+    } catch (compressionErr) {
+      console.warn('Image compression failed, using original file:', compressionErr)
+      compressed = file // Use original if compression fails
+    }
+
+    if (supabase) {
+      try {
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`
+        const sb = supabase
+        const { data } = await retryWithBackoff(async () => {
+          const result = await sb.storage.from('photos').upload(`trip/${fileName}`, compressed)
+          if (result.error) throw result.error
+          return result
+        })
+
+        const { data: publicUrl } = sb.storage.from('photos').getPublicUrl(data.path)
+
+        return publicUrl.publicUrl
+      } catch (storageErr) {
+        console.warn('Supabase storage failed, saving locally:', storageErr)
+        // Fall back to local data URL
+        return blobToDataUrl(compressed)
+      }
+    }
+
+    // No Supabase — save as persistent data URL (survives page reload)
+    return blobToDataUrl(compressed)
+  }
+
   const handleCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
 
     setIsUploading(true)
+    setProgress({ done: 0, total: files.length })
+
+    let succeeded = 0
+    const failed: string[] = []
+
     try {
-      let compressed: Blob
-      try {
-        compressed = await imageCompression(file, {
-          maxSizeMB: 0.5,
-          maxWidthOrHeight: 1600,
-          useWebWorker: false, // WebWorker can fail under strict CSP
-        })
-      } catch (compressionErr) {
-        console.warn('Image compression failed, using original file:', compressionErr)
-        compressed = file // Use original if compression fails
-      }
-
-      let url: string
-
-      if (supabase) {
+      // Sequential: keeps memory low on phones and preserves selection order
+      for (const file of files) {
         try {
-          const fileName = `${Date.now()}-${file.name}`
-          const sb = supabase
-          const { data } = await retryWithBackoff(async () => {
-            const result = await sb.storage.from('photos').upload(`trip/${fileName}`, compressed)
-            if (result.error) throw result.error
-            return result
+          const url = await uploadFile(file)
+
+          addPhoto({
+            url,
+            caption: '',
+            taken_by: (currentMember || 'aba') as FamilyMemberId,
+            day_id: dayId,
+            location: location || '',
+            tags: [],
+            is_favorite: false,
+            taken_at: new Date().toISOString(),
           })
 
-          const { data: publicUrl } = sb.storage.from('photos').getPublicUrl(data.path)
-
-          url = publicUrl.publicUrl
-        } catch (storageErr) {
-          console.warn('Supabase storage failed, saving locally:', storageErr)
-          // Fall back to local data URL
-          url = await blobToDataUrl(compressed)
+          succeeded += 1
+        } catch (err) {
+          console.error('Photo capture failed:', file.name, err)
+          failed.push(file.name)
+        } finally {
+          setProgress((prev) => ({ ...prev, done: prev.done + 1 }))
         }
-      } else {
-        // No Supabase — save as persistent data URL (survives page reload)
-        url = await blobToDataUrl(compressed)
       }
 
-      addPhoto({
-        url,
-        caption: '',
-        taken_by: (currentMember || 'aba') as FamilyMemberId,
-        day_id: dayId,
-        location: location || '',
-        tags: [],
-        is_favorite: false,
-        taken_at: new Date().toISOString(),
-      })
-
-      addToast('תמונה נוספה בהצלחה! 📸')
-    } catch (err) {
-      console.error('Photo capture failed:', err)
-      addToast('שגיאה בהעלאת התמונה', 'error')
+      if (succeeded > 0) {
+        addToast(
+          succeeded === 1 ? 'תמונה נוספה בהצלחה! 📸' : `${succeeded} תמונות נוספו בהצלחה! 📸`,
+        )
+      }
+      if (failed.length > 0) {
+        addToast(
+          failed.length === 1
+            ? `שגיאה בהעלאת התמונה ${failed[0]}`
+            : `${failed.length} תמונות נכשלו בהעלאה`,
+          'error',
+        )
+      }
     } finally {
+      // Always re-enable the buttons, even if a toast or state update throws
       setIsUploading(false)
+      setProgress({ done: 0, total: 0 })
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
@@ -102,6 +134,7 @@ export function PhotoCapture({ dayId, location }: PhotoCaptureProps) {
         onClick={() => {
           // Camera button — add capture attribute for mobile camera
           if (fileInputRef.current) {
+            fileInputRef.current.removeAttribute('multiple')
             fileInputRef.current.setAttribute('capture', 'environment')
             fileInputRef.current.click()
           }
@@ -114,18 +147,24 @@ export function PhotoCapture({ dayId, location }: PhotoCaptureProps) {
         ) : (
           <Camera className="h-4 w-4 ml-2" />
         )}
-        {isUploading ? 'מעלה...' : 'צלם תמונה'}
+        {isUploading
+          ? progress.total > 1
+            ? `מעלה ${Math.min(progress.done + 1, progress.total)}/${progress.total}...`
+            : 'מעלה...'
+          : 'צלם תמונה'}
       </Button>
       <Button
         variant="outline"
         onClick={() => {
-          // Upload button — remove capture so file picker opens
+          // Upload button — remove capture so the multi-select file picker opens
           if (fileInputRef.current) {
             fileInputRef.current.removeAttribute('capture')
+            fileInputRef.current.setAttribute('multiple', '')
             fileInputRef.current.click()
           }
         }}
         disabled={isUploading}
+        aria-label="העלאת תמונות מהגלריה"
       >
         <Upload className="h-4 w-4" />
       </Button>
@@ -133,6 +172,7 @@ export function PhotoCapture({ dayId, location }: PhotoCaptureProps) {
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        multiple
         onChange={handleCapture}
         className="hidden"
       />
