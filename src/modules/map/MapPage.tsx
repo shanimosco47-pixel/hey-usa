@@ -1044,8 +1044,9 @@ function MapContent() {
         </Map>
       </div>
 
-      {/* Overlay: day filter chips (below search bar) */}
-      <div className="pointer-events-none absolute top-14 start-2 end-2 z-[8]" dir="rtl">
+      {/* Overlay: day filter chips. top-16 clears the search bar, which ends at
+          56px (top-2 + 12px padding + 24px line + 12px padding). */}
+      <div className="pointer-events-none absolute top-16 start-2 end-2 z-[8]" dir="rtl">
         <div className="pointer-events-auto flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
           <button
             onClick={() => handleDaySelect(null)}
