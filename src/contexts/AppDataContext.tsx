@@ -711,7 +711,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const addPhoto = useCallback((photo: Omit<Photo, 'id' | 'created_at'>) => {
     const newPhoto: Photo = {
       ...photo,
-      id: `photo-${Date.now()}`,
+      // Random suffix: a batch upload can add several photos in the same millisecond
+      id: `photo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       created_at: new Date().toISOString(),
     }
     setPhotos((prev) => [newPhoto, ...prev])

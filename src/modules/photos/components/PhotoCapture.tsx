@@ -80,46 +80,51 @@ export function PhotoCapture({ dayId, location }: PhotoCaptureProps) {
     let succeeded = 0
     const failed: string[] = []
 
-    // Sequential: keeps memory low on phones and preserves selection order
-    for (const file of files) {
-      try {
-        const url = await uploadFile(file)
+    try {
+      // Sequential: keeps memory low on phones and preserves selection order
+      for (const file of files) {
+        try {
+          const url = await uploadFile(file)
 
-        addPhoto({
-          url,
-          caption: '',
-          taken_by: (currentMember || 'aba') as FamilyMemberId,
-          day_id: dayId,
-          location: location || '',
-          tags: [],
-          is_favorite: false,
-          taken_at: new Date().toISOString(),
-        })
+          addPhoto({
+            url,
+            caption: '',
+            taken_by: (currentMember || 'aba') as FamilyMemberId,
+            day_id: dayId,
+            location: location || '',
+            tags: [],
+            is_favorite: false,
+            taken_at: new Date().toISOString(),
+          })
 
-        succeeded += 1
-      } catch (err) {
-        console.error('Photo capture failed:', file.name, err)
-        failed.push(file.name)
-      } finally {
-        setProgress((prev) => ({ ...prev, done: prev.done + 1 }))
+          succeeded += 1
+        } catch (err) {
+          console.error('Photo capture failed:', file.name, err)
+          failed.push(file.name)
+        } finally {
+          setProgress((prev) => ({ ...prev, done: prev.done + 1 }))
+        }
       }
-    }
 
-    if (succeeded > 0) {
-      addToast(succeeded === 1 ? 'תמונה נוספה בהצלחה! 📸' : `${succeeded} תמונות נוספו בהצלחה! 📸`)
+      if (succeeded > 0) {
+        addToast(
+          succeeded === 1 ? 'תמונה נוספה בהצלחה! 📸' : `${succeeded} תמונות נוספו בהצלחה! 📸`,
+        )
+      }
+      if (failed.length > 0) {
+        addToast(
+          failed.length === 1
+            ? `שגיאה בהעלאת התמונה ${failed[0]}`
+            : `${failed.length} תמונות נכשלו בהעלאה`,
+          'error',
+        )
+      }
+    } finally {
+      // Always re-enable the buttons, even if a toast or state update throws
+      setIsUploading(false)
+      setProgress({ done: 0, total: 0 })
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
-    if (failed.length > 0) {
-      addToast(
-        failed.length === 1
-          ? `שגיאה בהעלאת התמונה ${failed[0]}`
-          : `${failed.length} תמונות נכשלו בהעלאה`,
-        'error',
-      )
-    }
-
-    setIsUploading(false)
-    setProgress({ done: 0, total: 0 })
-    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   return (
