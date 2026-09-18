@@ -68,7 +68,8 @@ vi.mock('@/lib/db', () => ({
 }))
 
 // Import after mocks are set up
-const { queueSync, flushSyncQueue, staleLocalIds } = await import('@/lib/sync')
+const { queueSync, flushSyncQueue, staleLocalIds, fetchAllPages, PULL_PAGE_SIZE } =
+  await import('@/lib/sync')
 
 beforeEach(() => {
   mockSyncQueueData.length = 0
@@ -96,6 +97,71 @@ describe('staleLocalIds', () => {
 
   it('drops everything local when the server table is empty', () => {
     expect(staleLocalIds(['a', 'b'], new Set(), new Set())).toEqual(['a', 'b'])
+  })
+})
+
+describe('fetchAllPages', () => {
+  /** Server holding `total` rows, handing back at most `cap` per request */
+  const server = (total: number, cap = PULL_PAGE_SIZE) => {
+    const calls: Array<[number, number]> = []
+    const fetchPage = async (from: number, to: number) => {
+      calls.push([from, to])
+      const end = Math.min(from + Math.min(to - from + 1, cap), total)
+      return {
+        data: Array.from({ length: Math.max(end - from, 0) }, (_, i) => ({
+          id: `row-${from + i}`,
+        })),
+        error: null,
+        count: total,
+      }
+    }
+    return { calls, fetchPage }
+  }
+
+  it('returns every row when the table fits in one page', async () => {
+    const { calls, fetchPage } = server(3)
+    const { data, error } = await fetchAllPages(fetchPage)
+    expect(error).toBeNull()
+    expect(data).toHaveLength(3)
+    expect(calls).toHaveLength(1)
+  })
+
+  it('keeps paging past the response cap instead of truncating', async () => {
+    const total = PULL_PAGE_SIZE * 2 + 7
+    const { calls, fetchPage } = server(total)
+    const { data } = await fetchAllPages(fetchPage)
+    expect(data).toHaveLength(total)
+    expect(calls).toHaveLength(3)
+    // Every row is distinct: no page was re-read or skipped
+    expect(new Set(data!.map((r) => r.id)).size).toBe(total)
+  })
+
+  it('still finishes when the server caps pages below the requested size', async () => {
+    const { data } = await fetchAllPages(server(250, 100).fetchPage)
+    expect(data).toHaveLength(250)
+  })
+
+  it('stops on an empty page when the server reports no count', async () => {
+    let call = 0
+    const { data } = await fetchAllPages(async () => {
+      call += 1
+      return {
+        data: call === 1 ? Array.from({ length: PULL_PAGE_SIZE }, (_, i) => ({ id: `${i}` })) : [],
+        error: null,
+        count: null,
+      }
+    })
+    expect(data).toHaveLength(PULL_PAGE_SIZE)
+  })
+
+  it('surfaces an error instead of a short list', async () => {
+    const { data, error } = await fetchAllPages(async () => ({
+      data: null,
+      error: { message: 'boom' },
+      count: null,
+    }))
+    expect(data).toBeNull()
+    expect(error).toEqual({ message: 'boom' })
   })
 })
 

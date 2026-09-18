@@ -246,6 +246,42 @@ async function mirrorTable<T extends { id: string }>(
 
 // ─── Pull ────────────────────────────────────────────────────────────────────
 
+/** Rows per PostgREST request. Supabase caps a single response at 1000 by default. */
+export const PULL_PAGE_SIZE = 1000
+
+interface PagedResult<T> {
+  data: T[] | null
+  error: unknown
+  count: number | null
+}
+
+/**
+ * Read a table page by page until every row is in hand.
+ *
+ * A single `select('*')` is capped server-side (1000 rows by default) and says
+ * nothing about being truncated. Feeding a truncated list to `mirrorTable`
+ * would read as "the server dropped everything past row 1000" and delete those
+ * rows locally, so the row count the server reports is what decides when the
+ * loop stops — not the size of a page, which a lower server cap can shrink.
+ */
+export async function fetchAllPages<T>(
+  fetchPage: (from: number, to: number) => Promise<PagedResult<T>>,
+): Promise<{ data: T[] | null; error: unknown }> {
+  const rows: T[] = []
+  for (;;) {
+    const page = await fetchPage(rows.length, rows.length + PULL_PAGE_SIZE - 1)
+    if (page.error) return { data: null, error: page.error }
+
+    const batch = page.data ?? []
+    rows.push(...batch)
+
+    // An empty page also ends the loop: without it an unknown count would spin.
+    if (batch.length === 0 || rows.length >= (page.count ?? rows.length)) {
+      return { data: rows, error: null }
+    }
+  }
+}
+
 /**
  * Pull all data from Supabase into Dexie (initial load / refresh).
  * The server wins: local rows the server no longer has are removed, so two
@@ -258,20 +294,31 @@ export async function pullFromSupabase(): Promise<boolean> {
   const sb = supabase
 
   try {
+    // Ordered by id so the page boundaries stay stable across requests
+    const selectAll = (table: string) =>
+      fetchAllPages(
+        async (from, to) =>
+          await sb
+            .from(table)
+            .select('*', { count: 'exact' })
+            .order('id', { ascending: true })
+            .range(from, to),
+      )
+
     const results = await retryWithBackoff(() =>
       Promise.all([
-        sb.from('tasks').select('*'),
-        sb.from('expenses').select('*'),
+        selectAll('tasks'),
+        selectAll('expenses'),
         // maybeSingle (not single) so an absent budget row is data:null, not an error
         sb.from('budget_settings').select('*').eq('id', 'main').maybeSingle(),
-        sb.from('itinerary_days').select('*'),
-        sb.from('packing_items').select('*'),
-        sb.from('blog_posts').select('*'),
-        sb.from('photos').select('*'),
-        sb.from('documents').select('*'),
-        sb.from('playlist_items').select('*'),
-        sb.from('location_notes').select('*'),
-        sb.from('activity_polls').select('*'),
+        selectAll('itinerary_days'),
+        selectAll('packing_items'),
+        selectAll('blog_posts'),
+        selectAll('photos'),
+        selectAll('documents'),
+        selectAll('playlist_items'),
+        selectAll('location_notes'),
+        selectAll('activity_polls'),
       ]),
     )
 
