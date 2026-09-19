@@ -9,7 +9,7 @@ import {
   useMapsLibrary,
 } from '@vis.gl/react-google-maps'
 import type { MapMouseEvent } from '@vis.gl/react-google-maps'
-import { Layers, Navigation, ExternalLink } from 'lucide-react'
+import { Layers, Navigation, ExternalLink, Trash2, Bookmark } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { DAY_COLORS } from '@/constants'
@@ -19,6 +19,7 @@ import { useMapMoti } from '@/contexts/MapMotiContext'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { PlaceSearch } from './components/PlaceSearch'
 import { DrivingRoutePlanner, type StopOption } from './components/DrivingRoutePlanner'
+import { useSavedRoutes, googleMapsUrl } from './hooks/useSavedRoutes'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 const MAP_ID = 'hey-usa-map'
@@ -781,6 +782,14 @@ function MapContent() {
   const [showSavedRoutes, setShowSavedRoutes] = useState(false)
   const [selectedStops, setSelectedStops] = useState<StopOption[]>([])
   const [drivingHintVisible, setDrivingHintVisible] = useState(false)
+  const { routes: savedRoutes, saveRoute, deleteRoute } = useSavedRoutes()
+
+  /** Reopen a saved route in the planner instead of only handing it to Google Maps */
+  const loadSavedRoute = useCallback((stops: StopOption[]) => {
+    setSelectedStops(stops)
+    setShowSavedRoutes(false)
+    setIsDrivingMode(true)
+  }, [])
   const map = useMap()
   const { consumeAction } = useMapMoti()
   const [initialSearchQuery, setInitialSearchQuery] = useState<string | null>(null)
@@ -963,6 +972,7 @@ function MapContent() {
             onToggleDrivingMode={() => setIsDrivingMode((v) => !v)}
             selectedStops={selectedStops}
             onSelectedStopsChange={setSelectedStops}
+            onSaveRoute={saveRoute}
           />
 
           {filteredPoints.map((point, i) => {
@@ -1111,7 +1121,45 @@ function MapContent() {
           className="absolute bottom-32 start-3 z-[9] w-[min(calc(100%-1.5rem),360px)]"
           dir="rtl"
         >
-          <div className="glass-float rounded-apple p-2 flex flex-col gap-1.5">
+          <div className="glass-float rounded-apple p-2 flex flex-col gap-1.5 max-h-[50vh] overflow-y-auto">
+            {savedRoutes.length > 0 && (
+              <>
+                <p className="px-1 text-caption font-semibold text-apple-secondary">המסלולים שלי</p>
+                {savedRoutes.map((route) => (
+                  <div key={route.id} className="flex items-center gap-1">
+                    <button
+                      onClick={() => loadSavedRoute(route.stops)}
+                      className="flex-1 min-w-0 rounded-apple-sm px-3 py-2 text-subhead text-apple-primary hover:bg-black/[0.04] transition-colors flex items-center gap-2 text-right"
+                    >
+                      <Bookmark className="h-3.5 w-3.5 shrink-0 text-ios-blue" />
+                      <span className="truncate">{route.name}</span>
+                      <span className="shrink-0 text-caption text-apple-tertiary">
+                        {route.stops.length}
+                      </span>
+                    </button>
+                    <a
+                      href={googleMapsUrl(route.stops)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`פתיחת ${route.name} בגוגל מפות`}
+                      className="rounded-apple-sm p-2 text-ios-blue hover:bg-ios-blue/10 transition-colors"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                    <button
+                      onClick={() => deleteRoute(route.id)}
+                      aria-label={`מחיקת ${route.name}`}
+                      className="rounded-apple-sm p-2 text-apple-secondary hover:bg-black/[0.06] transition-colors"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+                <p className="px-1 pt-1 text-caption font-semibold text-apple-secondary">
+                  מסלולי הטיול
+                </p>
+              </>
+            )}
             <a
               href="https://www.google.com/maps/dir/Mammoth+Lakes,+California+93546,+USA/Mono+Lake,+California+93541,+USA/Tioga+Rd,+California,+USA/North+Pines+Campground,+Yosemite+National+Park,+9024+Southside+Dr,+TUOLUMNE+MEADOWS,+CA+95389,+United+States/Marin+RV+Park,+2140+Redwood+Hwy,+Greenbrae,+CA+94904,+United+States/@38.2480539,-123.3573915,574674m"
               target="_blank"

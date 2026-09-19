@@ -11,9 +11,12 @@ import {
   Plus,
   Route,
   Zap,
+  Bookmark,
+  Check,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { ITINERARY_DAYS } from '@/data/itinerary'
+import { suggestRouteName } from '../hooks/useSavedRoutes'
 
 // Build flat stop list with day labels for the selector
 export interface StopOption {
@@ -31,6 +34,7 @@ interface DrivingRoutePlannerProps {
   onToggleDrivingMode: () => void
   selectedStops: StopOption[]
   onSelectedStopsChange: (stops: StopOption[]) => void
+  onSaveRoute: (name: string, stops: StopOption[]) => void
 }
 
 function buildStopOptions(): StopOption[] {
@@ -61,6 +65,7 @@ export function DrivingRoutePlanner({
   onToggleDrivingMode,
   selectedStops,
   onSelectedStopsChange,
+  onSaveRoute,
 }: DrivingRoutePlannerProps) {
   const map = useMap()
   const routesLib = useMapsLibrary('routes')
@@ -73,7 +78,13 @@ export function DrivingRoutePlanner({
   const [legDetailsOpen, setLegDetailsOpen] = useState(true)
   const [addStopOpen, setAddStopOpen] = useState(false)
   const [addStopFilter, setAddStopFilter] = useState('')
+  const [saveNameOpen, setSaveNameOpen] = useState(false)
+  const [saveName, setSaveName] = useState('')
+  const [justSaved, setJustSaved] = useState(false)
 
+  // Stop list the current routeResult was computed for; a mismatch means the
+  // drawn route and its leg labels belong to stops that are no longer selected.
+  const routeStopsKeyRef = useRef<string | null>(null)
   const serviceRef = useRef<google.maps.DirectionsService | null>(null)
   // Primary renderer + alt renderers
   const primaryRendererRef = useRef<google.maps.DirectionsRenderer | null>(null)
@@ -106,6 +117,7 @@ export function DrivingRoutePlanner({
 
   // Clear everything
   const clearRoute = useCallback(() => {
+    routeStopsKeyRef.current = null
     setRouteResult(null)
     setSelectedRouteIndex(0)
     setError(null)
@@ -115,6 +127,15 @@ export function DrivingRoutePlanner({
     } as unknown as google.maps.DirectionsResult)
     clearAltRenderers()
   }, [clearAltRenderers])
+
+  // Drop a route whose stops changed under it — loading a saved route swaps the
+  // whole list, and a kept route would relabel its old legs with the new names.
+  const stopsKey = selectedStops.map((s) => `${s.lat},${s.lng}`).join('|')
+  useEffect(() => {
+    if (routeStopsKeyRef.current !== null && routeStopsKeyRef.current !== stopsKey) {
+      clearRoute()
+    }
+  }, [stopsKey, clearRoute])
 
   // When driving mode closes, clear route
   useEffect(() => {
@@ -152,6 +173,7 @@ export function DrivingRoutePlanner({
         avoidTolls,
       } as google.maps.DirectionsRequest)
 
+      routeStopsKeyRef.current = selectedStops.map((s) => `${s.lat},${s.lng}`).join('|')
       setRouteResult(result)
       setLegDetailsOpen(true)
 
@@ -254,6 +276,19 @@ export function DrivingRoutePlanner({
     const url = `https://www.google.com/maps/dir/${parts.join('/')}`
     window.open(url, '_blank')
   }, [selectedStops])
+
+  const openSaveName = useCallback(() => {
+    setSaveName(suggestRouteName(selectedStops))
+    setSaveNameOpen(true)
+  }, [selectedStops])
+
+  const confirmSaveRoute = useCallback(() => {
+    if (selectedStops.length < 2) return
+    onSaveRoute(saveName, selectedStops)
+    setSaveNameOpen(false)
+    setJustSaved(true)
+    window.setTimeout(() => setJustSaved(false), 2000)
+  }, [onSaveRoute, saveName, selectedStops])
 
   // Filtered options for add-stop dropdown (exclude already selected)
   const selectedKeys = new Set(selectedStops.map((s) => `${s.lat},${s.lng}`))
@@ -518,6 +553,22 @@ export function DrivingRoutePlanner({
                             ניווט
                           </button>
                           <button
+                            onClick={openSaveName}
+                            className={cn(
+                              'flex items-center gap-1 rounded-full px-3 py-1.5 min-h-[36px] text-caption font-semibold transition-colors',
+                              justSaved
+                                ? 'bg-ios-green/15 text-ios-green'
+                                : 'bg-ios-blue/10 text-ios-blue active:bg-ios-blue/20',
+                            )}
+                          >
+                            {justSaved ? (
+                              <Check className="h-3 w-3" />
+                            ) : (
+                              <Bookmark className="h-3 w-3" />
+                            )}
+                            {justSaved ? 'נשמר' : 'שמור'}
+                          </button>
+                          <button
                             onClick={clearRoute}
                             className="flex items-center gap-1 rounded-full px-3 py-1.5 min-h-[36px] bg-black/5 text-apple-secondary text-caption font-semibold active:bg-black/10 transition-colors"
                           >
@@ -526,6 +577,36 @@ export function DrivingRoutePlanner({
                           </button>
                         </div>
                       </div>
+
+                      {/* Name the route before saving it */}
+                      {saveNameOpen && (
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            value={saveName}
+                            onChange={(e) => setSaveName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') confirmSaveRoute()
+                              if (e.key === 'Escape') setSaveNameOpen(false)
+                            }}
+                            placeholder="שם המסלול"
+                            autoFocus
+                            className="flex-1 min-w-0 rounded-apple-sm border border-black/10 bg-white/70 px-2.5 py-2 text-caption text-apple-primary placeholder:text-apple-tertiary outline-none focus:border-ios-blue"
+                          />
+                          <button
+                            onClick={confirmSaveRoute}
+                            className="rounded-apple-sm px-3 py-2 min-h-[36px] bg-ios-blue text-white text-caption font-semibold active:bg-ios-blue/80 transition-colors"
+                          >
+                            שמור
+                          </button>
+                          <button
+                            onClick={() => setSaveNameOpen(false)}
+                            className="rounded-apple-sm px-3 py-2 min-h-[36px] bg-black/5 text-apple-secondary text-caption font-semibold active:bg-black/10 transition-colors"
+                          >
+                            ביטול
+                          </button>
+                        </div>
+                      )}
 
                       {/* Leg breakdown toggle */}
                       <button
