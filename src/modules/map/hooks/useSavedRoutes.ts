@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { StopOption } from '../components/DrivingRoutePlanner'
 
 const STORAGE_KEY = 'hey-usa-saved-routes'
@@ -59,6 +59,17 @@ function writeStored(routes: SavedRoute[]): void {
  */
 export function useSavedRoutes() {
   const [routes, setRoutes] = useState<SavedRoute[]>(readStored)
+  const loadedFromStorage = useRef(true)
+
+  // Persist after the state is committed, never from inside an updater: a
+  // render React discards must not leave a route behind in storage.
+  useEffect(() => {
+    if (loadedFromStorage.current) {
+      loadedFromStorage.current = false
+      return
+    }
+    writeStored(routes)
+  }, [routes])
 
   const saveRoute = useCallback((name: string, stops: StopOption[]): void => {
     if (stops.length < 2) return
@@ -68,19 +79,11 @@ export function useSavedRoutes() {
       stops,
       createdAt: new Date().toISOString(),
     }
-    setRoutes((prev) => {
-      const next = [route, ...prev]
-      writeStored(next)
-      return next
-    })
+    setRoutes((prev) => [route, ...prev])
   }, [])
 
   const deleteRoute = useCallback((id: string): void => {
-    setRoutes((prev) => {
-      const next = prev.filter((r) => r.id !== id)
-      writeStored(next)
-      return next
-    })
+    setRoutes((prev) => prev.filter((r) => r.id !== id))
   }, [])
 
   return { routes, saveRoute, deleteRoute }

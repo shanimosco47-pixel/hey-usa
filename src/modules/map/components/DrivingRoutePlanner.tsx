@@ -82,6 +82,9 @@ export function DrivingRoutePlanner({
   const [saveName, setSaveName] = useState('')
   const [justSaved, setJustSaved] = useState(false)
 
+  // Stop list the current routeResult was computed for; a mismatch means the
+  // drawn route and its leg labels belong to stops that are no longer selected.
+  const routeStopsKeyRef = useRef<string | null>(null)
   const serviceRef = useRef<google.maps.DirectionsService | null>(null)
   // Primary renderer + alt renderers
   const primaryRendererRef = useRef<google.maps.DirectionsRenderer | null>(null)
@@ -114,6 +117,7 @@ export function DrivingRoutePlanner({
 
   // Clear everything
   const clearRoute = useCallback(() => {
+    routeStopsKeyRef.current = null
     setRouteResult(null)
     setSelectedRouteIndex(0)
     setError(null)
@@ -123,6 +127,15 @@ export function DrivingRoutePlanner({
     } as unknown as google.maps.DirectionsResult)
     clearAltRenderers()
   }, [clearAltRenderers])
+
+  // Drop a route whose stops changed under it — loading a saved route swaps the
+  // whole list, and a kept route would relabel its old legs with the new names.
+  const stopsKey = selectedStops.map((s) => `${s.lat},${s.lng}`).join('|')
+  useEffect(() => {
+    if (routeStopsKeyRef.current !== null && routeStopsKeyRef.current !== stopsKey) {
+      clearRoute()
+    }
+  }, [stopsKey, clearRoute])
 
   // When driving mode closes, clear route
   useEffect(() => {
@@ -160,6 +173,7 @@ export function DrivingRoutePlanner({
         avoidTolls,
       } as google.maps.DirectionsRequest)
 
+      routeStopsKeyRef.current = selectedStops.map((s) => `${s.lat},${s.lng}`).join('|')
       setRouteResult(result)
       setLegDetailsOpen(true)
 
