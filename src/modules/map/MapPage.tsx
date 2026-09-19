@@ -19,6 +19,7 @@ import { useMapMoti } from '@/contexts/MapMotiContext'
 import { useSidebar } from '@/contexts/SidebarContext'
 import { PlaceSearch } from './components/PlaceSearch'
 import { DrivingRoutePlanner, type StopOption } from './components/DrivingRoutePlanner'
+import { CurrentLocationButton } from './components/CurrentLocationButton'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''
 const MAP_ID = 'hey-usa-map'
@@ -954,6 +955,7 @@ function MapContent() {
           onClick={handleMapClick}
         >
           <PlaceSearch initialQuery={initialSearchQuery} />
+          <CurrentLocationButton />
           {!isDrivingMode && (
             <RouteLines selectedDay={selectedDay} allPoints={allPoints} showLabels={showLabels} />
           )}
