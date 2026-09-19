@@ -776,7 +776,9 @@ function DraggableControls({
 
 function MapContent() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
-  const [showLabels, setShowLabels] = useState(true)
+  // Off by default — the drive-time overlays crowd the map on a phone, and the
+  // day filter chips already say which day is which
+  const [showLabels, setShowLabels] = useState(false)
   const [popupInfo, setPopupInfo] = useState<MapPoint | null>(null)
   const [isDrivingMode, setIsDrivingMode] = useState(false)
   const [showSavedRoutes, setShowSavedRoutes] = useState(false)
@@ -1016,7 +1018,7 @@ function MapContent() {
             )
           })}
 
-          {showLabels && popupInfo && (
+          {popupInfo && (
             <InfoWindow
               position={{ lat: popupInfo.lat, lng: popupInfo.lng }}
               onCloseClick={() => setPopupInfo(null)}
