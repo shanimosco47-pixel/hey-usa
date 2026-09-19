@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { StaggerContainer, StaggerItem } from '@/components/ui/motion'
 import {
@@ -68,14 +68,56 @@ export default function PhotosPage() {
     }
   }
 
-  function navigatePhoto(direction: 'prev' | 'next') {
+  const navigatePhoto = useCallback(
+    (direction: 'prev' | 'next') => {
+      setSelectedPhoto((current) => {
+        if (!current || filtered.length === 0) return current
+        const idx = filtered.findIndex((p) => p.id === current.id)
+        if (idx === -1) return current
+        const newIdx =
+          direction === 'next'
+            ? (idx + 1) % filtered.length
+            : (idx - 1 + filtered.length) % filtered.length
+        return filtered[newIdx]
+      })
+    },
+    [filtered],
+  )
+
+  // Arrow keys and Escape drive the lightbox on a keyboard, swipes on a phone
+  useEffect(() => {
     if (!selectedPhoto) return
-    const idx = filtered.findIndex((p) => p.id === selectedPhoto.id)
-    const newIdx =
-      direction === 'next'
-        ? (idx + 1) % filtered.length
-        : (idx - 1 + filtered.length) % filtered.length
-    setSelectedPhoto(filtered[newIdx])
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') navigatePhoto('next')
+      else if (e.key === 'ArrowLeft') navigatePhoto('prev')
+      else if (e.key === 'Escape') setSelectedPhoto(null)
+      else return
+      e.preventDefault()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [selectedPhoto, navigatePhoto])
+
+  const SWIPE_THRESHOLD_PX = 50
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.changedTouches[0]
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY }
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const start = touchStartRef.current
+    touchStartRef.current = null
+    if (!start) return
+    const touch = e.changedTouches[0]
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+    // Ignore a mostly-vertical drag: that is a scroll, not a page turn
+    if (Math.abs(dx) < SWIPE_THRESHOLD_PX || Math.abs(dx) <= Math.abs(dy)) return
+    // Dragging the photo leftwards pulls in the one on its right, matching the
+    // arrow buttons: next on the right, previous on the left.
+    navigatePhoto(dx < 0 ? 'next' : 'prev')
   }
 
   function formatDate(dateStr: string) {
@@ -93,13 +135,20 @@ export default function PhotosPage() {
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-black/95">
         <div className="flex items-center justify-between p-4">
-          <button
-            onClick={() => setSelectedPhoto(null)}
-            className="rounded-full bg-white/10 p-2 text-white"
-            aria-label="סגירה"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSelectedPhoto(null)}
+              className="rounded-full bg-white/10 p-2 text-white"
+              aria-label="סגירה"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            {filtered.length > 1 && (
+              <span className="text-sm text-white/60" dir="ltr">
+                {filtered.findIndex((p) => p.id === selectedPhoto.id) + 1} / {filtered.length}
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
@@ -123,27 +172,36 @@ export default function PhotosPage() {
             </button>
           </div>
         </div>
-        <div className="flex flex-1 items-center justify-center px-4 relative">
-          <button
-            onClick={() => navigatePhoto('next')}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white"
-            aria-label="תמונה הבאה"
-          >
-            <ChevronRight className="h-6 w-6" />
-          </button>
+        <div
+          className="flex flex-1 items-center justify-center px-4 relative touch-pan-y"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          {filtered.length > 1 && (
+            <button
+              onClick={() => navigatePhoto('next')}
+              className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm active:bg-black/70 transition-colors"
+              aria-label="תמונה הבאה"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          )}
           <img
             src={selectedPhoto.url}
             alt={selectedPhoto.caption || ''}
-            className="max-h-[70vh] max-w-full rounded-lg object-contain"
+            className="max-h-[70vh] max-w-full rounded-lg object-contain select-none"
+            draggable={false}
             loading="lazy"
           />
-          <button
-            onClick={() => navigatePhoto('prev')}
-            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white"
-            aria-label="תמונה קודמת"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
+          {filtered.length > 1 && (
+            <button
+              onClick={() => navigatePhoto('prev')}
+              className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm active:bg-black/70 transition-colors"
+              aria-label="תמונה קודמת"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+          )}
         </div>
         <div className="p-4 text-center text-white">
           {selectedPhoto.caption && (
