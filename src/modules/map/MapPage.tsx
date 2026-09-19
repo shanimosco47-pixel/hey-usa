@@ -1015,7 +1015,9 @@ function MapContent() {
             )
           })}
 
-          {showLabels && popupInfo && (
+          {/* Tapping a marker always opens its details; the תוויות toggle governs
+              only the drive-time overlays on the route lines. */}
+          {popupInfo && (
             <InfoWindow
               position={{ lat: popupInfo.lat, lng: popupInfo.lng }}
               onCloseClick={() => setPopupInfo(null)}
