@@ -71,9 +71,13 @@ export default function PhotosPage() {
   const navigatePhoto = useCallback(
     (direction: 'prev' | 'next') => {
       setSelectedPhoto((current) => {
-        if (!current || filtered.length === 0) return current
+        if (!current) return current
+        // The open photo can drop out of the filter under us (un-favouriting it
+        // while filtering favourites): fall back to the start of what is left,
+        // and close when nothing is.
+        if (filtered.length === 0) return null
         const idx = filtered.findIndex((p) => p.id === current.id)
-        if (idx === -1) return current
+        if (idx === -1) return filtered[0]
         const newIdx =
           direction === 'next'
             ? (idx + 1) % filtered.length
@@ -102,6 +106,11 @@ export default function PhotosPage() {
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    // Single finger only: a pinch must not read as a swipe
+    if (e.touches.length > 1) {
+      touchStartRef.current = null
+      return
+    }
     const touch = e.changedTouches[0]
     touchStartRef.current = { x: touch.clientX, y: touch.clientY }
   }
@@ -109,7 +118,8 @@ export default function PhotosPage() {
   const handleTouchEnd = (e: React.TouchEvent) => {
     const start = touchStartRef.current
     touchStartRef.current = null
-    if (!start) return
+    // Other fingers still down — part of a multi-touch gesture, not a swipe
+    if (!start || e.touches.length > 0) return
     const touch = e.changedTouches[0]
     const dx = touch.clientX - start.x
     const dy = touch.clientY - start.y
@@ -132,6 +142,7 @@ export default function PhotosPage() {
   // Lightbox
   if (selectedPhoto) {
     const photographer = selectedPhoto.taken_by ? getFamilyMember(selectedPhoto.taken_by) : null
+    const selectedIndex = filtered.findIndex((p) => p.id === selectedPhoto.id)
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-black/95">
         <div className="flex items-center justify-between p-4">
@@ -143,9 +154,9 @@ export default function PhotosPage() {
             >
               <X className="h-5 w-5" />
             </button>
-            {filtered.length > 1 && (
+            {filtered.length > 1 && selectedIndex !== -1 && (
               <span className="text-sm text-white/60" dir="ltr">
-                {filtered.findIndex((p) => p.id === selectedPhoto.id) + 1} / {filtered.length}
+                {selectedIndex + 1} / {filtered.length}
               </span>
             )}
           </div>
