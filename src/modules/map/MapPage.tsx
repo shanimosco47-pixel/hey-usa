@@ -775,7 +775,8 @@ function DraggableControls({
 
 function MapContent() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
-  const [showLabels, setShowLabels] = useState(true)
+  // Off by default: drive-time overlays crowd the map before anyone asks for them
+  const [showLabels, setShowLabels] = useState(false)
   const [popupInfo, setPopupInfo] = useState<MapPoint | null>(null)
   const [isDrivingMode, setIsDrivingMode] = useState(false)
   const [showSavedRoutes, setShowSavedRoutes] = useState(false)
