@@ -727,6 +727,7 @@ export async function seedAllData(): Promise<void> {
           paid_by: e.paid_by,
           date: e.date,
           notes: e.notes || null,
+          day_id: e.day_id || null,
           created_at: e.created_at,
         })),
       ),

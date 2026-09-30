@@ -111,6 +111,7 @@ export const SAMPLE_EXPENSES: Expense[] = [
     paid_by: 'aba',
     date: '2026-09-08',
     notes: 'לילה אחד, 5 נוסעים. $20.00 · שער משוער 3.6',
+    day_id: 'day-9',
     created_at: '2026-09-08T12:00:00Z',
   },
   {
@@ -122,6 +123,7 @@ export const SAMPLE_EXPENSES: Expense[] = [
     paid_by: 'aba',
     date: '2026-04-07',
     notes: 'הזמנה #0843971162-1. $35.00 · שער משוער 3.6',
+    day_id: 'day-10',
     created_at: '2026-04-07T12:00:00Z',
   },
   {
@@ -133,6 +135,7 @@ export const SAMPLE_EXPENSES: Expense[] = [
     paid_by: 'aba',
     date: '2026-09-08',
     notes: 'אתר B040. $35.00 · שער משוער 3.6',
+    day_id: 'day-11',
     created_at: '2026-09-08T12:00:00Z',
   },
   {
@@ -144,6 +147,7 @@ export const SAMPLE_EXPENSES: Expense[] = [
     paid_by: 'aba',
     date: '2026-05-20',
     notes: '$26.00 · שער משוער 3.6',
+    day_id: 'day-15',
     created_at: '2026-05-20T12:00:00Z',
   },
   {
@@ -155,6 +159,7 @@ export const SAMPLE_EXPENSES: Expense[] = [
     paid_by: 'aba',
     date: '2026-05-20',
     notes: '$26.00 · שער משוער 3.6',
+    day_id: 'day-16',
     created_at: '2026-05-20T12:00:00Z',
   },
 ]
