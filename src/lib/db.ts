@@ -13,6 +13,21 @@ import type {
   ActivityPoll,
 } from './types'
 
+/**
+ * A photo whose file could not reach Supabase Storage yet. The compressed
+ * image stays here (not as a base64 row) until an upload succeeds, so the
+ * family never gets a photos row pointing at a file that only one phone has.
+ */
+export interface PendingPhotoUpload {
+  id: string
+  blob: Blob
+  file_name: string
+  photo: Omit<Photo, 'id' | 'created_at'>
+  created_at: string
+  attempts: number
+  last_error?: string
+}
+
 interface SyncMeta {
   id: string
   table: string
@@ -35,6 +50,7 @@ class HeyUSADatabase extends Dexie {
   locationNotes!: EntityTable<LocationNote, 'id'>
   syncQueue!: EntityTable<SyncMeta, 'id'>
   polls!: EntityTable<ActivityPoll, 'id'>
+  pendingPhotoUploads!: EntityTable<PendingPhotoUpload, 'id'>
 
   constructor() {
     super('hey-usa')
@@ -72,6 +88,10 @@ class HeyUSADatabase extends Dexie {
       locationNotes: 'id, locationId',
       syncQueue: 'id, table, synced, timestamp',
       polls: 'id, day_id, created_by',
+    })
+    // Additive: only adds the photo upload queue, every other table is unchanged
+    this.version(3).stores({
+      pendingPhotoUploads: 'id, created_at',
     })
   }
 }
