@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { StaggerContainer, StaggerItem } from '@/components/ui/motion'
 import {
@@ -13,6 +14,7 @@ import {
   Grid3X3,
   LayoutList,
   Trash2,
+  CloudUpload,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { FAMILY_MEMBERS_LIST, getFamilyMember } from '@/constants'
@@ -22,9 +24,22 @@ import { isSampleData } from '@/lib/sampleData'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import { PhotoCapture } from './components/PhotoCapture'
+import { PhoneShareGuide } from './components/PhoneShareGuide'
+import { usePhotoUpload } from './hooks/usePhotoUpload'
+import { consumeSharedFiles } from './lib/sharedFiles'
+
+/** Newest capture first; photos without a capture time fall back to upload time */
+function photoTime(p: Photo): number {
+  const t = Date.parse(p.taken_at || p.created_at)
+  return Number.isNaN(t) ? 0 : t
+}
 
 export default function PhotosPage() {
-  const { photos, updatePhoto, deletePhoto } = useAppData()
+  const { photos, updatePhoto, deletePhoto, itineraryDays } = useAppData()
+  const { uploadFiles, isUploading, progress, pendingCount, retryPending, isRetrying } =
+    usePhotoUpload()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [filterDay, setFilterDay] = useState<string>('all')
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
   const [filterFavorites, setFilterFavorites] = useState(false)
   const [filterMember, setFilterMember] = useState<FamilyMemberId | 'all'>('all')
@@ -52,12 +67,34 @@ export default function PhotosPage() {
     setSelectMode(false)
   }
 
+  // Photos shared from the Android gallery ("Share → Hey USA") wait in the
+  // service worker cache; pick them up whenever this page opens
+  const sharedFlag = searchParams.get('shared')
+  useEffect(() => {
+    // No cancel on unmount: the files are already out of the cache, so they
+    // must be uploaded (or parked in the upload queue) whatever happens next
+    void consumeSharedFiles().then((files) => {
+      if (files.length > 0) void uploadFiles(files)
+    })
+    if (sharedFlag) setSearchParams({}, { replace: true })
+    // Run once per arrival, not on every uploadFiles identity change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sharedFlag])
+
+  const dayById = useMemo(() => new Map(itineraryDays.map((d) => [d.id, d])), [itineraryDays])
+  const daysWithPhotos = useMemo(
+    () => itineraryDays.filter((d) => photos.some((p) => p.day_id === d.id)),
+    [itineraryDays, photos],
+  )
+
   const filtered = useMemo(() => {
     let result = photos
     if (filterFavorites) result = result.filter((p) => p.is_favorite)
     if (filterMember !== 'all') result = result.filter((p) => p.taken_by === filterMember)
-    return result
-  }, [photos, filterFavorites, filterMember])
+    if (filterDay === 'none') result = result.filter((p) => !p.day_id || !dayById.has(p.day_id))
+    else if (filterDay !== 'all') result = result.filter((p) => p.day_id === filterDay)
+    return [...result].sort((a, b) => photoTime(b) - photoTime(a))
+  }, [photos, filterFavorites, filterMember, filterDay, dayById])
 
   function toggleFavorite(id: string) {
     const photo = photos.find((p) => p.id === id)
@@ -85,6 +122,19 @@ export default function PhotosPage() {
       month: 'short',
       year: 'numeric',
     })
+  }
+
+  /**
+   * A trip photo shows its trip day's date: taken_at is an absolute time, and
+   * rendering it in Israel time can move an evening photo in Utah to the next day.
+   */
+  function photoDate(p: Photo): string | null {
+    const day = p.day_id ? dayById.get(p.day_id) : undefined
+    if (day) {
+      const [y, m, d] = day.date.split('-').map(Number)
+      return formatDate(new Date(y, m - 1, d).toISOString())
+    }
+    return p.taken_at ? formatDate(p.taken_at) : null
   }
 
   // Lightbox
@@ -161,10 +211,10 @@ export default function PhotosPage() {
                 {selectedPhoto.location}
               </span>
             )}
-            {selectedPhoto.taken_at && (
+            {photoDate(selectedPhoto) && (
               <span>
                 <Calendar className="ml-0.5 inline h-3.5 w-3.5" />
-                {formatDate(selectedPhoto.taken_at)}
+                {photoDate(selectedPhoto)}
               </span>
             )}
           </div>
@@ -288,8 +338,46 @@ export default function PhotosPage() {
         ))}
       </div>
 
-      <div className="px-0 mb-4">
-        <PhotoCapture />
+      {daysWithPhotos.length > 0 && (
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 shrink-0 text-apple-secondary" />
+          <select
+            value={filterDay}
+            onChange={(e) => setFilterDay(e.target.value)}
+            className="min-h-[44px] flex-1 rounded-apple glass px-3 text-sm text-apple-primary"
+            aria-label="סינון לפי יום בטיול"
+          >
+            <option value="all">כל הימים</option>
+            {daysWithPhotos.map((d) => (
+              <option key={d.id} value={d.id}>
+                {`יום ${itineraryDays.indexOf(d) + 1} · ${d.title}`}
+              </option>
+            ))}
+            <option value="none">ללא יום</option>
+          </select>
+        </div>
+      )}
+
+      <div className="px-0 mb-4 space-y-2">
+        <PhotoCapture onFiles={uploadFiles} isUploading={isUploading} progress={progress} />
+        <PhoneShareGuide />
+        {pendingCount > 0 && !isUploading && (
+          <div className="flex items-center justify-between gap-3 rounded-apple-lg bg-ios-orange/10 px-4 py-3">
+            <span className="flex items-center gap-2 text-sm text-apple-primary">
+              <CloudUpload className="h-4 w-4 shrink-0 text-ios-orange" />
+              {pendingCount === 1
+                ? 'תמונה אחת שמורה בטלפון וממתינה להעלאה'
+                : `${pendingCount} תמונות שמורות בטלפון וממתינות להעלאה`}
+            </span>
+            <button
+              onClick={() => void retryPending()}
+              disabled={isRetrying}
+              className="shrink-0 rounded-apple bg-ios-orange px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+            >
+              {isRetrying ? 'מעלה...' : 'נסו שוב'}
+            </button>
+          </div>
+        )}
       </div>
 
       {filtered.length === 0 ? (
@@ -378,7 +466,7 @@ export default function PhotosPage() {
                         />
                       )}
                       {photo.location && <span>{photo.location} · </span>}
-                      {photo.taken_at && formatDate(photo.taken_at)}
+                      {photoDate(photo)}
                     </p>
                   </div>
                   {selectMode ? (

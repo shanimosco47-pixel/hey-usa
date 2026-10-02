@@ -402,3 +402,8 @@ verify_jwt = false
 
 [functions.moti-chat]
 verify_jwt = false
+
+# iPhone Shortcut photo upload. The function checks the caller's public apikey
+# itself (works for both the legacy anon JWT and sb_publishable_ keys).
+[functions.photo-inbox]
+verify_jwt = false

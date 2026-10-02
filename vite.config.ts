@@ -21,6 +21,8 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2,json,pdf}'],
         cleanupOutdatedCaches: true,
+        // Android "Share → Hey USA" receiver; see public/share-target-sw.js
+        importScripts: ['share-target-sw.js'],
         skipWaiting: true,
         clientsClaim: true,
         navigateFallback: '/hey-usa/index.html',
@@ -85,6 +87,21 @@ export default defineConfig({
         lang: 'he',
         start_url: '/hey-usa/',
         scope: '/hey-usa/',
+        // Installed on Android, Hey USA shows up in the gallery's Share sheet.
+        // iOS has no Web Share Target; iPhones use the Shortcut in the photos page.
+        share_target: {
+          action: '/hey-usa/share-target',
+          method: 'POST',
+          enctype: 'multipart/form-data',
+          params: {
+            files: [
+              {
+                name: 'photos',
+                accept: ['image/*', '.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'],
+              },
+            ],
+          },
+        },
         icons: [
           { src: 'pwa-192x192.svg', sizes: '192x192', type: 'image/svg+xml' },
           {
