@@ -7,6 +7,7 @@ import type { FamilyMemberId } from '@/lib/types'
 import { EXPENSE_CATEGORIES, FAMILY_MEMBERS } from '@/constants'
 import { convertCurrency } from '@/lib/currency'
 import { retryWithBackoff } from '@/lib/retry'
+import { answerFromDailyPack, loadDailyPack, recordPackAlert } from '@/lib/dailyPack'
 import { ITINERARY_DAYS } from '@/data/itinerary'
 
 export interface ChatMessage {
@@ -705,6 +706,25 @@ ${Object.values(FAMILY_MEMBERS)
           const card = detectCard(assistantMessage, allActions)
           const quickActions = detectQuickActions(assistantMessage, allActions)
 
+          // Keep the freshest live information for the offline Daily Pack.
+          for (const summary of (data?.search ?? []) as Array<Record<string, unknown>>) {
+            try {
+              recordPackAlert({
+                topic: String(summary.query ?? 'live'),
+                category: String(summary.category ?? 'general'),
+                summary: String(summary.answer ?? ''),
+                sources: (summary.sources ?? []) as Array<{
+                  title: string
+                  url: string
+                  source: string
+                }>,
+                retrieved_at: String(summary.retrieved_at ?? new Date().toISOString()),
+              })
+            } catch {
+              // Caching live results must never break the reply.
+            }
+          }
+
           aiLastCallSucceeded = true
           return { text: assistantMessage, actions: allActions, card, quickActions }
         }
@@ -714,6 +734,18 @@ ${Object.values(FAMILY_MEMBERS)
     } catch (err) {
       aiLastCallSucceeded = false
       console.warn('AI request failed, falling back to keywords:', err)
+    }
+  }
+
+  // Offline chain: Daily Pack first, keyword engine only if it cannot answer.
+  const packAnswer = answerFromDailyPack(userMessage, loadDailyPack())
+  if (packAnswer) {
+    conversationHistory.push({ role: 'assistant', content: packAnswer })
+    return {
+      text: packAnswer,
+      actions: [],
+      card: detectCard(packAnswer, []),
+      quickActions: detectQuickActions(packAnswer, []),
     }
   }
 
