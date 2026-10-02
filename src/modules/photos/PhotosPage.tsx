@@ -24,6 +24,7 @@ import { isSampleData } from '@/lib/sampleData'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { FamilyAvatar } from '@/components/shared/FamilyAvatar'
 import { PhotoCapture } from './components/PhotoCapture'
+import { PhoneShareGuide } from './components/PhoneShareGuide'
 import { usePhotoUpload } from './hooks/usePhotoUpload'
 import { consumeSharedFiles } from './lib/sharedFiles'
 
@@ -359,6 +360,7 @@ export default function PhotosPage() {
 
       <div className="px-0 mb-4 space-y-2">
         <PhotoCapture onFiles={uploadFiles} isUploading={isUploading} progress={progress} />
+        <PhoneShareGuide />
         {pendingCount > 0 && !isUploading && (
           <div className="flex items-center justify-between gap-3 rounded-apple-lg bg-ios-orange/10 px-4 py-3">
             <span className="flex items-center gap-2 text-sm text-apple-primary">
