@@ -151,3 +151,25 @@ export async function runPool<T, R>(
   await Promise.all(lanes)
   return results
 }
+
+// ─── Inline (base64) photo migration ─────────────────────────────────
+
+export function isInlinePhotoUrl(url: string | undefined): url is string {
+  return typeof url === 'string' && url.startsWith('data:image/')
+}
+
+/**
+ * Older app versions saved a photo as a base64 data URL inside its row when
+ * storage failed. Move one such photo to Storage and return its new URL.
+ * The row is only rewritten by the caller after this resolves, so a failure
+ * leaves the photo exactly as it was.
+ */
+export async function moveInlinePhotoToStorage(
+  photo: Pick<Photo, 'id' | 'url'>,
+  upload: (blob: Blob, fileName: string) => Promise<string> = uploadToStorage,
+): Promise<string> {
+  if (!isInlinePhotoUrl(photo.url)) throw new Error('Not an inline photo')
+  const blob = await (await fetch(photo.url)).blob()
+  if (blob.size === 0) throw new Error('Inline photo is empty')
+  return upload(blob, `${photo.id}.jpg`)
+}

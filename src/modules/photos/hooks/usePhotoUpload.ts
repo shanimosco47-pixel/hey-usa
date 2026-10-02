@@ -10,7 +10,9 @@ import {
   UnsupportedPhotoError,
   blobToDataUrl,
   listPendingUploads,
+  isInlinePhotoUrl,
   markPendingFailed,
+  moveInlinePhotoToStorage,
   preparePhoto,
   queuePendingUpload,
   removePendingUpload,
@@ -26,6 +28,9 @@ type Outcome = 'uploaded' | 'queued' | 'unsupported' | 'failed'
 // Pending ids being uploaded right now, shared across hook instances so a
 // retry triggered by the `online` event never uploads the same photo twice.
 const inFlight = new Set<string>()
+// Inline photos already attempted this session (success or not), so a failing
+// one is not retried on every render; the next app start tries again.
+const inlineAttempted = new Set<string>()
 
 function heb(n: number, one: string, many: string) {
   return n === 1 ? one : `${n} ${many}`
@@ -65,7 +70,7 @@ function useLeaveWarning(active: boolean) {
 
 export function usePhotoUpload() {
   const { currentMember } = useAuth()
-  const { addPhoto, itineraryDays } = useAppData()
+  const { addPhoto, updatePhoto, photos, itineraryDays } = useAppData()
   const { addToast } = useToast()
   const [isUploading, setIsUploading] = useState(false)
   const [progress, setProgress] = useState({ done: 0, total: 0 })
@@ -236,6 +241,25 @@ export function usePhotoUpload() {
     window.addEventListener('online', onOnline)
     return () => window.removeEventListener('online', onOnline)
   }, [retryPending])
+
+  // Move photos still stored as base64 inside their row to Storage, one at a
+  // time and silently: lighter sync for every device, same picture.
+  useEffect(() => {
+    if (!supabase || !navigator.onLine) return
+    const todo = photos.filter((p) => isInlinePhotoUrl(p.url) && !inlineAttempted.has(p.id))
+    if (todo.length === 0) return
+    todo.forEach((p) => inlineAttempted.add(p.id))
+    void (async () => {
+      for (const p of todo) {
+        try {
+          const url = await moveInlinePhotoToStorage(p)
+          updatePhoto(p.id, { url })
+        } catch (err) {
+          console.warn('[photos] Could not move inline photo to storage:', p.id, err)
+        }
+      }
+    })()
+  }, [photos, updatePhoto])
 
   return { uploadFiles, isUploading, progress, pendingCount, retryPending, isRetrying }
 }

@@ -2,7 +2,14 @@ import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('@/lib/supabase', () => ({ supabase: null }))
 
-import { isHeic, safeStorageName, storagePath, runPool } from '../photoUpload'
+import {
+  isHeic,
+  isInlinePhotoUrl,
+  moveInlinePhotoToStorage,
+  safeStorageName,
+  storagePath,
+  runPool,
+} from '../photoUpload'
 
 describe('isHeic', () => {
   it('detects HEIC/HEIF by type or extension', () => {
@@ -48,5 +55,38 @@ describe('runPool', () => {
 
   it('handles an empty list', async () => {
     expect(await runPool([], 3, async () => 1)).toEqual([])
+  })
+})
+
+describe('moveInlinePhotoToStorage', () => {
+  const dataUrl = `data:image/jpeg;base64,${btoa('fake-jpeg-bytes')}`
+
+  it('uploads the decoded bytes and returns the storage URL', async () => {
+    let uploaded: Blob | undefined
+    const url = await moveInlinePhotoToStorage({ id: 'photo-1', url: dataUrl }, async (blob) => {
+      uploaded = blob
+      return 'https://x.supabase.co/storage/v1/object/public/photos/trip/a.jpg'
+    })
+    expect(url).toMatch(/^https:\/\//)
+    expect(uploaded?.size).toBe('fake-jpeg-bytes'.length)
+  })
+
+  it('refuses rows that are not inline photos and surfaces upload failures', async () => {
+    const never = async () => 'x'
+    await expect(
+      moveInlinePhotoToStorage({ id: 'p', url: 'https://a/b.jpg' }, never),
+    ).rejects.toThrow()
+    await expect(
+      moveInlinePhotoToStorage({ id: 'p', url: dataUrl }, async () => {
+        throw new Error('storage down')
+      }),
+    ).rejects.toThrow('storage down')
+  })
+
+  it('recognises only image data URLs as inline photos', () => {
+    expect(isInlinePhotoUrl(dataUrl)).toBe(true)
+    expect(isInlinePhotoUrl('data:text/html,<b>x</b>')).toBe(false)
+    expect(isInlinePhotoUrl('https://x/y.jpg')).toBe(false)
+    expect(isInlinePhotoUrl(undefined)).toBe(false)
   })
 })
