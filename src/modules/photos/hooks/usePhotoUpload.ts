@@ -138,7 +138,20 @@ export function usePhotoUpload() {
 
   const runBatch = useCallback(
     async (files: File[]) => {
-      const images = files.filter((f) => f.type.startsWith('image/') || /\.hei[cf]$/i.test(f.name))
+      // Some Android pickers hand over files with an empty type: trust the extension then
+      const images = files.filter(
+        (f) =>
+          f.type.startsWith('image/') ||
+          (!f.type && /\.(jpe?g|png|webp|gif|hei[cf])$/i.test(f.name)) ||
+          /\.hei[cf]$/i.test(f.name),
+      )
+      const skipped = files.length - images.length
+      if (skipped > 0) {
+        addToast(
+          `${heb(skipped, 'קובץ אחד אינו תמונה ודולג', 'קבצים אינם תמונות ודולגו')}`,
+          'error',
+        )
+      }
       if (images.length === 0) return
       busyRef.current = true
       setIsUploading(true)
